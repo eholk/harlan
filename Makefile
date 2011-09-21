@@ -4,7 +4,7 @@ XFAIL_TEST_SRC = $(shell grep -l xfail $(ALL_TEST_SRC))
 
 RUN_TEST_SRC = $(filter-out $(XFAIL_TEST_SRC), $(ALL_TEST_SRC))
 
-CXXFLAGS := -g -O2
+CXXFLAGS := -g -O2 gc/lib/libgc.a -Igc/include
 
 # Set up the flags to handle OpenCL
 ifeq ($(shell uname), Darwin)
@@ -12,7 +12,7 @@ CXXFLAGS := $(CXXFLAGS) -framework OpenCL
 else
 ifeq ($(shell uname), Linux)
 # This should work on 64-bit Gentoo with NVIDIA GPUs at least. YMMV.
-CXXFLAGS := $(CXXFLAGS) -I/opt/cuda/include -lOpenCL
+CXXFLAGS := $(CXXFLAGS) -I/opt/cuda/include -lOpenCL -lrt
 else
 $(error Your operating system is not yet supported.)
 endif
@@ -20,14 +20,15 @@ endif
 
 # Use clang if available, because it has better error messages.
 #ifneq (,`which clang++`)
-CXX = clang++
+#CXX = clang++
 #else
-#CXX = g++
+CXX = g++
 #endif
 
 # Invokes the harlan compiler. The first argument is the name of the
 # source file, the second is the name of the output file.
-HC = ./harlanc $(1) | $(CXX) test.bin/cl++.o $(CXXFLAGS) -x c++ -o $(2) -
+HC = ./harlanc $(1) | $(CXX) test.bin/cl++.o -x c++ - -x none $(CXXFLAGS) \
+     -o $(2)
 
 TEST_EXE_NAME = $(patsubst test/%, test.bin/%.bin, $(1))
 
@@ -57,6 +58,14 @@ test.bin/%.out : test.bin/%.bin
 	@$(call RUN_TEST, $(call TEST_EXE_NAME, $<)) > $@
 
 .precious : $(call TEST_EXE_NAME, $(RUN_TEST_SRC))
-test.bin/%.bin : test/% test.bin/cl++.o cl++.h cl++.cpp vectors.h
+test.bin/%.bin : test/% test.bin/cl++.o cl++.h cl++.cpp vectors.h \
+                 gc/lib/libgc.a
 	@echo Compiling $<
-	@$(call COMPILE_TEST, $<)
+	$(call COMPILE_TEST, $<)
+
+gc/lib/libgc.a :
+	cd gc-7.1
+	./configure `pwd`/../gc
+	make -j4
+	make install
+	cd ..

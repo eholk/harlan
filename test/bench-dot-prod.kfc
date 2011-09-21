@@ -7,6 +7,7 @@
       (let iters 1)
       (for (i 1 101)
            (let len (* (var i) 100000))
+           ;; (let len (* (var i) 100))
            (let ttime 0)
            (for (k 0 (var iters))
                 ;; TODO: make these vectors of length len

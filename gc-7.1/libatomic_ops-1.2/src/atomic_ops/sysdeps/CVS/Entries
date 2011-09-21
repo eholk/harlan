@@ -1,0 +1,33 @@
+D/gcc////
+D/hpc////
+D/ibmc////
+D/icc////
+D/msftc////
+D/sunc////
+/README/1.1/Tue Jul 11 22:55:09 2006//
+/acquire_release_volatile.h/1.1/Tue Jul 11 22:55:09 2006//
+/all_acquire_release_volatile.h/1.1/Tue Jul 11 22:55:09 2006//
+/all_atomic_load_store.h/1.1/Tue Jul 11 22:55:09 2006//
+/ao_t_is_int.h/1.1/Tue Jul 11 22:55:09 2006//
+/atomic_load_store.h/1.1/Tue Jul 11 22:55:09 2006//
+/char_acquire_release_volatile.h/1.1/Tue Jul 11 22:55:09 2006//
+/char_atomic_load_store.h/1.1/Tue Jul 11 22:55:09 2006//
+/emul_cas.h/1.1/Tue Jul 11 22:55:09 2006//
+/generic_pthread.h/1.1/Tue Jul 11 22:55:09 2006//
+/int_acquire_release_volatile.h/1.1/Tue Jul 11 22:55:09 2006//
+/int_atomic_load_store.h/1.1/Tue Jul 11 22:55:09 2006//
+/ordered.h/1.1/Tue Jul 11 22:55:09 2006//
+/ordered_except_wr.h/1.1/Tue Jul 11 22:55:09 2006//
+/read_ordered.h/1.1/Tue Jul 11 22:55:09 2006//
+/short_acquire_release_volatile.h/1.1/Tue Jul 11 22:55:09 2006//
+/short_atomic_load_store.h/1.1/Tue Jul 11 22:55:09 2006//
+/test_and_set_t_is_ao_t.h/1.1/Tue Jul 11 22:55:09 2006//
+/test_and_set_t_is_char.h/1.1/Tue Jul 11 22:55:09 2006//
+/Makefile.am/1.2/Tue Jun  5 22:06:20 2007//
+/Makefile.in/1.2/Tue Jun  5 22:06:20 2007//
+/aligned_atomic_load_store.h/1.2/Tue Jun  5 23:23:07 2007//
+/int_aligned_atomic_load_store.h/1.2/Tue Jun  5 23:23:07 2007//
+/short_aligned_atomic_load_store.h/1.2/Tue Jun  5 23:23:07 2007//
+/all_aligned_atomic_load_store.h/1.1/Tue Jun  5 23:23:07 2007//
+D/armcc////
+/standard_ao_double_t.h/1.3/Tue Jan  8 23:47:06 2008//

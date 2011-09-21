@@ -1,0 +1,12 @@
+D/atomic_ops////
+/Makefile.am/1.1/Tue Jul 11 22:55:09 2006//
+/Makefile.in/1.1/Tue Jul 11 22:55:09 2006//
+/Makefile.msft/1.1/Tue Jul 11 22:55:09 2006//
+/atomic_ops.c/1.1/Tue Jul 11 22:55:09 2006//
+/atomic_ops_malloc.c/1.1/Tue Jul 11 22:55:09 2006//
+/atomic_ops_malloc.h/1.1/Tue Jul 11 22:55:09 2006//
+/atomic_ops_stack.c/1.1/Tue Jul 11 22:55:09 2006//
+/atomic_ops_stack.h/1.1/Tue Jul 11 22:55:09 2006//
+/atomic_ops_sysdeps.S/1.1/Tue Jul 11 22:55:09 2006//
+/config.h.in/1.1/Tue Jul 11 22:55:09 2006//
+/atomic_ops.h/1.4/Mon Jul  9 23:21:07 2007//

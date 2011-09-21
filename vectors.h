@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <string.h>
 #define __global
+#include "gc.h"
 #else
 #define assert(e)
 #endif
@@ -39,7 +40,7 @@ typedef struct {
 
 #ifndef __OPENCL_VERSION__
 vbuf *vbuf_alloc(int size) {
-    vbuf *b = (vbuf *)malloc(sizeof(vbuf) + size);
+    vbuf *b = (vbuf *)GC_MALLOC(sizeof(vbuf) + size);
 
     b->ref_count = 1;
     b->used = 0;
@@ -48,7 +49,7 @@ vbuf *vbuf_alloc(int size) {
 }
 
 vbuf *vbuf_realloc(vbuf *b, int size) {
-    b = (vbuf *)realloc(b, sizeof(vbuf) + size);
+    b = (vbuf *)GC_REALLOC(b, sizeof(vbuf) + size);
     b->alloc = size;
     return b;
 }
@@ -57,7 +58,7 @@ void vbuf_drop(vbuf *b) {
     assert(b->ref_count > 0);
     b->ref_count--;
     if(!b->ref_count) {
-        free(b);
+        GC_FREE(b);
     }
 }
 #endif
@@ -81,7 +82,7 @@ void *hmk_vec(int rows, int cols, int unit_sz);
 void *hmk_vec(int rows, int cols, int unit_sz) {
 	int row_sz = 2 * sizeof(int) + cols * unit_sz;
 	int total_sz = 2 * sizeof(int) + rows * row_sz;
-	int *p = (int *)malloc(total_sz);
+	int *p = (int *)GC_MALLOC(total_sz);
 	p[0] = total_sz;
 	p[1] = rows;
 
