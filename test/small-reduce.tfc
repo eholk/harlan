@@ -1,0 +1,14 @@
+;; -*- scheme -*-
+
+;; This program doesn't work with the new vector representation for
+;; some reason.
+; xfail
+
+;; Simple reduction on a vector
+
+(module
+  (fn main () (() -> int)
+      (let V (vector int) (vector (int 1) (int 1) (int 1) (int 1)))
+      (let x int (reduce int + (var (vector int) V)))
+      (assert (= (int 4) (var int x)))
+      (return (int 0))))

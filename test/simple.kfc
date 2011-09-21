@@ -1,0 +1,5 @@
+;; -*- scheme -*-
+
+(module
+  (fn main ()
+      (return 0)))

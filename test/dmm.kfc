@@ -1,0 +1,27 @@
+;; -*- scheme -*-
+;; xfail
+
+;; Dense matrix-matrix product
+
+(module
+  (fn main ()
+      (let A (vector
+              (vector 1 0 0 0)
+              (vector 0 1 0 0)
+              (vector 0 0 1 0)
+              (vector 0 0 0 1)))
+      (let B (vector
+              (vector 1 0 0 0)
+              (vector 0 1 0 0)
+              (vector 0 0 1 0)
+              (vector 0 0 0 1)))
+      (let Bt (kernel ((j (iota (length (vector-ref B 0)))))
+                      (kernel ((i (iota (length (var B)))))
+                              (vector-ref (vector-ref B (var j)) (var i)))))
+      (let C (kernel ((row (var A)))
+               (kernel ((col (var Bt)))
+                 (reduce +
+                   (kernel ((x (var row)) (y (var col)))
+                     (* (var x) (var y)))))))
+      (assert (= (var C) (var A)))
+      (return 0)))

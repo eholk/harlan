@@ -1,0 +1,17 @@
+;; -*- scheme -*-
+;;xfail
+
+;; async kernel example from Harlan proposal
+;; handle = async kernel(x : X, y : Y) { x * y };
+;; /* Other concurrent kernels or program code go here. */
+;; z = +/wait(handle);
+
+(module
+  (fn main ()
+      (let X (vector 1 2 3 4))
+      (let X (vector 2 3 4 5))
+      (let handle (async/kernel ((x X) (y Y))
+      	            (* (var x) (var y))))
+      (let z (reduce + (wait handle)))
+      (assert (= z 40))
+      (return 0)))

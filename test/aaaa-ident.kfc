@@ -1,0 +1,10 @@
+;; -*- scheme -*-
+
+;; code for adding two vectors, from Harlan proposal
+
+(module
+  (fn main ()
+      (let X (vector 1 2 3 4))
+      (let Z (kernel ((x (var X)))
+               (var x)))
+      (return 0)))

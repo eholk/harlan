@@ -1,0 +1,67 @@
+#! /usr/bin/env scheme-script
+;; -*- scheme -*-
+(import (chezscheme)
+        (print-c)
+        (kernels)
+        (harlancompiler))
+
+(define (string-rfind s c)
+  (let loop ((s (string->list s))
+             (found -1)
+             (i 0))
+    (if (null? s)
+        found
+        (if (eq? (car s) c)
+            (loop (cdr s) i (+ i 1))
+            (loop (cdr s) found (+ i 1))))))
+
+(define (file-extension filename)
+  (let ((i (string-rfind filename #\.)))
+    (if (eq? i -1)
+        ""
+        (substring filename (+ i 1) (string-length filename)))))
+
+(define (file-type filename)
+  (let ((ext (file-extension filename)))
+    (cond
+     ((equal? ext "c")
+      'c)
+     ((equal? ext "cpp")
+      'cpp)
+     ((equal? ext "ss")
+      'scheme)
+     ((equal? ext "scm")
+      'scheme)
+     ((equal? ext "kfc")
+      'harlan)
+     ((equal? ext "sk")
+      'kernel-c)
+     ((equal? ext "tfc")
+      'typed-fried-chicken)
+     ((equal? ext "sc")
+      'sexpr-c))))
+
+(define print-compile-harlan
+  (lambda (filename)
+    (let ((input (read (open-input-file filename))))
+      (let ((c-code (compile-harlan input)))
+        (print-c c-code)))))
+
+(let* ((fverbose (equal? (cadr (command-line)) "-v"))
+       (args (if fverbose
+                 (cddr (command-line))
+                 (cdr  (command-line)))))
+  (verbose fverbose)
+  (unless (null? args)
+    (let ((filename (car args)))
+      (case (file-type filename)
+        ((c cpp)
+         (system (string-append "cat " filename)))
+        ((sexpr-c)
+         (print-c (read (open-input-file filename))))
+        ((kernel-c)
+         (print-c (compile-kernels (read (open-input-file filename)))))
+        ((typed-fried-chicken)
+         (print-c (compile-harlan-middle (read (open-input-file filename)))))
+        ((harlan)
+         (print-compile-harlan filename))))))

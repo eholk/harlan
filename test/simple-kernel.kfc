@@ -1,0 +1,11 @@
+;; -*- scheme -*-
+
+(module
+  (fn main ()
+      (let X (vector 1 2 3 4))
+      (let Y (kernel ((x (var X))) (+ 1 (var x))))
+      (assert (= (vector-ref Y 0) 2))
+      (assert (= (vector-ref Y 1) 3))
+      (assert (= (vector-ref Y 2) 4))
+      (assert (= (vector-ref Y 3) 5))
+      (return 0)))

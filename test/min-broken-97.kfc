@@ -1,0 +1,12 @@
+;; -*- scheme -*-
+
+(module
+  (fn main ()
+      (let B (vector
+              (vector 17)))
+
+      (for (i 0 1000)
+        (for (j 0 4)
+          (let row (vector-ref (vector-ref B 0) 0))))
+      
+      (return 0)))

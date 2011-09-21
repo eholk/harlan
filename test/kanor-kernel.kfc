@@ -1,0 +1,34 @@
+;; -*- scheme -*-
+;;xfail
+
+;; Harlan/Kanor hybrid program from Harlan proposal
+;; kernel(x : X, y : Y, z : Z) { z = x * y; }
+;; @communicate {
+;;   Y[i]@r <<= Z[i]@((r + 1) % NUM_NODES)
+;;   where r in world, i in 0...length(Y)
+;; }
+;; kernel(x : X, y : Y, z : Z) { z = x * y; }
+
+(module
+  (fn main ()
+      (let X (vector 1 2 3 4))
+      (let Z (vector 2 3 4 5))
+      (let Z (kernel ((x X) (y Y))
+               (* (var x) (var y))))
+      (assert (= (vector-ref Z 0) 2))
+      (assert (= (vector-ref Z 1) 6))
+      (assert (= (vector-ref Z 2) 12))
+      (assert (= (vector-ref Z 3) 20))
+      (let NUM_NODES 5)
+      (where* ((r world)
+               (i 0 (length Y)))
+        (transfer
+          (at (vector-ref Z i) (modulo (+ r 1) NUM_NODES))
+          (at (vector-ref Y i) r)))      
+      (let Z (kernel ((x X) (y Y))
+               (* (var x) (var y))))
+      (assert (= (vector-ref Z 0) (* (vector-ref X 0) (vector-ref Y 0))))
+      (assert (= (vector-ref Z 1) (* (vector-ref X 1) (vector-ref Y 1))))
+      (assert (= (vector-ref Z 2) (* (vector-ref X 2) (vector-ref Y 2))))
+      (assert (= (vector-ref Z 3) (* (vector-ref X 3) (vector-ref Y 3))))      
+      (return 0)))

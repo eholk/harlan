@@ -1,0 +1,23 @@
+;; -*- scheme -*-
+;; xfail
+
+;; Sparse matrix-vector
+
+(module
+  (fn main ()
+      (let Ai (vector
+               (vector 0)
+               (vector 1)
+               (vector 2)
+               (vector 3)))
+      (let Av (vector
+               (vector 1)
+               (vector 1)
+               (vector 1)
+               (vector 1)))
+      (let X (vector 1 2 3 4))
+      (let Y (kernel ((is (var Ai)) (vs (var Av)))
+                     (reduce + (kernel ((i (var is)) (v (var vs)))
+                                       (* (var v) (vector-ref X (var i)))))))
+      (assert (= (var X) (var Y)))
+      (return 0)))

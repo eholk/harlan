@@ -1,0 +1,10 @@
+;; -*- scheme -*-
+
+(module
+  (fn main ()
+      (let y 0)
+      (for (x 0 10)
+           (print (var x))
+           (set! (var y) (+ (var x) (var y))))
+      (assert (= (var y) 45))
+      (return 0)))

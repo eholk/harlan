@@ -1,0 +1,19 @@
+;; -*- scheme -*-
+;; xfail
+;; code for adding two vectors, from Harlan proposal
+
+;; This version uses explicit set!'s. It may not actually be legal
+;; Harlan, so we might have to make it fail later.
+
+(module
+  (fn main ()
+      (let X (vector 1 2 3 4))
+      (let Y (vector 5 1 1 7))
+      (let Z (vector 0 0 0 0))
+      (kernel ((x (var X)) (y (var Y)) (z (var Z)))
+              (set! z (+ (var x) (var y))))
+      (assert (= (vector-ref Z 0) 6))
+      (assert (= (vector-ref Z 1) 3))
+      (assert (= (vector-ref Z 2) 4))
+      (assert (= (vector-ref Z 3) 11))
+      (return 0)))

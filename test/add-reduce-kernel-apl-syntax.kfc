@@ -1,0 +1,14 @@
+;; -*- scheme -*-
+;;xfail
+
+;; APL-stye syntax for adding two vectors, from Harlan proposal
+;; z = +/kernel(x : X, y : Y) { x * y }
+
+(module
+  (fn main ()
+      (let X (vector 2 2 3 4))
+      (let Y (vector 5 3 4 7))
+      (let z (reduce + (kernel ((x X) (y Y))
+               (* (var x) (var y))))
+      (assert (= z 56))
+      (return 0)))
