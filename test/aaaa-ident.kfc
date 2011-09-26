@@ -1,4 +1,5 @@
 ;; -*- scheme -*-
+; xfail 
 
 ;; code for adding two vectors, from Harlan proposal
 

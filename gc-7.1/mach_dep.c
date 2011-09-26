@@ -160,6 +160,9 @@ void GC_push_regs()
 #endif
 
 #if !defined(HAVE_PUSH_REGS) && defined(UNIX_LIKE)
+#ifdef __APPLE__
+#define _XOPEN_SOURCE
+#endif
 # include <ucontext.h>
 #endif
 

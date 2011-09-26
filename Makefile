@@ -9,21 +9,16 @@ CXXFLAGS := -g -O2 gc/lib/libgc.a -Igc/include
 # Set up the flags to handle OpenCL
 ifeq ($(shell uname), Darwin)
 CXXFLAGS := $(CXXFLAGS) -framework OpenCL
+CXX := g++-4.2
 else
 ifeq ($(shell uname), Linux)
 # This should work on 64-bit Gentoo with NVIDIA GPUs at least. YMMV.
 CXXFLAGS := $(CXXFLAGS) -I/opt/cuda/include -lOpenCL -lrt
+CXX := g++
 else
 $(error Your operating system is not yet supported.)
 endif
 endif
-
-# Use clang if available, because it has better error messages.
-#ifneq (,`which clang++`)
-#CXX = clang++
-#else
-CXX = g++
-#endif
 
 # Invokes the harlan compiler. The first argument is the name of the
 # source file, the second is the name of the output file.

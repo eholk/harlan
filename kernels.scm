@@ -164,7 +164,9 @@
        ((func ,type ,name ,args ,[hoist-stmt -> stmt* kernel*] ...)
         (values
          (if (and (eq? name 'main) (not (null? (apply append kernel*))))
-             `(func ,type ,name ,args (do ((field g_prog build))) ,stmt* ...)
+             `(func ,type ,name ,args (do (GC_INIT) 
+					  ((field g_prog build))) 
+		    ,stmt* ...)
              `(func ,type ,name ,args ,stmt* ...))
          (apply append kernel*))))))
 
