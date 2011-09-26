@@ -20,9 +20,9 @@ enum error {
 
 // FIXME: These global variables will cause link errors if we ever
 // combine multiple files into a Harlan program.
-cl::device_list g_devices(//CL_DEVICE_TYPE_GPU |
+cl::device_list g_devices(CL_DEVICE_TYPE_GPU |
 						  CL_DEVICE_TYPE_CPU |
-						  //CL_DEVICE_TYPE_ACCELERATOR |
+						  CL_DEVICE_TYPE_ACCELERATOR |
 						  0);
 cl::context g_ctx(g_devices);
 cl::command_queue g_queue(g_ctx.createCommandQueue(g_devices[0]));

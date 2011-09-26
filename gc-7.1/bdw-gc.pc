@@ -1,4 +1,4 @@
-prefix=/home-preserved/scratch/eholk/osl/harlan/gc-7.1/../gc
+prefix=/home/eric/class/osl/harlan/gc-7.1/../gc
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include
