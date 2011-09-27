@@ -1,4 +1,5 @@
 ;; -*- scheme -*-
+; xfail
 
 ;; Dense matrix-matrix product
 ;; use loops instead of nested kernels

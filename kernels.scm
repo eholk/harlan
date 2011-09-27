@@ -167,7 +167,7 @@
              `(func ,type ,name ,args (do (GC_INIT) 
 					  ((field g_prog build))) 
 		    ,stmt* ...)
-             `(func ,type ,name ,args ,stmt* ...))
+             `(func ,type ,name ,args (do (GC_INIT)) ,stmt* ...))
          (apply append kernel*))))))
 
  (define hoist-stmt

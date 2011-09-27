@@ -58,7 +58,7 @@ test.bin/%.bin : test/% test.bin/cl++.o cl++.h cl++.cpp vectors.h
 	$(call COMPILE_TEST, $<)
 
 gc/lib/libgc.a :
-	cd gc-7.1 && \
+	cd gc-7.2alpha6 && \
 	./configure --prefix=`pwd`/../gc && \
 	make -j4 && \
 	make install
