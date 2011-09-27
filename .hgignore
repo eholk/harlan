@@ -20,3 +20,4 @@
 ^gc-7.1/libcord.la$
 ^gc-7.1/libgc.la$
 ^gc-7.1/libtool$
+\.pc$
