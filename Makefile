@@ -34,27 +34,26 @@ COMPILE_TEST = $(call HC, $(1), $(call TEST_EXE_NAME, $(1)))
 RUN_TEST = $(1)
 
 .phony: check
-check : test.bin test.bin/cl++.o cl++.h cl++.cpp \
-		$(call TEST_OUT_NAME, $(RUN_TEST_SRC))
+check : test.bin gc/lib/libgc.a test.bin/cl++.o cl++.h cl++.cpp \
+	$(call TEST_OUT_NAME, $(RUN_TEST_SRC))
 	@echo All tests succeeded.
 
 test.bin:
 	mkdir -p test.bin
 
-test.bin/cl++.o : test.bin cl++.h cl++.cpp
+test.bin/cl++.o : test.bin cl++.h cl++.cpp gc/lib/libgc.a
 	$(CXX) $(CXXFLAGS) -c cl++.cpp -o test.bin/cl++.o
 
 .phony: clean
 clean:
-	rm -rf test.bin *.dSYM
+	rm -rf test.bin *.dSYM gc
 
 test.bin/%.out : test.bin/%.bin
 	@echo Running $<
 	@$(call RUN_TEST, $(call TEST_EXE_NAME, $<)) > $@
 
 .precious : $(call TEST_EXE_NAME, $(RUN_TEST_SRC))
-test.bin/%.bin : test/% test.bin/cl++.o cl++.h cl++.cpp vectors.h \
-                 gc/lib/libgc.a
+test.bin/%.bin : test/% test.bin/cl++.o cl++.h cl++.cpp vectors.h
 	@echo Compiling $<
 	$(call COMPILE_TEST, $<)
 
