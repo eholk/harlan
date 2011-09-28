@@ -99,13 +99,13 @@ namespace cl {
 		// This is for simple values
 		template<typename T>
 		void setArg(int index, T value) {
-			clSetKernelArg(k, index, sizeof(T), &value);
+		  clSetKernelArg(k, index, sizeof(T), &value);
 		}
 
 		// This is for memory buffers
 		template<typename T>
 		void setArg(int index, buffer<T> &value) {
-			clSetKernelArg(k, index, sizeof(cl_mem), &value.mem);
+		  clSetKernelArg(k, index, sizeof(cl_mem), &value.mem);
 		}
 	};
 	

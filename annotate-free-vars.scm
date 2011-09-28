@@ -133,6 +133,7 @@
         ((cast ,t ,[(annotate-expr gamma) -> e]) `(cast ,t ,e))
         ((addressof ,[(annotate-expr gamma) -> e]) `(addressof ,e))
         ((sizeof ,t) `(sizeof ,t))
+	((malloc ,[(annotate-expr gamma) -> e]) `(malloc ,e))
         ((hmk_vec ,[(annotate-expr gamma) -> e1]
                   ,[(annotate-expr gamma) -> e2]
                   ,[(annotate-expr gamma) -> e3])

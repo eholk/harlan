@@ -61,6 +61,7 @@
       ((cast ,t ,[verify-expr -> e]) `(cast ,t ,e))
       ((addressof ,[verify-expr -> e]) `(addressof ,e))
       ((sizeof ,t) `(sizeof ,t))
+      ((malloc ,[verify-expr -> s]) `(malloc ,s))
       ((hvec_ref ,[v] ,[i] ,[sz])
        `(hvec_ref ,v ,i ,sz))
       ((hmk_vec ,[verify-expr -> e1] ,[verify-expr -> e2] ,[verify-expr -> e3])

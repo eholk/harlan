@@ -46,7 +46,8 @@
             t
             (string-append t "< " (join ", " t*) " >")))
        (,x (guard (symbol? x))
-           (symbol->string x)))))
+           (symbol->string x))
+       (,else (error 'format-type "Unknown type" else)))))
 
  (define format-arg
    (lambda (arg)
@@ -109,7 +110,7 @@
        ((deref ,[p])
         (string-append "*" p))
        ((cast ,[format-type -> t] ,[e])
-        (string-append "((" t ")" e ")"))
+        (string-append "((" t ")(" e "))"))
        ((addressof ,[e])
         (string-append "&" e))
        ((,op ,[lhs] ,[rhs])
