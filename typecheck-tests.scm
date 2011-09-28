@@ -69,9 +69,9 @@
   (let ((v (vector 'v)))
     `(module
        (fn main () (() -> int)
-         (let ,v (vector int)
+         (let ,v (vector int 4)
            (vector (int 1) (int 2) (int 3) (int 4)))
-         (print (var (vector int) ,v))
+         (print (var (vector int 4) ,v))
          (return (int 0))))))
 
 (test 'annotate-3
@@ -180,10 +180,30 @@
         (w (vector 'w)))
     `(module
        (fn main () (() -> int)
-         (let ,v (vector int) (vector (int 1) (int 2)))
-         (let v1 (vector int) (var (vector int) ,v))
-         (let ,w (vector int) (vector (int 3) (int 4)))
-         (let v2 (vector int) (var (vector int) ,w))
+         (let ,v (vector int 2) (vector (int 1) (int 2)))
+         (let v1 (vector int 2) (var (vector int 2) ,v))
+         (let ,w (vector int 2) (vector (int 3) (int 4)))
+         (let v2 (vector int 2) (var (vector int 2) ,w))
+         (return (int 5))))))
+
+(test-unify 'annotate-16j
+  (typecheck
+    (lift-vectors
+      (returnify
+        '(module
+           (fn main ()
+             (let v (vector (vector 1) (vector 2)))
+             (return 5))))))
+  (let ((v1 (vector 'v1)) (v2 (vector 'v2)) (v3 (vector 'v3)))
+    `(module
+       (fn main () (() -> int)
+         (let ,v1 (vector int 1) (vector (int 1)))
+	 (let ,v2 (vector int 1) (vector (int 2)))
+	 (let ,v3 (vector (vector int 1) 2) 
+	      (vector (var (vector int 1) ,v1) 
+		      (var (vector int 1) ,v2)))
+         (let v (vector (vector int 1) 2) 
+	   (var (vector (vector int 1) 2) ,v3))
          (return (int 5))))))
 
 (test 'annotate-19
@@ -211,9 +231,9 @@
         (w (vector 'w)))
     `(module
        (fn main () (() -> int)
-         (let ,v (vector int) (vector (int 1) (int 2)))
-         (let ,w (vector int) (vector (int 3) (int 4)))
-         (assert (= (var (vector int) ,v) (var (vector int) ,w)))
+         (let ,v (vector int 2) (vector (int 1) (int 2)))
+         (let ,w (vector int 2) (vector (int 3) (int 4)))
+         (assert (= (var (vector int 2) ,v) (var (vector int 2) ,w)))
          (return (int 0))))))
 
 (test-unify 'annotate-21
@@ -232,12 +252,12 @@
   (let ((v (vector 'v)))
     `(module
        (fn main () (() -> int)
-         (let ,v (vector int) (vector (int 1) (int 2) (int 3) (int 4)))
-         (let X (vector int) (var (vector int) ,v))
-         (assert (= (vector-ref int (var (vector int) X) (int 0)) (int 1)))
-         (assert (= (vector-ref int (var (vector int) X) (int 1)) (int 2)))
-         (assert (= (vector-ref int (var (vector int) X) (int 2)) (int 3)))
-         (assert (= (vector-ref int (var (vector int) X) (int 3)) (int 4)))
+         (let ,v (vector int 4) (vector (int 1) (int 2) (int 3) (int 4)))
+         (let X (vector int 4) (var (vector int 4) ,v))
+         (assert (= (vector-ref int (var (vector int 4) X) (int 0)) (int 1)))
+         (assert (= (vector-ref int (var (vector int 4) X) (int 1)) (int 2)))
+         (assert (= (vector-ref int (var (vector int 4) X) (int 2)) (int 3)))
+         (assert (= (vector-ref int (var (vector int 4) X) (int 3)) (int 4)))
          (return (int 0))))))
 
 (test-unify 'annotate-22
@@ -251,9 +271,9 @@
   (let ((v (vector 'v)))
     `(module
        (fn main () (() -> int)
-         (let ,v (vector int) (vector (int 1) (int 2) (int 3) (int 4)))
-         (let X (vector int) (var (vector int) ,v))
-         (return (vector-ref int (var (vector int) X) (int 0)))))))
+         (let ,v (vector int 4) (vector (int 1) (int 2) (int 3) (int 4)))
+         (let X (vector int 4) (var (vector int 4) ,v))
+         (return (vector-ref int (var (vector int 4) X) (int 0)))))))
 
 (test-unify 'annotate-simple-kernel
   (typecheck
@@ -272,17 +292,17 @@
         (g2 (vector 'g2)))
     `(module
        (fn main () (() -> int)
-         (let ,g1 (vector int) (vector (int 1) (int 2) (int 3) (int 4)))
-         (let X (vector int) (var (vector int) ,g1))
-         (let ,g2 (vector int)
-           (kernel (vector int)
-             (((x int) ((var (vector int) X) (vector int))))
+         (let ,g1 (vector int 4) (vector (int 1) (int 2) (int 3) (int 4)))
+         (let X (vector int 4) (var (vector int 4) ,g1))
+         (let ,g2 (vector int 4)
+           (kernel (vector int 4)
+             (((x int) ((var (vector int 4) X) (vector int 4))))
              (+ (int 1) (var int x))))
-         (let X (vector int) (var (vector int) ,g2))
-         (assert (= (vector-ref int (var (vector int) X) (int 0)) (int 2)))
-         (assert (= (vector-ref int (var (vector int) X) (int 1)) (int 3)))
-         (assert (= (vector-ref int (var (vector int) X) (int 2)) (int 4)))
-         (assert (= (vector-ref int (var (vector int) X) (int 3)) (int 5)))
+         (let X (vector int 4) (var (vector int 4) ,g2))
+         (assert (= (vector-ref int (var (vector int 4) X) (int 0)) (int 2)))
+         (assert (= (vector-ref int (var (vector int 4) X) (int 1)) (int 3)))
+         (assert (= (vector-ref int (var (vector int 4) X) (int 2)) (int 4)))
+         (assert (= (vector-ref int (var (vector int 4) X) (int 3)) (int 5)))
          (return (int 0))))))
 
 (test 'annotate-5
@@ -314,10 +334,10 @@
               (vector 1 2 3 4))))))
   (let ((v (vector 'v)))
     `(module
-       (fn foo () (() -> (vector int))
-         (let ,v (vector int)
+       (fn foo () (() -> (vector int 4))
+         (let ,v (vector int 4)
            (vector (int 1) (int 2) (int 3) (int 4)))
-         (return (var (vector int) ,v))))))
+         (return (var (vector int 4) ,v))))))
 
 (test 'annotate-12a
   (typecheck
@@ -339,11 +359,11 @@
             (var X))))))
   ;; this answer seems more verbose than necessary
   (let ((v (vector 'v)))
-    `(module (fn foo () (() -> (vector int))
-       (let ,v (vector int) 
+    `(module (fn foo () (() -> (vector int 3))
+       (let ,v (vector int 3) 
          (vector (int 1) (int 2) (int 3))) 
-       (let X (vector int) (var (vector int) ,v))
-       (return (var (vector int) X))))))
+       (let X (vector int 3) (var (vector int 3) ,v))
+       (return (var (vector int 3) X))))))
 
 
 (test 'annotate-15a
@@ -386,10 +406,10 @@
              (return (var v1)))))))
   (let ((v (vector 'v)))
     `(module
-       (fn foo () (() -> (vector int))
-         (let ,v (vector int) (vector (int 1) (int 2)))
-         (let v1 (vector int) (var (vector int) ,v))
-         (return (var (vector int) v1))))))
+       (fn foo () (() -> (vector int 2))
+         (let ,v (vector int 2) (vector (int 1) (int 2)))
+         (let v1 (vector int 2) (var (vector int 2) ,v))
+         (return (var (vector int 2) v1))))))
 
 (test 'annotate-16c1
   (typecheck
@@ -414,12 +434,12 @@
   (let ((v (vector 'v))
         (w (vector 'w)))
     `(module
-       (fn foo () (() -> (vector int))
-         (let ,v (vector int) (vector (int 1) (int 2)))
-         (let v1 (vector int) (var (vector int) ,v))
-         (let ,w (vector int) (vector (int 3) (int 4)))
-         (let v2 (vector int) (var (vector int) ,w))
-         (return (var (vector int) v2))))))
+       (fn foo () (() -> (vector int 2))
+         (let ,v (vector int 2) (vector (int 1) (int 2)))
+         (let v1 (vector int 2) (var (vector int 2) ,v))
+         (let ,w (vector int 2) (vector (int 3) (int 4)))
+         (let v2 (vector int 2) (var (vector int 2) ,w))
+         (return (var (vector int 2) v2))))))
 
 (test 'annotate-16d1
   (typecheck
@@ -444,12 +464,12 @@
   (let ((v (vector 'v))
         (w (vector 'w)))
     `(module
-       (fn foo () (() -> (vector int))
-         (let ,v (vector int) (vector (int 1) (int 2)))
-         (let v1 (vector int) (var (vector int) ,v))
-         (let ,w (vector int) (vector (int 3) (int 4)))
-         (let v2 (vector int) (var (vector int) ,w))
-         (return (var (vector int) v1))))))
+       (fn foo () (() -> (vector int 2))
+         (let ,v (vector int 2) (vector (int 1) (int 2)))
+         (let v1 (vector int 2) (var (vector int 2) ,v))
+         (let ,w (vector int 2) (vector (int 3) (int 4)))
+         (let v2 (vector int 2) (var (vector int 2) ,w))
+         (return (var (vector int 2) v1))))))
 
 (test 'annotate-17a
   (typecheck
@@ -475,11 +495,11 @@
           (w (vector 'w)))
     `(module
        (fn foo () (() -> bool)
-         (let ,v (vector int) (vector (int 1) (int 2)))
-         (let v1 (vector int) (var (vector int) ,v))
-         (let ,w (vector int) (vector (int 3) (int 4)))
-         (let v2 (vector int) (var (vector int) ,w))
-         (return (= (var (vector int) v1) (var (vector int) v2)))))))
+         (let ,v (vector int 2) (vector (int 1) (int 2)))
+         (let v1 (vector int 2) (var (vector int 2) ,v))
+         (let ,w (vector int 2) (vector (int 3) (int 4)))
+         (let v2 (vector int 2) (var (vector int 2) ,w))
+         (return (= (var (vector int 2) v1) (var (vector int 2) v2)))))))
 
 (test 'annotate-18a
   (typecheck
@@ -501,9 +521,9 @@
         (w (vector 'w)))
     `(module
        (fn bar () (() -> bool)
-         (let ,v (vector int) (vector (int 1) (int 2)))
-         (let ,w (vector int) (vector (int 3) (int 4)))
-         (return (= (var (vector int) ,v) (var (vector int) ,w)))))))
+         (let ,v (vector int 2) (vector (int 1) (int 2)))
+         (let ,w (vector int 2) (vector (int 3) (int 4)))
+         (return (= (var (vector int 2) ,v) (var (vector int 2) ,w)))))))
 
 (test 'annotate-23a
   (typecheck
@@ -526,9 +546,9 @@
   (let ((v (vector 'v)))
     `(module
        (fn foo () (() -> bool)
-         (let ,v (vector int) (vector (int 1) (int 2) (int 3) (int 4)))
-         (let X (vector int) (var (vector int) ,v))
-         (return (= (vector-ref int (var (vector int) X) (int 0)) (vector-ref int (var (vector int) X) (int 1))))))))
+         (let ,v (vector int 4) (vector (int 1) (int 2) (int 3) (int 4)))
+         (let X (vector int 4) (var (vector int 4) ,v))
+         (return (= (vector-ref int (var (vector int 4) X) (int 0)) (vector-ref int (var (vector int 4) X) (int 1))))))))
 
 (test-unify 'annotate-reduce0
   (typecheck
@@ -544,9 +564,9 @@
         (g2 (vector 'w)))
     `(module
        (fn main () (() -> int)
-         (let ,g1 (vector int) (vector (int 1) (int 1) (int 1) (int 1)))
-         (let v (vector int) (var (vector int) ,g1))         
-         (let ,g2 int (reduce int + (var (vector int) v)))
+         (let ,g1 (vector int 4) (vector (int 1) (int 1) (int 1) (int 1)))
+         (let v (vector int 4) (var (vector int 4) ,g1))         
+         (let ,g2 int (reduce int + (var (vector int 4) v)))
          (let w int (var int ,g2))
          (assert (= (int 4) (var int w)))
          (return (int 0))))))
@@ -563,8 +583,8 @@
         (w (vector 'w)))
     `(module
        (fn main () (() -> int)
-         (let ,v (vector int) (vector (int 1) (int 1) (int 1) (int 1)))
-         (let ,w int (reduce int + (var (vector int) ,v)))
+         (let ,v (vector int 4) (vector (int 1) (int 1) (int 1) (int 1)))
+         (let ,w int (reduce int + (var (vector int 4) ,v)))
          (assert (= (int 4) (var int ,w)))
          (return (int 0))))))
 
@@ -588,22 +608,22 @@
         (g3 (vector 'g3)))
     `(module
        (fn main () (() -> int)
-         (let ,g1 (vector int)
+         (let ,g1 (vector int 4)
            (vector (int 1) (int 2) (int 3) (int 4)))
-         (let X (vector int) (var (vector int) ,g1))
-         (let ,g2 (vector int)
+         (let X (vector int 4) (var (vector int 4) ,g1))
+         (let ,g2 (vector int 4)
            (vector (int 5) (int 1) (int 1) (int 7)))
-         (let Y (vector int) (var (vector int) ,g2))
-         (let ,g3 (vector int)
-           (kernel (vector int)
-             (((x int) ((var (vector int) X) (vector int)))
-              ((y int) ((var (vector int) Y) (vector int))))
+         (let Y (vector int 4) (var (vector int 4) ,g2))
+         (let ,g3 (vector int 4)
+           (kernel (vector int 4)
+             (((x int) ((var (vector int 4) X) (vector int 4)))
+              ((y int) ((var (vector int 4) Y) (vector int 4))))
              (+ (var int x) (var int y))))
-         (let Z (vector int) (var (vector int) ,g3))
-         (assert (= (vector-ref int (var (vector int) Z) (int 0)) (int 6)))
-         (assert (= (vector-ref int (var (vector int) Z) (int 1)) (int 3)))
-         (assert (= (vector-ref int (var (vector int) Z) (int 2)) (int 4)))
-         (assert (= (vector-ref int (var (vector int) Z) (int 3)) (int 11)))
+         (let Z (vector int 4) (var (vector int 4) ,g3))
+         (assert (= (vector-ref int (var (vector int 4) Z) (int 0)) (int 6)))
+         (assert (= (vector-ref int (var (vector int 4) Z) (int 1)) (int 3)))
+         (assert (= (vector-ref int (var (vector int 4) Z) (int 2)) (int 4)))
+         (assert (= (vector-ref int (var (vector int 4) Z) (int 3)) (int 11)))
          (return (int 0))))))
 
 (test-unify 'length
@@ -619,11 +639,11 @@
   (let ((g1 (vector 'g1)))
     `(module
        (fn main () (() -> int)
-         (let ,g1 (vector int) (vector (int 0) (int 1) (int 2)))
-         (let A (vector int) (var (vector int) ,g1))
-         (let n int (length (var (vector int) A)))
+         (let ,g1 (vector int 3) (vector (int 0) (int 1) (int 2)))
+         (let A (vector int 3) (var (vector int 3) ,g1))
+         (let n int (length (var (vector int 3) A)))
          (assert (= (var int n) (int 3)))
-         (return (length (var (vector int) A)))))))
+         (return (length (var (vector int 3) A)))))))
 
 (test-unify 'iota
   (typecheck
