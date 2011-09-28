@@ -657,10 +657,10 @@
   (let ((g1 (vector 'g1)))
     `(module
        (fn main () (() -> int)
-         (let I (vector int) (iota (int 5)))
-         (let ,g1 (vector int) (vector (int 0) (int 1) (int 2) (int 3) (int 4)))
-         (assert (= (var (vector int) I) (var (vector int) ,g1)))
-         (return (vector-ref int (var (vector int) I) (int 4)))))))
+         (let I (vector int 5) (iota (int 5)))
+         (let ,g1 (vector int 5) (vector (int 0) (int 1) (int 2) (int 3) (int 4)))
+         (assert (= (var (vector int 5) I) (var (vector int 5) ,g1)))
+         (return (vector-ref int (var (vector int 5) I) (int 4)))))))
 
 (test-unify 'let-vec-vec
   (typecheck

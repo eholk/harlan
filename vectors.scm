@@ -67,12 +67,7 @@
              (cons `(let ,v ,e^)
                    (finish `(make-vector (var ,v))))))))
        ((iota ,e)
-        (lift-expr->stmt
-         e
-         (lambda (e^)
-           (let ((v (gensym 'v)))
-             (cons `(let ,v ,e^)
-                   (finish `(iota (var ,v))))))))
+	(finish `(iota ,e)))
        ((reduce ,op ,e)
         (lift-expr->stmt
          e
