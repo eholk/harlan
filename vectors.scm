@@ -59,15 +59,10 @@
                  (car e*)
                  (lambda (e^)
                    (loop (cdr e*) (cons e^ e*^))))))))
-       ((make-vector ,e)
-        (lift-expr->stmt
-         e
-         (lambda (e^)
-           (let ((v (gensym 'v)))
-             (cons `(let ,v ,e^)
-                   (finish `(make-vector (var ,v))))))))
-       ((iota ,e)
-	(finish `(iota ,e)))
+       ((make-vector ,c)
+	(finish `(make-vector ,c)))
+       ((iota ,c)
+	(finish `(iota ,c)))
        ((reduce ,op ,e)
         (lift-expr->stmt
          e
