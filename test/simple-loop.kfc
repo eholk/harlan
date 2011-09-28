@@ -1,9 +1,11 @@
 ;; -*- scheme -*-
 
+; xfail
+
 (module
   (fn main ()
       (let X (vector 1 2 3))
-      (for (i 0 (length (var X)))
+      (for (i 0 3)
         (let x (+ (vector-ref X (var i)) 1))
         (vector-set! (var X) (var i) (var x)))
       (assert (= (vector-ref X 0) 2))
