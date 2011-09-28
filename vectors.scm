@@ -321,10 +321,10 @@
        (match t
          ((vector ,t ,n)
 	  (let-values (((dim t sz) (decode-vector-type `(vector ,t ,n))))
-	    `(call memcpy 
-		   ,(uglify-vector-ref `(vector ,t ,n) x i)
-		   ,v
-		   ,sz)))
+	    `((do (call memcpy 
+			,(uglify-vector-ref `(vector ,t ,n) x i)
+			,v
+			,sz)))))
          (,scalar
           (guard (symbol? scalar))
           `((set! ,(uglify-vector-ref scalar x i) ,v)))
@@ -351,12 +351,12 @@
  (define uglify-vector-ref
    (lambda (t e i)
      (let ((cell 
-	    `(+ ,e (* ,i (sizeof ,t)))))
-     (match t
-       ((vector ,t)
-	cell)
-       (,scalar
-        (guard (symbol? scalar))
-        `(deref (cast (ptr ,t) ,cell)))
-       (,else (error 'uglify-vector-ref "unsupported type" else))))))
+	    `(+ ,e (* ,i ,(vector-bytesize t)))))
+       (match t
+	      ((vector ,t ,n)
+	       cell)
+	      (,scalar
+	       (guard (symbol? scalar))
+	       `(deref (cast (ptr ,t) ,cell)))
+	      (,else (error 'uglify-vector-ref "unsupported type" else))))))
  )
