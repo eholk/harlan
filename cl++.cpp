@@ -227,10 +227,13 @@ program context::createProgramFromSource(string src)
 command_queue context::createCommandQueue(cl_device_id dev)
 {
 	cl_int status;
+
+	cout << "Creating queue for " << device(dev).name() << endl;
+
 	cl_command_queue q = clCreateCommandQueue(ctx,
-											  dev,
-											  0, // properties
-											  &status);
+						  dev,
+						  0, // properties
+						  &status);
 	CL_CHECK(status);
 	return command_queue(q);
 }
