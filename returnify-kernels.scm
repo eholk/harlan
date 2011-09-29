@@ -51,7 +51,7 @@
  (define type-dim
    (lambda (t)
      (match t
-       ((vector ,[t]) (+ 1 t))
+       ((vector ,[t] ,n) (+ 1 t))
        (,x 0))))
  
  (define returnify-kernel-let

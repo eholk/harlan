@@ -1,6 +1,7 @@
 (library
  (vectors)
- (export lift-vectors lower-vectors uglify-vectors lift-expr->stmt)
+ (export lift-vectors lower-vectors uglify-vectors lift-expr->stmt
+	 vector-bytesize uglify-vector-ref)
  (import (only (chezscheme) format)
          (rnrs)
          (match)
@@ -236,9 +237,14 @@
  (define decode-vector-type
    (lambda (t)
      (match t
-       ((vector ,[dim t])
-        (values (+ 1 dim) t))
-       (,t (values 0 t)))))
+       ((vector ,[dim t sz] ,len)
+        (values (+ 1 dim) t `(* (int ,len) ,sz)))
+       (,t (values 0 t `(sizeof ,t))))))
+
+ (define vector-bytesize
+   (lambda (t)
+     (let-values (((dim t sz) (decode-vector-type t)))
+       sz)))
 
  (define extract-expr-type
    (lambda (e)
@@ -251,21 +257,16 @@
                      "cannot find type" else)))))
 
  (define uglify-let-vec
-   (lambda (t e)
+   (lambda (t e n)
      (match e
        ((int ,y)
-        (let-values (((dim t) (decode-vector-type `(vector ,t))))
-          (unless (eq? dim 1)
-            (error 'uglify-let-vec
-                   "only 1D vectors are supported at the moment"))
-          `(call hmk_vec (int ,dim) (int ,y) (sizeof ,t))))
+        (let-values (((dim t sz) (decode-vector-type `(vector ,t ,n))))
+          `(cast (ptr char) (call malloc ,sz))))
        ((var int ,y)
-        (let-values (((dim t) (decode-vector-type `(vector ,t))))
-          `(call hmk_vec (int ,dim) (var int ,y) (sizeof ,t))))
-       ((call hvec_length ,v ,sz)
-        (let-values (((dim t) (decode-vector-type `(vector ,t))))
-          `(call hmk_vec (int ,dim) (call hvec_length ,v ,sz) (sizeof ,t))))
+        (let-values (((dim t sz) (decode-vector-type `(vector ,t ,y))))
+          `(cast (ptr char) (call malloc ,sz))))
        ((var ,tv ,y)
+	;; TODO: this probably needs a copy instead.
         `(var ,tv ,y))
        ;; Otherwise, just hope it works! We should use more type
        ;; information here.
@@ -276,15 +277,9 @@
  (define uglify-stmt
    (lambda (stmt)
      (match stmt
-       ((let ,x (vector ,t) ,[uglify-expr -> init])
-        (let ((vv (uglify-let-vec t init)))
-          (cons
-           `(let ,x (ptr void) ,vv)
-           (match vv
-             ((var int ,y) '())
-             ((var ,tv ,y)
-              `((let ,(gensym x) free_this (var (ptr void) ,x))))
-             (,else '())))))
+       ((let ,x (vector ,t ,n) ,[uglify-expr -> init])
+        (let ((vv (uglify-let-vec t init n)))
+	  `((let ,x (ptr char) ,vv))))
        ((let ,x ,t ,[uglify-expr -> e])
         `((let ,x ,t ,e)))
        ((for (,i ,[uglify-expr -> start] ,[uglify-expr -> end])
@@ -315,26 +310,19 @@
        (,else
         (error 'uglify-stmt "unsupported stmt" else)))))
 
- (define vec-ref-1d
-   (lambda (x i t)
-     `(deref (cast (ptr ,t)
-                   (call hvec_ref
-                         (call hvec_ref ,x (int 0) (int 0))
-                         ,i (sizeof ,t))))))
- 
- (define uglify-vector-set!
+  (define uglify-vector-set!
    (lambda (t x i v)
      (let ((i (if (integer? i) `(int ,i) i)))
        (match t
-         ((vector ,t)
-          (error 'uglify-vector-set!
-                 "Only 1D vectors are supported at the moment.")
-          `((do (call vec_set_vec
-                      (addressof ,x)
-                      ,i ,v))))
+         ((vector ,t ,n)
+	  (let-values (((dim t sz) (decode-vector-type `(vector ,t ,n))))
+	    `((do (call memcpy 
+			,(uglify-vector-ref `(vector ,t ,n) x i)
+			,v
+			,sz)))))
          (,scalar
           (guard (symbol? scalar))
-          `((set! ,(vec-ref-1d x i scalar) ,v)))
+          `((set! ,(uglify-vector-ref scalar x i) ,v)))
          (,else (error 'uglify-vector-set!
                        "unsupported vector type" else))))))
 
@@ -349,21 +337,21 @@
         `(,op ,lhs ,rhs))
        ((vector-ref ,t ,[e] ,[i])
         (uglify-vector-ref t e i))
-       ((length (var (vector ,t) ,x))
+       ((length (var (vector ,t ,n) ,x))
         ;; TODO: this assumes a 1D vector
-        `(call hvec_length (call hvec_ref (var (vector ,t) ,x)
-                                 (int 0) (int 0))
-               (sizeof ,t)))
+        `(int ,n))
        (,else
         (error 'uglify-expr (format "unsupported expr: ~s" else))))))
 
  (define uglify-vector-ref
    (lambda (t e i)
-     (match t
-       ((vector ,t)
-        `(call hvec_ref ,e ,i (call hvec_byte_size (call hvec_ref ,e ,0 ,0))))
-       (,scalar
-        (guard (symbol? scalar))
-        (vec-ref-1d e i t))
-       (,else (error 'uglify-vector-ref "unsupported type" else)))))
+     (let ((cell 
+	    `(+ ,e (* ,i ,(vector-bytesize t)))))
+       (match t
+	      ((vector ,t ,n)
+	       cell)
+	      (,scalar
+	       (guard (symbol? scalar))
+	       `(deref (cast (ptr ,t) ,cell)))
+	      (,else (error 'uglify-vector-ref "unsupported type" else))))))
  )

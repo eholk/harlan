@@ -1,5 +1,4 @@
 ;; -*- scheme -*-
-; xfail
 
 (module
   (fn main ()

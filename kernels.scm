@@ -4,7 +4,8 @@
  (import (only (chezscheme) format)
          (rnrs)
          (match)
-         (print-c))
+         (print-c)
+	 (vectors))
 
  ;; This is copied from vectors.scm. It should go in its own library.
  (define gensym
@@ -54,15 +55,16 @@
                   ,@(map
                      (lambda (arg _gpu _ptr i)
                        (match arg
-                         ((var (ptr void) ,x)
+                         ((var (ptr char) ,x)
+			  (error 'compile-kernel-stmt "Don't do this.")
                           `(let ,_gpu (cl::buffer char)
                                 ((field g_ctx createBuffer<char>)
                                  (hvec_byte_size ,(unpack-arg arg))
                                  CL_MEM_READ_WRITE)))
-                         ((var (vector ,t) ,x)
+                         ((var (vector ,t ,n) ,x)
                           `(let ,_gpu (cl::buffer char)
                                 ((field g_ctx createBuffer<char>)
-                                 (hvec_byte_size ,(unpack-arg arg))
+                                 ,(vector-bytesize `(vector ,t ,n))
                                  CL_MEM_READ_WRITE)))
                          ((var ,t ,s)
                           '(block)))) ;; no-op
@@ -70,49 +72,57 @@
                   ,@(map
                      (lambda (arg _gpu _ptr i)
                        (match arg
-                         ((var (ptr void) ,x)
+                         ((var (ptr char) ,x)
+			  (error 'compile-kernel-stmt "Don't do this")
                           `(block
                             (let ,_ptr cl::buffer_map<char>
                                  ((field g_queue mapBuffer<char>) ,_gpu))
                             (do (memcpy ,_ptr ,(unpack-arg arg)
                                         (hvec_byte_size ,(unpack-arg arg))))))
-                         ((var (vector ,t) ,x)
+                         ((var (vector ,t ,n) ,x)
                           `(block
                             (let ,_ptr cl::buffer_map<char>
                                  ((field g_queue mapBuffer<char>) ,_gpu))
                             (do (memcpy ,_ptr ,(unpack-arg arg)
-                                        (hvec_byte_size ,(unpack-arg arg))))))
+                                        ,(vector-bytesize `(vector ,t ,n))))))
                          ((var ,t ,x)
                           '(block))))
                      arg* _gpu* _ptr* i*)
                   ,@(map
                      (lambda (arg _gpu _ptr i)
                        (match arg
-                         ((var (ptr void) ,x)
+                         ((var (ptr char) ,x)
+			  (error 'compile-kernel-stmt "Don't do this")
                           `(do ((field ,k-var setArg) ,i ,_gpu)))
-                         ((var (vector ,t) ,x)
+                         ((var (vector ,t ,n) ,x)
                           `(do ((field ,k-var setArg) ,i ,_gpu)))
                          ((var ,t ,x)
                           `(do ((field ,k-var setArg) ,i ,x)))))
                      arg* _gpu* _ptr* i*)
                   (do ((field g_queue execute) ,k-var
-                       (hvec_length (hvec_ref ,(unpack-arg (car arg*)) 0 0)
-                                    (sizeof ,(unpack-type (car arg*)))) 1))
+		       ,(match (car arg*)
+			  ((var (vector ,t ,n) ,x)
+			   n)
+			  (,else (error 'compile-kernels
+					"Invalid kernel argument type"
+					else)))
+		       1))
                   ,@(map
                      (lambda (arg _gpu _ptr i)
                        (match arg
-                         ((var (ptr void) ,x)
+                         ((var (ptr char) ,x)
+			  (error 'compile-kernel-stmt "don't do this.")
                           `(block
                             (let ,_ptr cl::buffer_map<char>
                                  ((field g_queue mapBuffer<char>) ,_gpu))
                             (do (memcpy ,(unpack-arg arg) ,_ptr
                                         (hvec_byte_size ,(unpack-arg arg))))))
-                         ((var (vector ,t) ,x)
+                         ((var (vector ,t ,n) ,x)
                           `(block
                             (let ,_ptr cl::buffer_map<char>
                                  ((field g_queue mapBuffer<char>) ,_gpu))
                             (do (memcpy ,(unpack-arg arg) ,_ptr
-                                        (hvec_byte_size ,(unpack-arg arg))))))
+                                        ,(vector-bytesize `(vector ,t ,n))))))
                          ((var ,t ,x)
                           '(block))))
                      arg* _gpu* _ptr* i*))))))
@@ -128,7 +138,7 @@
 
  (define (unpack-type x)
    (match x
-     ((var (vector ,t) ,x^) t)
+     ((var (vector ,t ,n) ,x^) t)
      (,else (error 'unpack-type "invalid kernel argument" else))))
  
  (define compile-kernels
@@ -197,7 +207,7 @@
  
  (define generate-kernel
    (lambda (name x* t* xs* ts* fv* ft* stmt*)
-     ;; Plan of attack: replace all vectors with renamed void *'s,
+     ;; Plan of attack: replace all vectors with renamed char *'s,
      ;; then immediate use vec_deserialize. Also, for some reason the
      ;; vector refs don't seem to be being lowered like they should
      ;; be.
@@ -207,7 +217,7 @@
      (let ((i (gensym 'i)))
        ;; TODO: Correctly handle free vars
        `(kernel ,name ,(append (map (lambda (x t)
-                                      `(,x (ptr void)))
+                                      `(,x (ptr char)))
                                     xs* t*)
                                (map list fv* ft*))
                 ;; TODO: allow this to work on n-dimensional vectors.
@@ -216,11 +226,8 @@
                    append
                    (map
                     (lambda (x t xs)
-                      (let ((dsvec (gensym 'vec)))
-                        `((let ,x (ptr ,t)
-                               (cast (ptr ,t)
-                                     (hvec_ref (hvec_ref ,xs 0 0)
-                                               ,i (sizeof ,t)))))))
+		      `((let ,x (ptr ,t)
+			     (cast (ptr ,t) (+ ,xs (* ,i (sizeof ,t)))))))
                     x* t* xs*))
                 . ,(replace-vec-refs stmt* i x* xs* ts*)))))
 
@@ -229,7 +236,7 @@
      (map (lambda (stmt)
             (fold-left 
              (lambda (stmt x xs ts)
-               (let ((t (match ts ((vector ,t) t))))
+               (let ((t (match ts ((vector ,t ,n) t))))
                  (match stmt
                    ((,[x] ...) `(,x ...))
                    (,y (guard (eq? x y)) `(deref ,x))

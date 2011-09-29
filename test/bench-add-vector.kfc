@@ -1,6 +1,8 @@
 ;; -*- scheme -*-
 ;; Vector sum
 
+; xfail - We only support constant sized vectors now.
+
 (module
   (fn main ()
       ; for some reason we're running out of RAM when iters > 1
