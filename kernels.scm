@@ -33,7 +33,6 @@
        ((kernel ,name (,[format-kernel-arg -> args*] ...)
                . ,stmts)
         (string-append
-         "#include <vectors.h>\n\n"
          "__kernel void " (format-ident name)
          "(" (join ", " args*) ") "
          (format-block `(block . ,stmts))))

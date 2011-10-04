@@ -53,7 +53,7 @@ test.bin/%.out : test.bin/%.bin
 	@$(call RUN_TEST, $(call TEST_EXE_NAME, $<)) > $@
 
 .precious : $(call TEST_EXE_NAME, $(RUN_TEST_SRC))
-test.bin/%.bin : test/% test.bin/cl++.o cl++.h cl++.cpp vectors.h
+test.bin/%.bin : test/% test.bin/cl++.o cl++.h cl++.cpp
 	@echo Compiling $<
 	$(call COMPILE_TEST, $<)
 

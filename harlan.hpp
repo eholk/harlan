@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <assert.h>
 
-#include "vectors.h"
+#include "gc.h"
 
 enum error {
     HARLAN_ERR_OUT_OF_BOUNDS,
@@ -165,3 +165,5 @@ struct free_this {
     free_this(void *p) : p(p) {}
     ~free_this() { GC_FREE(p); }
 };
+
+#define __global
