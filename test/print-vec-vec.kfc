@@ -1,12 +1,8 @@
 ;; -*- scheme -*-
 
-;; We don't have 2D vector printing, and it's not important for the
-;; next 9 hours.
-; xfail
-
 (module
   (fn main ()
-      (print (vector (vector 1)
-                     (vector 2 3)
+      (print (vector (vector 1 8 9)
+                     (vector 2 3 7)
                      (vector 4 5 6)))
       (return 0)))
