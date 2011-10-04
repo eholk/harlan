@@ -262,10 +262,10 @@
      (match e
        ((int ,y)
         (let-values (((dim t sz) (decode-vector-type `(vector ,t ,n))))
-          `(cast (ptr char) (call malloc ,sz))))
+          `(cast (ptr char) (call GC_MALLOC ,sz))))
        ((var int ,y)
         (let-values (((dim t sz) (decode-vector-type `(vector ,t ,y))))
-          `(cast (ptr char) (call malloc ,sz))))
+          `(cast (ptr char) (call GC_MALLOC ,sz))))
        ((var ,tv ,y)
 	;; TODO: this probably needs a copy instead.
         `(var ,tv ,y))
