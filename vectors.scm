@@ -22,6 +22,7 @@
    (lambda (expr finish)
      (match expr
        (,n (guard (number? n)) (finish n))
+       (,str (guard (string? str)) (finish str))
        ((var ,x) (finish `(var ,x)))
        ((time)
         (finish '(time)))
@@ -332,6 +333,7 @@
        ((time) '(time))
        ((int ,n) `(int ,n))
        ((u64 ,n) `(u64 ,n))
+       ((str ,s) `(str ,s))
        ((var ,tx ,x) `(var ,tx ,x))
        ((,op ,[lhs] ,[rhs]) (guard (binop? op))
         `(,op ,lhs ,rhs))

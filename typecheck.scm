@@ -32,6 +32,7 @@
    (lambda (expr)
      (match expr
        (,n (guard (integer? n)) `(num ,n))
+       (,str (guard (string? str)) `(str ,str))
        ((,[else*] ...) `(,else* ...))
        (,else else))))
 
@@ -62,6 +63,10 @@
              (== type 'int))
             ((== expro `(u64 ,n))
              (== type 'u64)))))
+       ((fresh (str)
+	  (== expr `(str ,str))
+	  (== expro `(str ,str))
+	  (== type 'str)))
        ((fresh (x)
           (== expr `(var ,x))
           (== expro `(var ,type ,x))    

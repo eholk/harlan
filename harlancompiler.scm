@@ -122,6 +122,7 @@
       [(int ,n) (guard (number? n)) n]
       [(u64 ,n) (guard (number? n)) n]
       [(var ,tx ,x) (guard (symbol? x)) x]
+      [(str ,s) (guard (string? s)) s]
       [(vector-ref ,t ,[v] ,[i]) `(vector-ref ,v ,i)]
       [(length ,[v]) `((field ,v length))]
       [(sizeof ,t) `(sizeof ,t)]

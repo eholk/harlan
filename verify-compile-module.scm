@@ -46,6 +46,7 @@
     (match expr
       (,n (guard (number? n)) n)
       (,x (guard (symbol? x)) x)
+      (,s (guard (string? s)) s)
       ((,+ ,[verify-expr -> e1] ,[verify-expr -> e2])
        (guard (binop? +))
        `(,+ ,e1 ,e2))

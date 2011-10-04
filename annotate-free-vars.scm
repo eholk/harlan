@@ -111,6 +111,7 @@
       (match expr
         (,n (guard (number? n)) n)
         (,x (guard (symbol? x)) x)
+	(,s (guard (string? s)) s)
         ((,+ ,[(annotate-expr gamma) -> e1] ,[(annotate-expr gamma) -> e2])
          (guard (binop? +))
          `(,+ ,e1 ,e2))
@@ -178,6 +179,7 @@
     (match expr
       (,n (guard (number? n)) '())
       (,x (guard (symbol? x)) `(,x))
+      (,s (guard (string? s)) '())
       ((,+ ,[free-vars-expr -> e1] ,[free-vars-expr -> e2])
        (guard (binop? +))
        (union e1 e2))
