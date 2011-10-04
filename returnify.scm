@@ -7,14 +7,18 @@
  (define returnify
    (lambda (mod)
      (match mod
-       ((module ,fn* ...)
-        `(module . ,(map returnify-fn fn*))))))
+       ((module ,[returnify-decl -> fn*] ...)
+        `(module ,fn* ...)))))
 
-  (define (returnify-fn fn)
-   (match fn
+ (define (returnify-decl decl)
+   (match decl
      ((fn ,name ,args ,stmt* ...)
-      `(fn ,name ,args . ,(returnify-stmt* stmt*)))))
-
+      `(fn ,name ,args . ,(returnify-stmt* stmt*)))
+     ((extern ,name ,args -> ,rtype)
+      `(extern ,name ,args -> ,rtype))
+     (,else
+      (error 'returnify-decl "Invalid declaration" else))))
+     
  (define returnify-stmt*
    (lambda (stmt*)
      (cond

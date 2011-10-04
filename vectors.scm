@@ -82,6 +82,15 @@
               (lift-expr->stmt
                e2 (lambda (e2^)
                     (finish `(,op ,e1^ ,e2^)))))))
+       ((,rator ,rand* ...)
+	(guard (symbol? rator))
+	(let loop ((e* rand*) (e*^ '()))
+	  (if (null? e*)
+	      (finish `(call ,rator . ,(reverse e*^)))
+	      (lift-expr->stmt
+	       (car e*)
+	       (lambda (e^)
+		 (loop (cdr e*) (cons e^ e*^)))))))
        (,else (error 'lift-expr->stmt "unknown expression" else)))))
  
  (define lift-stmt*
@@ -145,17 +154,19 @@
                           rest))))))
              (,else (error 'lift-stmt* "unknown statement" else)))))))
 
- (define (lift-fn fn)
+ (define (lift-decl fn)
    (match fn
      ((fn ,name ,args ,stmt* ...)
       `(fn ,name ,args . ,(lift-stmt* stmt*)))
-     (,else (error 'lift-fn "bad function" else))))
+     ((extern ,name ,args -> ,rtype)
+      `(extern ,name ,args -> ,rtype))
+     (,else (error 'lift-decl "bad function" else))))
 
  (define lift-vectors
    (lambda (mod)
      (match mod
        ((module ,fn* ...)
-        `(module . ,(map lift-fn fn*)))
+        `(module . ,(map lift-decl fn*)))
        (,else (error 'lift-vectors "malformed module" else)))))
 
  ;; Moves to a lower-level allocate and set! representation for

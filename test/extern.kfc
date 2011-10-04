@@ -1,0 +1,9 @@
+;; -*- scheme -*-
+
+;xfail
+
+(module
+ (extern nanotime () -> u64)
+ (fn main () 
+     (print (nanotime))
+     (return 0)))
