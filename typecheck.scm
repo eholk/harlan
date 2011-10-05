@@ -122,10 +122,26 @@
           (== expro `(vector-ref ,type ,ve^ ,ie^))          
           (infer-expr ie env 'int ie^)
           (infer-expr ve env `(vector ,type ,n) ve^)))
+       ((fresh (fn args arg-types rtype argso)
+	  (== expr `(call ,fn . ,args))
+	  (lookup env fn `(,arg-types -> ,rtype))
+	  (infer-args env args arg-types argso)
+	  (== expro `(call ,rtype ,fn . ,argso))))
        ((fresh (b* body* b^* body*^ env^ n)
           (== expr `(kernel ,b* . ,body*))
           (== expro `(kernel ,type ,b^* . ,body*^))
           (infer-kernel b* b^* body* body*^ env type n))))))
+
+(define infer-args
+  (lambda (env args arg-types argso)
+    (conde
+      ((== args '()) (== argso '()))
+      ((fresh (e e* t t* e^ e^*)
+	 (== args `(,e . ,e*))
+	 (== arg-types `(,t . ,t*))
+	 (== argso `(,e^ . ,e^*))
+	 (infer-expr e env t e^)
+	 (infer-args env e* t* e^*))))))
 
 (define infer-kernel
   (lambda (b* b^* body* body*^ env type n)
@@ -234,7 +250,7 @@
              (infer-stmts stmt* env^ rtype stmtso^)
              (== stmtso `(,stmto . ,stmtso^)))))))))
 
- (define infer-fn
+(define infer-fn
    (lambda (fn env arg-types rtype fno)
      (fresh (name stmts stmtso)
        (== fn
@@ -243,32 +259,49 @@
        (infer-stmts stmts env rtype stmtso)
        (== arg-types '())
        (== fno `(fn ,name () (,arg-types -> ,rtype) . ,stmtso))
+       (lookup env name `(,arg-types -> ,rtype))
        (conda
-         ((== 'main name) (== 'int rtype))
-         ((== #f #f))))))
+	 ((== 'main name) (== 'int rtype))
+	 ((== #f #f))))))
 
-;;  (define infer-fn*
-;;    (lambda (fn* fn^* env)
-;;      (conde
-;;        ((== '() fn*) (== '() fn^*))
-;;        ((fresh (name stmts rest arg-types rtype fno fno*)
-;;           (== `((fn ,name () . ,stmts) . ,rest) fn*)
-;;           (infer-fn `(fn ,name () . ,stmts) env arg-types rtype fno)
-;;           (infer-fn* rest fno* `((,name . ,arg-types) . ,env))
-;;           (== `(,fno . ,fno*) fn^))))))
+(define infer-decl*
+  (lambda (fn* fn^* env)
+    (conde
+      ((== '() fn*) (== '() fn^*))
+      ((fresh (name stmts rest arg-types rtype fno fno*)
+	      (== `((fn ,name () . ,stmts) . ,rest) fn*)
+	      (infer-fn `(fn ,name () . ,stmts) env arg-types rtype fno)
+	      (infer-decl* rest fno* `((,name . ,arg-types) . ,env))
+	      (== `(,fno . ,fno*) fn^*)))
+      ((fresh (name type stmts stmtso)
+	 (== fn* `((extern ,name . ,type) . ,stmts))
+	 (lookup env name type)
+	 (infer-decl* stmts stmtso env)
+	 (== fn^* `((extern ,name . ,type) . ,stmtso)))))))
 
  (define infer-module
    (lambda (mod typed-mod)
-     (fresh (name stmts env arg-types rtype fno)
-       (== env '())
-;;; build up env (basically a global env) with all the fn's, bound to fresh type variables
-       (== mod `(module
-                  (fn ,name ()
-                      . ,stmts)))
-       (infer-fn `(fn ,name () . ,stmts) env arg-types rtype fno)
+     (fresh (decl* decl*^ env arg-types rtype)
+       (== mod `(module . ,decl*))
+       ;; same-length is here to make sure the environment doesn't
+       ;; have any logic variables. Without this, the type inferencer
+       ;; will infer an environment like ((foo . int) . _0), and then
+       ;; lookup will happily add whatever it needs to the environment
+       ;; later on.
+       (same-length decl* env)
+       (infer-decl* decl* decl*^ env)
        (== typed-mod
-           `(module
-              ,fno)))))
+           `(module . ,decl*^)))))
+
+(define same-length
+  (lambda (a b)
+    (conde
+      ((== a '())
+       (== b '()))
+      ((fresh (aa ad ba bd)
+	 (== a `(,aa . ,ad))
+	 (== b `(,ba . ,bd))
+	 (same-length ad bd))))))
 
  (define typecheck
    (lambda (mod)
