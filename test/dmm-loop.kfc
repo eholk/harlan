@@ -17,16 +17,16 @@
               (vector 0 0 1 0)
               (vector 0 0 0 1)))
 
-      (let Bt (make-vector (vector int) (length (var B))))
+      (let Bt (make-vector 4))
       (for (j 0 (length (vector-ref B 0)))
-        (let io (iota (length (var B))))
+        (let io (iota 4))
         (let row (kernel ((i (var io)))
                    (vector-ref (vector-ref B (var j)) (var i))))
         (vector-set! (var Bt) (var j) (var row)))
 
-      (let C (make-vector (vector int) (length (var A))))
+      (let C (make-vector 4))
       (for (i 0 (length (var A)))
-        (let C_row (make-vector int (length (var Bt))))
+        (let C_row (make-vector 4))
         (vector-set! (var C) (var i) (var C_row)))
       
       (for (row_index 0 (length (var A)))

@@ -13,7 +13,8 @@
 (library
  (mk)
  (export == ==-check fresh conde run fail succeed conda unify project lambdag@)
- (import (rnrs))
+ (import (rnrs)
+	 (only (chezscheme) pretty-print))
          
 (define-syntax lambdag@
   (syntax-rules ()
@@ -131,17 +132,26 @@
         ((pair? v) (reify-s (cdr v) (reify-s (car v) s)))
         (else s)))))
 
+(define reify-s^
+  (lambda (v s v^)
+    (let ((v (walk v s)))
+      (cond
+        ((var? v) 
+	 (pretty-print v^)
+	 (error 'reify-name
+		"Non-ground variable" v^))
+        ((pair? v) (reify-s^ (cdr v) (reify-s^ (car v) s v^) v^))
+        (else s)))))
+
 (define reify-name
   (lambda (n)
-    (error 'reify-name
-	   "Non-ground variable")
-    #;
     (string->symbol
       (string-append "_" "." (number->string n)))))
 
 (define reify
   (lambda (v)
-    (walk* v (reify-s v empty-s))))
+    (let ((v^ (walk* v (reify-s v empty-s))))
+      (walk* v (reify-s^ v empty-s v^)))))
 
 (define-syntax run  
   (syntax-rules ()
