@@ -58,7 +58,7 @@
           (== type 'u64)))
        ((fresh (n)
           (== expr `(num ,n))
-          (conde
+          (conda
             ((== expro `(int ,n))
              (== type 'int))
             ((== expro `(u64 ,n))
@@ -193,11 +193,6 @@
             (infer-expr e1 env `(vector ,t ,n) e1^)
             (infer-expr e2 env 'int e2^)
             (infer-expr e3 env t e3^)))
-         ((fresh (x e e^ t)
-            (== stmt `(set! (var ,x) ,e))
-            (== stmto `(set! (var ,x) ,e^))
-            (lookup env x t)
-            (infer-expr e env t e^)))
          ((== stmt `(print ,e))
           (== stmto `(print ,e^))
           (== rtype 'void)
@@ -306,7 +301,13 @@
  (define typecheck
    (lambda (mod)
      (let* ((mod (simplify-literals mod))
-            (result (run 1 (q) (infer-module mod q))))
-       (if (null? result)
-           '()
-           (car result))))))
+            (result (run 2 (q) 
+		      (infer-module mod q))))
+       (case (length result)
+	 (0 '())
+	 (1 (car result))
+	 (else
+	  (display result)
+	  (error 'typecheck 
+		 "Could not infer a unique type for program"
+		 result)))))))

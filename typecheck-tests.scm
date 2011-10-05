@@ -1,3 +1,7 @@
+(load "returnify.scm")
+(load "typecheck.scm")
+(load "harlancompiler.scm")
+(load "mk.scm")
 (import (returnify) (typecheck) (harlancompiler) (mk))
 
 (define-syntax test-unify
@@ -12,6 +16,18 @@
              (format "Failed ~s: ~a\nExpected: ~a\nComputed: ~a"
                      title 'tested-expression expected produced)))))))
 
+(define-syntax test-error
+  (syntax-rules ()
+    ((_ title tested-expression)
+     (if (guard (x [(error? x) #t])
+		tested-expression
+		#f)
+	 (printf "~s works!\n" title)
+	 (error
+	  'test
+	  (format "~s succeeded and it shouldn't"
+		  title))))))
+
 (test 'annotate-1
   (typecheck
     (lift-vectors
@@ -22,6 +38,7 @@
   '(module
      (fn main () (() -> int)
        (return (int 0)))))
+
 
 (test 'annotate-2
   (typecheck
@@ -1025,7 +1042,7 @@
 	 (assert (= (vector-ref int (var (vector int 3) X) (int 0)) (int 2)))
 	 (return (int 0))))))
 
-(test-unify 'dmm-1
+(test-error 'dmm-1
   (typecheck
    (lift-vectors
     (returnify
@@ -1042,42 +1059,9 @@
                     (vector 0 0 1 0)
                     (vector 0 0 0 1)))
             (let Bt (make-vector 4))
-            (return 0))))))
-  (let ((g0 (vector 'g0))
-	(g1 (vector 'g1))
-        (g2 (vector 'g2))
-        (g3 (vector 'g3))
-        (g4 (vector 'g4))
-        (g5 (vector 'g5))
-        (g6 (vector 'g6))
-        (g7 (vector 'g7))
-        (g8 (vector 'g8))
-        (g9 (vector 'g9))
-        (g10 (vector 'g10)))
-    `(module 
-       (fn main () (() -> int)
-	 (let ,g5 (vector int 4) (vector (int 1) (int 0) (int 0) (int 0)))
-	 (let ,g6 (vector int 4) (vector (int 0) (int 1) (int 0) (int 0)))
-	 (let ,g7 (vector int 4) (vector (int 0) (int 0) (int 1) (int 0)))
-	 (let ,g8 (vector int 4) (vector (int 0) (int 0) (int 0) (int 1)))
-	 (let ,g9 (vector (vector int 4) 4) (vector (var (vector int 4) ,g5)
-						    (var (vector int 4) ,g6)
-						    (var (vector int 4) ,g7)
-						    (var (vector int 4) ,g8)))
-	 (let A (vector (vector int 4) 4) (var (vector (vector int 4) 4) ,g9))
-	 (let ,g0 (vector int 4) (vector (int 1) (int 0) (int 0) (int 0)))
-	 (let ,g1 (vector int 4) (vector (int 0) (int 1) (int 0) (int 0)))
-	 (let ,g2 (vector int 4) (vector (int 0) (int 0) (int 1) (int 0)))
-	 (let ,g3 (vector int 4) (vector (int 0) (int 0) (int 0) (int 1)))
-	 (let ,g4 (vector (vector int 4) 4) (vector (var (vector int 4) ,g0)
-						    (var (vector int 4) ,g1)
-						    (var (vector int 4) ,g2)
-						    (var (vector int 4) ,g3)))
-	 (let B (vector (vector int 4) 4) (var (vector (vector int 4) 4) ,g4))
-	 (let Bt (vector _.0 4) (make-vector _.0 (int _.1)))
-	 (return (int 0))))))
+            (return 0)))))))
 
-(test-unify 'dmm-2
+(test-error 'dmm-2
   (typecheck
    (lift-vectors
     (returnify
@@ -1114,66 +1098,7 @@
            (vector-set! (vector-ref C (var row-index)) (var col-index) (var c))))
       
       (assert (= (var C) (var A)))
-      (return 0))))))
-  (let ((g19 (vector 'g1))
-        (g20 (vector 'g2))
-        (g21 (vector 'g3))
-        (g22 (vector 'g4))
-        (g23 (vector 'g5))
-        (g24 (vector 'g6))
-        (g25 (vector 'g7))
-        (g26 (vector 'g8))
-        (g27 (vector 'g9))
-        (g28 (vector 'g10))
-        (g29 (vector 'g11))
-        (g30 (vector 'g12))
-        (g31 (vector 'g13))
-        (g32 (vector 'g14))
-        (g33 (vector 'g15))
-        (g34 (vector 'g16)))
-    `(module 
-       (fn main () (() -> int) 
-         (let ,g27 (vector int 4) (vector (int 1) (int 0) (int 0) (int 0)))
-	 (let ,g28 (vector int 4) (vector (int 0) (int 1) (int 0) (int 0)))
-	 (let ,g29 (vector int 4) (vector (int 0) (int 0) (int 1) (int 0)))
-	 (let ,g30 (vector int 4) (vector (int 0) (int 0) (int 0) (int 1)))
-	 (let ,g31 (vector (vector int 4) 4) (vector (var (vector int 4) ,g27)
-						     (var (vector int 4) ,g28)
-						     (var (vector int 4) ,g29)
-						     (var (vector int 4) ,g30)))
-	 (let A (vector (vector int 4) 4) (var (vector (vector int 4) 4) ,g31))
-	 (let ,g22 (vector int 4) (vector (int 1) (int 0) (int 0) (int 0)))
-	 (let ,g23 (vector int 4) (vector (int 0) (int 1) (int 0) (int 0)))
-	 (let ,g24 (vector int 4) (vector (int 0) (int 0) (int 1) (int 0)))
-	 (let ,g25 (vector int 4) (vector (int 0) (int 0) (int 0) (int 1)))
-	 (let ,g26 (vector (vector int 4) 4) (vector (var (vector int 4) ,g22)
-						     (var (vector int 4) ,g23)
-						     (var (vector int 4) ,g24)
-						     (var (vector int 4) ,g25)))
-	 (let B (vector (vector int 4) 4) (var (vector (vector int 4) 4) ,g26))
-	 (let Bt (vector (vector int 4) 4) (make-vector (vector int 4) (int _.0)))
-	 (for ((j int) (int 0) (int 4))
-	      (let ,g21 (vector int 4) 
-		(kernel (vector int 4) (((i int) ((iota (int 4)) (vector int 4))))
-		  (vector-ref int (vector-ref (vector int 4) (var (vector (vector int 4) 4) B) (var int j)) (var int i))))
-	      (let row (vector int 4) (var (vector int 4) ,g21))
-	      (vector-set! (vector int 4) (var (vector (vector int 4) 4) Bt) (var int j) (var (vector int 4) row)))
-	 (let C (vector (vector int 4) 4) (make-vector (vector int 4) (int _.1)))
-	 (for ((i int) (int 0) (int 4))
-	   (let C-row (vector int 4) (make-vector int (int _.2)))
-	   (vector-set! (vector int 4) (var (vector (vector int 4) 4) C) (var int i) (var (vector int 4) C-row)))
-	 (for ((row-index int) (int 0) (int 4))
-	   (let row (vector int 4) (vector-ref (vector int 4) (var (vector (vector int 4) 4) A) (var int row-index)))
-	   (for ((col-index int) (int 0) (int 4))
-	     (let col (vector int 4) (vector-ref (vector int 4) (var (vector (vector int 4) 4) Bt) (var int col-index)))
-	     (let ,g19 (vector int 4) 
-	       (kernel (vector int 4) (((x int) ((var (vector int 4) row) (vector int 4))) ((y int) ((var (vector int 4) col) (vector int 4))))
-		 (* (var int x) (var int y))))
-	     (let ,g20 int (reduce int + (var (vector int 4) ,g19)))
-	     (let c int (var int ,g20))
-	     (vector-set! int (vector-ref (vector int 4) (var (vector (vector int 4) 4) C) (var int row-index)) (var int col-index) (var int c))))
-	 (assert (= (var (vector (vector int 4) 4) C) (var (vector (vector int 4) 4) A)))
-	 (return (int 0))))))
+      (return 0)))))))
 
 #!eof
 

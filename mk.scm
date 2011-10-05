@@ -12,7 +12,7 @@
 
 (library
  (mk)
- (export == ==-check fresh conde run fail succeed conda unify project)
+ (export == ==-check fresh conde run fail succeed conda unify project lambdag@)
  (import (rnrs))
          
 (define-syntax lambdag@
@@ -133,6 +133,9 @@
 
 (define reify-name
   (lambda (n)
+    (error 'reify-name
+	   "Non-ground variable")
+    #;
     (string->symbol
       (string-append "_" "." (number->string n)))))
 
