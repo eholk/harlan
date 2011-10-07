@@ -343,25 +343,37 @@
          (,else (error 'uglify-vector-set!
                        "unsupported vector type" else))))))
 
- (define uglify-expr
-   (lambda (e)
-     (match e
-       ((time) '(time))
-       ((int ,n) `(int ,n))
-       ((u64 ,n) `(u64 ,n))
-       ((str ,s) `(str ,s))
-       ((var ,tx ,x) `(var ,tx ,x))
-       ((call ,t ,name ,[args] ...)
-        `(call ,t ,name ,args ...))
-       ((,op ,[lhs] ,[rhs]) (guard (binop? op))
-        `(,op ,lhs ,rhs))
-       ((vector-ref ,t ,[e] ,[i])
-        (uglify-vector-ref t e i))
-       ((length (var (vector ,t ,n) ,x))
-        ;; TODO: this assumes a 1D vector
-        `(int ,n))
-       (,else
-        (error 'uglify-expr (format "unsupported expr: ~s" else))))))
+  (define expr-type
+    (lambda (e)
+      (match e
+        ((var ,t ,x) t)
+        ((vector-ref ,t ,v ,i) t)
+        (,else (error 'expr-type
+                      "Unknown expression (this is probably a compiler bug)"
+                      else)))))
+  
+  (define uglify-expr
+    (lambda (e)
+      (match e
+        ((time) '(time))
+        ((int ,n) `(int ,n))
+        ((u64 ,n) `(u64 ,n))
+        ((str ,s) `(str ,s))
+        ((var ,tx ,x) `(var ,tx ,x))
+        ((call ,t ,name ,[args] ...)
+         `(call ,t ,name ,args ...))
+        ((,op ,[lhs] ,[rhs]) (guard (binop? op))
+         `(,op ,lhs ,rhs))
+        ((vector-ref ,t ,[e] ,[i])
+         (uglify-vector-ref t e i))
+        ((length ,e)
+         (match (expr-type e)
+           ((vector ,t ,n)
+            `(int ,n))
+           (,else (error 'uglify-expr "Took length of non-vector"
+                         else (expr-type e)))))
+        (,else
+         (error 'uglify-expr (format "unsupported expr: ~s" else))))))
 
  (define uglify-vector-ref
    (lambda (t e i)

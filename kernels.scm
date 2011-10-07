@@ -55,7 +55,7 @@
                      (lambda (arg _gpu _ptr i)
                        (match arg
                          ((var (ptr char) ,x)
-			  (error 'compile-kernel-stmt "Don't do this.")
+			  (error 'compile-kernel-stmt "Don't do this. (a)")
                           `(let ,_gpu (cl::buffer char)
                                 ((field g_ctx createBuffer<char>)
                                  (hvec_byte_size ,(unpack-arg arg))
@@ -72,7 +72,7 @@
                      (lambda (arg _gpu _ptr i)
                        (match arg
                          ((var (ptr char) ,x)
-			  (error 'compile-kernel-stmt "Don't do this")
+			  (error 'compile-kernel-stmt "Don't do this (b)")
                           `(block
                             (let ,_ptr cl::buffer_map<char>
                                  ((field g_queue mapBuffer<char>) ,_gpu))
@@ -91,7 +91,7 @@
                      (lambda (arg _gpu _ptr i)
                        (match arg
                          ((var (ptr char) ,x)
-			  (error 'compile-kernel-stmt "Don't do this")
+			  (error 'compile-kernel-stmt "Don't do this (c)")
                           `(do ((field ,k-var setArg) ,i ,_gpu)))
                          ((var (vector ,t ,n) ,x)
                           `(do ((field ,k-var setArg) ,i ,_gpu)))
@@ -110,7 +110,7 @@
                      (lambda (arg _gpu _ptr i)
                        (match arg
                          ((var (ptr char) ,x)
-			  (error 'compile-kernel-stmt "don't do this.")
+			  (error 'compile-kernel-stmt "don't do this. (d)")
                           `(block
                             (let ,_ptr cl::buffer_map<char>
                                  ((field g_queue mapBuffer<char>) ,_gpu))
