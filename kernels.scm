@@ -42,6 +42,29 @@
  (define compile-kernel-stmt
    (lambda (stmt)
      (match stmt
+       ;; This clause is really doing way too much, and should
+       ;; probably be three passes just by itself. Instead, I'll
+       ;; attempt to document what's going on with it.
+       ;;
+       ;; We have a form like (apply-kernel add_vector x y). To make
+       ;; this work, we do several things. 
+       ;;
+       ;; First, we call g_prog.createKernel("add_vector") to create
+       ;; an OpenCL kernel object.
+       ;; 
+       ;; Second, we allocate buffers on the GPU to hold x and y.
+       ;;
+       ;; Third, we copy x and y into the GPU buffers.
+       ;; 
+       ;; Fourth, we call setArg for each kernel argument so OpenCL
+       ;; knows which parameter values to use.
+       ;; 
+       ;; Fifth, we actually execute the kernel.
+       ;;
+       ;; Sixth, we copy x and y back from the GPU.
+       ;;
+       ;; Each of these has more special cases, which makes the whole
+       ;; process super ugly. More comments will follow below.
        ((apply-kernel ,k ,arg* ...)
         (let ((k-var (gensym 'kernel)))
           `(block
