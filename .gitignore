@@ -1,0 +1,16 @@
+*.o
+*.lo
+gc/
+test.bin/
+*~
+*/.deps/
+*/.libs/
+gc-7.2alpha6/Makefile
+gc-7.2alpha6/bdw-gc.pc
+gc-7.2alpha6/config.log
+gc-7.2alpha6/config.status
+gc-7.2alpha6/include/private/config.h
+gc-7.2alpha6/include/private/stamp-h1
+gc-7.2alpha6/libcord.la
+gc-7.2alpha6/libgc.la
+gc-7.2alpha6/libtool
