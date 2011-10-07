@@ -183,7 +183,11 @@
        ((func ,type ,name (,args ...) ,stmt* ...)
         (string-append (format-type type) " " (format-ident name)
                        "(" (format-args args) ")\n"
-                       (format-block `(block ,stmt* ...)))))))
+                       (format-block `(block ,stmt* ...))))
+       ((extern ,[format-type -> type] ,[format-ident -> name]
+                (,[format-type -> args] ...))
+        (string-append type " " name "(" (join ", " args) ");\n"))
+       (,else (error 'format-decl "Invalid declaration" else)))))
  
  (define format-c
    (lambda (decls)

@@ -16,7 +16,10 @@
    (lambda (decl)
      (match decl
        ((func ,type ,name ,args ,[verify-stmt -> stmt*] ...)
-        `(func ,type ,name ,args . ,stmt*)))))
+        `(func ,type ,name ,args . ,stmt*))
+       ((extern ,t ,name ,args)
+        `(extern ,t ,name ,args))
+       (,else (error 'verify-decl "Invalid declaration" else)))))
 
  (define verify-stmt
    (lambda (stmt)

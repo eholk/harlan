@@ -94,6 +94,8 @@
     (match decl
       [(fn ,name ,args (,arg-types -> ,ret-type) ,[compile-stmt -> stmt*] ...)
        `(func ,ret-type ,name ,(map cons arg-types args) ,stmt* ...)]
+      [(extern ,name ,arg-types -> ,rtype)
+       `(extern ,rtype ,name ,arg-types)]
       [,else (error 'compile-decl (format "unknown decl type ~s" else))])))
  
 (define compile-stmt
@@ -131,7 +133,7 @@
       [(cast ,t ,[e]) `(cast ,t ,e)]
       [(,op ,[e1] ,[e2]) (guard (binop? op)) `(,op ,e1 ,e2)]
       [(time) '(nanotime)]
-      [(call ,f ,[a*] ...) `(,f ,a* ...)]
+      [(call ,t ,f ,[a*] ...) `(,f ,a* ...)]
       [,else (error 'compile-expr (format "unknown expr type ~s" else))])))
 
 )

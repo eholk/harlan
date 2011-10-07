@@ -177,7 +177,10 @@
 					  ((field g_prog build))) 
 		    ,stmt* ...)
              `(func ,type ,name ,args (do (GC_INIT)) ,stmt* ...))
-         (apply append kernel*))))))
+         (apply append kernel*)))
+       ((extern ,t ,name ,arg-types)
+        (values `(extern ,t ,name ,arg-types) '()))
+       (,else (error 'hoist-decl "Invalid declaration" else)))))
 
  (define hoist-stmt
    (lambda (stmt)

@@ -175,12 +175,14 @@
    (lambda (mod)
      (match mod
        ((module ,fn* ...)
-        `(module . ,(map lower-fn fn*))))))
+        `(module . ,(map lower-decl fn*))))))
 
- (define (lower-fn fn)
+ (define (lower-decl fn)
    (match fn
      ((fn ,name ,args ,t ,stmt* ...)
       `(fn ,name ,args ,t . ,(apply append (map lower-stmt stmt*))))
+     ((extern ,name ,args -> ,t)
+      `(extern ,name ,args -> ,t))
      (,else (error 'lower-fn "unknown fn" else))))
 
  (define lower-stmt
@@ -237,14 +239,17 @@
  ;; It runs after lower-vectors but before compile-module.
  (define (uglify-vectors mod)
    (match mod
-     ((module ,[uglify-fn -> fn*] ...)
+     ((module ,[uglify-decl -> fn*] ...)
       `(module ,fn* ...))))
 
- (define uglify-fn
+ (define uglify-decl
    (lambda (fn)
      (match fn
        ((fn ,name ,args ,t ,[uglify-stmt -> stmt*] ...)
-        `(fn ,name ,args ,t ,(apply append stmt*) ...)))))
+        `(fn ,name ,args ,t ,(apply append stmt*) ...))
+       ((extern ,name ,args -> ,t)
+        `(extern ,name ,args -> ,t))
+       (,else (error 'uglify-decl "Invalid declaration" else)))))
 
  (define decode-vector-type
    (lambda (t)
@@ -273,10 +278,10 @@
      (match e
        ((int ,y)
         (let-values (((dim t sz) (decode-vector-type `(vector ,t ,n))))
-          `(cast (ptr char) (call GC_MALLOC ,sz))))
+          `(cast (ptr char) (call (ptr void) GC_MALLOC ,sz))))
        ((var int ,y)
         (let-values (((dim t sz) (decode-vector-type `(vector ,t ,y))))
-          `(cast (ptr char) (call GC_MALLOC ,sz))))
+          `(cast (ptr char) (call (ptr void) GC_MALLOC ,sz))))
        ((var ,tv ,y)
 	;; TODO: this probably needs a copy instead.
         `(var ,tv ,y))
@@ -328,7 +333,7 @@
        (match t
          ((vector ,t ,n)
 	  (let-values (((dim t sz) (decode-vector-type `(vector ,t ,n))))
-	    `((do (call memcpy 
+	    `((do (call void memcpy 
 			,(uglify-vector-ref `(vector ,t ,n) x i)
 			,v
 			,sz)))))
@@ -346,6 +351,8 @@
        ((u64 ,n) `(u64 ,n))
        ((str ,s) `(str ,s))
        ((var ,tx ,x) `(var ,tx ,x))
+       ((call ,t ,name ,[args] ...)
+        `(call ,t ,name ,args ...))
        ((,op ,[lhs] ,[rhs]) (guard (binop? op))
         `(,op ,lhs ,rhs))
        ((vector-ref ,t ,[e] ,[i])

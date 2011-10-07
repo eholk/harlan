@@ -1,7 +1,5 @@
 ;; -*- scheme -*-
 
-;xfail
-
 (module
  (extern nanotime () -> u64)
  (fn main () 

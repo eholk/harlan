@@ -49,7 +49,10 @@
        (match decl
          ((func ,type ,name ,args ,stmt* ...)
           (let-values (((stmt* gamma) ((annotate-stmt* gamma) stmt*)))
-            `(func ,type ,name ,args . ,stmt*)))))))
+            `(func ,type ,name ,args . ,stmt*)))
+         ((extern ,t ,name ,arg-types)
+          `(extern ,t ,name ,arg-types))
+         (,else (error 'annotate-decl "Invalid declaration" else))))))
 
 (define annotate-stmt*
   (lambda (gamma)

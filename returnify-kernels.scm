@@ -15,12 +15,15 @@
    (lambda (mod)
      (match mod
        ((module ,fn* ...)
-        `(module . ,(map returnify-kernel-fn fn*))))))
+        `(module . ,(map returnify-kernel-decl fn*))))))
 
-  (define (returnify-kernel-fn fn)
+  (define (returnify-kernel-decl fn)
    (match fn
      ((fn ,name ,args ,type ,stmt* ...)
-      `(fn ,name ,args ,type . ,(returnify-kernel-stmt* stmt*)))))
+      `(fn ,name ,args ,type . ,(returnify-kernel-stmt* stmt*)))
+     ((extern ,name ,args -> ,type)
+      `(extern ,name ,args -> ,type))
+     (,else (error 'returnify-kernel-decl "Invalid declaration" else))))
 
  (define returnify-kernel-stmt*
    (lambda (stmt*)
