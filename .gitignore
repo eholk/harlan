@@ -14,3 +14,15 @@ gc-7.2alpha6/include/private/stamp-h1
 gc-7.2alpha6/libcord.la
 gc-7.2alpha6/libgc.la
 gc-7.2alpha6/libtool
+gc-7.2alpha6/libatomic_ops/Makefile
+gc-7.2alpha6/libatomic_ops/config.log
+gc-7.2alpha6/libatomic_ops/config.status
+gc-7.2alpha6/libatomic_ops/doc/Makefile
+gc-7.2alpha6/libatomic_ops/src/.deps/
+gc-7.2alpha6/libatomic_ops/src/Makefile
+gc-7.2alpha6/libatomic_ops/src/atomic_ops/Makefile
+gc-7.2alpha6/libatomic_ops/src/atomic_ops/sysdeps/Makefile
+gc-7.2alpha6/libatomic_ops/src/config.h
+gc-7.2alpha6/libatomic_ops/src/stamp-h1
+gc-7.2alpha6/libatomic_ops/tests/.deps/
+gc-7.2alpha6/libatomic_ops/tests/Makefile
