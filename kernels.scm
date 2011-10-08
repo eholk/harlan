@@ -74,6 +74,7 @@
                     (_ptr* (map (lambda (arg) (gensym '_ptr)) arg*))
                     (i* (iota (length arg*))))
                 `(
+		  ;; This is the part where we allocate GPU buffers.
                   ,@(map
                      (lambda (arg _gpu _ptr i)
                        (match arg
@@ -91,6 +92,7 @@
                          ((var ,t ,s)
                           '(block)))) ;; no-op
                      arg* _gpu* _ptr* i*)
+		  ;; Here's where we copy data to the GPU.
                   ,@(map
                      (lambda (arg _gpu _ptr i)
                        (match arg
@@ -110,6 +112,7 @@
                          ((var ,t ,x)
                           '(block))))
                      arg* _gpu* _ptr* i*)
+		  ;; Now we assign the arguments.
                   ,@(map
                      (lambda (arg _gpu _ptr i)
                        (match arg
@@ -121,6 +124,7 @@
                          ((var ,t ,x)
                           `(do ((field ,k-var setArg) ,i ,x)))))
                      arg* _gpu* _ptr* i*)
+		  ;; This is where we execute the kernel.
                   (do ((field g_queue execute) ,k-var
 		       ,(match (car arg*)
 			  ((var (vector ,t ,n) ,x)
@@ -129,6 +133,7 @@
 					"Invalid kernel argument type"
 					else)))
 		       1))
+		  ;; And now we copy the results back.
                   ,@(map
                      (lambda (arg _gpu _ptr i)
                        (match arg
