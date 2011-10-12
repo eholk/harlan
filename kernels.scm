@@ -12,7 +12,7 @@
     (match)
     (print-c)
     (vectors)
-    (helpers))
+    (util helpers))
   
 (define generate-kernel-calls (lambda (expr) expr))
 (define move-gpu-data (lambda (expr) expr))

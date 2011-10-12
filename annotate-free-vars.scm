@@ -5,7 +5,7 @@
          (rnrs)
          (print-c)
          (match)
-         (helpers))
+         (util helpers))
 
 ;; Is there anything else I should work on tomorrow, once I get this pass working?
 ;; either the for loop pass, or the pass that uses the free variables, or keep working on returnify kernels

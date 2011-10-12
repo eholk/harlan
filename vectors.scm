@@ -6,7 +6,7 @@
          (rnrs)
          (match)
          (print-c)
-         (helpers))
+         (util helpers))
 
  ;; Vector simplification code. Weirdly, this runs before
  ;; typechecking.

@@ -3,7 +3,7 @@
  (export returnify-kernels)
  (import (rnrs)
          (match)
-         (helpers))
+         (util helpers))
  
  (define returnify-kernels
    (lambda (mod)

@@ -1,5 +1,5 @@
 (library
- (helpers)
+ (util helpers)
  (export gensym iota)
  (import (rnrs))
 

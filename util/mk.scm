@@ -11,7 +11,7 @@
 ;;; This file has been updated to work un R6RS Schemes.
 
 (library
- (mk)
+ (util mk)
  (export == ==-check fresh conde run fail succeed conda unify project lambdag@)
  (import (rnrs)
 	 (only (chezscheme) pretty-print))
