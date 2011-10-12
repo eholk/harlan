@@ -5,23 +5,8 @@
          (rnrs)
          (match)
          (print-c)
-	 (vectors))
-
- ;; This is copied from vectors.scm. It should go in its own library.
- (define gensym
-   (let ((c 0))
-     (lambda (x)
-       (unless (symbol? x) (error 'gensym "invalid symbol" x))
-       (set! c (+ 1 c))
-       (string->symbol
-        (string-append (symbol->string x) "_" (number->string c))))))
-
- (define iota
-   (lambda (n)
-     (let loop ([i 0])
-       (cond
-         [(= i n) '()]
-         [else (cons i (loop (+ i 1)))]))))
+	 (vectors)
+         (helpers))
  
  (define format-kernel-arg
    (lambda (arg)
@@ -167,10 +152,9 @@
    (match x
      ((var (vector ,t ,n) ,x^) t)
      (,else (error 'unpack-type "invalid kernel argument" else))))
- 
+
  (define compile-kernels
    (lambda (mod)
-     ;; (display "compiling kernels\n")
      (map (lambda (decl)
             (match decl
               ((gpu-module ,[compile-kernel -> kernel*] ...)

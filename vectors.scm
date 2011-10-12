@@ -5,15 +5,9 @@
  (import (only (chezscheme) format)
          (rnrs)
          (match)
-         (print-c))
+         (print-c)
+         (helpers))
 
- (define gensym
-   (let ((c 0))
-     (lambda (x)
-       (set! c (+ 1 c))
-       (string->symbol
-        (string-append (symbol->string x) "_" (number->string c))))))
-        
  ;; Vector simplification code. Weirdly, this runs before
  ;; typechecking.
 

@@ -2,14 +2,8 @@
  (returnify-kernels)
  (export returnify-kernels)
  (import (rnrs)
-         (match))
- 
- (define gensym
-   (let ((c 0))
-     (lambda (x)
-       (set! c (+ 1 c))
-       (string->symbol
-        (string-append (symbol->string x) "_" (number->string c))))))
+         (match)
+         (helpers))
  
  (define returnify-kernels
    (lambda (mod)
