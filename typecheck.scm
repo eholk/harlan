@@ -2,7 +2,7 @@
  (typecheck)
  (export typecheck simplify-literals infer-kernel infer-stmt infer-expr lookup)
  (import (chezscheme)
-         (match)
+         (util match)
          (util mk))
 
 ;;; ********************************* FIX ME !!!! ****

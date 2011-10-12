@@ -4,7 +4,7 @@
  (import (only (chezscheme) format printf)
          (rnrs)
          (print-c)
-         (match)
+         (util match)
          (util helpers))
 
 ;; Is there anything else I should work on tomorrow, once I get this pass working?

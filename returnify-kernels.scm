@@ -2,7 +2,7 @@
  (returnify-kernels)
  (export returnify-kernels)
  (import (rnrs)
-         (match)
+         (util match)
          (util helpers))
  
  (define returnify-kernels

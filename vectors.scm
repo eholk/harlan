@@ -4,7 +4,7 @@
 	 vector-bytesize uglify-vector-ref)
  (import (only (chezscheme) format)
          (rnrs)
-         (match)
+         (util match)
          (print-c)
          (util helpers))
 

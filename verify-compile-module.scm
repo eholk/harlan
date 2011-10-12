@@ -3,7 +3,7 @@
  (export verify-compile-module)
  (import (only (chezscheme) format define)
          (rnrs)
-         (match)
+         (util match)
          (print-c))
  
  (define verify-compile-module

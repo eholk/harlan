@@ -93,7 +93,7 @@
 
 
 
-(library (match)
+(library (util match)
   (export match trace-match 
           match+ trace-match+
           match/lexical-context trace-match/lexical-context

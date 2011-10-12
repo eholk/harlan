@@ -3,7 +3,7 @@
  (export format-c print-c join format-arg format-ident format-block unaryop? binop?)
  (import (only (chezscheme) format)
          (rnrs)
-         (match))
+         (util match))
 
  (define join
    (lambda (sep strings)

@@ -4,7 +4,7 @@
          compile-harlan-middle verbose
          compile-harlan-frontend compile-module)
  (import (chezscheme)
-         (match)
+         (util match)
          (typecheck)
          (vectors)
          (returnify)

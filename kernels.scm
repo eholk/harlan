@@ -9,7 +9,7 @@
   (import
     (only (chezscheme) format)
     (rnrs)
-    (match)
+    (util match)
     (print-c)
     (vectors)
     (util helpers))

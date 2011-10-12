@@ -2,7 +2,7 @@
  (returnify)
  (export returnify)
  (import (chezscheme)
-         (match))
+         (util match))
 
  (define returnify
    (lambda (mod)
