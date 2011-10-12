@@ -10,6 +10,7 @@
          (returnify)
          (returnify-kernels)
          (kernels)
+         (convert-types)
          (verify-compile-module)
          (annotate-free-vars)
          (print-c))
@@ -72,14 +73,16 @@
 ;; to go here. This goes from TFC to something we can give to print-c.
 (define compile-harlan-middle
   (lambda (expr)
-    (let* (           
-           (expr (trace-pass "lower-vectors" lower-vectors expr))
-           (expr (trace-pass "returnify-kernels" returnify-kernels expr))           
+    (let* ((expr (trace-pass "lower-vectors" lower-vectors expr))
+           (expr (trace-pass "returnify-kernels" returnify-kernels expr))
            (expr (trace-pass "uglify-vectors" uglify-vectors expr))
            (expr (trace-pass "compile-module" compile-module expr))
            (expr (trace-pass "verify-compile-module" verify-compile-module expr))
            (expr (trace-pass "annotate-free-vars" annotate-free-vars expr))
            (expr (trace-pass "hoist-kernels" hoist-kernels expr))
+           (expr (trace-pass "move-gpu-data" move-gpu-data expr))
+           (expr (trace-pass "generate-kernel-calls" generate-kernel-calls expr))
+           (expr (trace-pass "convert-types" convert-types expr))
            (expr (trace-pass "compile-kernels" compile-kernels expr)))
       expr)))
 
@@ -161,8 +164,9 @@
   '((func int main () (print 42) (return 0))))
 
 
-;; need to add a flatten pass (flatten-vector) to 
-;; flatten the (print (vector ...)) [or anywhere else where a call to vector appears in non-tail position] and introduce a new variable 
+;; need to add a flatten pass (flatten-vector) to
+;; flatten the (print (vector ...)) [or anywhere else where a call to
+;; vector appears in non-tail position] and introduce a new variable
 ;; declaration inside a block.
 '(test 'compile-print
   (compile-harlan
