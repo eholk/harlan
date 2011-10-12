@@ -272,10 +272,10 @@
      (match e
        ((int ,y)
         (let-values (((dim t sz) (decode-vector-type `(vector ,t ,n))))
-          `(cast (ptr char) (call (ptr void) GC_MALLOC ,sz))))
+          `(cast (vector ,t ,n) (call (ptr void) GC_MALLOC ,sz))))
        ((var int ,y)
         (let-values (((dim t sz) (decode-vector-type `(vector ,t ,y))))
-          `(cast (ptr char) (call (ptr void) GC_MALLOC ,sz))))
+          `(cast (vector ,t ,n) (call (ptr void) GC_MALLOC ,sz))))
        ((var ,tv ,y)
 	;; TODO: this probably needs a copy instead.
         `(var ,tv ,y))
@@ -290,7 +290,7 @@
      (match stmt
        ((let ,x (vector ,t ,n) ,[uglify-expr -> init])
         (let ((vv (uglify-let-vec t init n)))
-	  `((let ,x (ptr char) ,vv))))
+	  `((let ,x (vector ,t ,n) ,vv))))
        ((let ,x ,t ,[uglify-expr -> e])
         `((let ,x ,t ,e)))
        ((for (,i ,[uglify-expr -> start] ,[uglify-expr -> end])
@@ -369,15 +369,13 @@
         (,else
          (error 'uglify-expr (format "unsupported expr: ~s" else))))))
 
- (define uglify-vector-ref
-   (lambda (t e i)
-     (let ((cell 
-	    `(+ ,e (* ,i ,(vector-bytesize t)))))
-       (match t
-	      ((vector ,t ,n)
-	       cell)
-	      (,scalar
-	       (guard (symbol? scalar))
-	       `(deref (cast (ptr ,t) ,cell)))
-	      (,else (error 'uglify-vector-ref "unsupported type" else))))))
+  (define uglify-vector-ref
+    (lambda (t e i)
+      (match t
+        ((vector ,t ,n)
+         `(addressof (vector-ref ,t ,e (* ,i (int ,n)))))
+        (,scalar
+         (guard (symbol? scalar))
+         `(vector-ref ,t ,e ,i))
+        (,else (error 'uglify-vector-ref "unsupported type" else)))))
  )

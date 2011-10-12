@@ -112,7 +112,7 @@
        ((cast ,[format-type -> t] ,[e])
         (string-append "((" t ")(" e "))"))
        ((addressof ,[e])
-        (string-append "&" e))
+        (string-append "(&(" e "))"))
        ((,op ,[lhs] ,[rhs])
         (guard (binop? op))
         (string-append lhs " " (binop->string op) " " rhs))

@@ -1,8 +1,26 @@
 (library
  (util helpers)
- (export gensym iota)
- (import (rnrs))
+ (export gensym iota define-match andmap)
+ (import (rnrs)
+         (util match))
 
+ ;; This abstracts away most of the boilerplate for writing
+ ;; match-based transformations.
+ ;;
+ ;; It has a major but though. Clauses like ((,foo ...) `(,foo ...))
+ ;; generates things like ((,foo ...)) instead of ((,@foo)) like it
+ ;; should. Do any macro wizards have any ideas?
+ ;;
+ ;; Fortunately, you can work around this by using ,@ or .,
+ (define-syntax define-match
+    (syntax-rules (unquote)
+      ((_ (name args ...) clause ...)
+       (define name
+         (lambda (arg args ...)
+           (match arg
+             clause ...
+             (,else (error 'name "Unrecognized item" else))))))))
+ 
  (define gensym
    (let ((c 0))
      (lambda (x)
@@ -17,4 +35,10 @@
        (cond
          [(= i n) '()]
          [else (cons i (loop (+ i 1)))]))))
+
+ (define andmap
+   (lambda (p ls)
+     (if (null? ls)
+         #t
+         (and (p (car ls)) (andmap p (cdr ls))))))
  )

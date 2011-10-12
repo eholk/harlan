@@ -76,13 +76,17 @@
     (let* ((expr (trace-pass "lower-vectors" lower-vectors expr))
            (expr (trace-pass "returnify-kernels" returnify-kernels expr))
            (expr (trace-pass "uglify-vectors" uglify-vectors expr))
+           ;; We're just putting convert-types here temporarily. We'll
+           ;; move it lower as we update the following passes.
+           (expr (trace-pass "convert-types" convert-types expr))
            (expr (trace-pass "compile-module" compile-module expr))
            (expr (trace-pass "verify-compile-module" verify-compile-module expr))
            (expr (trace-pass "annotate-free-vars" annotate-free-vars expr))
            (expr (trace-pass "hoist-kernels" hoist-kernels expr))
            (expr (trace-pass "move-gpu-data" move-gpu-data expr))
            (expr (trace-pass "generate-kernel-calls" generate-kernel-calls expr))
-           (expr (trace-pass "convert-types" convert-types expr))
+           ;; This is where convert-types actually belongs.
+           ;;(expr (trace-pass "convert-types" convert-types expr))
            (expr (trace-pass "compile-kernels" compile-kernels expr)))
       expr)))
 

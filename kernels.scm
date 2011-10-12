@@ -186,7 +186,8 @@
     (match mod
       ((,[hoist-decl -> decl* kernel*] ...)
        `((gpu-module . ,(apply append kernel*))
-         ,decl* ...)))))
+         ,decl* ...))
+      (,else (error 'hoist-kernels "What is this?" else)))))
 
 (define hoist-decl
   (lambda (decl)
@@ -259,7 +260,17 @@
     (map (lambda (stmt)
            (fold-left 
              (lambda (stmt x xs ts)
-               (let ((t (match ts ((vector ,t ,n) t))))
+               (let ((t (match ts
+                          ((vector ,t ,n) t)
+                          ;; TODO: ptrs shouldn't be in the language
+                          ;; yet, but we're being a bit too aggressive
+                          ;; about erasing types. Once we move
+                          ;; convert-types below this pass, we should
+                          ;; remove this clause too.
+                          ((ptr ,t) t)
+                          (,else (error 'replace-vec-refs
+                                        "Unknown type"
+                                        else)))))
                  (match stmt
                    ((,[x] ...) `(,x ...))
                    (,y (guard (eq? x y)) `(deref ,x))
