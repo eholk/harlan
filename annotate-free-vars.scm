@@ -4,7 +4,8 @@
  (import (only (chezscheme) format printf)
          (rnrs)
          (print-c)
-         (match))
+         (match)
+         (helpers))
 
 ;; Is there anything else I should work on tomorrow, once I get this pass working?
 ;; either the for loop pass, or the pass that uses the free variables, or keep working on returnify kernels
@@ -29,13 +30,6 @@
 ;; for the free variables, we need to do the exact same thing, except that you don't implicitly unpack a small x
 ;; so at the end there won't be a distinction between free variables and iterator variables, there will just be variables
 ;; and some of them are implicitly vector-ref'd, and others aren't
- 
- (define gensym
-   (let ((c 0))
-     (lambda (x)
-       (set! c (+ 1 c))
-       (string->symbol
-        (string-append (symbol->string x) "_" (number->string c))))))
 
  (define annotate-free-vars
    (lambda (mod)
