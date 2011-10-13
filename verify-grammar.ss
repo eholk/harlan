@@ -1,59 +1,63 @@
+;; shoo nonsense
 (print-gensym #f)
 
-(define create-name
+;; Nonterminal to verify-Nonterminal and terminal to terminal?
+(define (create-name completion)
   (lambda (syn)
     (datum->syntax syn
       (string->symbol
-        (let ((str (symbol->string (syntax->datum syn))))
-          (if (char-lower-case? (string-ref str 0))
-              (string-append str "?")
-              (string-append "verify-" str)))))))
+        (completion (symbol->string (syntax->datum syn)))))))
+(define create-pred-name
+  (create-name (lambda (str) (string-append str "?"))))
+(define create-verify-name
+  (create-name (lambda (str) (string-append "verify-" str))))
 
-(define (nonterminal? syn)
+;; terminals have a lowercase first char, nonterminals are capitalized
+(define (form-pred proc syn)
   (let ((sym (syntax->datum syn)))
     (and (symbol? sym)
-         (char-upper-case?
-           (string-ref(symbol->string sym) 0)))))
+         (proc (string-ref (symbol->string sym) 0)))))
+(define (nonterminal? syn) (form-pred char-upper-case? syn))
+(define (terminal? syn) (form-pred char-lower-case? syn))
 
-(define (terminal? syn)
-  (let ((sym (syntax->datum syn)))
-    (and (symbol? sym)
-         (char-lower-case?
-           (string-ref(symbol->string sym) 0)))))
+;; outputs a boolean expression that patternmatches inp
+;; at this point, all lower-case symbols are matched exactly
+(define (create-pattern-match rout inp)
+  (syntax-case rout ()
+    ((a . d)
+     #`(and (pair? #,inp)
+            #,(create-pattern-match #'d #`(cdr #,inp))
+            #,(create-pattern-match #'a #`(car #,inp))))
+    (_ (nonterminal? rout)
+      #`(#,(create-name rout) #,inp))
+    (_ #`(eq? #,inp '#,rout))))
 
-(define (create-pattern-match rout nonterm)
-  (letrec
-      ((loop
-         (lambda (rout nonterm k)
-           (syntax-case rout ()
-             ((a . d)
-              #`(and (pair? #,nonterm)
-                     #,(loop #'d #`(cdr #,nonterm)
-                         #`(lambda (v) (and v #,(loop #'a #`(car #,nonterm) k))))))
-             (_ (nonterminal? rout)
-               #`(#,k (#,(create-name rout) #,nonterm)))
-             (_ #`(#,k (eq? #,nonterm '#,rout)))))))
-    (loop rout nonterm #'(lambda (v) v))))
+;; either returns (terminal? inp) or a boolean expression
+(define (create-clause rout inp)
+  (if (terminal? rout)
+      #`(#,(create-pred-name rout) #,inp)
+      (create-pattern-match rout inp)))
 
-(define (create-clause nonterm rout)
-  #`(#,(if (terminal? rout)
-           #`(#,(create-name rout) #,nonterm)
-           (create-pattern-match rout nonterm))
-     (void)))
+;; to be clear, these error messages are meaningful
+(define (meaningful-error pass nonterm opts inp)
+  #`(apply errorf
+      '#,pass
+      (apply string-append
+        "Output expr ~s does not conform to grammar.\n"
+        "Was expecting one of the following for ~s:"
+        '#,(map (lambda (s) " ~s") opts))
+      #,inp #,nonterm '#,opts))
 
-(define (create-body pass-name nonterm l)
+;; outputs the body of a pass verify-nonterm
+;; catches errors, but throws one if there are no options that match
+(define (create-body pass nonterm opts inp)
   (with-syntax (((clauses ...)
-                 (map (lambda (rout) (create-clause nonterm rout)) l)))
-    #`(cond
-        clauses ...
-        (else (errorf '#,pass-name "Output does not conform to grammar.")))))
+                 (map (lambda (rout) (create-clause rout inp)) opts)))
+    #`(or (guard (x ((error? x) #f)) clauses) ...
+          #,(meaningful-error pass nonterm opts inp))))
 
+;; expands to ALL the procedures
 (define-syntax (generate-verify x)
-  (define (create-verify-name syn)
-    (datum->syntax syn
-      (string->symbol
-        (string-append "verify-"
-          (symbol->string (syntax->datum syn))))))
   (syntax-case x ()
     ((_ pass (r0in r0out ...) (rin* rout* ...) ...)
      (with-syntax
@@ -61,7 +65,7 @@
            (map create-verify-name #'(pass r0in rin* ...)))
           ((body body* ...)
            (map
-             (lambda (i o) (create-body #'pass i o))
+             (lambda (i o) (create-body #'pass #`'#,i o i))
              #'(r0in rin* ...)
              #'((r0out ...) (rout* ...) ...))))
        #'(define name
@@ -71,6 +75,8 @@
              ...
              (begin (start prg) prg)))))))
 
+#!eof
+;; an example
 
 ;; lambda-calc
 ;; Term -> (lambda (Var) Term) | (Term Term) | Var
@@ -89,9 +95,3 @@
     Var)
   (Var symbol))
 
-(generate-verify test-cps
-  (Term
-    (lambda (Var) Int)
-    (lambda (Int) Int Int))
-  (Var symbol)
-  (Int integer))
