@@ -2,6 +2,7 @@
 *.lo
 gc/
 test.bin/
+rt/libharlanrt.a
 *~
 */.deps/
 */.libs/
