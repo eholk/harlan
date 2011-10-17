@@ -3,8 +3,12 @@
 
 (library
   (verify-grammar)
-  (export generate-verify)
-  (import (chezscheme))
+  (export generate-verify wildcard?)
+  (import
+    (rnrs)
+    (only (chezscheme) errorf))
+
+  (define wildcard? (lambda (x) #t))
   
   ;; expands to ALL the procedures
   (define-syntax (generate-verify x)
@@ -30,17 +34,37 @@
     (define nonterminal? (form-pred char-upper-case?))
     (define terminal? (form-pred char-lower-case?))
     
-    ;; outputs a boolean expression that patternmatches inp
+    (define (dotdotdot verify-name inp)
+      #`(let loop ((inp #,inp))
+          (or (null? inp)
+              (and (#,verify-name (car inp))
+                   (loop (cdr inp))))))
+
+    ;; outputs a boolean expression that pattern matches inp
     ;; at this point, all lower-case symbols are matched exactly
     (define (pattern-match pattern inp)
-      (syntax-case pattern ()
+      (syntax-case pattern (* +)
+        (() #`(null? #,inp))
+        ((a *) (dotdotdot (verify-name #'a) inp))
+        ((a * d ...)
+         (with-syntax (((rd ...) (reverse #'(d ...)))
+                       ((id id* ...) (generate-temporaries #'(d ...))))
+           #`(and (pair? #,inp)
+                  (let ((id (reverse #,inp)))
+                    #,(pattern-match #'(rd ... a *) #'id)))))
+        ((a + d ...) (pattern-match #'(a a * d ...) inp))
+        (((aa . ad) . d)
+         #`(and (pair? #,inp)
+                (and #,(pattern-match #'d #`(cdr #,inp))
+                     #,(pattern-match #'(aa . ad) #`(car #,inp)))))
         ((a . d)
          #`(and (pair? #,inp)
-                #,(pattern-match #'a #`(car #,inp))
-                #,(pattern-match #'d #`(cdr #,inp))))
-        (_ (if (nonterminal? pattern)
-               #`(#,(verify-name pattern) #,inp)
-               #`(eq? #,inp '#,pattern)))))
+                #,(if (nonterminal? #'a)
+                      #`(and #,(pattern-match #'d #`(cdr #,inp))
+                             #,(pattern-match #'a #`(car #,inp)))
+                      #`(and (eq? (car #,inp) 'a)
+                             #,(pattern-match #'d #`(cdr #,inp))))))
+        (_ #`(#,(verify-name pattern) #,inp))))
     
     ;; either returns (terminal? inp) or a boolean expression to match pairs
     (define (create-clause pattern inp)
@@ -53,18 +77,17 @@
       #`(apply errorf
           '#,pass
           (apply string-append
-            "Output expr ~s does not conform to grammar.\n"
-            "Was expecting one of the following for ~s:"
+            "\nFollowing ~s does not conform to grammar.\n~s\n"
+            "Was expecting one of the following:"
             '#,(map (lambda (_) " ~s") right*))
-          #,inp #,left '#,right*))
+          #,left #,inp '#,right*))
     
     ;; outputs the body of a pass verify-nonterm
     ;; catches errors, but throws one if there are no options that match
     (define (create-body pass left right* inp)
       (with-syntax (((clauses ...)
                      (map (lambda (rout) (create-clause rout inp)) right*)))
-        #`(or (guard (x ((error? x) #f)) clauses) ...
-              #,(meaningful-error pass left right* inp))))
+        #`(or clauses ... #,(meaningful-error pass left right* inp))))
     
     ;; actual macro
     (syntax-case x ()
@@ -82,12 +105,13 @@
                (define start (lambda (left) body))
                (define nonterminals (lambda (left*) body*))
                ...
-               (begin (start prg) prg)))))))
+               (and (start prg) prg)))))))
 
 )
 
-#!eof
-;; an example
+#|
+
+Here's an example:
 
 ;; lambda-calc
 ;; Term -> (lambda (Var) Term) | (Term Term) | Var
@@ -106,3 +130,19 @@
     Var)
   (Var symbol))
 
+> (import (verify-grammar))
+> (generate-verify lambda-calc
+    (Term
+      (lambda (Var) Term)
+      (Term Term)
+      Var)
+    (Var symbol))
+> (verify-lambda-calc '(lambda (x) x))
+(lambda (x) x)
+> (verify-lambda-calc '(lambda (x) x y))
+
+Exception in lambda-calc: Output expr (lambda (x) x y) does not conform to grammar.
+Was expecting one of the following for Term: (lambda (Var) Term) (Term Term) Var
+Type (debug) to enter the debugger.
+
+|#
