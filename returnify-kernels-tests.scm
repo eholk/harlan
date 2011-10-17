@@ -1,4 +1,4 @@
-(import (returnify) (vectors) (typecheck) (returnify-kernels) (harlancompiler) (mk))
+(import (returnify) (lift-vectors) (typecheck) (returnify-kernels) (harlancompiler) (mk))
 
 (define-syntax test-unify
   (syntax-rules ()

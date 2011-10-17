@@ -1,4 +1,13 @@
-(import (annotate-free-vars) (verify-compile-module) (returnify) (vectors) (typecheck) (returnify-kernels) (harlancompiler) (mk))
+(import
+  (annotate-free-vars)
+  (verify-compile-module)
+  (returnify)
+  (uglify-vectors)
+  (lower-vectors)
+  (typecheck)
+  (returnify-kernels)
+  (harlancompiler)
+  (mk))
 
 (define-syntax test-unify
   (syntax-rules ()

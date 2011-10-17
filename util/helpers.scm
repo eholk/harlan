@@ -1,6 +1,12 @@
 (library
  (util helpers)
- (export gensym iota define-match andmap)
+ (export
+   gensym
+   iota
+   define-match
+   andmap
+   decode-vector-type
+   vector-bytesize)
  (import (rnrs)
          (util match))
 
@@ -41,4 +47,17 @@
      (if (null? ls)
          #t
          (and (p (car ls)) (andmap p (cdr ls))))))
+
+(define decode-vector-type
+  (lambda (t)
+    (match t
+      ((vector ,[dim t sz] ,len)
+       (values (+ 1 dim) t `(* (int ,len) ,sz)))
+      (,t (values 0 t `(sizeof ,t))))))
+
+ (define vector-bytesize
+  (lambda (t)
+    (let-values (((dim t sz) (decode-vector-type t)))
+      sz)))
+
  )

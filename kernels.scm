@@ -15,7 +15,6 @@
     (rnrs)
     (util match)
     (print-c)
-    (vectors)
     (verify-grammar)
     (util helpers))
   
