@@ -22,7 +22,7 @@ endif
 
 # Invokes the harlan compiler. The first argument is the name of the
 # source file, the second is the name of the output file.
-HC = ./harlanc $(1) | $(CXX) rt/libharlanrt.a -x c++ - -x none $(CXXFLAGS) \
+HC = ./harlanc $(1) | $(CXX) -x c++ - -x none rt/libharlanrt.a $(CXXFLAGS) \
      -o $(2)
 
 TEST_EXE_NAME = $(patsubst test/%, test.bin/%.bin, $(1))
