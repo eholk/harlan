@@ -1,21 +1,22 @@
 (library
- (harlancompiler)
- (export compile-harlan lift-vectors annotate-types test
-         compile-harlan-middle verbose
-         compile-harlan-frontend compile-module)
- (import (chezscheme)
-         (util match)
-         (typecheck)
-         (vectors)
-         (lift-vectors)
-         (returnify)
-         (returnify-kernels)
-         (kernels)
-         (convert-types)
-         (verify-compile-module)
-         (annotate-free-vars)
-         (print-c))
-
+  (harlancompiler)
+  (export compile-harlan lift-vectors annotate-types test
+    compile-harlan-middle verbose
+    compile-harlan-frontend compile-module)
+  (import (chezscheme)
+    (util match)
+    (typecheck)
+    (vectors)
+    (lift-vectors)
+    (lower-vectors)
+    (returnify)
+    (returnify-kernels)
+    (kernels)
+    (convert-types)
+    (verify-compile-module)
+    (annotate-free-vars)
+    (print-c))
+  
  (define verbose
    (let ((flag #f))
      (case-lambda
