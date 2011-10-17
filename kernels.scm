@@ -16,11 +16,11 @@
     (util match)
     (print-c)
     (verify-grammar)
-    (util helpers))
+    (util helpers)
+    (harlan generate-kernel-calls))
   
 (generate-verify generate-kernel-calls
   (Module wildcard))
-(define generate-kernel-calls (lambda (expr) expr))
 
 (generate-verify move-gpu-data
   (Module wildcard))
@@ -49,130 +49,6 @@
       (,else
         (error 'compile-kernel (format "bad kernel expression: ~s" kernel))))))
 
-(define compile-kernel-stmt
-  (lambda (stmt)
-    (match stmt
-      ;; This clause is really doing way too much, and should
-      ;; probably be three passes just by itself. Instead, I'll
-      ;; attempt to document what's going on with it.
-      ;;
-      ;; We have a form like (apply-kernel add_vector x y). To make
-      ;; this work, we do several things. 
-      ;;
-      ;; First, we call g_prog.createKernel("add_vector") to create
-      ;; an OpenCL kernel object.
-      ;; 
-      ;; Second, we allocate buffers on the GPU to hold x and y.
-      ;;
-      ;; Third, we copy x and y into the GPU buffers.
-      ;; 
-      ;; Fourth, we call setArg for each kernel argument so OpenCL
-      ;; knows which parameter values to use.
-      ;; 
-      ;; Fifth, we actually execute the kernel.
-      ;;
-      ;; Sixth, we copy x and y back from the GPU.
-      ;;
-      ;; Each of these has more special cases, which makes the whole
-      ;; process super ugly. More comments will follow below.
-      ((apply-kernel ,k ,arg* ...)
-       (let ((k-var (gensym 'kernel)))
-         `(block
-            (let ,k-var cl::kernel
-                 ((field g_prog createKernel) ,(format-ident k)))            
-            ,@(let ((_gpu* (map (lambda (arg) (gensym '_gpu)) arg*))
-                    (_ptr* (map (lambda (arg) (gensym '_ptr)) arg*))
-                    (i* (iota (length arg*))))
-                `(
-                  ;; This is the part where we allocate GPU buffers.
-                  ,@(map
-                      (lambda (arg _gpu _ptr i)
-                        (match arg
-                          ((var (ptr char) ,x)
-                           (error 'compile-kernel-stmt "Don't do this. (a)")
-                           `(let ,_gpu (cl::buffer char)
-                                 ((field g_ctx createBuffer<char>)
-                                  (hvec_byte_size ,(unpack-arg arg))
-                                  CL_MEM_READ_WRITE)))
-                          ((var (vector ,t ,n) ,x)
-                           `(let ,_gpu (cl::buffer char)
-                                 ((field g_ctx createBuffer<char>)
-                                  ,(vector-bytesize `(vector ,t ,n))
-                                  CL_MEM_READ_WRITE)))
-                          ((var ,t ,s)
-                           '(block)))) ;; no-op
-                      arg* _gpu* _ptr* i*)
-                  ;; Here's where we copy data to the GPU.
-                  ,@(map
-                      (lambda (arg _gpu _ptr i)
-                        (match arg
-                          ((var (ptr char) ,x)
-                           (error 'compile-kernel-stmt "Don't do this (b)")
-                           `(block
-                              (let ,_ptr cl::buffer_map<char>
-                                   ((field g_queue mapBuffer<char>) ,_gpu))
-                              (do (memcpy ,_ptr ,(unpack-arg arg)
-                                    (hvec_byte_size ,(unpack-arg arg))))))
-                          ((var (vector ,t ,n) ,x)
-                           `(block
-                              (let ,_ptr cl::buffer_map<char>
-                                   ((field g_queue mapBuffer<char>) ,_gpu))
-                              (do (memcpy ,_ptr ,(unpack-arg arg)
-                                    ,(vector-bytesize `(vector ,t ,n))))))
-                          ((var ,t ,x)
-                           '(block))))
-                      arg* _gpu* _ptr* i*)
-                  ;; Now we assign the arguments.
-                  ,@(map
-                      (lambda (arg _gpu _ptr i)
-                        (match arg
-                          ((var (ptr char) ,x)
-                           (error 'compile-kernel-stmt "Don't do this (c)")
-                           `(do ((field ,k-var setArg) ,i ,_gpu)))
-                          ((var (vector ,t ,n) ,x)
-                           `(do ((field ,k-var setArg) ,i ,_gpu)))
-                          ((var ,t ,x)
-                           `(do ((field ,k-var setArg) ,i ,x)))))
-                      arg* _gpu* _ptr* i*)
-                  ;; This is where we execute the kernel.
-                  (do ((field g_queue execute) ,k-var
-                       ,(match (car arg*)
-                          ((var (vector ,t ,n) ,x)
-                           n)
-                          (,else (error 'compile-kernels
-                                   "Invalid kernel argument type"
-                                   else)))
-                       1))
-                  ;; And now we copy the results back.
-                  ,@(map
-                      (lambda (arg _gpu _ptr i)
-                        (match arg
-                          ((var (ptr char) ,x)
-                           (error 'compile-kernel-stmt "don't do this. (d)")
-                           `(block
-                              (let ,_ptr cl::buffer_map<char>
-                                   ((field g_queue mapBuffer<char>) ,_gpu))
-                              (do (memcpy ,(unpack-arg arg) ,_ptr
-                                    (hvec_byte_size ,(unpack-arg arg))))))
-                          ((var (vector ,t ,n) ,x)
-                           `(block
-                              (let ,_ptr cl::buffer_map<char>
-                                   ((field g_queue mapBuffer<char>) ,_gpu))
-                              (do (memcpy ,(unpack-arg arg) ,_ptr
-                                    ,(vector-bytesize `(vector ,t ,n))))))
-                          ((var ,t ,x)
-                           '(block))))
-                      arg* _gpu* _ptr* i*))))))
-      ((for (,i ,start ,end) ,[stmt*] ...)
-       `(for (,i ,start ,end) ,stmt* ...))
-      (,else else))))
-
-(define (unpack-arg x)
-  (match x
-    ((var ,t ,x^) x^)
-    (,x^ (guard (symbol? x^)) x^)
-    (,else (error 'unpack-arg "invalid kernel argument" else))))
-
 (define (unpack-type x)
   (match x
     ((var (vector ,t ,n) ,x^) t)
@@ -187,17 +63,18 @@
                  ((field g_ctx createProgramFromSource)
                   ,(join "\n" kernel*))))
              ((func ,t ,x ,args
-                ,[compile-kernel-stmt -> stmt*] ...)
+                    ,stmt* ...)
               `(func ,t ,x ,args ,stmt* ...))
              (,else else)))
       mod)))
 
 (generate-verify hoist-kernels
-  (Module ((gpu-module Kernel *) Decl *))
+  (Module (module Decl *))
   (Kernel wildcard)
   (Decl
-    (func Type Var (Var *) Stmt * Ret-Stmt)
-    (extern Type Var (Type *)))
+   (gpu-module Kernel *)
+   (fn Var (Var *) Type Stmt * Ret-Stmt)
+   (extern Var (Type *) -> Type))
   (Expr wildcard)
   (Stmt wildcard)
   (Ret-Stmt (return Expr))
@@ -212,24 +89,27 @@
   (lambda (mod)
     ;; (display "hoisting kernels\n")
     (match mod
-      ((,[hoist-decl -> decl* kernel*] ...)
-       `((gpu-module . ,(apply append kernel*))
-         ,decl* ...))
+      ((module ,[hoist-decl -> decl* kernel*] ...)
+       `(module
+          (gpu-module . ,(apply append kernel*))
+          ,decl* ...))
       (,else (error 'hoist-kernels "What is this?" else)))))
 
 (define hoist-decl
   (lambda (decl)
     (match decl
-      ((func ,type ,name ,args ,[hoist-stmt -> stmt* kernel*] ...)
+      ((fn ,name ,args ,type ,[hoist-stmt -> stmt* kernel*] ...)
        (values
-         (if (and (eq? name 'main) (not (null? (apply append kernel*))))
-             `(func ,type ,name ,args (do (GC_INIT) 
-                                          ((field g_prog build))) 
-                ,stmt* ...)
-             `(func ,type ,name ,args (do (GC_INIT)) ,stmt* ...))
-         (apply append kernel*)))
-      ((extern ,t ,name ,arg-types)
-       (values `(extern ,t ,name ,arg-types) '()))
+        (if (and (eq? name 'main) (not (null? (apply append kernel*))))
+            `(fn ,name ,args ,type (do (call void GC_INIT) 
+                                       (call void
+                                             (field (var cl::program g_prog)
+                                                    build))) 
+                 ,stmt* ...)
+            `(fn ,name ,args ,type (do (call void GC_INIT)) ,stmt* ...))
+        (apply append kernel*)))
+      ((extern ,name ,arg-types -> ,t)
+       (values `(extern ,name ,arg-types -> ,t) '()))
       (,else (error 'hoist-decl "Invalid declaration" else)))))
 
 (define hoist-stmt
@@ -269,18 +149,19 @@
     (let ((i (gensym 'i)))
       ;; TODO: Correctly handle free vars
       `(kernel ,name ,(append (map (lambda (x t)
-                                     `(,x (ptr char)))
-                                xs* t*)
-                        (map list fv* ft*))
+                                     `(,x (ptr ,t)))
+                                   xs* t*)
+                              (map list fv* ft*))
          ;; TODO: allow this to work on n-dimensional vectors.
-         (let ,i int (get_global_id 0))
+         (let ,i int (call int get_global_id (int 0)))
          ,@(apply
              append
              (map
-               (lambda (x t xs)
+               (lambda (x t xs ts)
                  `((let ,x (ptr ,t)
-                        (cast (ptr ,t) (+ ,xs (* ,i (sizeof ,t)))))))
-               x* t* xs*))
+                        (addressof (vector-ref
+                                    ,t (var ,ts ,xs) (var int ,i))))))
+               x* t* xs* ts*))
          . ,(replace-vec-refs stmt* i x* xs* ts*)))))
 
 (define replace-vec-refs
@@ -300,8 +181,8 @@
                                         "Unknown type"
                                         else)))))
                  (match stmt
+                   ((var ,t ,y) (guard (eq? x y)) `(deref (var ,t ,x)))
                    ((,[x] ...) `(,x ...))
-                   (,y (guard (eq? x y)) `(deref ,x))
                    (,x x))))
              stmt x* xs* ts*))
       stmt*)))

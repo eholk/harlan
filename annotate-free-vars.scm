@@ -34,18 +34,18 @@
  (define annotate-free-vars
    (lambda (mod)
      (match mod
-       ((,[(annotate-decl '()) -> decl*] ...)
-        decl*))))
+       ((module ,[(annotate-decl '()) -> decl*] ...)
+        `(module ,decl* ...)))))
 
  (define annotate-decl
    (lambda (gamma)
      (lambda (decl)
        (match decl
-         ((func ,type ,name ,args ,stmt* ...)
+         ((fn ,name ,args ,type ,stmt* ...)
           (let-values (((stmt* gamma) ((annotate-stmt* gamma) stmt*)))
-            `(func ,type ,name ,args . ,stmt*)))
-         ((extern ,t ,name ,arg-types)
-          `(extern ,t ,name ,arg-types))
+            `(fn ,name ,args ,type . ,stmt*)))
+         ((extern ,name ,arg-types -> ,type)
+          `(extern ,name ,arg-types -> ,type))
          (,else (error 'annotate-decl "Invalid declaration" else))))))
 
 (define annotate-stmt*
@@ -93,10 +93,8 @@
           (values `(print ,e) gamma))
          ((print ,[(annotate-expr gamma) -> e1] ,[(annotate-expr gamma) -> e2])
           (values `(print ,e1 ,e2) gamma))         
-         ((vec_set_vec ,[(annotate-expr gamma) -> e1]
-                       ,[(annotate-expr gamma) -> e2]
-                       ,[(annotate-expr gamma) -> e3])
-          (values `(vec_set_vec ,e1 ,e2 ,e3) gamma))
+         ((assert ,[(annotate-expr gamma) -> e])
+          (values `(assert ,e) gamma))
          (,else
           (error 'annotate-stmt
                  (format "annotate-free-vars--unknown statement type: ~s"
@@ -106,17 +104,25 @@
   (lambda (gamma)
     (lambda (expr)
       (match expr
-        (,n (guard (number? n)) n)
-        (,x (guard (symbol? x)) x)
-	(,s (guard (string? s)) s)
+        ((int ,n) (guard (number? n)) `(int ,n))
+        ((var ,t ,x) (guard (symbol? x)) `(var ,t ,x))
+	((str ,s) (guard (string? s)) `(str ,s))
         ((nanotime) '(nanotime))
         ((cast ,t ,[(annotate-expr gamma) -> e]) `(cast ,t ,e))
-	((,rator ,[rand*] ...)
+	((call ,t ,rator ,[rand*] ...)
 	 (guard (symbol? rator))
-	 `(,rator ,rand* ...))
+	 `(call ,t ,rator ,rand* ...))
+        ((sizeof ,t)
+         `(sizeof ,t))
+        ((addressof ,[e]) `(addressof ,e))
+        ((,op ,[lhs] ,[rhs])
+         (guard (binop? op))
+         `(,op ,lhs ,rhs))
+        ((vector-ref ,t ,[v] ,[i])
+         `(vector-ref ,t ,v ,i))
         (,else
          (error 'annotate-expr
-                (format "annotate-free-vars--unknown expr type: ~s" expr)))))))
+                (format "annotate-free-vars--unknown expr type: ~s" else)))))))
 
  (define free-vars-stmt*
    (lambda (stmt*)
@@ -141,7 +147,7 @@
         (remove x e))
        ((for (,x ,[free-vars-expr -> start] ,[free-vars-expr -> end]) ,[free-vars-stmt -> s])
         (remove x s))
-       ((set! ,x ,[free-vars-expr -> e]) (union `(,x) e))
+       ((set! (var ,t ,x) ,[free-vars-expr -> e]) (union `(,x) e))
        ((print ,[free-vars-expr -> e]) e)
        ((vec_set_vec ,[free-vars-expr -> e1] ,[free-vars-expr -> e2] ,[free-vars-expr -> e3])
         (union (union e1 e2) e3))
@@ -150,21 +156,15 @@
 (define free-vars-expr
   (lambda (expr)
     (match expr
-      (,n (guard (number? n)) '())
-      (,x (guard (symbol? x)) `(,x))
-      (,s (guard (string? s)) '())
+      ((int ,n) (guard (number? n)) '())
+      ((var ,t ,x) (guard (symbol? x)) `(,x))
+      ((str ,s) (guard (string? s)) '())
       ((,+ ,[free-vars-expr -> e1] ,[free-vars-expr -> e2])
        (guard (binop? +))
        (union e1 e2))
       ((= ,[free-vars-expr -> e1] ,[free-vars-expr -> e2])
        (union e1 e2))
       ((deref ,[free-vars-expr -> e]) e)
-      ((hvec_length ,[free-vars-expr -> e])
-       `(hvec_length ,e))
-      ((vec_ref_1d ,[free-vars-expr -> ve] ,[free-vars-expr -> ie])
-       (union ve ie))
-      ((vec_ref_nd ,[free-vars-expr -> ve] ,[free-vars-expr -> ie])
-       (union ve ie))
       ((cast ,t ,[free-vars-expr -> e]) e)
       ((addressof ,[free-vars-expr -> e]) e)
       ((sizeof ,t) '())

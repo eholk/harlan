@@ -1,22 +1,24 @@
 (library
-  (harlancompiler)
-  (export compile-harlan lift-vectors annotate-types test
-    compile-harlan-middle verbose
-    compile-harlan-frontend compile-module)
-  (import (chezscheme)
-    (util match)
-    (typecheck)
-    (lift-vectors)
-    (lower-vectors)
-    (uglify-vectors)
-    (returnify)
-    (returnify-kernels)
-    (kernels)
-    (convert-types)
-    (verify-compile-module)
-    (annotate-free-vars)
-    (print-c))
-  
+ (harlancompiler)
+ (export compile-harlan lift-vectors annotate-types test
+         compile-harlan-middle verbose
+         compile-harlan-frontend compile-module)
+ (import (rnrs)
+         (only (chezscheme) pretty-print format)
+         (util match)
+         (util helpers)
+         (typecheck)
+         (lift-vectors)
+         (lower-vectors)
+         (uglify-vectors)
+         (returnify)
+         (returnify-kernels)
+         (kernels)
+         (convert-types)
+         (verify-compile-module)
+         (annotate-free-vars)
+         (print-c))
+
  (define verbose
    (let ((flag #f))
      (case-lambda
@@ -83,8 +85,6 @@
            ;; We're just putting convert-types here temporarily. We'll
            ;; move it lower as we update the following passes.
            (expr (trace-pass "convert-types" convert-types expr))
-           (expr (trace-pass "compile-module" compile-module expr))
-           (expr (trace-pass "verify-compile-module" verify-compile-module expr))
            (expr (trace-pass "annotate-free-vars" annotate-free-vars expr))
            (expr (trace-pass "hoist-kernels" hoist-kernels expr))
            (expr (trace-pass "verify-hoist-kernels" verify-hoist-kernels expr))
@@ -92,6 +92,8 @@
            (expr (trace-pass "verify-move-gpu-data" verify-move-gpu-data expr))
            (expr (trace-pass "generate-kernel-calls" generate-kernel-calls expr))
            (expr (trace-pass "verify-generate-kernel-calls" verify-generate-kernel-calls expr))
+           (expr (trace-pass "compile-module" compile-module expr))
+           (expr (trace-pass "verify-compile-module" verify-compile-module expr))
            ;; This is where convert-types actually belongs.
            ;;(expr (trace-pass "convert-types" convert-types expr))
            (expr (trace-pass "compile-kernels" compile-kernels expr))
@@ -111,8 +113,10 @@
        `(func ,ret-type ,name ,(map cons arg-types args) ,stmt* ...)]
       [(extern ,name ,arg-types -> ,rtype)
        `(extern ,rtype ,name ,arg-types)]
+      [(gpu-module ,[compile-kernel^ -> kernel*] ...)
+       `(gpu-module ,kernel* ...)]
       [,else (error 'compile-decl (format "unknown decl type ~s" else))])))
- 
+
 (define compile-stmt
   (lambda (stmt)
     (match stmt
@@ -129,26 +133,36 @@
             ,[stmt*] ...)
        `(for (,i ,start ,end) ,stmt* ...)]
       [(do ,[compile-expr -> e] ...) `(do ,e ...)]
-      ;; TODO: these are expressions.
-      [(kernel ,iter ,[stmt*] ...) `(kernel ,iter ,stmt* ...)]
+      [(block ,[stmt*] ...)
+       `(block ,stmt* ...)]
       [,else (error 'compile-stmt (format "unknown stmt type ~s" else))])))
+
+;; This compile kernel is used in the compile-module pass.
+(define-match (compile-kernel^)
+  ((kernel ,name ,args ,[compile-stmt -> stmt*] ...)
+   `(kernel ,name ,args . ,stmt*)))
 
 (define compile-expr
   (lambda (expr)
     (match expr
       [(int ,n) (guard (number? n)) n]
       [(u64 ,n) (guard (number? n)) n]
-      [(var ,tx ,x) (guard (symbol? x)) x]
+      [(var ,t ,x) (guard (symbol? x)) x]
       [(str ,s) (guard (string? s)) s]
       [(vector-ref ,t ,[v] ,[i]) `(vector-ref ,v ,i)]
-      [(length ,[v]) `((field ,v length))]
+      [(field ,[obj] ,x)
+       (guard (symbol? x))
+       `(field ,obj ,x)]
       [(sizeof ,t) `(sizeof ,t)]
       [(deref ,[e]) `(deref ,e)]
       [(addressof ,[e]) `(addressof ,e)]
       [(cast ,t ,[e]) `(cast ,t ,e)]
       [(,op ,[e1] ,[e2]) (guard (binop? op)) `(,op ,e1 ,e2)]
       [(time) '(nanotime)]
-      [(call ,t ,f ,[a*] ...) `(,f ,a* ...)]
+      [(call ,t ,f ,[a*] ...)
+       (guard (symbol? f))
+       `(,f ,a* ...)]
+      [(call ,t ,[f] ,[a*] ...) `(,f ,a* ...)]
       [,else (error 'compile-expr (format "unknown expr type ~s" else))])))
 
 )

@@ -19,13 +19,20 @@
         `(func ,type ,name ,args . ,stmt*))
        ((extern ,t ,name ,args)
         `(extern ,t ,name ,args))
+       ((gpu-module ,[verify-kernel -> kernel*] ...)
+        `(gpu-module ,kernel* ...))
        (,else (error 'verify-decl "Invalid declaration" else)))))
 
+ (define verify-kernel
+   ;; TODO
+   (lambda (k) k))
+ 
  (define verify-stmt
    (lambda (stmt)
      (match stmt
-       ((kernel (((,x* ,t*) (,xs* ,ts*)) ...) ,[verify-stmt -> stmt*] ...)
-        `(kernel (((,x* ,t*) (,xs* ,ts*)) ...) . ,stmt*))
+       ((apply-kernel ,k ,[verify-expr -> args] ...)
+        (guard (symbol? k))
+        `(apply-kernel ,k ,args ...))
        ((return ,[verify-expr -> e]) `(return ,e))
        ((do ,[verify-expr -> e*] ...) `(do ,e* ...))       
        ((let ,x ,t ,[verify-expr -> e]) `(let ,x ,t ,e))
@@ -39,6 +46,7 @@
                      ,[verify-expr -> e2]
                      ,[verify-expr -> e3])
         `(vec_set_vec ,e1 ,e2 ,e3))
+       ((block ,[stmt*] ...) `(block ,stmt* ...))
        (,else
         (error 'verify-stmt
                (format "verify-compile-module--unknown statement type: ~s"
@@ -51,8 +59,7 @@
       (,x (guard (symbol? x)) x)
       (,s (guard (string? s)) s)
       ((nanotime) '(nanotime))
-      ((,rator ,[rand*] ...)
-       (guard (symbol? rator))
+      ((,[rator] ,[rand*] ...)
        `(,rator ,rand* ...))
       (,else (error 'verify-expr
                     (format "verify-compile-module--unknown expr type: ~s"
