@@ -7,6 +7,7 @@
          (util match)
          (typecheck)
          (vectors)
+         (lift-vectors)
          (returnify)
          (returnify-kernels)
          (kernels)
