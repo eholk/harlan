@@ -65,7 +65,9 @@
 (define compile-harlan-frontend
   (lambda (expr)
     (let* ((expr (trace-pass "returnify" returnify expr))
+           (expr (trace-pass "verify-returnify" returnify expr))
            (expr (trace-pass "lift-vectors" lift-vectors expr))
+           (expr (trace-pass "verify-lift-vectors" verify-lift-vectors expr))
            (expr (trace-pass "annotate-types" annotate-types expr)))
       expr)))
 
@@ -83,11 +85,15 @@
            (expr (trace-pass "verify-compile-module" verify-compile-module expr))
            (expr (trace-pass "annotate-free-vars" annotate-free-vars expr))
            (expr (trace-pass "hoist-kernels" hoist-kernels expr))
+           (expr (trace-pass "verify-hoist-kernels" verify-hoist-kernels expr))
            (expr (trace-pass "move-gpu-data" move-gpu-data expr))
+           (expr (trace-pass "verify-move-gpu-data" verify-move-gpu-data expr))
            (expr (trace-pass "generate-kernel-calls" generate-kernel-calls expr))
+           (expr (trace-pass "verify-generate-kernel-calls" verify-generate-kernel-calls expr))
            ;; This is where convert-types actually belongs.
            ;;(expr (trace-pass "convert-types" convert-types expr))
-           (expr (trace-pass "compile-kernels" compile-kernels expr)))
+           (expr (trace-pass "compile-kernels" compile-kernels expr))
+           (expr (trace-pass "verify-compile-kernels" verify-compile-kernels expr)))
       expr)))
 
 (define compile-module

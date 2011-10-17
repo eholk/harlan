@@ -5,21 +5,38 @@
     compile-kernel
     hoist-kernels
     move-gpu-data
-    generate-kernel-calls)
+    generate-kernel-calls
+    verify-compile-kernels
+    verify-hoist-kernels
+    verify-move-gpu-data
+    verify-generate-kernel-calls)
   (import
     (only (chezscheme) format)
     (rnrs)
     (util match)
     (print-c)
     (vectors)
+    (verify-grammar)
     (util helpers))
   
+(generate-verify generate-kernel-calls
+  (Module wildcard))
 (define generate-kernel-calls (lambda (expr) expr))
+
+(generate-verify move-gpu-data
+  (Module wildcard))
 (define move-gpu-data (lambda (expr) expr))
 
 (define format-kernel-arg
   (lambda (arg)
     (format-arg arg)))
+
+(generate-verify compile-kernels
+  (Module wildcard)
+  (Kernel
+    (kernel Var (Var *) Stmt *))
+  (Var symbol)
+  (Stmt wildcard))
 
 (define compile-kernel
   (lambda (kernel)
@@ -175,6 +192,18 @@
               `(func ,t ,x ,args ,stmt* ...))
              (,else else)))
       mod)))
+
+(generate-verify hoist-kernels
+  (Module ((gpu-module Kernel *) Decl *))
+  (Kernel wildcard)
+  (Decl
+    (func Type Var (Var *) Stmt * Ret-Stmt)
+    (extern Type Var (Type *)))
+  (Expr wildcard)
+  (Stmt wildcard)
+  (Ret-Stmt (return Expr))
+  (Var symbol)
+  (Type wildcard))
 
 ;; This pass is probably too big. It finds all the kernel
 ;; expressions, hoists them into a GPU module, replaces the old
