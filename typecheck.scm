@@ -3,18 +3,16 @@
   (export
     typecheck
     verify-typecheck
-    simplify-literals
     infer-kernel
     infer-stmt
     infer-expr
-    lookup
-    verify-typecheck)
+    lookup)
   (import (chezscheme)
     (util match)
     (verify-grammar)
     (util mk)
     (only (print-c) binop? relop? unaryop?))
-  
+
 ;;; ********************************* FIX ME !!!! ****
   
 ;;; need to add examples with multiple fn's which call each other.
@@ -74,16 +72,6 @@
         ((== `((,x . ,type) . ,env^) env))
         ((== `((,y . ,t) . ,env^) env)
          (lookup env^ x type))))))
-
-;; miniKanren doesn't deal well with integer literals. This replaces
-;; them with a symbol that miniKanren can handle.
-(define simplify-literals
-  (lambda (expr)
-    (match expr
-      (,n (guard (integer? n)) `(num ,n))
-      (,str (guard (string? str)) `(str ,str))
-      ((,[else*] ...) else*)
-      (,else else))))
 
 ;; ensures that all expressions have the same type
 (define infer-exprs
@@ -356,16 +344,14 @@
 
 (define typecheck
   (lambda (mod)
-    (let* ((mod (simplify-literals mod))
-           (result (run 2 (q) 
-                     (infer-module mod q))))
+    (let ((result (run 2 (q) 
+                    (infer-module mod q))))
       (case (length result)
-        (0 '())
+        (0 (error 'typecheck "Could not infer type for program." mod))
         (1 (car result))
         (else
-          (display result)
-          (error 'typecheck 
-            "Could not infer a unique type for program"
-            result))))))
-
+         (display result)
+         (error 'typecheck 
+                "Could not infer a unique type for program"
+                result))))))
 )

@@ -20,20 +20,22 @@ $(error Your operating system is not yet supported.)
 endif
 endif
 
-HARLAN_SRC = harlanc harlan/generate-kernel-calls.scm \
-    annotate-free-vars.scm \
-    convert-types.scm \
-    harlancompiler.scm \
-    kernels.scm \
-    lift-vectors.scm \
-    lower-vectors.scm \
-    print-c.scm \
-    returnify-kernels.scm \
-    returnify.scm \
-    typecheck.scm \
-    uglify-vectors.scm \
-    verify-compile-module.scm \
-    verify-grammar.ss \
+HARLAN_SRC = harlanc \
+	harlan/generate-kernel-calls.scm \
+	harlan/parser.scm \
+	annotate-free-vars.scm \
+	convert-types.scm \
+	harlancompiler.scm \
+	kernels.scm \
+	lift-vectors.scm \
+	lower-vectors.scm \
+	print-c.scm \
+	returnify-kernels.scm \
+	returnify.scm \
+	typecheck.scm \
+	uglify-vectors.scm \
+	verify-compile-module.scm \
+	verify-grammar.ss \
 
 # Invokes the harlan compiler. The first argument is the name of the
 # source file, the second is the name of the output file.

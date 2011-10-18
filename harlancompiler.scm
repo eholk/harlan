@@ -7,7 +7,7 @@
          (only (chezscheme) pretty-print format)
          (util match)
          (util helpers)
-         ;;(harlan parser)
+         (harlan parser)
          (typecheck)
          (lift-vectors)
          (lower-vectors)
@@ -68,12 +68,16 @@
 ;; The typical frontend of a compiler. Syntax expansion, typechecking,
 ;; etc.
 (define compile-harlan-frontend
-  (passes returnify
-          verify-returnify
-          lift-vectors
-          verify-lift-vectors
-          typecheck
-          verify-typecheck))
+  (passes
+   verify-harlan
+   parse-harlan
+   verify-parse-harlan
+   returnify
+   verify-returnify
+   lift-vectors
+   verify-lift-vectors
+   typecheck
+   verify-typecheck))
 
 ;; The "middle end" of a compiler. No one ever knows what's supposed
 ;; to go here. This goes from TFC to something we can give to print-c.

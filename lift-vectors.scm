@@ -34,8 +34,8 @@
     ;;(while (< Expr Expr) Stmt *))
   (Ret-Stmt (return Expr))
   (Expr
-    integer
-    string
+    (num Integer)
+    (str String)
     (var Var)
     (reduce Binop Expr)
     (vector Expr *)
@@ -44,6 +44,8 @@
     (kernel ((Var Expr) *) Stmt * Expr)
     (Unaryop Expr)
     (Binop Expr Expr))
+  (Integer integer)
+  (String string)
   (Var symbol)
   (Type wildcard)
   (Binop binop)
@@ -53,8 +55,8 @@
 (define lift-expr->stmt
   (lambda (expr finish)
     (match expr
-      (,n (guard (number? n)) (finish n))
-      (,str (guard (string? str)) (finish str))
+      ((num ,n) (guard (number? n)) (finish `(num ,n)))
+      ((str ,str) (guard (string? str)) (finish `(str ,str)))
       ((var ,x) (finish `(var ,x)))
       ((time)
        (finish '(time)))
@@ -114,7 +116,7 @@
               (lift-expr->stmt
                 e2 (lambda (e2^)
                      (finish `(,op ,e1^ ,e2^)))))))
-      ((,rator ,rand* ...)
+      ((call ,rator ,rand* ...)
        (guard (symbol? rator))
        (let loop ((e* rand*) (e*^ '()))
          (if (null? e*)
