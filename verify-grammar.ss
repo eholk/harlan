@@ -6,7 +6,10 @@
   (export generate-verify wildcard?)
   (import
     (rnrs)
-    (only (chezscheme) errorf pretty-print with-output-to-string))
+    (only (chezscheme)
+      errorf
+      pretty-print
+      with-output-to-string))
 
   (define wildcard? (lambda (x) #t))
   
