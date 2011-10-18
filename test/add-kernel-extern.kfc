@@ -1,0 +1,31 @@
+;; -*- scheme -*-
+
+;; code for adding two vectors, from Harlan proposal
+
+
+;;(module
+;; (extern nanotime () -> u64)
+;;  (fn main () 
+;;       (print (nanotime))
+;;            (return 0)))
+
+
+
+(module
+  (extern nanotime () -> u64)
+  (extern rand () -> int)
+  (fn main ()
+      (let X (vector 1 2 3 4))
+      (let Y (vector 5 1 1 7))
+      (print (rand))
+      (let Z (kernel ((x (var X)) (y (var Y)))
+               (+ (var x) (var y))))
+      (print (vector-ref (var Z) 0))
+      (print (vector-ref (var Z) 1))
+      (print (vector-ref (var Z) 2))
+      (print (vector-ref (var Z) 3))
+      (assert (= (vector-ref (var Z) 0) 6))
+      (assert (= (vector-ref (var Z) 1) 3))
+      (assert (= (vector-ref (var Z) 2) 4))
+      (assert (= (vector-ref (var Z) 3) 11))
+      (return 0)))

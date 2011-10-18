@@ -36,6 +36,8 @@
        ((set! ,x ,e) `((set! ,x ,e)))
        ((vector-set! ,t ,x ,e1 ,e2) `((vector-set! ,t ,x ,e1 ,e2)))
        ((return ,expr) `((return ,expr)))
+       ((while (,relop ,e1 ,e2) ,body* ...)
+        `((while (,relop ,e1 ,e2) . ,(returnify-kernel-stmt* body*))))
        ((for (,x ,e1 ,e2) ,body* ...)
         `((for (,x ,e1 ,e2) . ,(returnify-kernel-stmt* body*))))
        ((kernel ,t2 ,arg* . ,body*)

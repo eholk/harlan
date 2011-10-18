@@ -81,6 +81,11 @@
           (let* ((gamma `((,x . ,t) . ,gamma))
                  (e ((annotate-expr gamma) e)))
             (values `(let ,x ,t ,e) gamma)))
+         ((while (,relop ,[(annotate-expr gamma) -> e1]
+                   ,[(annotate-expr gamma) -> e2])
+               ,s ...)
+          (let-values (((s gamma) ((annotate-stmt* gamma) s)))
+              (values `(while (,relop ,e1 ,e2) ,s ...) gamma)))
          ((for (,x ,[(annotate-expr gamma) -> start]
                    ,[(annotate-expr gamma) -> end])
                ,s ...)

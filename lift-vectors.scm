@@ -29,7 +29,9 @@
     (kernel ((Var Expr) *) Stmt * Expr)
     (let Var Expr)
     Ret-Stmt
-    (for (Var Expr Expr) Stmt *))
+    (for (Var Expr Expr) Stmt *)
+    (while (Relop Expr Expr) Stmt *))
+    ;;(while (< Expr Expr) Stmt *))
   (Ret-Stmt (return Expr))
   (Expr
     integer
@@ -45,6 +47,7 @@
   (Var symbol)
   (Type wildcard)
   (Binop binop)
+  (Relop relop)
   (Unaryop unaryop))
 
 (define lift-expr->stmt
@@ -180,6 +183,15 @@
              (lambda (end)
                (cons `(for (,x ,start ,end) . ,(lift-stmt* stmt*))
                  rest))))))
+      (((while (,relop ,x ,y) ,stmt* ...) . ,[rest])
+       (lift-expr->stmt
+         x
+         (lambda (x)
+           (lift-expr->stmt
+             y
+             (lambda (y)
+               (cons `( while(,relop ,x ,y) . ,(lift-stmt* stmt*))
+                     rest))))))
       (,else (error 'lift-stmt* "unknown statement" else)))))
 
 (define (lift-decl fn)

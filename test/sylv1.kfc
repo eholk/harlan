@@ -1,0 +1,106 @@
+;; -*- scheme -*-
+
+;; code for adding two vectors, from Harlan proposal
+;;xfail
+
+(module
+  (fn main ()
+      (let A  (vector
+                (vector 1 0 0 0)
+                (vector 0 1 0 0)
+                (vector 0 0 1 0)
+                (vector 0 0 0 1)))
+      (let D  (vector
+                (vector 1 0 0 0)
+                (vector 0 1 0 0)
+                (vector 0 0 1 0)
+                (vector 0 0 0 1)))
+      (let Q  (vector
+                (vector 1 0 0 0)
+                (vector 0 1 0 0)
+                (vector 0 0 1 0)
+                (vector 0 0 0 1)))
+      (let R  (vector
+                (vector 1 0 0 0)
+                (vector 0 1 0 0)
+                (vector 0 0 1 0)
+                (vector 0 0 0 1)))
+      ;;This is transpose of matrix Q
+      (let tmp1 (kernel ((j (iota 4)))
+                        (kernel ((i (iota 4)))
+                                (vector-ref (vector-ref Q( var j)) (var i)))))
+      
+      ;; Multiply- tmp3 = D*Q
+      (let tmp2 (kernel ((j (iota 4)))
+                        (kernel ((i (iota 4)))
+                                (vector-ref (vector-ref Q( var j)) (var i)))))
+      (let tmp3 (kernel ((row (var D)))
+                (kernel ((col (var tmp2)))
+                  (reduce + 
+                    (kernel ((x (var row)) (y (var col)))
+                      (* (var x) (var y)))))))
+      
+      ;; Multiply- D = tmp1*tmp3
+      (let tmp4 (kernel ((j (iota 4)))
+                        (kernel ((i (iota 4)))
+                                (vector-ref (vector-ref tmp3( var j)) (var i)))))
+      (let D (kernel ((row (var tmp1)))
+                (kernel ((col (var tmp4)))
+                  (reduce + 
+                    (kernel ((x (var row)) (y (var col)))
+                      (* (var x) (var y)))))))
+      
+      ;;[n,n] = size(A)
+      (let n  4)
+
+      ;;X=zeros(n,n)
+      (let  X (vector
+                (vector 0 0 0 0 )
+                (vector 0 0 0 0 )
+                (vector 0 0 0 0 )
+                (vector 0 0 0 0 )))
+      
+      ;X=eye(n,n)
+      (let  I (vector
+                (vector 1 0 0 0 )
+                (vector 0 1 0 0 )
+                (vector 0 0 1 0 )
+                (vector 0 0 0 1 )))
+
+     ;;for j = 1:n-1,
+     ;;  if (abs(R(j+1,j)) < 10*eps*max(abs(R(j,j)), abs(R(j+1,j+1)))),
+     ;;    R(j+1,j) = 0; 
+     ;;  end
+     ;;end
+
+     ;;(for (j 1 (- n 1)))
+          
+
+      
+      ;; Multiply- Rsq = R*R
+      (let tmp5 (kernel ((j (iota 4)))
+                        (kernel ((i (iota 4)))
+                                (vector-ref (vector-ref R( var j)) (var i)))))
+      (let Rsq  (kernel ((row (var R)))
+                  (kernel ((col (var tmp5)))
+                    (reduce + 
+                      (kernel ((x (var row)) (y (var col)))
+                        (* (var x) (var y)))))))
+      (let j 1)
+      ;;while(j < n+1)
+      ;;if(j < n)
+      ;; test = R(j+1, j);
+      ;; else 
+      ;; test =0;
+      ;;end
+      ;;if (test ==0)
+      ;; mu = R(j,j);
+      ;;b = D(:, j) + X(:, 1:j-1)*R(1:j-1, j);
+      ;;b = -b
+      ;;X(:, j) = (R+mu*I)\b;
+      (let mu (vector-ref(vector-ref R(var j))(var j)))
+      
+
+      
+      
+      (return 0)))

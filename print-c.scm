@@ -1,6 +1,6 @@
 (library
  (print-c)
- (export format-c print-c join format-arg format-ident format-block unaryop? binop?)
+ (export format-c print-c join format-arg format-ident format-block unaryop? binop? relop?)
  (import (only (chezscheme) format)
          (rnrs)
          (util match))
@@ -74,6 +74,12 @@
      (case op
        ((= bitwise-or + * -) #t)
        (else #f))))
+ 
+ (define relop?
+   (lambda (op)
+     (case op
+       ((< <= = > >=) #t)
+       (else #f))))
 
  (define binop->string
    (lambda (op)
@@ -84,6 +90,17 @@
        ((*) "*")
        ((-) "-")
        (else (error 'binop->string "unknown binop" op)))))
+ 
+ 
+ (define relop->string
+   (lambda (op)
+     (case op
+       ((== =) "==")
+       ((<) "<")
+       ((>) ">")
+       ((<=) "<=")
+       ((>=) ">=")
+       (else (error 'relop->string "unknown relop" op)))))
 
  (define escape-string-literal
    (lambda (s)
@@ -149,6 +166,12 @@
         (string-append (format-expr vec-expr)
                        "[" (format-expr i-expr) "] = "
                        (format-expr val-expr) ";"))
+       ((while (,[relop->string -> relop]
+              ,[format-expr -> e1] ,[format-expr -> e2])
+             ,[format-stmt -> stmt*] ...)
+        (string-append "while(" e1 " " relop " " e2 ") {\n"
+                       (join "\n" stmt*)
+                       "\n}"))
        ((for (,[format-ident -> i]
               ,[format-expr -> start] ,[format-expr -> end])
              ,[format-stmt -> stmt*] ...)

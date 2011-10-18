@@ -71,6 +71,8 @@
       ((set! ,x ,i) `((set! ,x ,i)))
       ((vector-set! ,t ,e1 ,i ,e2)
        `((vector-set! ,t ,e1 ,i ,e2)))
+      ((while (,relop ,x ,y) ,[body*] ...)
+       `((while (,relop ,x ,y) . ,(apply append body*))))
       ((for ((,x ,t) ,start ,end) ,[body*] ...)
        `((for (,x ,start ,end) . ,(apply append body*))))
       ((return ,expr)

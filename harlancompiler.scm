@@ -122,6 +122,9 @@
       [(set! ,[compile-expr -> x] ,[compile-expr -> e]) `(set! ,x ,e)]
       [(vector-set! ,v ,i ,[compile-expr -> expr])
        `(vector-set! ,v ,i ,expr)]
+      [(while (,relop ,[compile-expr -> e1] ,[compile-expr -> e2])
+            ,[stmt*] ...)
+       `(while (,relop ,e1 ,e2) ,stmt* ...)]
       [(for (,i ,[compile-expr -> start] ,[compile-expr -> end])
             ,[stmt*] ...)
        `(for (,i ,start ,end) ,stmt* ...)]

@@ -4,7 +4,7 @@
   (import (only (chezscheme) format)
     (rnrs)
     (util helpers)
-    (only (print-c) binop?))
+    (only (print-c) binop? relop?))
   
 ;; This pass converts Harlan types into C types.
 (define-match (convert-types)
@@ -28,6 +28,10 @@
    `(set! ,loc ,val))
   ((print ,[convert-expr -> e]) `(print ,e))
   ((assert ,[convert-expr -> expr]) `(assert ,expr))
+  ((while (,relop ,[convert-expr -> e1] ,[convert-expr -> e2])
+        ,[convert-stmt -> stmt*] ...)
+   (guard (relop? relop))
+   `(while (,relop ,e1 ,e2) . ,stmt*))
   ((for (,x ,[convert-expr -> begin] ,[convert-expr -> end])
         ,[convert-stmt -> stmt*] ...)
    (guard (symbol? x))

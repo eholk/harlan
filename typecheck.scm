@@ -13,7 +13,7 @@
     (util match)
     (verify-grammar)
     (util mk)
-    (only (print-c) binop? unaryop?))
+    (only (print-c) binop? relop? unaryop?))
   
 ;;; ********************************* FIX ME !!!! ****
   
@@ -35,6 +35,7 @@
     (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
     (let Var Type Expr)
     (for ((Var Type) Expr Expr) Stmt *)
+    (while (Relop Expr Expr) Stmt *)
     Ret-Stmt)
   (Ret-Stmt (return Expr))
   (Expr 
@@ -48,6 +49,7 @@
     (vector-ref Type Expr Expr)
     (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
     (Unaryop Expr)
+    (Relop Expr Expr)
     (Binop Expr Expr))
   (Var symbol)
   (String string)
@@ -55,6 +57,7 @@
   (Integer integer)
   (Type (vector Type Integer) wildcard)
   (Binop binop)
+  (Relop relop)
   (Unaryop unaryop))
 
 (define pairo
@@ -269,7 +272,16 @@
            (== te 'int)
            (infer-expr start env te start^)
            (infer-expr end env te end^)
-           (infer-stmts stmt* `((,x . ,te) . ,env) rtype stmt*^)))))))
+           (infer-stmts stmt* `((,x . ,te) . ,env) rtype stmt*^)))
+        ((fresh (x y x^  y^ stmt* stmt*^ te relop)
+           (== stmt `(while (,relop ,x ,y) . ,stmt*))
+           (== stmto `(while (,relop  ,x^ ,y^) . ,stmt*^))
+           (== env envo)
+           (== te 'int)
+           (infer-expr x env te x^)
+           (infer-expr y env te y^)
+           (infer-stmts stmt* env rtype stmt*^)))
+        ))))
 
 (define infer-stmts
   (lambda (stmts env rtype stmtso)
