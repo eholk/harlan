@@ -7,6 +7,7 @@
          (only (chezscheme) pretty-print format)
          (util match)
          (util helpers)
+         ;;(harlan parser)
          (typecheck)
          (lift-vectors)
          (lower-vectors)
@@ -48,6 +49,14 @@
             expr))
         (pass expr))))
 
+(define-syntax passes
+  (syntax-rules ()
+    ((_ pass-name ...)
+     (lambda (expr)
+       (let* ((expr (trace-pass (symbol->string 'pass-name) pass-name expr))
+              ...)
+         expr)))))
+
 (define compile-harlan
   (lambda (expr)
     (let* ((expr (trace-pass "compile-harlan-frontend"
@@ -59,40 +68,33 @@
 ;; The typical frontend of a compiler. Syntax expansion, typechecking,
 ;; etc.
 (define compile-harlan-frontend
-  (lambda (expr)
-    (let* ((expr (trace-pass "returnify" returnify expr))
-           (expr (trace-pass "verify-returnify" returnify expr))
-           (expr (trace-pass "lift-vectors" lift-vectors expr))
-           (expr (trace-pass "verify-lift-vectors" verify-lift-vectors expr))
-           (expr (trace-pass "typecheck" typecheck expr))
-           (expr (trace-pass "verify-typecheck" verify-typecheck expr)))
-      expr)))
+  (passes returnify
+          verify-returnify
+          lift-vectors
+          verify-lift-vectors
+          typecheck
+          verify-typecheck))
 
 ;; The "middle end" of a compiler. No one ever knows what's supposed
 ;; to go here. This goes from TFC to something we can give to print-c.
 (define compile-harlan-middle
-  (lambda (expr)
-    (let* ((expr (trace-pass "lower-vectors" lower-vectors expr))
-           (expr (trace-pass "returnify-kernels" returnify-kernels expr))
-           (expr (trace-pass "uglify-vectors" uglify-vectors expr))
-           ;; We're just putting convert-types here temporarily. We'll
-           ;; move it lower as we update the following passes.
-           (expr (trace-pass "convert-types" convert-types expr))
-           (expr (trace-pass "annotate-free-vars" annotate-free-vars expr))
-           (expr (trace-pass "hoist-kernels" hoist-kernels expr))
-           (expr (trace-pass "verify-hoist-kernels" verify-hoist-kernels expr))
-           (expr (trace-pass "move-gpu-data" move-gpu-data expr))
-           (expr (trace-pass "verify-move-gpu-data" verify-move-gpu-data expr))
-           (expr (trace-pass "generate-kernel-calls" generate-kernel-calls expr))
-           (expr (trace-pass "verify-generate-kernel-calls" verify-generate-kernel-calls expr))
-           (expr (trace-pass "compile-module" compile-module expr))
-           (expr (trace-pass "verify-compile-module" verify-compile-module expr))
-           ;; This is where convert-types actually belongs.
-           ;;(expr (trace-pass "convert-types" convert-types expr))
-           (expr (trace-pass "compile-kernels" compile-kernels expr))
-           (expr (trace-pass "verify-compile-kernels" verify-compile-kernels expr)))
-      expr)))
-
+  (passes lower-vectors
+          returnify-kernels
+          uglify-vectors
+          ;; We're just putting convert-types here temporarily. We'll
+          ;; move it lower as we update the following passes.
+          convert-types
+          annotate-free-vars
+          hoist-kernels
+          verify-hoist-kernels
+          move-gpu-data
+          generate-kernel-calls
+          verify-generate-kernel-calls
+          compile-module
+          verify-compile-module
+          compile-kernels
+          verify-compile-kernels))
+          
 (define compile-module
   (lambda (expr)
     (match expr

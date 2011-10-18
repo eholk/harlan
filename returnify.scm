@@ -7,7 +7,7 @@
    (verify-grammar))
 
  (generate-verify returnify
-   (Module (module Decl))
+   (Module (module Decl *))
    (Decl
      (fn Var (Var *) Stmt * Ret-Stmt)
      (extern Var (Var *) -> Type))
@@ -33,8 +33,8 @@
 
  (define (returnify-decl decl)
    (match decl
-     ((fn ,name ,args ,stmt* ... ,stmt)
-      `(fn ,name ,args ,stmt* ... ,(returnify-stmt stmt)))
+     ((fn ,name ,args ,stmt* ... ,[returnify-stmt -> stmt])
+      `(fn ,name ,args ,stmt* ... ,stmt))
      ((extern ,name ,args -> ,rtype)
       `(extern ,name ,args -> ,rtype))
      (,else
