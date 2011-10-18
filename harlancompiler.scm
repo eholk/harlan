@@ -1,6 +1,6 @@
 (library
  (harlancompiler)
- (export compile-harlan lift-vectors annotate-types test
+ (export compile-harlan lift-vectors test
          compile-harlan-middle verbose
          compile-harlan-frontend compile-module)
  (import (rnrs)
@@ -48,14 +48,6 @@
             expr))
         (pass expr))))
 
-(define annotate-types
-  (lambda (expr)
-    (let ((result (typecheck expr)))
-      (if (null? result)
-          (begin (display expr) (newline)
-                 (error 'annotate-types "Could not infer types."))
-          result))))
-
 (define compile-harlan
   (lambda (expr)
     (let* ((expr (trace-pass "compile-harlan-frontend"
@@ -72,7 +64,8 @@
            (expr (trace-pass "verify-returnify" returnify expr))
            (expr (trace-pass "lift-vectors" lift-vectors expr))
            (expr (trace-pass "verify-lift-vectors" verify-lift-vectors expr))
-           (expr (trace-pass "annotate-types" annotate-types expr)))
+           (expr (trace-pass "typecheck" typecheck expr))
+           (expr (trace-pass "verify-typecheck" verify-typecheck expr)))
       expr)))
 
 ;; The "middle end" of a compiler. No one ever knows what's supposed

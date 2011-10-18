@@ -16,26 +16,36 @@
 ;; typechecking.
   
 (generate-verify lift-vectors
-  (Module wildcard)
+  (Module (module Decl *))
   (Decl
     (fn Var (Var *) Stmt * Ret-Stmt)
-    (extern Var Var -> Type))
+    (extern Var (Var *) -> Type))
   (Stmt
-    integer
-    (var Var)
-    (assert Stmt)
-    (let Var Stmt)
-    (reduce Binop Stmt)
-    (Binop Stmt Stmt)
-    (vector Expr *)
     (print Expr)
-    (print Expr Expr))
-  (Ret-Stmt
-    (return Expr))
+    (print Expr Expr)
+    (assert Expr)
+    (set! (var Var) Expr)
+    (vector-set! Expr Expr Expr)
+    (kernel ((Var Expr) *) Stmt * Expr)
+    (let Var Expr)
+    Ret-Stmt
+    (for (Var Expr Expr) Stmt *))
+  (Ret-Stmt (return Expr))
+  (Expr
+    integer
+    string
+    (var Var)
+    (reduce Binop Expr)
+    (vector Expr *)
+    (call Var Expr *)
+    (vector-ref Expr Expr)
+    (kernel ((Var Expr) *) Stmt * Expr)
+    (Unaryop Expr)
+    (Binop Expr Expr))
   (Var symbol)
   (Type wildcard)
-  (Expr wildcard)
-  (Binop binop))
+  (Binop binop)
+  (Unaryop unaryop))
 
 (define lift-expr->stmt
   (lambda (expr finish)
@@ -145,9 +155,10 @@
            (lift-expr->stmt
              e1
              (lambda (e1^)
-               (lift-expr->stmt e2 (lambda (e2^)
-                                     (cons `(vector-set! ,x^ ,e1^ ,e2^)
-                                       rest))))))))             
+               (lift-expr->stmt e2
+                 (lambda (e2^)
+                   (cons `(vector-set! ,x^ ,e1^ ,e2^)
+                     rest))))))))             
       (((kernel ,iters ,body* ...) . ,[rest])
        ;; TODO: For now just pass the kernel through... this
        ;; won't let us declare vectors inside kernels though.
@@ -173,8 +184,8 @@
 
 (define (lift-decl fn)
   (match fn
-    ((fn ,name ,args ,stmt* ...)
-     `(fn ,name ,args . ,(lift-stmt* stmt*)))
+    ((fn ,name ,args . ,[lift-stmt* -> stmt*])
+     `(fn ,name ,args . ,stmt*))
     ((extern ,name ,args -> ,rtype)
      `(extern ,name ,args -> ,rtype))
     (,else (error 'lift-decl "bad function" else))))
@@ -182,8 +193,8 @@
 (define lift-vectors
   (lambda (mod)
     (match mod
-      ((module ,fn* ...)
-       `(module . ,(map lift-decl fn*)))
+      ((module ,[lift-decl -> fn*] ...)
+       `(module . ,fn*))
       (,else (error 'lift-vectors "malformed module" else)))))
 
 )

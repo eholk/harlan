@@ -10,7 +10,7 @@
    (Module (module Decl))
    (Decl
      (fn Var (Var *) Stmt * Ret-Stmt)
-     (extern Var Var -> Type))
+     (extern Var (Var *) -> Type))
    (Stmt
      integer
      (var Var)

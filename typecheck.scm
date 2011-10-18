@@ -1,8 +1,9 @@
 (library
  (typecheck)
- (export typecheck simplify-literals infer-kernel infer-stmt infer-expr lookup)
+ (export typecheck simplify-literals infer-kernel infer-stmt infer-expr lookup verify-typecheck)
  (import (chezscheme)
          (util match)
+         (verify-grammar)
          (util mk))
 
 ;;; ********************************* FIX ME !!!! ****
@@ -11,6 +12,9 @@
 
 ;;; add tests with recursive and mutually recursive calls
  
+(generate-verify typecheck
+  (Module wildcard))
+
 (define pairo
   (lambda (x)
     (fresh (a d)
@@ -27,7 +31,7 @@
          (lookup env^ x type))))))
 
  ;; miniKanren doesn't deal well with integer literals. This replaces
- ;; them with a symbol that minikanren can handle.
+ ;; them with a symbol that miniKanren can handle.
  (define simplify-literals
    (lambda (expr)
      (match expr
@@ -304,10 +308,12 @@
             (result (run 2 (q) 
 		      (infer-module mod q))))
        (case (length result)
-	 (0 '())
-	 (1 (car result))
-	 (else
-	  (display result)
-	  (error 'typecheck 
-		 "Could not infer a unique type for program"
-		 result)))))))
+         (0 '())
+         (1 (car result))
+         (else
+           (display result)
+           (error 'typecheck 
+             "Could not infer a unique type for program"
+             result))))))
+
+)

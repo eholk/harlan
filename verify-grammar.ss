@@ -6,7 +6,7 @@
   (export generate-verify wildcard?)
   (import
     (rnrs)
-    (only (chezscheme) errorf))
+    (only (chezscheme) errorf pretty-print with-output-to-string))
 
   (define wildcard? (lambda (x) #t))
   
@@ -34,21 +34,22 @@
     (define nonterminal? (form-pred char-upper-case?))
     (define terminal? (form-pred char-lower-case?))
     
-    (define (dotdotdot verify-name inp)
-      #`(let loop ((inp #,inp))
-          (or (null? inp)
-              (and (#,verify-name (car inp))
-                   (loop (cdr inp))))))
+    (define (dotdotdot repeated inp)
+      (with-syntax (((loopvar) (generate-temporaries '(inp))))
+        #`(let loop ((loopvar #,inp))
+            (or (null? loopvar)
+                (and #,(pattern-match repeated #`(car loopvar))
+                     (loop (cdr loopvar)))))))
 
     ;; outputs a boolean expression that pattern matches inp
     ;; at this point, all lower-case symbols are matched exactly
     (define (pattern-match pattern inp)
       (syntax-case pattern (* +)
         (() #`(null? #,inp))
-        ((a *) (dotdotdot (verify-name #'a) inp))
+        ((a *) (dotdotdot #'a inp))
         ((a * d ...)
          (with-syntax (((rd ...) (reverse #'(d ...)))
-                       ((id id* ...) (generate-temporaries #'(d ...))))
+                       ((id) (generate-temporaries '(id))))
            #`(and (pair? #,inp)
                   (let ((id (reverse #,inp)))
                     #,(pattern-match #'(rd ... a *) #'id)))))
@@ -74,20 +75,19 @@
     
     ;; just so you know, these error messages are meaningful
     (define (meaningful-error pass left right* inp)
-      #`(apply errorf
+      #`(errorf
           '#,pass
-          (apply string-append
-            "\nFollowing ~s does not conform to grammar.\n~s\n"
-            "Was expecting one of the following:"
-            '#,(map (lambda (_) " ~s") right*))
-          #,left #,inp '#,right*))
+          "\nFollowing ~s does not conform to grammar.\n~a\n"
+          #,left
+          (with-output-to-string (lambda () (pretty-print #,inp)))))
     
     ;; outputs the body of a pass verify-nonterm
     ;; catches errors, but throws one if there are no options that match
     (define (create-body pass left right* inp)
       (with-syntax (((clauses ...)
                      (map (lambda (rout) (create-clause rout inp)) right*)))
-        #`(or clauses ... #,(meaningful-error pass left right* inp))))
+        #`(or (guard (x ((error? x) #f)) clauses) ...
+              #,(meaningful-error pass left right* inp))))
     
     ;; actual macro
     (syntax-case x ()
