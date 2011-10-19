@@ -1,8 +1,7 @@
 (library
   (lower-vectors)
   (export
-    lower-vectors
-    verify-lower-vectors)
+    lower-vectors)
   (import
     (only (chezscheme) format)
     (rnrs)
@@ -10,44 +9,6 @@
     (print-c)
     (util verify-grammar)
     (util helpers))
-
-(generate-verify lower-vectors
-  (Module (module Decl *))
-  (Decl
-    (fn Var (Var *) ((Type *) -> Type) Stmt * Ret-Stmt)
-    (extern Var (Type *) -> Type))
-  (Stmt 
-    (print Expr)
-    (print Expr Expr)
-    (assert Expr)
-    (set! (var Type Var) Expr)
-    (vector-set! Type Expr Expr Expr)
-    (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
-    (let Var Type Expr)
-    (for (Var Expr Expr) Stmt *)
-    (while Expr Stmt *)
-    (do Expr *)
-    Ret-Stmt)
-  (Ret-Stmt (return Expr))
-  (Expr 
-    (int Integer)
-    (u64 Number)
-    (str String)
-    (var Type Var)
-    (reduce int Binop Expr)
-    (vector Expr *)
-    (call Type Var Expr *)
-    (vector-ref Type Expr Expr)
-    (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
-    (Unaryop Expr)
-    (Binop Expr Expr))
-  (Var symbol)
-  (String string)
-  (Number number)
-  (Integer integer)
-  (Type (vector Type Integer) wildcard)
-  (Binop binop)
-  (Unaryop unaryop))
 
 ;; Moves to a lower-level allocate and set! representation for
 ;; vectors. This runs after typechecking.

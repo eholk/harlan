@@ -2,7 +2,6 @@
   (typecheck)
   (export
     typecheck
-    verify-typecheck
     infer-kernel
     infer-stmt
     infer-expr
@@ -20,53 +19,6 @@
   
 ;;; add tests with recursive and mutually recursive calls
   
-(generate-verify typecheck
-  (Module (module Decl *))
-  (Decl
-    (fn Var (Var *) ((Type *) -> Type) Stmt * Ret-Stmt)
-    (extern Var (Type *) -> Type))
-  (Stmt 
-    (print Expr)
-    (print Expr Expr)
-    (assert Expr)
-    (set! (var Type Var) Expr)
-    (vector-set! Type Expr Expr Expr)
-    (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
-    (let Var Type Lifted-Expr)
-    (for ((Var Type) Expr Expr) Stmt *)
-    (while (Relop Expr Expr) Stmt *)
-    (do Expr)
-    Ret-Stmt)
-  (Ret-Stmt (return Expr))
-  (Lifted-Expr
-   Expr
-   (reduce Type Binop Expr)
-   (vector Expr *)
-   (make-vector Type (int Integer))
-   (iota (int Integer)))
-  (Expr 
-    (int Integer)
-    (u64 Number)
-    (str String)
-    (var Type Var)
-    (call Type Var Expr *)
-    (vector-ref Type Expr Expr)
-    (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
-    (Unaryop Expr)
-    (Relop Expr Expr)
-    (Binop Expr Expr))
-  (Var ident)
-  (String string)
-  (Number number)
-  (Integer integer)
-  (Type
-   (vector Type Integer)
-   scalar-type
-   ((Type *) -> Type))
-  (Binop binop)
-  (Relop relop)
-  (Unaryop unaryop))
-
 (define pairo
   (lambda (x)
     (fresh (a d)

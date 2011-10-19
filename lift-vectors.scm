@@ -2,7 +2,6 @@
   (lift-vectors)
   (export
     lift-vectors
-    verify-lift-vectors
     lift-expr->stmt)
   (import
     (only (chezscheme) format)
@@ -16,52 +15,6 @@
 ;; Vector simplification code. Weirdly, this runs before
 ;; typechecking.
   
-(generate-verify lift-vectors
-  (Module (module Decl *))
-  (Decl
-    (fn Var (Var *) Stmt * Ret-Stmt)
-    (extern Var (Type *) -> Type))
-  (Stmt
-    (print Expr)
-    (print Expr Expr)
-    (assert Expr)
-    (set! (var Var) Expr)
-    (vector-set! Expr Expr Expr)
-    (kernel ((Var Expr) *) Stmt * Expr)
-    (let Var Lifted-Expr)
-    Ret-Stmt
-    (do Expr)
-    (for (Var Expr Expr) Stmt *)
-    (while (Relop Expr Expr) Stmt *))
-  (Ret-Stmt (return Expr))
-  ;; These are the expressions that lift-vectors needs to A-normalize
-  (Lifted-Expr
-   Expr
-   (reduce Binop Expr)
-   (vector Expr *)
-   (make-vector (num Integer))
-   (iota (num Integer)))
-  (Expr
-    (num Integer)
-    (str String)
-    (var Var)
-    (length Expr)
-    (call Var Expr *)
-    (vector-ref Expr Expr)
-    (kernel ((Var Expr) *) Stmt * Expr)
-    (Unaryop Expr)
-    (Binop Expr Expr))
-  (Integer integer)
-  (String string)
-  (Var ident)
-  (Type
-    scalar-type
-    (vector Type Integer)
-    ((Type *) -> Type))
-  (Binop binop)
-  (Relop relop)
-  (Unaryop unaryop))
-
 (define lift-expr->stmt
   (lambda (expr finish)
     (match expr

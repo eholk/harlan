@@ -7,6 +7,7 @@
          (only (chezscheme) pretty-print format)
          (util match)
          (util helpers)
+         (verification-passes)
          (harlan parser)
          (typecheck)
          (lift-vectors)

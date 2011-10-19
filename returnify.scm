@@ -1,30 +1,11 @@
 (library
  (returnify)
- (export returnify verify-returnify)
+ (export returnify)
  (import
    (chezscheme)
    (util match)
    (harlan parser)
    (util verify-grammar))
-
- (generate-verify returnify
-   (Module (module Decl *))
-   (Decl
-     (fn Var (Var *) Stmt * Ret-Stmt)
-     (extern Var (Type *) -> Type))
-   (Stmt
-     (var Var)
-     (vector Expr *)
-     (print Expr)
-     (print Expr Expr)
-     Ret-Stmt
-     (do Expr)
-     wildcard)
-   (Ret-Stmt
-     (return Expr))
-   (Var ident)
-   (Type wildcard)
-   (Expr wildcard))
 
  (define returnify
    (lambda (mod)

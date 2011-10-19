@@ -1,12 +1,14 @@
 (library
  (harlan parser)
- (export verify-harlan parse-harlan verify-parse-harlan
-         ident? reduceop? scalar-type? reserved-words)
- (import (rnrs)
+ (export
+   parse-harlan
+   ident? reduceop? scalar-type? reserved-words)
+ (import
+   (rnrs)
    (util verify-grammar)
-         (only (print-c) binop? relop?)
-         (util helpers))
-
+   (only (print-c) binop? relop?)
+   (util helpers))
+ 
  (define (scalar-type? t)
    (case t
      ((int u64 str void) #t)
@@ -23,46 +25,6 @@
  (define (reduceop? op)
    (memq op '(+ *)))
  
- (generate-verify harlan
-   (Module (module Decl *))
-   (Decl
-    (extern Var (Type *) -> Type)
-    (fn Var (Var *) Stmt *))
-   (Type
-    scalar-type
-    (vector Type Integer)
-    ((Type *) -> Type))
-   (Stmt
-    (let Var Expr)
-    (print Expr)
-    (assert Expr)
-    (set! Expr Expr)
-    (vector-set! Expr Expr Expr)
-    (for (Var Expr Expr) Stmt *)
-    (while Expr Stmt *)
-    (return Expr)
-    Expr)
-   (Expr
-    integer
-    string
-    ident
-    (var Var)
-    (vector Expr *)
-    (vector-ref Expr Expr)
-    (kernel ((Var Expr) *) Stmt * Expr)
-    (reduce Reducer Expr)
-    (iota Integer)
-    (length Expr)
-    (make-vector Integer)
-    (Binop Expr Expr)
-    (Relop Expr Expr)
-    (Var Expr *))
-   (Var ident)
-   (Integer integer)
-   (Reducer reduceop)
-   (Binop binop)
-   (Relop relop))
-
  ;; parse-harlan takes a syntax tree that a user might actually want
  ;; to write and converts it into something that's more easily
  ;; analyzed by the type inferencer and the rest of the compiler. This
@@ -138,46 +100,6 @@
    ((,rator ,[rand*] ...)
     (guard (symbol? rator))
     `(call ,rator . ,rand*)))
- 
- (generate-verify parse-harlan
-   (Module (module Decl *))
-   (Decl
-    (extern Var (Type *) -> Type)
-    (fn Var (Var *) Stmt *))
-   (Type
-    scalar-type
-    (vector Type Integer)
-    ((Type *) -> Type))
-   (Stmt
-    (let Var Expr)
-    (print Expr)
-    (assert Expr)
-    (set! Expr Expr)
-    (vector-set! Expr Expr Expr)
-    (do Expr)
-    (for (Var Expr Expr) Stmt *)
-    (while Expr Stmt *)
-    (return Expr))
-   (Expr
-    (num Integer)
-    (str String)
-    (var Var)
-    (vector Expr *)
-    (vector-ref Expr Expr)
-    (kernel ((Var Expr) *) Stmt * Expr)
-    (reduce Reducer Expr)
-    (iota (num Integer))
-    (length Expr)
-    (make-vector (num Integer))
-    (Binop Expr Expr)
-    (Relop Expr Expr)
-    (call Var Expr *))
-   (Var ident)
-   (Integer integer)
-   (String string)
-   (Reducer reduceop)
-   (Binop binop)
-   (Relop relop))
  
  ;; end library
  )
