@@ -55,6 +55,11 @@ check : test.bin gc/lib/libgc.a rt/libharlanrt.a \
 	$(call TEST_OUT_NAME, $(RUN_TEST_SRC))
 	@echo All tests succeeded.
 
+.phony: force-check
+force-check :
+	rm -rf test.bin
+	make -C . check
+
 test.bin:
 	mkdir -p test.bin
 
