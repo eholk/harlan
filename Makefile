@@ -24,8 +24,9 @@ HARLAN_SRC = harlanc \
 	harlan/generate-kernel-calls.scm \
 	harlan/parser.scm \
 	annotate-free-vars.scm \
-	convert-types.scm \
+	harlan/convert-types.scm \
 	harlan/compiler.scm \
+	harlan/move-gpu-data.scm \
 	kernels.scm \
 	lift-vectors.scm \
 	lower-vectors.scm \

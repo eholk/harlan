@@ -2,7 +2,8 @@
  (harlan compiler)
  (export compile-harlan lift-vectors test
          compile-harlan-middle verbose
-         compile-harlan-frontend compile-module)
+         compile-harlan-frontend compile-module
+         type-of)
  (import (rnrs)
          (only (chezscheme) pretty-print format)
          (util match)
@@ -15,7 +16,8 @@
          (returnify)
          (returnify-kernels)
          (kernels)
-         (convert-types)
+         (harlan convert-types)
+         (harlan move-gpu-data)
          (verify-compile-module)
          (annotate-free-vars)
          (print-c))
@@ -25,7 +27,7 @@
      (case-lambda
        (() flag)
        ((x) (set! flag x)))))
- 
+
 (define-syntax test
   (syntax-rules ()
     ((_ title tested-expression expected-result)
@@ -58,7 +60,9 @@
          expr)))))
 
 (define compile-harlan
-  (passes compile-harlan-frontend compile-harlan-middle))
+  (passes
+   compile-harlan-frontend
+   compile-harlan-middle))
 
 ;; The typical frontend of a compiler. Syntax expansion, typechecking,
 ;; etc.
@@ -79,14 +83,8 @@
 (define compile-harlan-middle
   (passes
     lower-vectors
-    verify-lower-vectors
     returnify-kernels
-    verify-returnify-kernels
     uglify-vectors
-    verify-uglify-vectors
-    ;; We're just putting convert-types here temporarily. We'll
-    ;; move it lower as we update the following passes.
-    convert-types
     annotate-free-vars
     hoist-kernels
     verify-hoist-kernels
@@ -95,6 +93,7 @@
     verify-generate-kernel-calls
     compile-module
     verify-compile-module
+    convert-types
     compile-kernels
     verify-compile-kernels))
 
@@ -120,11 +119,17 @@
     (match stmt
       [(let ,x ,t ,[compile-expr -> e])
        `(let ,x ,t ,e)]
+      [(let-gpu ,x ,t)
+       `(let ,x (cl::buffer ,(scalar-type t))
+             ((field g_ctx createBuffer ,(scalar-type t))
+              ,(byte-size t)
+              CL_MEM_READ_WRITE))]
       [(print ,[compile-expr -> expr]) `(print ,expr)]
       [(print ,[compile-expr -> e1] ,[compile-expr -> e2]) `(print ,e1 ,e2)]
       [(return ,[compile-expr -> expr]) `(return ,expr)]
       [(assert ,[compile-expr -> expr]) `(do (assert ,expr))]
-      [(set! ,[compile-expr -> x] ,[compile-expr -> e]) `(set! ,x ,e)]
+      [(set! ,x ,e)
+       (compile-set! x e)]
       [(vector-set! ,v ,i ,[compile-expr -> expr])
        `(vector-set! ,v ,i ,expr)]
       [(while (,relop ,[compile-expr -> e1] ,[compile-expr -> e2])
@@ -134,9 +139,38 @@
             ,[stmt*] ...)
        `(for (,i ,start ,end) ,stmt* ...)]
       [(do ,[compile-expr -> e] ...) `(do ,e ...)]
+      [(map-gpu ((,x* ,e*) ...) ,[stmt*] ...)
+       `(block
+         ,@(map (lambda (x e)
+                  `(let ,x (cl::buffer_map ,(scalar-type (type-of e)))
+                        ((field g_queue mapBuffer ,(scalar-type (type-of e)))
+                         ,(compile-expr e))))
+                x* e*)
+         ,stmt* ...)]
       [(block ,[stmt*] ...)
        `(block ,stmt* ...)]
       [,else (error 'compile-stmt (format "unknown stmt type ~s" else))])))
+
+(define (compile-set! x e)
+  (let ((lhs-t (type-of x)))
+    (match lhs-t
+      ((vector ,t ,n)
+       `(do (memcpy ,(compile-expr x) ,(compile-expr e) ,(byte-size lhs-t))))
+      (,scalar
+       (guard (symbol? scalar))
+       `(set! ,(compile-expr x) ,(compile-expr e)))
+      (,e (error 'compile-set! "Unknown target type" e)))))
+
+(define-match (scalar-type)
+  ;; TODO: converting the types should happen after this, so hopefully
+  ;; we won't need pointers.
+  ((ptr ,[t]) t)
+  ((vector ,[t] ,n) t)
+  (int 'int))
+
+(define-match (byte-size)
+  (int `(sizeof int))
+  ((vector ,[t] ,n) `(* ,n ,t)))
 
 ;; This compile kernel is used in the compile-module pass.
 (define-match (compile-kernel^)
@@ -152,8 +186,11 @@
       [(str ,s) (guard (string? s)) s]
       [(vector-ref ,t ,[v] ,[i]) `(vector-ref ,v ,i)]
       [(field ,[obj] ,x)
-       (guard (symbol? x))
+       (guard (ident? x))
        `(field ,obj ,x)]
+      ((field ,[obj] ,x ,t)
+       (guard (ident? x))
+       `(field ,obj ,x ,t))
       [(sizeof ,t) `(sizeof ,t)]
       [(deref ,[e]) `(deref ,e)]
       [(addressof ,[e]) `(addressof ,e)]
@@ -166,11 +203,11 @@
       [(call ,t ,[f] ,[a*] ...) `(,f ,a* ...)]
       [,else (error 'compile-expr (format "unknown expr type ~s" else))]))))
 
-;; this program shouldn't typecheck, 
+;; this program shouldn't typecheck,
 ;; since main must have type () -> int
 ;; (fn main ()) :: () -> ()
 
-;; After annotate-types, 
+;; After annotate-types,
 ;; (module (fn main () (return 0)))
 ;; becomes
 ;; (module (fn main () (() -> int) (return (int 0))))
@@ -199,7 +236,7 @@
        (fn main ()
          (print (vector 1 2 3 4))
          (return 0)))
-    `((func int main () 
+    `((func int main ()
             (block
              (let t_0 (vector int) 4)
              (vector-set! t_0 0 1)
