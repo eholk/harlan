@@ -1,5 +1,5 @@
 (library
- (harlancompiler)
+ (harlan compiler)
  (export compile-harlan lift-vectors test
          compile-harlan-middle verbose
          compile-harlan-frontend compile-module)

@@ -25,7 +25,7 @@ HARLAN_SRC = harlanc \
 	harlan/parser.scm \
 	annotate-free-vars.scm \
 	convert-types.scm \
-	harlancompiler.scm \
+	harlan/compiler.scm \
 	kernels.scm \
 	lift-vectors.scm \
 	lower-vectors.scm \

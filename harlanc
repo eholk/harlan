@@ -3,7 +3,7 @@
 (import (chezscheme)
         (print-c)
         (kernels)
-        (harlancompiler))
+        (harlan compiler))
 
 (define (string-rfind s c)
   (let loop ((s (string->list s))
