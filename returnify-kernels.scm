@@ -1,10 +1,14 @@
 (library
  (returnify-kernels)
- (export returnify-kernels)
+ (export returnify-kernels verify-returnify-kernels)
  (import (rnrs)
          (util match)
+         (verify-grammar)
          (util helpers))
  
+(generate-verify returnify-kernels
+  (Module wildcard))
+
  (define returnify-kernels
    (lambda (mod)
      (match mod

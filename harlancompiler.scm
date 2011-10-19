@@ -58,47 +58,45 @@
          expr)))))
 
 (define compile-harlan
-  (lambda (expr)
-    (let* ((expr (trace-pass "compile-harlan-frontend"
-                             compile-harlan-frontend  expr))
-           (expr (trace-pass "compile-harlan-middle"
-                             compile-harlan-middle expr)))
-      expr)))
+  (passes compile-harlan-frontend compile-harlan-middle))
 
 ;; The typical frontend of a compiler. Syntax expansion, typechecking,
 ;; etc.
 (define compile-harlan-frontend
   (passes
-   verify-harlan
-   parse-harlan
-   verify-parse-harlan
-   returnify
-   verify-returnify
-   lift-vectors
-   verify-lift-vectors
-   typecheck
-   verify-typecheck))
+    verify-harlan
+    parse-harlan
+    verify-parse-harlan
+    returnify
+    verify-returnify
+    lift-vectors
+    verify-lift-vectors
+    typecheck
+    verify-typecheck))
 
 ;; The "middle end" of a compiler. No one ever knows what's supposed
 ;; to go here. This goes from TFC to something we can give to print-c.
 (define compile-harlan-middle
-  (passes lower-vectors
-          returnify-kernels
-          uglify-vectors
-          ;; We're just putting convert-types here temporarily. We'll
-          ;; move it lower as we update the following passes.
-          convert-types
-          annotate-free-vars
-          hoist-kernels
-          verify-hoist-kernels
-          move-gpu-data
-          generate-kernel-calls
-          verify-generate-kernel-calls
-          compile-module
-          verify-compile-module
-          compile-kernels
-          verify-compile-kernels))
-          
+  (passes
+    lower-vectors
+    verify-lower-vectors
+    returnify-kernels
+    verify-returnify-kernels
+    uglify-vectors
+    ;; We're just putting convert-types here temporarily. We'll
+    ;; move it lower as we update the following passes.
+    convert-types
+    annotate-free-vars
+    hoist-kernels
+    verify-hoist-kernels
+    move-gpu-data
+    generate-kernel-calls
+    verify-generate-kernel-calls
+    compile-module
+    verify-compile-module
+    compile-kernels
+    verify-compile-kernels))
+
 (define compile-module
   (lambda (expr)
     (match expr
@@ -165,9 +163,7 @@
        (guard (symbol? f))
        `(,f ,a* ...)]
       [(call ,t ,[f] ,[a*] ...) `(,f ,a* ...)]
-      [,else (error 'compile-expr (format "unknown expr type ~s" else))])))
-
-)
+      [,else (error 'compile-expr (format "unknown expr type ~s" else))]))))
 
 ;; this program shouldn't typecheck, 
 ;; since main must have type () -> int

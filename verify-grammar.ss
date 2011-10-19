@@ -4,12 +4,7 @@
 (library
   (verify-grammar)
   (export generate-verify wildcard?)
-  (import
-    (rnrs)
-    (only (chezscheme)
-      errorf
-      pretty-print
-      with-output-to-string))
+  (import (rnrs))
 
   (define wildcard? (lambda (x) #t))
   
@@ -37,7 +32,7 @@
     (define nonterminal? (form-pred char-upper-case?))
     (define terminal? (form-pred char-lower-case?))
     
-    (define (dotdotdot repeated inp)
+    (define (*form repeated inp)
       (with-syntax (((loopvar) (generate-temporaries '(inp))))
         #`(let loop ((loopvar #,inp))
             (or (null? loopvar)
@@ -48,27 +43,21 @@
     ;; at this point, all lower-case symbols are matched exactly
     (define (pattern-match pattern inp)
       (syntax-case pattern (* +)
-        (() #`(null? #,inp))
-        ((a *) (dotdotdot #'a inp))
+        ((a *) (*form #'a inp))
         ((a * d ...)
          (with-syntax (((rd ...) (reverse #'(d ...)))
-                       ((id) (generate-temporaries '(id))))
+                       ((tmp) (generate-temporaries '(tmp))))
            #`(and (pair? #,inp)
-                  (let ((id (reverse #,inp)))
-                    #,(pattern-match #'(rd ... a *) #'id)))))
+                  (let ((tmp (reverse #,inp)))
+                    #,(pattern-match #'(rd ... a *) #'tmp)))))
         ((a + d ...) (pattern-match #'(a a * d ...) inp))
-        (((aa . ad) . d)
-         #`(and (pair? #,inp)
-                (and #,(pattern-match #'d #`(cdr #,inp))
-                     #,(pattern-match #'(aa . ad) #`(car #,inp)))))
         ((a . d)
-         #`(and (pair? #,inp)
-                #,(if (nonterminal? #'a)
-                      #`(and #,(pattern-match #'d #`(cdr #,inp))
-                             #,(pattern-match #'a #`(car #,inp)))
-                      #`(and (eq? (car #,inp) 'a)
-                             #,(pattern-match #'d #`(cdr #,inp))))))
-        (_ #`(#,(verify-name pattern) #,inp))))
+         (with-syntax (((tmp) (generate-temporaries '(tmp))))
+           #`(and (pair? #,inp)
+                  (let ((tmp (car #,inp))) #,(pattern-match #'a #'tmp))
+                  (let ((tmp (cdr #,inp))) #,(pattern-match #'d #'tmp)))))
+        (_ (nonterminal? pattern)  #`(#,(verify-name pattern) #,inp))
+        (_ #`(eq? '#,pattern #,inp))))
     
     ;; either returns (terminal? inp) or a boolean expression to match pairs
     (define (create-clause pattern inp)
@@ -77,12 +66,11 @@
           (pattern-match pattern inp)))
     
     ;; just so you know, these error messages are meaningful
-    (define (meaningful-error pass left right* inp)
-      #`(errorf
+    (define (meaningful-error pass left inp)
+      #`(error
           '#,pass
-          "\nThe following ~s does not conform to grammar.\n~a\n"
-          #,left
-          (with-output-to-string (lambda () (pretty-print #,inp)))))
+          "\nFollowing ~s does not conform to grammar.\n~s\n"
+          #,left #,inp))
     
     ;; outputs the body of a pass verify-nonterm
     ;; catches errors, but throws one if there are no options that match
@@ -90,7 +78,7 @@
       (with-syntax (((clauses ...)
                      (map (lambda (rout) (create-clause rout inp)) right*)))
         #`(or (guard (x ((error? x) #f)) clauses) ...
-              #,(meaningful-error pass left right* inp))))
+              #,(meaningful-error pass left inp))))
     
     ;; actual macro
     (syntax-case x ()
@@ -105,10 +93,11 @@
                #'((right* ...) (right** ...) ...))))
          #'(define name
              (lambda (prg)
-               (define start (lambda (left) body))
-               (define nonterminals (lambda (left*) body*))
-               ...
-               (and (start prg) prg)))))))
+               (letrec
+                   ((start (lambda (left) body))
+                    (nonterminals (lambda (left*) body*))
+                    ...)
+                 (and (start prg) prg))))))))
 
 )
 
