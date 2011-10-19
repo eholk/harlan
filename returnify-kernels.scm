@@ -45,6 +45,7 @@
         `((kernel ,t2 ,arg* . ,(returnify-kernel-stmt* body*))))
        ((let ,id ,type ,expr)
         (returnify-kernel-let `(let ,id ,type ,expr)))
+       ((do ,expr) `((do ,expr)))
        (,else (error 'returnify-kernel-stmt  "unknown statement:" else)))))
 
  (define type-dim

@@ -30,6 +30,7 @@
     (fn Var (Var *) Stmt *))
    (Type
     scalar-type
+    (vector Type Integer)
     ((Type *) -> Type))
    (Stmt
     (let Var Expr)
@@ -39,7 +40,8 @@
     (vector-set! Expr Expr Expr)
     (for (Var Expr Expr) Stmt *)
     (while Expr Stmt *)
-    (return Expr))
+    (return Expr)
+    Expr)
    (Expr
     integer
     string
@@ -80,6 +82,11 @@
  (define-match (parse-type)
    (int 'int)
    (u64 'u64)
+   (void 'void)
+   (string 'string)
+   ((vector ,[t] ,n)
+    (guard (integer? n))
+    `(vector ,t ,n))
    (((,[t*] ...) -> ,[t]) `(,t* -> ,t)))
  
  (define-match (parse-stmt)
@@ -100,7 +107,8 @@
     `(vector-set! ,v ,i ,e))
    ((let ,x ,[parse-expr -> e])
     (guard (symbol? x))
-    `(let ,x ,e)))
+    `(let ,x ,e))
+   (,[parse-expr -> e] `(do ,e)))
 
  (define-match (parse-expr)
    (,n (guard (integer? n)) `(num ,n))
@@ -138,6 +146,7 @@
     (fn Var (Var *) Stmt *))
    (Type
     scalar-type
+    (vector Type Integer)
     ((Type *) -> Type))
    (Stmt
     (let Var Expr)
@@ -145,6 +154,7 @@
     (assert Expr)
     (set! Expr Expr)
     (vector-set! Expr Expr Expr)
+    (do Expr)
     (for (Var Expr Expr) Stmt *)
     (while Expr Stmt *)
     (return Expr))

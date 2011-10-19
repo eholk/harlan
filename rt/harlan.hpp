@@ -140,27 +140,6 @@ void print(const vector<T> &v1, const vector<T> &v2) {
     std::cout << "]" << std::endl;
 }
 
-#ifdef __APPLE__
-#include <mach/mach_time.h>
-#endif
-
-uint64_t nanotime() {
-#ifdef __APPLE__
-    uint64_t time = mach_absolute_time();
-    mach_timebase_info_data_t info = {0, 0};
-    if (info.denom == 0) {
-        mach_timebase_info(&info);
-    }
-    uint64_t time_nano = time * (info.numer / info.denom);
-    return time_nano;  
-#else
-    uint64_t ns_per_s = 1000000000LL;
-    timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    return (ts.tv_sec * ns_per_s + ts.tv_nsec);
-#endif    
-}
-
 struct free_this {
     void *p;
     free_this(void *p) : p(p) {}

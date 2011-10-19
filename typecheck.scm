@@ -24,7 +24,7 @@
   (Module (module Decl *))
   (Decl
     (fn Var (Var *) ((Type *) -> Type) Stmt * Ret-Stmt)
-    (extern Var (Var *) -> Type))
+    (extern Var (Type *) -> Type))
   (Stmt 
     (print Expr)
     (print Expr Expr)
@@ -35,6 +35,7 @@
     (let Var Type Lifted-Expr)
     (for ((Var Type) Expr Expr) Stmt *)
     (while (Relop Expr Expr) Stmt *)
+    (do Expr)
     Ret-Stmt)
   (Ret-Stmt (return Expr))
   (Lifted-Expr
@@ -261,6 +262,11 @@
          (== stmto `(return ,e^))
          (== env envo)
          (infer-expr e env rtype e^))
+        ((fresh (e e^ t)
+           (== stmt `(do ,e))
+           (== stmto `(do ,e^))
+           (== env envo)
+           (infer-expr e env t e^)))
         ((fresh (x start start^ end end^ stmt* stmt*^ te)
            (== stmt `(for (,x ,start ,end) . ,stmt*))
            (== stmto `(for ((,x int) ,start^ ,end^) . ,stmt*^))

@@ -94,6 +94,8 @@
       ((kernel ,t ,iters ,[stmt*] ...)
        ;; We erase kernel types here... It might be too soon.
        `((kernel ,iters ,(apply append stmt*) ...)))
+      ((do ,[uglify-expr -> e])
+       `((do ,e)))
       (,else
         (error 'uglify-stmt "unsupported stmt" else)))))
 

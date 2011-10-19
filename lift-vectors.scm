@@ -20,7 +20,7 @@
   (Module (module Decl *))
   (Decl
     (fn Var (Var *) Stmt * Ret-Stmt)
-    (extern Var (Var *) -> Type))
+    (extern Var (Type *) -> Type))
   (Stmt
     (print Expr)
     (print Expr Expr)
@@ -30,6 +30,7 @@
     (kernel ((Var Expr) *) Stmt * Expr)
     (let Var Lifted-Expr)
     Ret-Stmt
+    (do Expr)
     (for (Var Expr Expr) Stmt *)
     (while (Relop Expr Expr) Stmt *))
   (Ret-Stmt (return Expr))
@@ -54,8 +55,9 @@
   (String string)
   (Var ident)
   (Type
-   scalar-type
-   ((Type *) -> Type))
+    scalar-type
+    (vector Type Integer)
+    ((Type *) -> Type))
   (Binop binop)
   (Relop relop)
   (Unaryop unaryop))
@@ -195,6 +197,8 @@
              (lambda (end)
                (cons `(for (,x ,start ,end) . ,(lift-stmt* stmt*))
                  rest))))))
+      (((do ,e) . ,[rest])
+       (lift-expr->stmt e (lambda (e) (cons `(do ,e) rest))))
       (((while (,relop ,x ,y) ,stmt* ...) . ,[rest])
        (lift-expr->stmt
          x

@@ -77,6 +77,7 @@
        `((for (,x ,start ,end) . ,(apply append body*))))
       ((return ,expr)
        `((return ,expr)))
+      ((do ,expr) `((do ,expr)))
       (,else (error 'lower-stmt "unknown statment" else)))))
 
 )

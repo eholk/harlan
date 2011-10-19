@@ -1,5 +1,7 @@
 
-OBJS = cl++.o
+OBJS = \
+	cl++.o \
+	builtin.o \
 
 libharlanrt.a : $(OBJS)
 	$(AR) rcs libharlanrt.a $(OBJS)

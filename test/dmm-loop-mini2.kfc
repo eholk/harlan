@@ -5,10 +5,13 @@
 ;; use loops instead of nested kernels
 
 (module
+  (extern print_2x2_int_vec ((vector (vector int 2) 2)) -> void)
+  
   (fn main ()
       (let B (vector
               (vector 1 0)
               (vector 0 1)))
+      (print_2x2_int_vec B)
       (let Bt (make-vector 2))
       (for (j 0 (length (vector-ref B 0)))
         (let io (iota 2))

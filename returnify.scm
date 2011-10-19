@@ -4,24 +4,25 @@
  (import
    (chezscheme)
    (util match)
+   (harlan parser)
    (verify-grammar))
 
  (generate-verify returnify
    (Module (module Decl *))
    (Decl
      (fn Var (Var *) Stmt * Ret-Stmt)
-     (extern Var (Var *) -> Type))
+     (extern Var (Type *) -> Type))
    (Stmt
-     integer
      (var Var)
      (vector Expr *)
      (print Expr)
      (print Expr Expr)
      Ret-Stmt
-     Expr)
+     (do Expr)
+     wildcard)
    (Ret-Stmt
      (return Expr))
-   (Var symbol)
+   (Var ident)
    (Type wildcard)
    (Expr wildcard))
 
