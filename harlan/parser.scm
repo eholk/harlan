@@ -12,7 +12,8 @@
      (else #f)))
 
  (define reserved-words '(kernel for while print vector vector-ref reduce
-                                 assert vector-set! set!))
+                                 assert vector-set! set! iota make-vector
+                                 length))
  
  (define (ident? x)
    (and (symbol? x)
@@ -47,10 +48,14 @@
     (vector-ref Expr Expr)
     (kernel ((Var Expr) *) Stmt * Expr)
     (reduce Reducer Expr)
+    (iota Integer)
+    (length Expr)
+    (make-vector Integer)
     (Binop Expr Expr)
     (Relop Expr Expr)
-    (Expr Expr *))
+    (Var Expr *))
    (Var ident)
+   (Integer integer)
    (Reducer reduceop)
    (Binop binop)
    (Relop relop))
@@ -122,7 +127,43 @@
     (guard (symbol? rator))
     `(call ,rator . ,rand*)))
  
- (define verify-parse-harlan (lambda (x) x))
+ (generate-verify parse-harlan
+   (Module (module Decl *))
+   (Decl
+    (extern Var (Type *) -> Type)
+    (fn Var (Var *) Stmt *))
+   (Type
+    scalar-type
+    ((Type *) -> Type))
+   (Stmt
+    (let Var Expr)
+    (print Expr)
+    (assert Expr)
+    (set! Expr Expr)
+    (vector-set! Expr Expr Expr)
+    (for (Var Expr Expr) Stmt *)
+    (while Expr Stmt *)
+    (return Expr))
+   (Expr
+    (num Integer)
+    (str String)
+    (var Var)
+    (vector Expr *)
+    (vector-ref Expr Expr)
+    (kernel ((Var Expr) *) Stmt * Expr)
+    (reduce Reducer Expr)
+    (iota Integer)
+    (length Expr)
+    (make-vector Integer)
+    (Binop Expr Expr)
+    (Relop Expr Expr)
+    (call Var Expr *))
+   (Var ident)
+   (Integer integer)
+   (String string)
+   (Reducer reduceop)
+   (Binop binop)
+   (Relop relop))
  
  ;; end library
  )
