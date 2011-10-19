@@ -6,9 +6,54 @@
          (only (print-c) binop? relop?)
          (util helpers))
 
+ (define (scalar-type? t)
+   (case t
+     ((int u64 str) #t)
+     (else #f)))
+
+ (define reserved-words '(kernel for while print vector vector-ref reduce
+                                 assert vector-set! set!))
+ 
+ (define (ident? x)
+   (and (symbol? x)
+        (not (memq x reserved-words))))
+
+ (define (reduceop? op)
+   (memq op '(+ *)))
+ 
  (generate-verify harlan
    (Module (module Decl *))
-   (Decl wildcard))
+   (Decl
+    (extern Var (Type *) -> Type)
+    (fn Var (Var *) Stmt *))
+   (Type
+    scalar-type
+    ((Type *) -> Type))
+   (Stmt
+    (let Var Expr)
+    (print Expr)
+    (assert Expr)
+    (set! Expr Expr)
+    (vector-set! Expr Expr Expr)
+    (for (Var Expr Expr) Stmt *)
+    (while Expr Stmt *)
+    (return Expr))
+   (Expr
+    integer
+    string
+    ident
+    (var Var)
+    (vector Expr *)
+    (vector-ref Expr Expr)
+    (kernel ((Var Expr) *) Stmt * Expr)
+    (reduce Reducer Expr)
+    (Binop Expr Expr)
+    (Relop Expr Expr)
+    (Expr Expr *))
+   (Var ident)
+   (Reducer reduceop)
+   (Binop binop)
+   (Relop relop))
 
  ;; parse-harlan takes a syntax tree that a user might actually want
  ;; to write and converts it into something that's more easily
