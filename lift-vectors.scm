@@ -10,7 +10,8 @@
     (util match)
     (print-c)
     (verify-grammar)
-    (util helpers))
+    (util helpers)
+    (harlan parser))
   
 ;; Vector simplification code. Weirdly, this runs before
 ;; typechecking.
@@ -27,18 +28,23 @@
     (set! (var Var) Expr)
     (vector-set! Expr Expr Expr)
     (kernel ((Var Expr) *) Stmt * Expr)
-    (let Var Expr)
+    (let Var Lifted-Expr)
     Ret-Stmt
     (for (Var Expr Expr) Stmt *)
     (while (Relop Expr Expr) Stmt *))
-    ;;(while (< Expr Expr) Stmt *))
   (Ret-Stmt (return Expr))
+  ;; These are the expressions that lift-vectors needs to A-normalize
+  (Lifted-Expr
+   Expr
+   (reduce Binop Expr)
+   (vector Expr *)
+   (make-vector (num Integer))
+   (iota (num Integer)))
   (Expr
     (num Integer)
     (str String)
     (var Var)
-    (reduce Binop Expr)
-    (vector Expr *)
+    (length Expr)
     (call Var Expr *)
     (vector-ref Expr Expr)
     (kernel ((Var Expr) *) Stmt * Expr)
@@ -46,8 +52,10 @@
     (Binop Expr Expr))
   (Integer integer)
   (String string)
-  (Var symbol)
-  (Type wildcard)
+  (Var ident)
+  (Type
+   scalar-type
+   ((Type *) -> Type))
   (Binop binop)
   (Relop relop)
   (Unaryop unaryop))

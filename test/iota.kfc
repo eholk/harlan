@@ -1,0 +1,7 @@
+;; -*- scheme -*-
+;xfail
+
+(module
+  (fn main ()
+      (assert (= 6 (reduce + (iota 4))))
+      (return 0)))

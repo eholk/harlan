@@ -80,7 +80,7 @@
     (define (meaningful-error pass left right* inp)
       #`(errorf
           '#,pass
-          "\nFollowing ~s does not conform to grammar.\n~a\n"
+          "\nThe following ~s does not conform to grammar.\n~a\n"
           #,left
           (with-output-to-string (lambda () (pretty-print #,inp)))))
     

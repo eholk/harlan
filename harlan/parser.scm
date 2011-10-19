@@ -1,6 +1,7 @@
 (library
  (harlan parser)
- (export verify-harlan parse-harlan verify-parse-harlan)
+ (export verify-harlan parse-harlan verify-parse-harlan
+         ident? reduceop? scalar-type? reserved-words)
  (import (rnrs)
          (verify-grammar)
          (only (print-c) binop? relop?)
@@ -8,7 +9,7 @@
 
  (define (scalar-type? t)
    (case t
-     ((int u64 str) #t)
+     ((int u64 str void) #t)
      (else #f)))
 
  (define reserved-words '(kernel for while print vector vector-ref reduce
@@ -109,6 +110,10 @@
     `(var ,x))
    ((vector ,[e*] ...)
     `(vector . ,e*))
+   ((make-vector ,[e])
+    `(make-vector ,e))
+   ((iota ,[e])
+    `(iota ,e))
    ((vector-ref ,[v] ,[i])
     `(vector-ref ,v ,i))
    ((length ,[e])
@@ -116,8 +121,7 @@
    ((kernel ((,x ,[e*]) ...) ,[parse-stmt -> stmt*] ... ,[e])
     `(kernel ,(map list x e*) ,@stmt* ,e))
    ((reduce ,op ,[e])
-    ;; TODO: this guard should really be something like reduce-op?
-    (guard (binop? op))
+    (guard (reduceop? op))
     `(reduce ,op ,e))
    ((,op ,[lhs] ,[rhs])
     (guard (or (binop? op) (relop? op)))
@@ -152,9 +156,9 @@
     (vector-ref Expr Expr)
     (kernel ((Var Expr) *) Stmt * Expr)
     (reduce Reducer Expr)
-    (iota Integer)
+    (iota (num Integer))
     (length Expr)
-    (make-vector Integer)
+    (make-vector (num Integer))
     (Binop Expr Expr)
     (Relop Expr Expr)
     (call Var Expr *))
