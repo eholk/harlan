@@ -172,6 +172,8 @@
       ((deref ,[free-vars-expr -> e]) e)
       ((cast ,t ,[free-vars-expr -> e]) e)
       ((addressof ,[free-vars-expr -> e]) e)
+      ((vector-ref ,t ,[v] ,[i])
+       (union v i))
       ((sizeof ,t) '())
       ((mk_vec ,[free-vars-expr -> e1] ,[free-vars-expr -> e2] ,[free-vars-expr -> e3])
        (union (union e1 e2) e3))

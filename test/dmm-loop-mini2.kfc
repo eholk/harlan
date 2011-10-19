@@ -1,0 +1,17 @@
+;; -*- scheme -*-
+
+;; A part of ense matrix-matrix product
+;; use loops instead of nested kernels
+
+(module
+  (fn main ()
+      (let B (vector
+              (vector 1 0)
+              (vector 0 1)))
+      (let Bt (make-vector 2))
+      (for (j 0 (length (vector-ref B 0)))
+        (let io (iota 2))
+        (let row (kernel ((i (var io)))
+                   (vector-ref (vector-ref B (var j)) (var i))))
+        (vector-set! (var Bt) (var j) (var row)))
+      (return 0)))
