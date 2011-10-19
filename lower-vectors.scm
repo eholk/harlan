@@ -12,7 +12,7 @@
     (util helpers))
 
 (generate-verify lower-vectors
-  (Module (module Decl *) wildcard)
+  (Module (module Decl *))
   (Decl
     (fn Var (Var *) ((Type *) -> Type) Stmt * Ret-Stmt)
     (extern Var (Var *) -> Type))
@@ -25,6 +25,8 @@
     (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
     (let Var Type Expr)
     (for (Var Expr Expr) Stmt *)
+    (while Expr Stmt *)
+    (do Expr *)
     Ret-Stmt)
   (Ret-Stmt (return Expr))
   (Expr 
@@ -44,8 +46,8 @@
   (Number number)
   (Integer integer)
   (Type (vector Type Integer) wildcard)
-  (Binop binop))
-(Unaryop unaryop)
+  (Binop binop)
+  (Unaryop unaryop))
 
 ;; Moves to a lower-level allocate and set! representation for
 ;; vectors. This runs after typechecking.

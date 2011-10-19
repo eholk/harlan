@@ -4,7 +4,12 @@
 (library
   (verify-grammar)
   (export generate-verify wildcard?)
-  (import (rnrs))
+  (import
+    (rnrs)
+    (only (chezscheme)
+      errorf
+      pretty-print
+      with-output-to-string))
 
   (define wildcard? (lambda (x) #t))
   
@@ -67,10 +72,11 @@
     
     ;; just so you know, these error messages are meaningful
     (define (meaningful-error pass left inp)
-      #`(error
+      #`(errorf
           '#,pass
-          "\nFollowing ~s does not conform to grammar.\n~s\n"
-          #,left #,inp))
+          "\nFollowing ~s does not conform to grammar.\n~a\n"
+          #,left (with-output-to-string
+                   (lambda () (pretty-print #,inp)))))
     
     ;; outputs the body of a pass verify-nonterm
     ;; catches errors, but throws one if there are no options that match
