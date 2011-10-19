@@ -2,7 +2,8 @@
   (uglify-vectors)
   (export
     uglify-vectors
-    uglify-vector-ref)
+    uglify-vector-ref
+    verify-uglify-vectors)
   (import
     (only (chezscheme) format)
     (rnrs)
@@ -10,6 +11,44 @@
     (print-c)
     (util verify-grammar)
     (util helpers))
+
+(generate-verify uglify-vectors
+  (Module (module Decl *))
+  (Decl
+    (fn Var (Var *) ((Type *) -> Type) Stmt * Ret-Stmt)
+    (extern Var (Type *) -> Type))
+  (Stmt 
+    (print Expr)
+    (print Expr Expr)
+    (assert Expr)
+    (set! (var Type Var) Expr)
+    (vector-set! Type Expr Expr Expr)
+    (kernel Type (((Var Type) (Expr Type)) *) Stmt *)
+    (let Var Type Expr)
+    (for (Var Expr Expr) Stmt *)
+    (while Expr Stmt *)
+    (do Expr *)
+    Ret-Stmt)
+  (Ret-Stmt (return Expr))
+  (Expr 
+    (int Integer)
+    (u64 Number)
+    (str String)
+    (var Type Var)
+    (reduce int Binop Expr)
+    (vector Expr *)
+    (cast Type (call Type Var Expr *))
+    (vector-ref Type Expr Expr)
+    (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
+    (Unaryop Expr)
+    (Binop Expr Expr))
+  (Var symbol)
+  (String string)
+  (Number number)
+  (Integer integer)
+  (Type (vector Type Integer) wildcard)
+  (Binop binop)
+  (Unaryop unaryop))
 
 ;; Uglify vectors takes our nice surface-level vector syntax and
 ;; converts it into an abomination of C function calls to the generic
@@ -44,7 +83,8 @@
   (lambda (t e n)
     (match e
       ((int ,y)
-       (let-values (((dim t sz) (decode-vector-type `(vector ,t ,n))))
+       (let-values (((dim t sz)
+                     (decode-vector-type `(vector ,t ,n))))
          `(cast (vector ,t ,n) (call (ptr void) GC_MALLOC ,sz))))
       ((var int ,y)
        (let-values (((dim t sz) (decode-vector-type `(vector ,t ,y))))
@@ -104,13 +144,13 @@
     (let ((i (if (integer? i) `(int ,i) i)))
       (match t
         ((vector ,t ,n)
-         (let-values (((dim t sz) (decode-vector-type `(vector ,t ,n))))
+         (let-values (((dim t sz)
+                       (decode-vector-type `(vector ,t ,n))))
            `((do (call void memcpy 
                    ,(uglify-vector-ref `(vector ,t ,n) x i)
                    ,v
                    ,sz)))))
-        (,scalar
-          (guard (symbol? scalar))
+        (,scalar (guard (symbol? scalar))
           `((set! ,(uglify-vector-ref scalar x i) ,v)))
         (,else (error 'uglify-vector-set!
                  "unsupported vector type" else))))))

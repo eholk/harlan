@@ -83,6 +83,7 @@
     returnify-kernels
     verify-returnify-kernels
     uglify-vectors
+    verify-uglify-vectors
     ;; We're just putting convert-types here temporarily. We'll
     ;; move it lower as we update the following passes.
     convert-types
