@@ -15,7 +15,7 @@
   (Module (module Decl *))
   (Decl
     (fn Var (Var *) ((Type *) -> Type) Stmt * Ret-Stmt)
-    (extern Var (Var *) -> Type))
+    (extern Var (Type *) -> Type))
   (Stmt 
     (print Expr)
     (print Expr Expr)

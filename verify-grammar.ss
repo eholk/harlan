@@ -28,7 +28,8 @@
     (define verify-name
       (create-name (lambda (str) (string-append "verify-" str))))
     
-    ;; terminals have a lowercase first char, nonterminals are capitalized
+    ;; terminals have a lowercase first char,
+    ;; nonterminals are capitalized
     (define (form-pred proc)
       (lambda (syn)
         (let ((sym (syntax->datum syn)))
@@ -59,12 +60,16 @@
         ((a . d)
          (with-syntax (((tmp) (generate-temporaries '(tmp))))
            #`(and (pair? #,inp)
-                  (let ((tmp (car #,inp))) #,(pattern-match #'a #'tmp))
-                  (let ((tmp (cdr #,inp))) #,(pattern-match #'d #'tmp)))))
-        (_ (nonterminal? pattern)  #`(#,(verify-name pattern) #,inp))
+                  (let ((tmp (car #,inp)))
+                    #,(pattern-match #'a #'tmp))
+                  (let ((tmp (cdr #,inp)))
+                    #,(pattern-match #'d #'tmp)))))
+        (_ (nonterminal? pattern)
+          #`(#,(verify-name pattern) #,inp))
         (_ #`(eq? '#,pattern #,inp))))
     
-    ;; either returns (terminal? inp) or a boolean expression to match pairs
+    ;; either returns (terminal? inp)
+    ;; or a boolean expression to match pairs
     (define (create-clause pattern inp)
       (if (terminal? pattern)
           #`(#,(pred-name pattern) #,inp)
@@ -79,10 +84,11 @@
                    (lambda () (pretty-print #,inp)))))
     
     ;; outputs the body of a pass verify-nonterm
-    ;; catches errors, but throws one if there are no options that match
+    ;; catches errors, throws one if no options match
     (define (create-body pass left right* inp)
       (with-syntax (((clauses ...)
-                     (map (lambda (rout) (create-clause rout inp)) right*)))
+                     (map (lambda (rout) (create-clause rout inp))
+                       right*)))
         #`(or (guard (x ((error? x) #f)) clauses) ...
               #,(meaningful-error pass left inp))))
     
@@ -127,20 +133,5 @@ Here's an example:
     (Term Term)
     Var)
   (Var symbol))
-
-> (import (verify-grammar))
-> (generate-verify lambda-calc
-    (Term
-      (lambda (Var) Term)
-      (Term Term)
-      Var)
-    (Var symbol))
-> (verify-lambda-calc '(lambda (x) x))
-(lambda (x) x)
-> (verify-lambda-calc '(lambda (x) x y))
-
-Exception in lambda-calc: Output expr (lambda (x) x y) does not conform to grammar.
-Was expecting one of the following for Term: (lambda (Var) Term) (Term Term) Var
-Type (debug) to enter the debugger.
 
 |#
