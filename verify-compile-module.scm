@@ -53,7 +53,7 @@
        (,else
         (error 'verify-stmt
                (format "verify-compile-module--unknown statement type: ~s"
-                       stmt))))))
+                       else))))))
 
 (define verify-expr
   (lambda (expr)

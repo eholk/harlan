@@ -24,8 +24,9 @@ HARLAN_SRC = harlanc \
 	harlan/generate-kernel-calls.scm \
 	harlan/parser.scm \
 	annotate-free-vars.scm \
-	convert-types.scm \
+	harlan/convert-types.scm \
 	harlan/compiler.scm \
+	harlan/move-gpu-data.scm \
 	kernels.scm \
 	lift-vectors.scm \
 	lower-vectors.scm \
@@ -54,6 +55,11 @@ RUN_TEST = $(1)
 check : test.bin gc/lib/libgc.a rt/libharlanrt.a \
 	$(call TEST_OUT_NAME, $(RUN_TEST_SRC))
 	@echo All tests succeeded.
+
+.phony: force-check
+force-check :
+	rm -rf test.bin
+	make -C . check
 
 test.bin:
 	mkdir -p test.bin

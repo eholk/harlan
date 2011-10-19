@@ -1,5 +1,4 @@
 ;; -*- scheme -*-
-; xfail
 
 ;; Dense matrix-matrix product
 ;; use loops instead of nested kernels
@@ -37,6 +36,13 @@
                    (kernel ((x (var row)) (y (var col)))
                      (* (var x) (var y)))))
           (vector-set! (vector-ref C (var row_index)) (var col_index) (var c))))
+
+      ;; TODO: we don't generate correct code for vector comparison
+      ;;(assert (= (var C) (var A)))
+      ;; so instead we'll use loops.
+      (for (i 0 (length C))
+           (for (j 0 (length (vector-ref C 0)))
+                (assert (= (vector-ref (vector-ref C i) j)
+                           (vector-ref (vector-ref A i) j)))))
       
-      (assert (= (var C) (var A)))
       (return 0)))

@@ -5,6 +5,7 @@
    iota
    define-match
    andmap
+   type-of
    decode-vector-type
    vector-bytesize)
  (import (rnrs)
@@ -59,5 +60,10 @@
   (lambda (t)
     (let-values (((dim t sz) (decode-vector-type t)))
       sz)))
+
+(define-match (type-of)
+  ((deref ,[e]) e)
+  ((vector-ref ,t ,v ,i) t)
+  ((var ,t ,x) t))
 
  )

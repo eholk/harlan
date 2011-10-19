@@ -4,11 +4,9 @@
     compile-kernels
     compile-kernel
     hoist-kernels
-    move-gpu-data
     generate-kernel-calls
     verify-compile-kernels
     verify-hoist-kernels
-    verify-move-gpu-data
     verify-generate-kernel-calls)
   (import
     (only (chezscheme) format)
@@ -21,10 +19,6 @@
   
 (generate-verify generate-kernel-calls
   (Module wildcard))
-
-(generate-verify move-gpu-data
-  (Module wildcard))
-(define move-gpu-data (lambda (expr) expr))
 
 (define format-kernel-arg
   (lambda (arg)
@@ -149,8 +143,8 @@
     (let ((i (gensym 'i)))
       ;; TODO: Correctly handle free vars
       `(kernel ,name ,(append (map (lambda (x t)
-                                     `(,x (ptr ,t)))
-                                   xs* t*)
+                                     `(,x ,t))
+                                   xs* ts*)
                               (map list fv* ft*))
          ;; TODO: allow this to work on n-dimensional vectors.
          (let ,i int (call int get_global_id (int 0)))
@@ -171,12 +165,6 @@
              (lambda (stmt x xs ts)
                (let ((t (match ts
                           ((vector ,t ,n) t)
-                          ;; TODO: ptrs shouldn't be in the language
-                          ;; yet, but we're being a bit too aggressive
-                          ;; about erasing types. Once we move
-                          ;; convert-types below this pass, we should
-                          ;; remove this clause too.
-                          ((ptr ,t) t)
                           (,else (error 'replace-vec-refs
                                         "Unknown type"
                                         else)))))
