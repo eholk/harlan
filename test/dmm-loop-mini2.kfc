@@ -1,4 +1,5 @@
 ;; -*- scheme -*-
+;xfail
 
 ;; A part of ense matrix-matrix product
 ;; use loops instead of nested kernels
