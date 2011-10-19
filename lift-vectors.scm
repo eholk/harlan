@@ -106,7 +106,9 @@
       ((make-vector ,c)
        (finish `(make-vector ,c)))
       ((iota ,c)
-       (finish `(iota ,c)))
+       (let ((v (gensym 'iota)))
+         (cons `(let ,v (iota ,c))
+               (finish `(var ,v)))))
       ((reduce ,op ,e)
        (lift-expr->stmt
          e
