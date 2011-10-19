@@ -8,7 +8,7 @@
     (rnrs)
     (util match)
     (print-c)
-    (verify-grammar)
+    (util verify-grammar)
     (util helpers))
 
 (generate-verify lower-vectors

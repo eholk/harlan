@@ -3,7 +3,7 @@
  (export verify-harlan parse-harlan verify-parse-harlan
          ident? reduceop? scalar-type? reserved-words)
  (import (rnrs)
-         (verify-grammar)
+   (util verify-grammar)
          (only (print-c) binop? relop?)
          (util helpers))
 

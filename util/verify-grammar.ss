@@ -2,7 +2,7 @@
 ;; see eof for an example
 
 (library
-  (verify-grammar)
+  (util verify-grammar)
   (export generate-verify wildcard?)
   (import
     (rnrs)

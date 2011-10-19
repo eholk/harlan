@@ -5,7 +5,7 @@
    (chezscheme)
    (util match)
    (harlan parser)
-   (verify-grammar))
+   (util verify-grammar))
 
  (generate-verify returnify
    (Module (module Decl *))

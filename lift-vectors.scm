@@ -9,7 +9,7 @@
     (rnrs)
     (util match)
     (print-c)
-    (verify-grammar)
+    (util verify-grammar)
     (util helpers)
     (harlan parser))
   

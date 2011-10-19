@@ -8,7 +8,7 @@
     (rnrs)
     (util match)
     (print-c)
-    (verify-grammar)
+    (util verify-grammar)
     (util helpers))
 
 ;; Uglify vectors takes our nice surface-level vector syntax and

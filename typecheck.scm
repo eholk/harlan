@@ -9,7 +9,7 @@
     lookup)
   (import (chezscheme)
     (util match)
-    (verify-grammar)
+    (util verify-grammar)
     (util mk)
     (harlan parser)
     (only (print-c) binop? relop? unaryop?))

@@ -4,7 +4,7 @@
  (import (rnrs)
          (util match)
          (only (print-c) binop? unaryop?)
-         (verify-grammar)
+         (util verify-grammar)
          (util helpers))
  
 (generate-verify returnify-kernels
