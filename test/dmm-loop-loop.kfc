@@ -1,5 +1,6 @@
 ;; -*- scheme -*-
-;xfail
+
+;; DMM transpose using only for loops.
 
 ;; A part of ense matrix-matrix product
 ;; use loops instead of nested kernels
@@ -15,8 +16,9 @@
       (let Bt (make-vector 2))
       (for (j 0 (length (vector-ref B 0)))
         (let io (iota 2))
-        (let row (kernel ((i (var io)))
-                   (vector-ref (vector-ref B (var j)) (var i))))
+        (let row (make-vector 2))
+        (for (i 0 (length io))
+             (vector-set! row i (vector-ref (vector-ref B (var j)) (var i))))
         (vector-set! (var Bt) (var j) (var row)))
       (print "\n")
       (print_2x2_int_vec Bt)
