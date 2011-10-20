@@ -82,13 +82,15 @@
   ;; just so you know, these error messages are meaningful
   (define (meaningful-error left inp)
     (syntax-case x ()
-      ((_ pass . etc)
+      ((_ pass . clauses)
        #`(errorf
            '#,(verify-name #'pass)
-           "\nFollowing ~s does not conform to grammar.\n~a\n"
+           "\nFollowing ~s ....\n~a\n... does not conform to this grammar:\n~a"
            #,left
            (with-output-to-string
-             (lambda () (pretty-print #,inp)))))))
+             (lambda () (pretty-print #,inp)))
+           (with-output-to-string
+             (lambda () (pretty-print 'clauses)))))))
   
   ;; outputs the body of a pass verify-nonterm
   ;; catches errors, throws one if no options match

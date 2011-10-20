@@ -102,10 +102,10 @@
         (while (Relop Expr Expr) Stmt *)
         (return Expr))
       (Let-Expr
-        (reduce Reducer Expr)
-        (vector Expr *)
+        (reduce Reducer Let-Expr)
+        (vector Let-Expr *)
         (make-vector (num Integer))
-        (kernel ((Var Expr) *) Stmt * Expr)
+        (kernel ((Var Let-Expr) *) Stmt * Let-Expr)
         (iota (num Integer))
         Expr)
       (Expr
@@ -118,23 +118,24 @@
         (Binop Expr Expr)))
 
     (returnify
-      (%inherits Module)
+      (%inherits Module
+        Expr Var Integer Reducer Binop Relop String Type Let-Expr)
       (Decl
         (fn Var (Var *) Stmt * Ret-Stmt)
         (extern Var (Type *) -> Type))
       (Stmt
-        (var Var)
-        (vector Expr *)
         (print Expr)
         (print Expr Expr)
-        Ret-Stmt
+        (assert Expr)
+        (set! (var Var) Expr)
+        (vector-set! Expr Expr Expr)
+        (kernel ((Var Expr) *) Stmt * Expr)
+        (let Var Let-Expr)
         (do Expr)
-        wildcard)
-      (Ret-Stmt
-        (return Expr))
-      (Var ident)
-      (Type wildcard)
-      (Expr wildcard))
+        (for (Var Expr Expr) Stmt *)
+        (while (Relop Expr Expr) Stmt *)
+        Ret-Stmt)
+      (Ret-Stmt (return Expr)))
 
     (typecheck
       (Module (module Decl *))
@@ -259,4 +260,4 @@
         (Unaryop Expr)
         (Binop Expr Expr))))
 
-)
+  )
