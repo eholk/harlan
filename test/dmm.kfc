@@ -1,5 +1,4 @@
 ;; -*- scheme -*-
-;; xfail
 
 ;; Dense matrix-matrix product
 
