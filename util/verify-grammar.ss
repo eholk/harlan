@@ -3,15 +3,15 @@
 
 (library
   (util verify-grammar)
-  (export grammar-transforms generate-verify wildcard?)
+  (export
+    grammar-transforms
+    generate-verify
+    wildcard?)
   (import
     (rnrs)
     (only (chezscheme)
       errorf
-      make-parameter
       pretty-print
-      trace-define
-      trace-define-syntax
       with-output-to-string))
   
 (define wildcard? (lambda (x) #t))
@@ -120,29 +120,35 @@
                (and (start prg) prg))))))))
 
 (define-syntax (grammar-transforms x)
-  (define (lookup-nts inp parent)
+  (define (lookup-nt inp parent)
     (syntax-case parent ()
-      (() (errorf 'lookup-nts "You fucked up ~s" inp))
+      (() (errorf 'lookup-nt
+            "You fucked up writing some inheritance for ~s" inp))
       (((nt . t*) . rest)
        (if (eq? (syntax->datum #'nt) (syntax->datum inp))
            #'(nt . t*)
-           (lookup-nts inp #'rest)))))
+           (lookup-nt inp #'rest)))))
   (define (add-nts parent child)
     (syntax-case child ()
       (() #'())
       ((nt . rest)
-       #`(#,(lookup-nts #'nt parent) . #,(add-nts parent #'rest)))))
+       #`(#,(lookup-nt #'nt parent) .
+          #,(add-nts parent #'rest)))))
   (syntax-case x (%inherits)
     ((_ pass) #'(generate-verify . pass))
-    ((_ (pass1 (nt* t** ...) ...) (pass2 (%inherits nts ...) clauses ...) . rest)
+    ((_ (pass0 clause0* ...)
+        (pass1 (%inherits nt* ...) clause1* ...)
+        . rest)
      (with-syntax (((inherited ...)
-                    (add-nts #'((nt* t** ...) ...) #'(nts ...))))
+                    (add-nts #'(clause0* ...) #'(nt* ...))))
        #`(begin
-           (generate-verify pass1 (nt* t** ...) ...)
+           (generate-verify pass0 clause0* ...)
            (grammar-transforms
-             (pass2 inherited ... clauses ...) . rest))))
+             (pass1 inherited ... clause1* ...) . rest))))
     ((_ pass . rest)
-     #`(begin (generate-verify . pass) (grammar-transforms . rest)))))
+     #`(begin
+         (generate-verify . pass)
+         (grammar-transforms . rest)))))
 
 )
 

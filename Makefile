@@ -37,6 +37,7 @@ HARLAN_SRC = harlanc \
 	typecheck.scm \
 	uglify-vectors.scm \
 	verify-compile-module.scm \
+  verification-passes.scm	\
 	util/verify-grammar.ss \
 
 # Invokes the harlan compiler. The first argument is the name of the

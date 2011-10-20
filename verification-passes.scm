@@ -58,14 +58,8 @@
       (Relop relop))
 
     (parse-harlan
-      (%inherits Module)
-      (Decl
-        (extern Var (Type *) -> Type)
-        (fn Var (Var *) Stmt *))
-      (Type
-        scalar-type
-        (vector Type Integer)
-        ((Type *) -> Type))
+      (%inherits Module Decl Type
+        Var Integer Reducer Binop Relop)
       (Stmt
         (let Var Expr)
         (print Expr)
@@ -90,18 +84,11 @@
         (Binop Expr Expr)
         (Relop Expr Expr)
         (call Var Expr *))
-      (Var ident)
-      (Integer integer)
-      (String string)
-      (Reducer reduceop)
-      (Binop binop)
-      (Relop relop))
+      (String string))
 
     (lift-vectors
-      (Module (module Decl *))
-      (Decl
-        (fn Var (Var *) Stmt * Ret-Stmt)
-        (extern Var (Type *) -> Type))
+      (%inherits Module Decl
+        Var Integer Reducer Binop Relop String Type)
       (Stmt
         (print Expr)
         (print Expr Expr)
@@ -109,19 +96,18 @@
         (set! (var Var) Expr)
         (vector-set! Expr Expr Expr)
         (kernel ((Var Expr) *) Stmt * Expr)
-        (let Var Lifted-Expr)
-        Ret-Stmt
+        (let Var Let-Expr)
         (do Expr)
         (for (Var Expr Expr) Stmt *)
-        (while (Relop Expr Expr) Stmt *))
-      (Ret-Stmt (return Expr))
-      ;; These are the expressions that lift-vectors needs to A-normalize
-      (Lifted-Expr
-        Expr
-        (reduce Binop Expr)
+        (while (Relop Expr Expr) Stmt *)
+        (return Expr))
+      (Let-Expr
+        (reduce Reducer Expr)
         (vector Expr *)
         (make-vector (num Integer))
-        (iota (num Integer)))
+        (kernel ((Var Expr) *) Stmt * Expr)
+        (iota (num Integer))
+        Expr)
       (Expr
         (num Integer)
         (str String)
@@ -129,22 +115,10 @@
         (length Expr)
         (call Var Expr *)
         (vector-ref Expr Expr)
-        (kernel ((Var Expr) *) Stmt * Expr)
-        (Unaryop Expr)
-        (Binop Expr Expr))
-      (Integer integer)
-      (String string)
-      (Var ident)
-      (Type
-        scalar-type
-        (vector Type Integer)
-        ((Type *) -> Type))
-      (Binop binop)
-      (Relop relop)
-      (Unaryop unaryop))
+        (Binop Expr Expr)))
 
     (returnify
-      (Module (module Decl *))
+      (%inherits Module)
       (Decl
         (fn Var (Var *) Stmt * Ret-Stmt)
         (extern Var (Type *) -> Type))
@@ -210,10 +184,8 @@
       (Unaryop unaryop))
 
     (lower-vectors
-      (Module (module Decl *))
-      (Decl
-        (fn Var (Var *) ((Type *) -> Type) Stmt * Ret-Stmt)
-        (extern Var (Type *) -> Type))
+      (%inherits Module Decl
+        Var String Number Integer Type Binop Relop Unaryop)
       (Stmt 
         (print Expr)
         (print Expr Expr)
@@ -238,20 +210,12 @@
         (vector-ref Type Expr Expr)
         (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
         (Unaryop Expr)
-        (Binop Expr Expr))
-      (Var symbol)
-      (String string)
-      (Number number)
-      (Integer integer)
-      (Type (vector Type Integer) wildcard)
-      (Binop binop)
-      (Unaryop unaryop))
+        (Binop Expr Expr)))
 
     (returnify-kernels
-      (Module (module Decl *))
-      (Decl
-        (fn Var (Var *) ((Type *) -> Type) Stmt * Ret-Stmt)
-        (extern Var (Type *) -> Type))
+      (%inherits Module Decl Ret-Stmt
+        Expr
+        Var String Number Integer Type Binop Unaryop)
       (Stmt 
         (print Expr)
         (print Expr Expr)
@@ -263,33 +227,11 @@
         (for (Var Expr Expr) Stmt *)
         (while Expr Stmt *)
         (do Expr *)
-        Ret-Stmt)
-      (Ret-Stmt (return Expr))
-      (Expr 
-        (int Integer)
-        (u64 Number)
-        (str String)
-        (var Type Var)
-        (reduce int Binop Expr)
-        (vector Expr *)
-        (call Type Var Expr *)
-        (vector-ref Type Expr Expr)
-        (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
-        (Unaryop Expr)
-        (Binop Expr Expr))
-      (Var symbol)
-      (String string)
-      (Number number)
-      (Integer integer)
-      (Type (vector Type Integer) wildcard)
-      (Binop binop)
-      (Unaryop unaryop))
+        Ret-Stmt))
 
     (uglify-vectors
-      (Module (module Decl *))
-      (Decl
-        (fn Var (Var *) ((Type *) -> Type) Stmt * Ret-Stmt)
-        (extern Var (Type *) -> Type))
+      (%inherits Module Decl Ret-Stmt
+        Var String Number Integer Type Binop Unaryop)
       (Stmt 
         (print Expr)
         (print Expr Expr)
@@ -302,7 +244,6 @@
         (while Expr Stmt *)
         (do Expr *)
         Ret-Stmt)
-      (Ret-Stmt (return Expr))
       (Expr 
         (int Integer)
         (u64 Number)
@@ -316,13 +257,6 @@
         (call Type Var Expr *)
         (vector-ref Type Expr Expr)
         (Unaryop Expr)
-        (Binop Expr Expr))
-      (Var symbol)
-      (String string)
-      (Number number)
-      (Integer integer)
-      (Type (vector Type Integer) wildcard)
-      (Binop binop)
-      (Unaryop unaryop)))
+        (Binop Expr Expr))))
 
 )
