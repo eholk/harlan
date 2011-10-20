@@ -27,6 +27,7 @@ HARLAN_SRC = harlanc \
 	harlan/convert-types.scm \
 	harlan/compiler.scm \
 	harlan/move-gpu-data.scm \
+	harlan/remove-nested-kernels.scm \
 	kernels.scm \
 	lift-vectors.scm \
 	lower-vectors.scm \

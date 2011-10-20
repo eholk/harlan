@@ -73,27 +73,20 @@
       ((for (,i ,[uglify-expr -> start] ,[uglify-expr -> end])
          ,[uglify-stmt -> stmt*] ...)
        `((for (,i ,start ,end) ,(apply append stmt*) ...)))
-      ;; TODO: is set! really just a binop at this point?
       ((set! ,[uglify-expr -> lhs] ,[uglify-expr -> rhs])
        `((set! ,lhs ,rhs)))
       ((return ,[uglify-expr -> e])
        `((return ,e)))
       ((assert ,[uglify-expr -> e])
        `((assert ,e)))
-      ;; TODO: vector-set! needs a type annotation. For now we'll
-      ;; cheat and only allow integer literals
-; WEB: not sure what to do here when adding type annotations to variables
       ((vector-set! ,t ,[uglify-expr -> x] ,[uglify-expr -> i]
          ,[uglify-expr -> v])
        (uglify-vector-set! t x i v))
-      ;; TODO: Hmm... we need more type information to correctly
-      ;; generate code here.
       ((print ,[uglify-expr -> e])
        `((print ,e)))
       ((print ,[uglify-expr -> e1] ,[uglify-expr -> e2])
        `((print ,e1 ,e2)))       
       ((kernel ,t ,iters ,[stmt*] ...)
-       ;; We erase kernel types here... It might be too soon.
        `((kernel ,iters ,(apply append stmt*) ...)))
       ((do ,[uglify-expr -> e])
        `((do ,e)))
@@ -139,6 +132,8 @@
        `(,op ,lhs ,rhs))
       ((vector-ref ,t ,[e] ,[i])
        (uglify-vector-ref t e i))
+      ((reduce ,t ,op ,[e])
+       `(reduce ,t ,op ,e))
       ((length ,e)
        (match (expr-type e)
          ((vector ,t ,n)

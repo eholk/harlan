@@ -19,6 +19,7 @@
          (kernels)
          (harlan convert-types)
          (harlan move-gpu-data)
+         (harlan remove-nested-kernels)
          (verify-compile-module)
          (annotate-free-vars)
          (print-c))
@@ -84,6 +85,7 @@
 (define compile-harlan-middle
   (passes
     lower-vectors
+    remove-nested-kernels
     returnify-kernels
     uglify-vectors
     annotate-free-vars
