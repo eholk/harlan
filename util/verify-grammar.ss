@@ -8,38 +8,14 @@
     (rnrs)
     (only (chezscheme)
       errorf
+      make-parameter
       pretty-print
+      trace-define
+      trace-define-syntax
       with-output-to-string))
 
   (define wildcard? (lambda (x) #t))
 
-  (define-syntax (grammar-transforms x)
-    
-    (define (create-name completion)
-      (lambda (syn)
-        (datum->syntax syn
-          (string->symbol
-            (completion (symbol->string (syntax->datum syn)))))))
-    
-    (define verify-name
-      (create-name (lambda (str) (string-append "verify-" str))))
-    
-    (define remove-duplicates
-      (lambda (l)
-        (cond
-          ((null? l) '())
-          ((member (car l) (cdr l)) (remove-duplicates (cdr l)))
-          (else (cons (car l) (remove-duplicates (cdr l)))))))
-    
-    (syntax-case x ()
-      ((_ (generate-verify pass (Nonterm Terms ...) ...) ...)
-       (with-syntax (((unique-nonterms ...)
-                      (remove-duplicates #'(Nonterm ... ...))))
-         (with-syntax (((verify-names ...)
-                        (map verify-name #'(unique-nonterms ...))))
-           #'(begin (define verify-names (make-paramter 'dummy)) ...
-                    (generate-verify pass (Nonterm Terms ...) ...) ...))))))
-  
   ;; expands to ALL the procedures
   (define-syntax (generate-verify x)
     
@@ -54,22 +30,6 @@
       (create-name (lambda (str) (string-append str "?"))))
     (define verify-name
       (create-name (lambda (str) (string-append "verify-" str))))
-    (define verify-name/pass
-      (syntax-case x ()
-        ((_ pass . etc)
-         (let ((pass^ (symbol->string (syntax->datum #'pass))))
-           (create-name (lambda (str) (string-append "verify-" pass^ "-" str)))))))
-    (define extends-name ;; (Term (%extends lift-vectors Term))
-      (lambda (syn)
-        (syntax-case x ()
-          ((_ pass . etc)
-           (let ((p (syntax->datum syn)))
-             (let ((old-pass (symbol->string (cadr p)))
-                   (old-nonterm (symbol->string (caddr p))))
-               (datum->syntax #'pass
-                 (string->symbol
-                   (string-append
-                     "verify-" old-pass "-" old-nonterm)))))))))
     
     ;; terminals have a lowercase first char,
     ;; nonterminals are capitalized
@@ -80,11 +40,6 @@
                (proc (string-ref (symbol->string sym) 0))))))
     (define nonterminal? (form-pred char-upper-case?))
     (define terminal? (form-pred char-lower-case?))
-    (define extends?
-      (lambda (syn)
-        (let ((p (syntax->datum syn)))
-          (and (pair? p)
-               (eq? (car p) '%extends)))))
     
     (define (*form repeated inp)
       (with-syntax (((loopvar) (generate-temporaries '(inp))))
@@ -113,7 +68,7 @@
                   (let ((tmp (cdr #,inp)))
                     #,(pattern-match #'d #'tmp)))))
         (_ (nonterminal? pattern)
-          #`(#,(verify-name pattern) #,inp))
+          #`((#,(verify-name pattern)) #,inp))
         (_ #`(eq? '#,pattern #,inp))))
     
     ;; either returns (terminal? inp)
@@ -122,8 +77,6 @@
       (cond
         ((terminal? pattern)
          #`(#,(pred-name pattern) #,inp))
-        ((extends? pattern)
-         #`(#,(extends-name pattern) #,inp))
         (else (pattern-match pattern inp))))
     
     ;; just so you know, these error messages are meaningful
@@ -131,10 +84,7 @@
       (syntax-case x ()
         ((_ pass . etc)
          #`(errorf
-             '#,(datum->syntax #'pass
-                  (string->symbol
-                    (string-append "verify-"
-                      (symbol->string (syntax->datum #'pass)))))
+             '#,(verify-name #'pass)
              "\nFollowing ~s does not conform to grammar.\n~a\n"
              #,left (with-output-to-string
                       (lambda () (pretty-print #,inp)))))))
@@ -155,25 +105,45 @@
        (with-syntax
            (((name start nonterminals ...)
              (map verify-name #'(pass left left* ...)))
-            ((start/pass nonterminals/pass ...)
-             (map verify-name/pass #'(left left* ...)))
             ((body body* ...)
              (map
                (lambda (l r) (create-body #`'#,l r l))
                #'(left left* ...)
                #'((right* ...) (right** ...) ...))))
-         #'(begin
-             (define start/pass (lambda (left) body))
-             (define nonterminals/pass (lambda (left*) body*))
-             ...
-             (define name
-               (lambda (prg)
-                 (start start/pass)
-                 (nonterminals nonterminals/pass)
-                 ...
+         #'(define name
+             (lambda (prg)
+               (letrec
+                   ((start (lambda (left) body))
+                    (nonterminals (lambda (left*) body*))
+                    ...)
                  (and (start prg) prg))))))))
-
-)
+  
+  (define-syntax (grammar-transforms x)
+    (define (lookup-nts inp parent)
+      (syntax-case parent ()
+        (() (errorf 'lookup-nts "You fucked up ~s" inp))
+        (((nt . t*) . rest)
+         (if (eq? (syntax->datum #'nt) (syntax->datum inp))
+             #'(nt . t*)
+             (lookup-nts inp #'rest)))))
+    (define (add-nts parent child)
+      (syntax-case child ()
+        (() #'())
+        ((nt . rest)
+         #`(#,(lookup-nts #'nt parent) . #,(add-nts parent #'rest)))))
+    (syntax-case x (%inherits)
+      ((_ pass) #'(generate-verify . pass))
+      ((_ (pass1 (nt* t** ...) ...) (pass2 (%inherits nts ...) clauses ...) . rest)
+       (with-syntax (((inherited ...)
+                      (add-nts #'((nt* t** ...) ...) #'(nts ...))))
+         #`(begin
+             (generate-verify pass1 (nt* t** ...) ...)
+             (grammar-transforms
+               (pass2 inherited ... clauses ...) . rest))))
+      ((_ pass . rest)
+       #`(begin (generate-verify . pass) (grammar-transforms . rest)))))
+  
+  )
 
 #|
 

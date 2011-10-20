@@ -17,7 +17,7 @@
 
   (grammar-transforms
     
-    (generate-verify harlan
+    (harlan
       (Module (module Decl *))
       (Decl
         (extern Var (Type *) -> Type)
@@ -57,8 +57,8 @@
       (Binop binop)
       (Relop relop))
 
-    (generate-verify parse-harlan
-      (Module (%extends harlan Module))
+    (parse-harlan
+      (%inherits Module)
       (Decl
         (extern Var (Type *) -> Type)
         (fn Var (Var *) Stmt *))
@@ -97,7 +97,7 @@
       (Binop binop)
       (Relop relop))
 
-    (generate-verify lift-vectors
+    (lift-vectors
       (Module (module Decl *))
       (Decl
         (fn Var (Var *) Stmt * Ret-Stmt)
@@ -143,7 +143,7 @@
       (Relop relop)
       (Unaryop unaryop))
 
-    (generate-verify returnify
+    (returnify
       (Module (module Decl *))
       (Decl
         (fn Var (Var *) Stmt * Ret-Stmt)
@@ -162,7 +162,7 @@
       (Type wildcard)
       (Expr wildcard))
 
-    (generate-verify typecheck
+    (typecheck
       (Module (module Decl *))
       (Decl
         (fn Var (Var *) ((Type *) -> Type) Stmt * Ret-Stmt)
@@ -209,7 +209,7 @@
       (Relop relop)
       (Unaryop unaryop))
 
-    (generate-verify lower-vectors
+    (lower-vectors
       (Module (module Decl *))
       (Decl
         (fn Var (Var *) ((Type *) -> Type) Stmt * Ret-Stmt)
@@ -247,7 +247,7 @@
       (Binop binop)
       (Unaryop unaryop))
 
-    (generate-verify returnify-kernels
+    (returnify-kernels
       (Module (module Decl *))
       (Decl
         (fn Var (Var *) ((Type *) -> Type) Stmt * Ret-Stmt)
@@ -285,7 +285,7 @@
       (Binop binop)
       (Unaryop unaryop))
 
-    (generate-verify uglify-vectors
+    (uglify-vectors
       (Module (module Decl *))
       (Decl
         (fn Var (Var *) ((Type *) -> Type) Stmt * Ret-Stmt)
