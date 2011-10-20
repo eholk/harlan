@@ -1,6 +1,6 @@
 (library
  (harlan compiler)
- (export compile-harlan lift-vectors test
+ (export compile-harlan test
          compile-harlan-middle verbose
          compile-harlan-frontend compile-module
          type-of)
