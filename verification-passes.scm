@@ -44,7 +44,7 @@
         (vector Expr *)
         (vector-ref Expr Expr)
         (kernel ((Var Expr) *) Stmt * Expr)
-        (reduce Reducer Expr)
+        (reduce Reduceop Expr)
         (iota Integer)
         (length Expr)
         (make-vector Integer)
@@ -53,13 +53,13 @@
         (Var Expr *))
       (Var ident)
       (Integer integer)
-      (Reducer reduceop)
+      (Reduceop reduceop)
       (Binop binop)
       (Relop relop))
 
     (parse-harlan
       (%inherits Module Decl Type
-        Var Integer Reducer Binop Relop)
+        Var Integer Reduceop Binop Relop)
       (Stmt
         (let Var Expr)
         (print Expr)
@@ -77,7 +77,7 @@
         (vector Expr *)
         (vector-ref Expr Expr)
         (kernel ((Var Expr) *) Stmt * Expr)
-        (reduce Reducer Expr)
+        (reduce Reduceop Expr)
         (iota (num Integer))
         (length Expr)
         (make-vector (num Integer))
@@ -87,8 +87,8 @@
       (String string))
 
     (lift-vectors
-      (%inherits Module Decl
-        Var Integer Reducer Binop Relop String Type)
+      (%inherits Module Decl Var Integer Reduceop
+        Binop Relop Type String)
       (Stmt
         (print Expr)
         (print Expr Expr)
@@ -102,7 +102,7 @@
         (while (Relop Expr Expr) Stmt *)
         (return Expr))
       (Let-Expr
-        (reduce Reducer Let-Expr)
+        (reduce Reduceop Let-Expr)
         (vector Let-Expr *)
         (make-vector (num Integer))
         (kernel ((Var Let-Expr) *) Stmt * Let-Expr)
@@ -118,8 +118,8 @@
         (Binop Expr Expr)))
 
     (returnify
-      (%inherits Module
-        Expr Var Integer Reducer Binop Relop String Type Let-Expr)
+      (%inherits Module Expr Var Integer
+        Reduceop Binop Relop String Type Let-Expr)
       (Decl
         (fn Var (Var *) Stmt * Ret-Stmt)
         (extern Var (Type *) -> Type))
@@ -138,7 +138,7 @@
       (Ret-Stmt (return Expr)))
 
     (typecheck
-      (Module (module Decl *))
+      (%inherits Module Var String Binop Relop Integer Type Reduceop)
       (Decl
         (fn Var (Var *) ((Type *) -> Type) Stmt * Ret-Stmt)
         (extern Var (Type *) -> Type))
@@ -149,13 +149,13 @@
         (set! (var Type Var) Expr)
         (vector-set! Type Expr Expr Expr)
         (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
-        (let Var Type Lifted-Expr)
+        (let Var Type Let-Expr)
         (for ((Var Type) Expr Expr) Stmt *)
         (while (Relop Expr Expr) Stmt *)
         (do Expr)
         Ret-Stmt)
       (Ret-Stmt (return Expr))
-      (Lifted-Expr
+      (Let-Expr
         Expr
         (reduce Type Binop Expr)
         (vector Expr *)
@@ -169,24 +169,14 @@
         (call Type Var Expr *)
         (vector-ref Type Expr Expr)
         (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
-        (Unaryop Expr)
+        (length Expr)
         (Relop Expr Expr)
         (Binop Expr Expr))
-      (Var ident)
-      (String string)
-      (Number number)
-      (Integer integer)
-      (Type
-        (vector Type Integer)
-        scalar-type
-        ((Type *) -> Type))
-      (Binop binop)
-      (Relop relop)
-      (Unaryop unaryop))
+      (Number number))
 
     (lower-vectors
-      (%inherits Module Decl
-        Var String Number Integer Type Binop Relop Unaryop)
+      (%inherits Module Decl Var String Ret-Stmt
+        Number Integer Type Binop Relop Reduceop)
       (Stmt 
         (print Expr)
         (print Expr Expr)
@@ -194,29 +184,31 @@
         (set! (var Type Var) Expr)
         (vector-set! Type Expr Expr Expr)
         (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
-        (let Var Type Expr)
+        (let Var Type Let-Expr)
         (for (Var Expr Expr) Stmt *)
         (while Expr Stmt *)
         (do Expr *)
         Ret-Stmt)
-      (Ret-Stmt (return Expr))
+      (Let-Expr
+        (reduce Type Reduceop Expr)
+        (vector Expr *)
+        (iota (int Integer))
+        Expr)
       (Expr 
         (int Integer)
         (u64 Number)
         (str String)
         (var Type Var)
-        (reduce int Binop Expr)
-        (vector Expr *)
         (call Type Var Expr *)
         (vector-ref Type Expr Expr)
         (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
-        (Unaryop Expr)
+        (length Expr)
+        (Relop Expr Expr)
         (Binop Expr Expr)))
 
     (returnify-kernels
-      (%inherits Module Decl Ret-Stmt
-        Expr
-        Var String Number Integer Type Binop Unaryop)
+      (%inherits Module Decl Ret-Stmt Let-Expr Reduceop
+        Expr Var String Number Integer Type Binop Relop)
       (Stmt 
         (print Expr)
         (print Expr Expr)
@@ -224,15 +216,15 @@
         (set! (var Type Var) Expr)
         (vector-set! Type Expr Expr Expr)
         (kernel Type (((Var Type) (Expr Type)) *) Stmt *)
-        (let Var Type Expr)
+        (let Var Type Let-Expr)
         (for (Var Expr Expr) Stmt *)
         (while Expr Stmt *)
         (do Expr *)
         Ret-Stmt))
 
     (uglify-vectors
-      (%inherits Module Decl Ret-Stmt
-        Var String Number Integer Type Binop Unaryop)
+      (%inherits Module Decl Ret-Stmt Reduceop
+        Var String Number Integer Type Binop Relop)
       (Stmt 
         (print Expr)
         (print Expr Expr)
@@ -240,24 +232,29 @@
         (set! (var Type Var) Expr)
         (set! (vector-ref Type Expr Expr) Expr)
         (kernel (((Var Type) (Expr Type)) *) Stmt *)
-        (let Var Type Expr)
+        (let Var Type Let-Expr)
         (for (Var Expr Expr) Stmt *)
         (while Expr Stmt *)
         (do Expr *)
         Ret-Stmt)
+      (Let-Expr
+        (reduce Type Reduceop Expr)
+        (vector Expr *)
+        (iota (int Integer))
+        Expr)
       (Expr 
         (int Integer)
         (u64 Number)
         (str String)
         (var Type Var)
-        (reduce int Binop Expr)
-        (vector Expr *)
+        (call Type Var Expr *)
+        (cast Type (call Type Var Expr *))
         (sizeof Type)
         (addressof Expr)
-        (cast Type (call Type Var Expr *))
-        (call Type Var Expr *)
         (vector-ref Type Expr Expr)
-        (Unaryop Expr)
+        (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
+        (length Expr)
+        (Relop Expr Expr)
         (Binop Expr Expr))))
 
   )
