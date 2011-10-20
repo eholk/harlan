@@ -1,5 +1,4 @@
 ;; -*- scheme -*-
-; xfail
 
 (module
   (fn main ()
@@ -8,6 +7,6 @@
 
       (for (i 0 1000)
         (for (j 0 4)
-          (let row (vector-ref (vector-ref B 0) 0))))
+          (let row (vector-ref (vector-ref B 0) (* j 0)))))
       
       (return 0)))

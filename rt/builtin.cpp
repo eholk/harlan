@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <time.h>
+#include <gc/gc.h>
 
 #ifdef __APPLE__
 #include <mach/mach_time.h>
@@ -33,4 +34,15 @@ void print_2x2_int_vec(int *v) {
     printf("[ %d %d ]\n"
            "[ %d %d ]\n",
            v[0], v[1], v[2], v[3]);
+}
+
+// ((vector int 4) int) -> (vector int 4)
+int *rotate_4_int_vec(int *v, int j) {
+  int *result = (int *)GC_MALLOC(4 * sizeof(int));
+
+  for(int i = 0; i < 4; i++) {
+    result[i] = v[(i + j) % 4];
+  }
+
+  return result;
 }

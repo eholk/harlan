@@ -1,5 +1,4 @@
 ;; -*- scheme -*-
-;;xfail
 
 ;; nested kernel example from Harlan proposal
 ;; total = +/kernel(row : Rows) { +/kernel(x : row) { x }; };

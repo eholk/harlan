@@ -1,5 +1,4 @@
 ;; -*- scheme -*-
-;; xfail
 
 ;; Dense matrix-vector product
 
@@ -14,5 +13,6 @@
       (let Y (kernel ((row (var M)))
                      (reduce + (kernel ((x (var X)) (y (var row)))
                                        (* (var x) (var y))))))
-      (assert (= (var X) (var Y)))
+      (for (i 0 (length X))
+           (assert (= (vector-ref X i) (vector-ref Y i))))
       (return 0)))

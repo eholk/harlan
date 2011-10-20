@@ -1,5 +1,4 @@
 ;; -*- scheme -*-
-;;xfail
 
 ;; APL-stye syntax for adding two vectors, from Harlan proposal
 ;; Z = kernel(x : X, y : Y) { x + y }

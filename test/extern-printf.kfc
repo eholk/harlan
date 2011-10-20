@@ -1,5 +1,5 @@
 ;; -*- scheme -*-
-; xfail
+;; xfail
 
 (module
   (extern printf (str) -> void)

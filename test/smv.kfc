@@ -1,5 +1,4 @@
 ;; -*- scheme -*-
-;; xfail
 
 ;; Sparse matrix-vector
 
@@ -19,5 +18,7 @@
       (let Y (kernel ((is (var Ai)) (vs (var Av)))
                      (reduce + (kernel ((i (var is)) (v (var vs)))
                                        (* (var v) (vector-ref X (var i)))))))
-      (assert (= (var X) (var Y)))
+      ;;(assert (= (var X) (var Y)))
+      (for (i 0 (length X))
+           (assert (= (vector-ref X i) (vector-ref Y i))))
       (return 0)))

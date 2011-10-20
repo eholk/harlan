@@ -1,4 +1,4 @@
-// xfail
+// xfail - this is a benchmark program and it takes a long time to run.
 #include "harlan.hpp"
 #include <iostream>
 
