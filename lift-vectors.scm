@@ -33,22 +33,23 @@
            (lift-expr->stmt
              e2 (lambda (e2^)
                   (finish `(vector-ref ,e1^ ,e2^)))))))
-      ((kernel ((,x* ,e*) ...) ,body)
+      ((kernel ((,x* ,e*) ...) ,body* ... ,body)
        (let ((finish
-               (lambda (e*^)
-                 (let ((v (gensym 'v)))
-                   (cons `(let ,v
-                            (kernel ,(map list x* e*^)
-                              ,@(lift-expr->stmt
-                                  body (lambda (body^) `(,body^)))))
-                     (finish `(var ,v)))))))
+              (lambda (e*^)
+                (let ((v (gensym 'v)))
+                  (cons `(let ,v
+                           (kernel ,(map list x* e*^)
+                                   ,@(lift-stmt* body*)
+                                   ,@(lift-expr->stmt
+                                      body (lambda (body^) `(,body^)))))
+                        (finish `(var ,v)))))))
          (let loop ((e* e*) (e*^ '()))
            (if (null? e*)
                (finish (reverse e*^))
                (lift-expr->stmt
-                 (car e*)
-                 (lambda (e^)
-                   (loop (cdr e*) (cons e^ e*^))))))))
+                (car e*)
+                (lambda (e^)
+                  (loop (cdr e*) (cons e^ e*^))))))))
       ((vector ,e* ...)
        (let ((finish (lambda (e*^)
                        (let ((v (gensym 'v)))

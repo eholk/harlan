@@ -79,8 +79,8 @@
    (,[parse-expr -> e] `(do ,e)))
 
  (define-match (parse-expr)
-   (,n (guard (integer? n)) `(num ,n))
    (,f (guard (float? f)) `(float ,f))
+   (,n (guard (integer? n)) `(num ,n))
    (,str (guard (string? str)) `(str ,str))
    ((var ,x)
     (guard (symbol? x))
