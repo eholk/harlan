@@ -11,6 +11,10 @@
 #include <mach/mach_time.h>
 #endif
 
+#include <fstream>
+
+using namespace std;
+
 // () -> u64
 uint64_t nanotime() {
 #ifdef __APPLE__
@@ -45,4 +49,21 @@ int *rotate_4_int_vec(int *v, int j) {
   }
 
   return result;
+}
+
+// (str (vector (vector int 1024) 1024)) -> void
+void write_pgm(char *filename, int *data) {
+    ofstream f(filename);
+
+    f << "P2" << endl;
+    f << "1024 1024" << endl;
+    f << "255" << endl;
+    for(int i = 0; i < 1024 * 1024; i++) {
+        int p = data[i];
+        if(p < 0) 
+            p = 0;
+        if(p > 255)
+            p = 255;
+        f << p << " ";
+    }
 }

@@ -72,7 +72,7 @@
  (define binop?
    (lambda (op)
      (case op
-       ((< = bitwise-or + * -) #t)
+       ((< = bitwise-or + * - mod) #t)
        (else #f))))
  
  (define relop?
@@ -89,6 +89,7 @@
        ((+) "+")
        ((*) "*")
        ((-) "-")
+       ((mod) "%")
        (else (error 'binop->string "unknown binop" op)))))
  
  

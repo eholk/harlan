@@ -6,12 +6,9 @@
     infer-stmt
     infer-expr
     lookup)
-  (import (chezscheme)
-    (util match)
-    (util verify-grammar)
-    (util mk)
-    (harlan parser)
-    (only (print-c) binop? relop? unaryop?))
+  (import
+   (rnrs)
+   (util mk))
 
 ;;; ********************************* FIX ME !!!! ****
   
@@ -109,7 +106,8 @@
          (conde
            ((== op '+))
            ((== op '-))
-           ((== op '*)))
+           ((== op '*))
+           ((== op 'mod)))
          (conde
            ((== type 'int))
            ((== type 'u64)))
@@ -313,8 +311,8 @@
     (let ((result (run 2 (q) 
                     (infer-module mod q))))
       (case (length result)
-        (0 (error 'typecheck "Could not infer type for program." mod))
-        (1 (car result))
+        ((0) (error 'typecheck "Could not infer type for program." mod))
+        ((1) (car result))
         (else
          (display result)
          (error 'typecheck 

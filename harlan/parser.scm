@@ -11,7 +11,8 @@
  
  (define (scalar-type? t)
    (case t
-     ((int u64 str void) #t)
+     ;; TODO: strings aren't quite scalars
+     ((int u64 str void str) #t)
      (else #f)))
 
  (define reserved-words '(kernel for while print vector vector-ref reduce
@@ -45,7 +46,7 @@
    (int 'int)
    (u64 'u64)
    (void 'void)
-   (string 'string)
+   (str 'str)
    ((vector ,[t] ,n)
     (guard (integer? n))
     `(vector ,t ,n))

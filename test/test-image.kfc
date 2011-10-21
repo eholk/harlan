@@ -1,0 +1,11 @@
+;; -*- scheme -*-
+
+(module
+  (extern write_pgm (str (vector (vector int 1024) 1024)) -> void)
+
+  (fn main ()
+      (let img (kernel ((i (iota 1024)))
+                       (kernel ((j (iota 1024)))
+                               (mod (* i j) 256))))
+      (write_pgm "test.bin/test-image.pgm" img)
+      (return 0)))
