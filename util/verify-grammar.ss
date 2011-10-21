@@ -85,7 +85,9 @@
       ((_ pass . clauses)
        #`(errorf
            '#,(verify-name #'pass)
-           "\nFollowing ~s ....\n~a\n... does not conform to this grammar:\n~a"
+           (string-append
+             "\nFollowing ~s ....\n~a\n"
+             "... does not conform to this grammar:\n~a")
            #,left
            (with-output-to-string
              (lambda () (pretty-print #,inp)))
