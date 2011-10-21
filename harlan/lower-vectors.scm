@@ -1,12 +1,12 @@
 (library
-  (lower-vectors)
+  (harlan lower-vectors)
   (export
     lower-vectors)
   (import
     (only (chezscheme) format)
     (rnrs)
     (util match)
-    (print-c)
+    (harlan print-c)
     (util verify-grammar)
     (util helpers))
 

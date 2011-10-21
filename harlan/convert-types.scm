@@ -5,7 +5,7 @@
     (rnrs)
     (util helpers)
     (harlan parser)
-    (only (print-c) binop? relop?))
+    (only (harlan print-c) binop? relop?))
   
 ;; This pass converts Harlan types into C types.
 (define-match (convert-types)

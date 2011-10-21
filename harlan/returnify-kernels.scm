@@ -1,9 +1,9 @@
 (library
- (returnify-kernels)
+  (harlan returnify-kernels)
  (export returnify-kernels)
  (import (rnrs)
          (util match)
-         (only (print-c) binop? unaryop?)
+         (only (harlan print-c) binop? unaryop?)
          (util verify-grammar)
          (util helpers))
  

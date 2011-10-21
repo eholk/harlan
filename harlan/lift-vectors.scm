@@ -1,5 +1,5 @@
 (library
-  (lift-vectors)
+  (harlan lift-vectors)
   (export
     lift-vectors
     lift-expr->stmt)
@@ -7,7 +7,7 @@
     (only (chezscheme) format)
     (rnrs)
     (util match)
-    (print-c)
+    (harlan print-c)
     (util verify-grammar)
     (util helpers)
     (harlan parser))

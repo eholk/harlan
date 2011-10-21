@@ -1,9 +1,9 @@
 (library
- (annotate-free-vars)
+  (harlan annotate-free-vars)
  (export annotate-free-vars)
  (import (only (chezscheme) format printf)
          (rnrs)
-         (print-c)
+         (harlan print-c)
          (util match)
          (util helpers))
 

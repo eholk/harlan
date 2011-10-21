@@ -1,5 +1,5 @@
 (library
- (returnify)
+  (harlan returnify)
  (export returnify)
  (import
    (chezscheme)

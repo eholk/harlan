@@ -7,7 +7,7 @@
  (import
    (rnrs)
    (util verify-grammar)
-   (only (print-c) binop? relop?)
+   (only (harlan print-c) binop? relop?)
    (util helpers))
 
  (define (scalar-type? t)

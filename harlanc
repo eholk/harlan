@@ -1,9 +1,10 @@
 #! /usr/bin/env scheme-script
 ;; -*- scheme -*-
-(import (chezscheme)
-        (print-c)
-        (kernels)
-        (harlan compiler))
+(import
+  (chezscheme)
+  (harlan print-c)
+  (harlan kernels)
+  (harlan compiler))
 
 (define (string-rfind s c)
   (let loop ((s (string->list s))

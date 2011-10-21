@@ -4,7 +4,7 @@
   generate-kernel-calls)
  (import
   (rnrs)
-  (only (print-c) format-ident)
+  (only (harlan print-c) format-ident)
   (util helpers)
   (util match))
 

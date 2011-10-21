@@ -1,5 +1,5 @@
 (library
-  (verification-passes)
+  (harlan verification-passes)
   (export
     verify-harlan
     verify-parse-harlan
@@ -11,7 +11,7 @@
     verify-uglify-vectors)
   (import
     (rnrs)
-    (only (print-c) binop? relop? unaryop?)
+    (only (harlan print-c) binop? relop? unaryop?)
     (only (harlan parser) scalar-type? ident? reduceop? float?)
     (util verify-grammar))
 

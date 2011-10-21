@@ -1,5 +1,5 @@
 (library
- (harlan remove-nested-kernels)
+  (harlan remove-nested-kernels)
  (export remove-nested-kernels)
  (import
   (rnrs)

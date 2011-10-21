@@ -1,5 +1,5 @@
 (library
-  (uglify-vectors)
+  (harlan uglify-vectors)
   (export
     uglify-vectors
     uglify-vector-ref)
@@ -7,7 +7,7 @@
     (only (chezscheme) format)
     (rnrs)
     (util match)
-    (print-c)
+    (harlan print-c)
     (util verify-grammar)
     (util helpers))
 

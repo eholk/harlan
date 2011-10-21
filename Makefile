@@ -23,21 +23,21 @@ endif
 HARLAN_SRC = harlanc \
 	harlan/generate-kernel-calls.scm \
 	harlan/parser.scm \
-	annotate-free-vars.scm \
+	harlan/annotate-free-vars.scm \
 	harlan/convert-types.scm \
 	harlan/compiler.scm \
 	harlan/move-gpu-data.scm \
 	harlan/remove-nested-kernels.scm \
-	kernels.scm \
-	lift-vectors.scm \
-	lower-vectors.scm \
-	print-c.scm \
-	returnify-kernels.scm \
-	returnify.scm \
-	typecheck.scm \
-	uglify-vectors.scm \
-	verify-compile-module.scm \
-	verification-passes.scm	\
+	harlan/kernels.scm \
+	harlan/lift-vectors.scm \
+	harlan/lower-vectors.scm \
+	harlan/print-c.scm \
+	harlan/returnify-kernels.scm \
+	harlan/returnify.scm \
+	harlan/typecheck.scm \
+	harlan/uglify-vectors.scm \
+	harlan/verify-compile-module.scm \
+	harlan/verification-passes.scm	\
 	util/verify-grammar.ss \
 
 # Invokes the harlan compiler. The first argument is the name of the

@@ -1,10 +1,10 @@
 (library
- (verify-compile-module)
+ (harlan verify-compile-module)
  (export verify-compile-module)
  (import (only (chezscheme) format define)
          (rnrs)
          (util match)
-         (print-c))
+         (harlan print-c))
  
  (define verify-compile-module
    (lambda (mod)
