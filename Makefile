@@ -37,7 +37,7 @@ HARLAN_SRC = harlanc \
 	typecheck.scm \
 	uglify-vectors.scm \
 	verify-compile-module.scm \
-  verification-passes.scm	\
+	verification-passes.scm	\
 	util/verify-grammar.ss \
 
 # Invokes the harlan compiler. The first argument is the name of the
@@ -56,7 +56,7 @@ RUN_TEST = $(1)
 .phony: check
 check : test.bin gc/lib/libgc.a rt/libharlanrt.a \
 	$(call TEST_OUT_NAME, $(RUN_TEST_SRC))
-	@echo All tests succeeded.
+	@echo -e "\033[32mAll tests succeeded."
 
 .phony: force-check
 force-check :

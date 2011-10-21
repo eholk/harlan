@@ -102,10 +102,7 @@
         (while (Relop Expr Expr) Stmt *)
         (return Expr))
       (Let-Expr
-        (reduce Reduceop Let-Expr)
-        (vector Let-Expr *)
         (make-vector (num Integer))
-        (kernel ((Var Let-Expr) *) Stmt * Let-Expr)
         (iota (num Integer))
         Expr)
       (Expr
@@ -114,6 +111,9 @@
         (var Var)
         (length Expr)
         (call Var Expr *)
+        (vector Let-Expr *)
+        (reduce Reduceop Let-Expr)
+        (kernel ((Var Let-Expr) *) Stmt * Let-Expr)
         (vector-ref Expr Expr)
         (Binop Expr Expr)))
 
