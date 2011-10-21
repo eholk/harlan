@@ -1,47 +1,36 @@
 (library
- (harlan compiler)
- (export compile-harlan test
-         compile-harlan-middle verbose
-         compile-harlan-frontend compile-module
-         type-of)
- (import (rnrs)
-         (only (chezscheme) pretty-print format)
-         (util match)
-         (util helpers)
-         (util color)
-         (verification-passes)
-         (harlan parser)
-         (typecheck)
-         (lift-vectors)
-         (lower-vectors)
-         (uglify-vectors)
-         (returnify)
-         (returnify-kernels)
-         (kernels)
-         (harlan convert-types)
-         (harlan move-gpu-data)
-         (harlan remove-nested-kernels)
-         (verify-compile-module)
-         (annotate-free-vars)
-         (print-c))
+  (harlan compiler)
+  (export compile-harlan
+    compile-harlan-middle verbose
+    compile-harlan-frontend compile-module
+    type-of)
+  (import
+    (rnrs)
+    (only (chezscheme) pretty-print format)
+    (util match)
+    (util helpers)
+    (util color)
+    (verification-passes)
+    (harlan parser)
+    (typecheck)
+    (lift-vectors)
+    (lower-vectors)
+    (uglify-vectors)
+    (returnify)
+    (returnify-kernels)
+    (kernels)
+    (harlan convert-types)
+    (harlan move-gpu-data)
+    (harlan remove-nested-kernels)
+    (verify-compile-module)
+    (annotate-free-vars)
+    (print-c))
 
- (define verbose
-   (let ((flag #f))
-     (case-lambda
-       (() flag)
-       ((x) (set! flag x)))))
-
-(define-syntax test
-  (syntax-rules ()
-    ((_ title tested-expression expected-result)
-     (let* ((expected expected-result)
-            (produced tested-expression))
-       (if (equal? expected produced)
-           (printf "~s works!\n" title)
-           (error
-             'test
-             (format "Failed ~s: ~a\nExpected: ~a\nComputed: ~a"
-                     title 'tested-expression expected produced)))))))
+(define verbose
+  (let ((flag #f))
+    (case-lambda
+      (() flag)
+      ((x) (set! flag x)))))
 
 (define trace-pass
   (lambda (m pass expr)
@@ -67,8 +56,8 @@
 
 (define compile-harlan
   (passes
-   compile-harlan-frontend
-   compile-harlan-middle))
+    compile-harlan-frontend
+    compile-harlan-middle))
 
 ;; The typical frontend of a compiler. Syntax expansion, typechecking,
 ;; etc.
@@ -140,20 +129,20 @@
       [(vector-set! ,v ,i ,[compile-expr -> expr])
        `(vector-set! ,v ,i ,expr)]
       [(while (,relop ,[compile-expr -> e1] ,[compile-expr -> e2])
-            ,[stmt*] ...)
+         ,[stmt*] ...)
        `(while (,relop ,e1 ,e2) ,stmt* ...)]
       [(for (,i ,[compile-expr -> start] ,[compile-expr -> end])
-            ,[stmt*] ...)
+         ,[stmt*] ...)
        `(for (,i ,start ,end) ,stmt* ...)]
       [(do ,[compile-expr -> e] ...) `(do ,e ...)]
       [(map-gpu ((,x* ,e*) ...) ,[stmt*] ...)
        `(block
-         ,@(map (lambda (x e)
-                  `(let ,x (cl::buffer_map ,(scalar-type (type-of e)))
-                        ((field g_queue mapBuffer ,(scalar-type (type-of e)))
-                         ,(compile-expr e))))
-                x* e*)
-         ,stmt* ...)]
+          ,@(map (lambda (x e)
+                   `(let ,x (cl::buffer_map ,(scalar-type (type-of e)))
+                         ((field g_queue mapBuffer ,(scalar-type (type-of e)))
+                          ,(compile-expr e))))
+              x* e*)
+          ,stmt* ...)]
       [(block ,[stmt*] ...)
        `(block ,stmt* ...)]
       [,else (error 'compile-stmt (format "unknown stmt type ~s" else))])))
@@ -164,8 +153,8 @@
       ((vector ,t ,n)
        `(do (memcpy ,(compile-expr x) ,(compile-expr e) ,(byte-size lhs-t))))
       (,scalar
-       (guard (symbol? scalar))
-       `(set! ,(compile-expr x) ,(compile-expr e)))
+        (guard (symbol? scalar))
+        `(set! ,(compile-expr x) ,(compile-expr e)))
       (,e (error 'compile-set! "Unknown target type" e)))))
 
 (define-match (scalar-type)
@@ -222,16 +211,16 @@
 
 ;; example
 '(test 'compile-empty
-  (compile-harlan
-   '(module
-       (fn main () (return 0))))
-  '((func int main () (return 0))))
+   (compile-harlan
+     '(module
+        (fn main () (return 0))))
+   '((func int main () (return 0))))
 
 '(test 'compile-print
-  (compile-harlan
-    '(module
-       (fn main () (print 42) (return 0))))
-  '((func int main () (print 42) (return 0))))
+   (compile-harlan
+     '(module
+        (fn main () (print 42) (return 0))))
+   '((func int main () (print 42) (return 0))))
 
 
 ;; need to add a flatten pass (flatten-vector) to
@@ -239,17 +228,17 @@
 ;; vector appears in non-tail position] and introduce a new variable
 ;; declaration inside a block.
 '(test 'compile-print
-  (compile-harlan
-    `(module
-       (fn main ()
-         (print (vector 1 2 3 4))
-         (return 0)))
-    `((func int main ()
-            (block
-             (let t_0 (vector int) 4)
-             (vector-set! t_0 0 1)
-             (vector-set! t_0 1 2)
-             (vector-set! t_0 2 3)
-             (vector-set! t_0 3 4)
-             (print t_0))
-            (return 0)))))
+   (compile-harlan
+     `(module
+        (fn main ()
+          (print (vector 1 2 3 4))
+          (return 0)))
+     `((func int main ()
+         (block
+           (let t_0 (vector int) 4)
+           (vector-set! t_0 0 1)
+           (vector-set! t_0 1 2)
+           (vector-set! t_0 2 3)
+           (vector-set! t_0 3 4)
+           (print t_0))
+         (return 0)))))
