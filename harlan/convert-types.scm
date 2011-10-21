@@ -87,6 +87,7 @@
 (define-match (convert-type)
   (int 'int)
   (u64 'uint64_t)
+  (float 'float)
   (void 'void)
   (str '(ptr char))
   (cl::kernel 'cl::kernel)

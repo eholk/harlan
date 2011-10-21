@@ -12,7 +12,7 @@
   (import
     (rnrs)
     (only (print-c) binop? relop? unaryop?)
-    (only (harlan parser) scalar-type? ident? reduceop?)
+    (only (harlan parser) scalar-type? ident? reduceop? float?)
     (util verify-grammar))
 
   (grammar-transforms
@@ -38,6 +38,7 @@
         Expr)
       (Expr
         integer
+        float
         string
         ident
         (var Var)
@@ -72,6 +73,7 @@
         (return Expr))
       (Expr
         (num Integer)
+        (float Float)
         (str String)
         (var Var)
         (vector Expr *)
@@ -80,15 +82,17 @@
         (reduce Reduceop Expr)
         (iota (num Integer))
         (length Expr)
+        (int->float Expr)
         (make-vector (num Integer))
         (Binop Expr Expr)
         (Relop Expr Expr)
         (call Var Expr *))
+      (Float float)
       (String string))
 
     (lift-vectors
       (%inherits Module Decl Var Integer Reduceop
-        Binop Relop Type String)
+        Binop Relop Type String Float)
       (Stmt
         (print Expr)
         (print Expr Expr)
@@ -107,8 +111,10 @@
         Expr)
       (Expr
         (num Integer)
+        (float Float)
         (str String)
         (var Var)
+        (int->float Expr)
         (length Expr)
         (call Var Expr *)
         (vector Let-Expr *)
@@ -118,7 +124,7 @@
         (Binop Expr Expr)))
 
     (returnify
-      (%inherits Module Expr Var Integer
+      (%inherits Module Expr Var Integer Float
         Reduceop Binop Relop String Type Let-Expr)
       (Decl
         (fn Var (Var *) Stmt * Ret-Stmt)
@@ -138,7 +144,7 @@
       (Ret-Stmt (return Expr)))
 
     (typecheck
-      (%inherits Module Var String Binop Relop Integer Type Reduceop)
+      (%inherits Module Var String Binop Relop Integer Type Reduceop Float)
       (Decl
         (fn Var (Var *) ((Type *) -> Type) Stmt * Ret-Stmt)
         (extern Var (Type *) -> Type))
@@ -164,9 +170,11 @@
       (Expr 
         (int Integer)
         (u64 Number)
+        (float Float)
         (str String)
         (var Type Var)
         (call Type Var Expr *)
+        (int->float Expr)
         (vector-ref Type Expr Expr)
         (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
         (length Expr)

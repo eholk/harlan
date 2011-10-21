@@ -189,6 +189,7 @@
     (match expr
       [(int ,n) (guard (number? n)) n]
       [(u64 ,n) (guard (number? n)) n]
+      [(float ,f) f]
       [(var ,t ,x) (guard (symbol? x)) x]
       [(str ,s) (guard (string? s)) s]
       [(vector-ref ,t ,[v] ,[i]) `(vector-ref ,v ,i)]

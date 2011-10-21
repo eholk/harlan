@@ -19,10 +19,13 @@
   (lambda (expr finish)
     (match expr
       ((num ,n) (guard (number? n)) (finish `(num ,n)))
+      ((float ,f) (finish `(float ,f)))
       ((str ,str) (guard (string? str)) (finish `(str ,str)))
       ((var ,x) (finish `(var ,x)))
       ((time)
        (finish '(time)))
+      ((int->float ,e)
+       (lift-expr->stmt e (lambda (e) (finish `(int->float ,e)))))
       ((vector-ref ,e1 ,e2)
        (lift-expr->stmt
          (if (symbol? e1) `(var ,e1) e1)

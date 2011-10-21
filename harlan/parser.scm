@@ -2,13 +2,14 @@
  (harlan parser)
  (export
    parse-harlan
+   float?
    ident? reduceop? scalar-type? reserved-words)
  (import
    (rnrs)
    (util verify-grammar)
    (only (print-c) binop? relop?)
    (util helpers))
- 
+
  (define (scalar-type? t)
    (case t
      ;; TODO: strings aren't quite scalars
@@ -25,6 +26,9 @@
 
  (define (reduceop? op)
    (memq op '(+ *)))
+
+ (define (float? n)
+   (and (number? n) (inexact? n)))
  
  ;; parse-harlan takes a syntax tree that a user might actually want
  ;; to write and converts it into something that's more easily
@@ -47,6 +51,7 @@
    (u64 'u64)
    (void 'void)
    (str 'str)
+   (float 'float)
    ((vector ,[t] ,n)
     (guard (integer? n))
     `(vector ,t ,n))
@@ -75,6 +80,7 @@
 
  (define-match (parse-expr)
    (,n (guard (integer? n)) `(num ,n))
+   (,f (guard (float? f)) `(float ,f))
    (,str (guard (string? str)) `(str ,str))
    ((var ,x)
     (guard (symbol? x))
@@ -89,6 +95,7 @@
     `(vector-ref ,v ,i))
    ((length ,[e])
     `(length ,e))
+   ((int->float ,[e]) `(int->float ,e))
    ((kernel ((,x ,[e*]) ...) ,[parse-stmt -> stmt*] ... ,[e])
     `(kernel ,(map list x e*) ,@stmt* ,e))
    ((reduce ,op ,[e])
