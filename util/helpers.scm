@@ -7,7 +7,13 @@
    andmap
    type-of
    decode-vector-type
-   vector-bytesize)
+   vector-bytesize
+   binop?
+   relop?
+   ident?
+   reduceop?
+   float?
+   scalar-type?)
  (import (rnrs)
          (util match))
 
@@ -65,5 +71,38 @@
   ((deref ,[e]) e)
   ((vector-ref ,t ,v ,i) t)
   ((var ,t ,x) t))
+
+ (define binop?
+   (lambda (op)
+     (case op
+       ((< = bitwise-or + * - mod /) #t)
+       (else #f))))
+ 
+ (define relop?
+   (lambda (op)
+     (case op
+       ((< <= = > >=) #t)
+       (else #f))))
+
+(define (reserved-word? x)
+  (memq x
+    '(kernel for while print vector vector-ref reduce
+       assert vector-set! set! iota make-vector length)))
+
+ (define (ident? x)
+   (and (symbol? x)
+        (not (reserved-word? x))))
+
+ (define (reduceop? op)
+   (memq op '(+ *)))
+
+ (define (float? n)
+   (and (number? n) (inexact? n)))
+ 
+ (define (scalar-type? t)
+   (case t
+     ;; TODO: strings aren't quite scalars
+     ((int u64 str void str) #t)
+     (else #f)))
 
  )

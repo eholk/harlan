@@ -7,7 +7,6 @@
     (only (chezscheme) format)
     (rnrs)
     (util match)
-    (harlan back print-c)
     (util verify-grammar)
     (util helpers)
     (harlan front parser))
@@ -75,10 +74,10 @@
            (let ((v (gensym 'v)))
              (cons `(let ,v (reduce ,op ,e^))
                (finish `(var ,v)))))))
-      ((,op ,e) (guard (unaryop? op))
+      ((length ,e) 
        (lift-expr->stmt
          e (lambda (e^)
-             (finish `(,op ,e^)))))
+             (finish `(length ,e^)))))
       ((,op ,e1 ,e2) (guard (binop? op))
        (lift-expr->stmt
          e1 (lambda (e1^)

@@ -3,9 +3,7 @@
   (export convert-types)
   (import (only (chezscheme) format)
     (rnrs)
-    (util helpers)
-    (harlan front parser)
-    (only (harlan back print-c) binop? relop?))
+    (util helpers))
   
 ;; This pass converts Harlan types into C types.
 (define-match (convert-types)

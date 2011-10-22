@@ -1,9 +1,10 @@
 (library
  (harlan back print-c)
- (export format-c print-c join format-arg format-ident format-block unaryop? binop? relop?)
+ (export format-c print-c join format-arg format-ident format-block)
  (import (only (chezscheme) format)
          (rnrs)
-         (util match))
+         (util match)
+         (util helpers))
 
  (define join
    (lambda (sep strings)
@@ -62,25 +63,7 @@
  (define format-call-args
    (lambda (args)
      (join ", " (map format-expr args))))
-
- (define unaryop?
-   (lambda (op)
-     (case op
-       ((length iota) #t)
-       (else #f))))
  
- (define binop?
-   (lambda (op)
-     (case op
-       ((< = bitwise-or + * - mod /) #t)
-       (else #f))))
- 
- (define relop?
-   (lambda (op)
-     (case op
-       ((< <= = > >=) #t)
-       (else #f))))
-
  (define binop->string
    (lambda (op)
      (case op

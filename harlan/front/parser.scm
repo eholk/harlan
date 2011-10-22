@@ -1,34 +1,11 @@
 (library
   (harlan front parser)
-  (export
-    parse-harlan
-    float? ident? reduceop? scalar-type? reserved-words)
+  (export parse-harlan)
   (import
     (rnrs)
     (util verify-grammar)
-    (only (harlan back print-c) binop? relop?)
     (util helpers))
 
- (define (scalar-type? t)
-   (case t
-     ;; TODO: strings aren't quite scalars
-     ((int u64 str void str) #t)
-     (else #f)))
-
- (define reserved-words '(kernel for while print vector vector-ref reduce
-                                 assert vector-set! set! iota make-vector
-                                 length))
- 
- (define (ident? x)
-   (and (symbol? x)
-        (not (memq x reserved-words))))
-
- (define (reduceop? op)
-   (memq op '(+ *)))
-
- (define (float? n)
-   (and (number? n) (inexact? n)))
- 
  ;; parse-harlan takes a syntax tree that a user might actually want
  ;; to write and converts it into something that's more easily
  ;; analyzed by the type inferencer and the rest of the compiler. This

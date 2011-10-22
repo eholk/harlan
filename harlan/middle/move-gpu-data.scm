@@ -3,8 +3,6 @@
  (export move-gpu-data verify-move-gpu-data)
  (import
   (rnrs)
-  (only (harlan back print-c) binop? relop?)
-  (only (harlan front parser) ident?)
   (util verify-grammar)
   (util match)
   (util helpers))

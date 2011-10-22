@@ -11,8 +11,7 @@
     verify-uglify-vectors)
   (import
     (rnrs)
-    (only (harlan back print-c) binop? relop?)
-    (only (harlan front parser) scalar-type? ident? reduceop? float?)
+    (util helpers)
     (util verify-grammar))
 
   (grammar-transforms
