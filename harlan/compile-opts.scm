@@ -1,41 +1,50 @@
 (library
-  (harlan compile-opts)
+    (harlan compile-opts)
   (export
-    passes
-    verbose
-    trace-pass)
+   passes
+   verbose
+   verify
+   trace-pass)
   (import
-    (rnrs)
-    (util color)
-    (only (chezscheme) pretty-print))
+   (rnrs)
+   (util color)
+   (only (chezscheme) pretty-print))
 
-(define verbose
-  (let ((flag #f))
-    (case-lambda
-      (() flag)
-      ((x) (set! flag x)))))
+  (define-syntax define-option
+    (syntax-rules ()
+      ((_ name default)
+       (define name
+         (let ((value default))
+           (case-lambda
+             (() value)
+             ((x) (set! value x))))))))
 
-(define trace-pass
-  (lambda (m pass expr)
-    (if (verbose)
-        (begin
-          (set-color 'green) (display "Beginning pass ") (display m)
-          (set-color 'default) (newline)
-          (let ((expr (pass expr)))
-            (set-color 'green)
-            (display "Pass ") (display m) (display " output:")
+  (define-option verbose #f)
+
+  ;; TODO: we want this on by default.
+  (define-option verify #f)
+  
+  (define trace-pass
+    (lambda (m pass expr)
+      (if (verbose)
+          (begin
+            (set-color 'green) (display "Beginning pass ") (display m)
             (set-color 'default) (newline)
-            (pretty-print expr) (newline)
-            expr))
-        (pass expr))))
+            (let ((expr (pass expr)))
+              (set-color 'green)
+              (display "Pass ") (display m) (display " output:")
+              (set-color 'default) (newline)
+              (pretty-print expr) (newline)
+              expr))
+          (pass expr))))
 
-(define-syntax passes
-  (syntax-rules ()
-    ((_ pass-name ...)
-     (lambda (expr)
-       (let* ((expr (trace-pass (symbol->string 'pass-name) pass-name expr))
-              ...)
-         expr)))))
+  (define-syntax passes
+    (syntax-rules ()
+      ((_ pass-name ...)
+       (lambda (expr)
+         (let* ((expr (trace-pass (symbol->string 'pass-name) pass-name expr))
+                ...)
+           expr)))))
 
-;; end library
-)
+  ;; end library
+  )

@@ -12,7 +12,8 @@
     (only (chezscheme)
       errorf
       pretty-print
-      with-output-to-string))
+      with-output-to-string)
+    (harlan compile-opts))
   
 (define wildcard? (lambda (x) #t))
 
@@ -117,11 +118,13 @@
              #'((right* ...) (right** ...) ...))))
        #'(define name
            (lambda (prg)
-             (letrec
-                 ((start (lambda (left) body))
-                  (nonterminals (lambda (left*) body*))
-                  ...)
-               (and (start prg) prg))))))))
+             (if (verify)
+                 (letrec
+                     ((start (lambda (left) body))
+                      (nonterminals (lambda (left*) body*))
+                      ...)
+                   (and (start prg) prg))
+                 prg)))))))
 
 (define-syntax (grammar-transforms x)
   (define (lookup-nt inp parent)
