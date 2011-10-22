@@ -1,5 +1,5 @@
 (library
-  (harlan lift-vectors)
+  (harlan middle lift-vectors)
   (export
     lift-vectors
     lift-expr->stmt)
@@ -7,10 +7,10 @@
     (only (chezscheme) format)
     (rnrs)
     (util match)
-    (harlan print-c)
+    (harlan back print-c)
     (util verify-grammar)
     (util helpers)
-    (harlan parser))
+    (harlan front parser))
   
 ;; Vector simplification code. Weirdly, this runs before
 ;; typechecking.

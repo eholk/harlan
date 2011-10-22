@@ -1,5 +1,5 @@
 (library
-  (harlan typecheck)
+  (harlan front typecheck)
   (export
     typecheck
     infer-kernel

@@ -2,9 +2,11 @@
 ;; -*- scheme -*-
 (import
   (chezscheme)
-  (harlan print-c)
-  (harlan kernels)
-  (harlan compiler))
+  (harlan compile-opts)
+  (harlan back print-c)
+  (harlan middle kernels)
+  (harlan compiler)
+  (harlan middle compile-middle))
 
 (define (string-rfind s c)
   (let loop ((s (string->list s))

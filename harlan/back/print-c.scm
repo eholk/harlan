@@ -1,5 +1,5 @@
 (library
- (harlan print-c)
+ (harlan back print-c)
  (export format-c print-c join format-arg format-ident format-block unaryop? binop? relop?)
  (import (only (chezscheme) format)
          (rnrs)

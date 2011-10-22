@@ -20,24 +20,12 @@ $(error Your operating system is not yet supported.)
 endif
 endif
 
-HARLAN_SRC = harlanc \
-	harlan/generate-kernel-calls.scm \
-	harlan/parser.scm \
-	harlan/annotate-free-vars.scm \
-	harlan/convert-types.scm \
-	harlan/compiler.scm \
-	harlan/move-gpu-data.scm \
-	harlan/remove-nested-kernels.scm \
-	harlan/kernels.scm \
-	harlan/lift-vectors.scm \
-	harlan/lower-vectors.scm \
-	harlan/print-c.scm \
-	harlan/returnify-kernels.scm \
-	harlan/returnify.scm \
-	harlan/typecheck.scm \
-	harlan/uglify-vectors.scm \
-	harlan/verify-compile-module.scm \
-	harlan/verification-passes.scm	\
+HARLAN_SRC = \
+	harlanc \
+	$(wildcard harlan/*) \
+	$(wildcard harlan/front/*) \
+	$(wildcard harlan/middle/*) \
+	$(wildcard harlan/back/*) \
 	util/verify-grammar.ss \
 
 # Invokes the harlan compiler. The first argument is the name of the

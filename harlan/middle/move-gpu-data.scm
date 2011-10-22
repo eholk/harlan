@@ -1,10 +1,10 @@
 (library
- (harlan move-gpu-data)
+ (harlan middle move-gpu-data)
  (export move-gpu-data verify-move-gpu-data)
  (import
   (rnrs)
-  (only (harlan print-c) binop? relop?)
-  (only (harlan parser) ident?)
+  (only (harlan back print-c) binop? relop?)
+  (only (harlan front parser) ident?)
   (util verify-grammar)
   (util match)
   (util helpers))

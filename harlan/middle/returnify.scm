@@ -1,10 +1,11 @@
 (library
-  (harlan returnify)
+  (harlan middle returnify)
  (export returnify)
  (import
-   (chezscheme)
+   (rnrs)
+   (only (chezscheme) format)
    (util match)
-   (harlan parser)
+   ;; (harlan front parser)
    (util verify-grammar))
 
  (define returnify

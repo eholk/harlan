@@ -1,10 +1,10 @@
 (library
- (harlan generate-kernel-calls)
+ (harlan middle generate-kernel-calls)
  (export
   generate-kernel-calls)
  (import
   (rnrs)
-  (only (harlan print-c) format-ident)
+  (only (harlan back print-c) format-ident)
   (util helpers)
   (util match))
 

@@ -1,5 +1,5 @@
 (library
-  (harlan kernels)
+  (harlan middle kernels)
   (export
     compile-kernels
     compile-kernel
@@ -12,10 +12,10 @@
     (only (chezscheme) format)
     (rnrs)
     (util match)
-    (harlan print-c)
+    (harlan back print-c)
     (util verify-grammar)
     (util helpers)
-    (harlan generate-kernel-calls))
+    (harlan middle generate-kernel-calls))
   
 (generate-verify generate-kernel-calls
   (Module wildcard))

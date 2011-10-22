@@ -1,14 +1,13 @@
 (library
- (harlan parser)
- (export
-   parse-harlan
-   float?
-   ident? reduceop? scalar-type? reserved-words)
- (import
-   (rnrs)
-   (util verify-grammar)
-   (only (harlan print-c) binop? relop?)
-   (util helpers))
+  (harlan front parser)
+  (export
+    parse-harlan
+    float? ident? reduceop? scalar-type? reserved-words)
+  (import
+    (rnrs)
+    (util verify-grammar)
+    (only (harlan back print-c) binop? relop?)
+    (util helpers))
 
  (define (scalar-type? t)
    (case t

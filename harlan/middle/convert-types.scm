@@ -1,11 +1,11 @@
 (library
-  (harlan convert-types)
+  (harlan middle convert-types)
   (export convert-types)
   (import (only (chezscheme) format)
     (rnrs)
     (util helpers)
-    (harlan parser)
-    (only (harlan print-c) binop? relop?))
+    (harlan front parser)
+    (only (harlan back print-c) binop? relop?))
   
 ;; This pass converts Harlan types into C types.
 (define-match (convert-types)
