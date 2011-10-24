@@ -17,31 +17,39 @@
 (define lift-expr->stmt
   (lambda (expr finish)
     (match expr
-      ((num ,n) (guard (number? n)) (finish `(num ,n)))
+      ((int ,n) (guard (integer? n)) (finish `(int ,n)))
       ((float ,f) (finish `(float ,f)))
       ((str ,str) (guard (string? str)) (finish `(str ,str)))
-      ((var ,x) (finish `(var ,x)))
+      ((var ,t ,x) (finish `(var ,t ,x)))
       ((time)
        (finish '(time)))
       ((int->float ,e)
        (lift-expr->stmt e (lambda (e) (finish `(int->float ,e)))))
-      ((vector-ref ,e1 ,e2)
+      ((vector-ref ,t ,e1 ,e2)
        (lift-expr->stmt
-         (if (symbol? e1) `(var ,e1) e1)
+         (if (symbol? e1)
+             (error 'lift-expr->stmt
+                    "This form is not legal"
+                    e1)
+             e1)
          (lambda (e1^)
            (lift-expr->stmt
              e2 (lambda (e2^)
-                  (finish `(vector-ref ,e1^ ,e2^)))))))
-      ((kernel ((,x* ,e*) ...) ,body* ... ,body)
+                  (finish `(vector-ref ,t ,e1^ ,e2^)))))))
+      ((make-vector ,t ,e)
+       (lift-expr->stmt e (lambda (e^) (finish `(make-vector ,t ,e^)))))
+      ((kernel ,t (((,x* ,t*) (,e* ,ts*)) ...) ,body* ... ,body)
        (let ((finish
               (lambda (e*^)
                 (let ((v (gensym 'v)))
-                  (cons `(let ,v
-                           (kernel ,(map list x* e*^)
+                  (cons `(let ,v ,t
+                           (kernel ,t ,(map (lambda (x t xs ts)
+                                              `((,x ,t) (,xs ,ts)))
+                                            x* t* e*^ ts*)
                                    ,@(lift-stmt* body*)
                                    ,@(lift-expr->stmt
                                       body (lambda (body^) `(,body^)))))
-                        (finish `(var ,v)))))))
+                        (finish `(var ,t ,v)))))))
          (let loop ((e* e*) (e*^ '()))
            (if (null? e*)
                (finish (reverse e*^))
@@ -49,11 +57,11 @@
                 (car e*)
                 (lambda (e^)
                   (loop (cdr e*) (cons e^ e*^))))))))
-      ((vector ,e* ...)
+      ((vector ,t ,e* ...)
        (let ((finish (lambda (e*^)
                        (let ((v (gensym 'v)))
-                         (cons `(let ,v (vector . ,e*^))
-                           (finish `(var ,v)))))))
+                         (cons `(let ,v ,t (vector . ,e*^))
+                               (finish `(var ,t ,v)))))))
          (let loop ((e* e*) (e*^ '()))
            (if (null? e*)
                (finish (reverse e*^))
@@ -63,17 +71,17 @@
                    (loop (cdr e*) (cons e^ e*^))))))))
       ((make-vector ,c)
        (finish `(make-vector ,c)))
-      ((iota ,c)
+      ((iota (int ,c))
        (let ((v (gensym 'iota)))
-         (cons `(let ,v (iota ,c))
-               (finish `(var ,v)))))
-      ((reduce ,op ,e)
+         (cons `(let ,v (vector int ,c) (iota (int ,c)))
+               (finish `(var (vector int ,c) ,v)))))
+      ((reduce ,t ,op ,e)
        (lift-expr->stmt
          e
          (lambda (e^)
            (let ((v (gensym 'v)))
-             (cons `(let ,v (reduce ,op ,e^))
-               (finish `(var ,v)))))))
+             (cons `(let ,v ,t (reduce ,t ,op ,e^))
+               (finish `(var ,t ,v)))))))
       ((length ,e) 
        (lift-expr->stmt
          e (lambda (e^)
@@ -84,11 +92,11 @@
               (lift-expr->stmt
                 e2 (lambda (e2^)
                      (finish `(,op ,e1^ ,e2^)))))))
-      ((call ,rator ,rand* ...)
+      ((call ,t ,rator ,rand* ...)
        (guard (symbol? rator))
        (let loop ((e* rand*) (e*^ '()))
          (if (null? e*)
-             (finish `(call ,rator . ,(reverse e*^)))
+             (finish `(call ,t ,rator . ,(reverse e*^)))
              (lift-expr->stmt
                (car e*)
                (lambda (e^)
@@ -119,7 +127,7 @@
        (lift-expr->stmt e (lambda (e^)
                             (cons `(set! ,x ,e^)
                               rest))))
-      (((vector-set! ,x ,e1 ,e2) . ,[rest])
+      (((vector-set! ,t ,x ,e1 ,e2) . ,[rest])
        ;; TODO: should x be any expression, or just a variable?
        ;; WEB: any expression
        (lift-expr->stmt
@@ -130,15 +138,15 @@
              (lambda (e1^)
                (lift-expr->stmt e2
                  (lambda (e2^)
-                   (cons `(vector-set! ,x^ ,e1^ ,e2^)
+                   (cons `(vector-set! ,t ,x^ ,e1^ ,e2^)
                      rest))))))))             
-      (((kernel ,iters ,body* ...) . ,[rest])
+      #;(((kernel ,iters ,body* ...) . ,[rest])
        ;; TODO: For now just pass the kernel through... this
        ;; won't let us declare vectors inside kernels though.
        (cons `(kernel ,iters ,body* ...) rest))
-      (((let ,x ,e) . ,[rest])
+      (((let ,x ,t ,e) . ,[rest])
        (lift-expr->stmt e (lambda (e^)
-                            (cons `(let ,x ,e^)
+                            (cons `(let ,x ,t ,e^)
                               rest))))
       (((return ,expr) . ,[rest])
        (lift-expr->stmt expr
@@ -168,8 +176,8 @@
 
 (define (lift-decl fn)
   (match fn
-    ((fn ,name ,args . ,[lift-stmt* -> stmt*])
-     `(fn ,name ,args . ,stmt*))
+    ((fn ,name ,args ,t . ,[lift-stmt* -> stmt*])
+     `(fn ,name ,args ,t . ,stmt*))
     ((extern ,name ,args -> ,rtype)
      `(extern ,name ,args -> ,rtype))
     (,else (error 'lift-decl "bad function" else))))

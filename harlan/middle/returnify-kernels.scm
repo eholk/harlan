@@ -77,7 +77,9 @@
                    `((let ,id ,t1 (length ,(car xe*)))
                      (kernel ,t2 (((,g ,(cadr t2)) ((var ,t1 ,id) ,t1))
                                   . ,arg*)
-                             . ,body*))))))
+                             . ,body*)))))
+              (,else (error 'returnify-kernel-let
+                            "could not match kernel arguments" arg*)))
             (error 'returnify-kernel-let
                    "Only 1-dimensional return values are allowed.")))
        ((let ,id ,type ,expr) `((let ,id ,type ,expr)))

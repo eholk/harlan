@@ -74,7 +74,7 @@
          (lookup env x type)))
       ((fresh (e* e^* t n)
          (== expr `(vector . ,e*))
-         (== expro `(vector . ,e^*))
+         (== expro `(vector ,type . ,e^*))
          (infer-exprs e* env t e^*)
          (project (e*)
                   (== (length e*) n))

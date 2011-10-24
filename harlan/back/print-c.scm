@@ -131,7 +131,7 @@
     (string-append (format-type type) " " (format-ident ident)
       "(" (join ", " (map format-expr expr*)) ");"))
    ((block ,stmt* ...)
-    (format-block `(block ,stmt* ...)))
+    (format-block `(block . ,stmt*)))
    ((return ,expr)
     (string-append "return " (format-expr expr) ";"))
    ((print ,expr)
@@ -178,7 +178,7 @@
    ((func ,type ,name (,args ...) ,stmt* ...)
     (string-append (format-type type) " " (format-ident name)
       "(" (format-args args) ")\n"
-      (format-block `(block ,stmt* ...))))
+      (format-block `(block . ,stmt*))))
    ((extern ,[format-type -> type] ,[format-ident -> name]
       (,[format-type -> args] ...))
     (string-append type " " name "(" (join ", " args) ");\n"))
