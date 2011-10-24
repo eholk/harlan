@@ -14,25 +14,24 @@
    reduceop?
    float?
    scalar-type?)
- (import (rnrs)
-         (util match))
+ (import
+   (rnrs)
+   (util match)
+   (only (chezscheme) with-implicit))
 
  ;; This abstracts away most of the boilerplate for writing
- ;; match-based transformations.
- ;;
- ;; It has a major but though. Clauses like ((,foo ...) `(,foo ...))
- ;; generates things like ((,foo ...)) instead of ((,@foo)) like it
- ;; should. Do any macro wizards have any ideas?
- ;;
- ;; Fortunately, you can work around this by using ,@ or .,
- (define-syntax define-match
-    (syntax-rules (unquote)
-      ((_ (name args ...) clause ...)
-       (define name
-         (lambda (arg args ...)
-           (match arg
-             clause ...
-             (,else (error 'name "Unrecognized item" else))))))))
+ ;; match-based transformations. A little unsafe.
+ ;; Stipulation: make sure the match macro is in the environment
+ ;; everywhere this macro is used.
+ (define-syntax (define-match x)
+   (syntax-case x ()
+     ((k name clauses ...)
+      (with-implicit (k match)
+        #'(define name
+            (lambda (arg)
+              (match arg
+                clauses ...
+                (,else (error 'name "Unrecognized item" else)))))))))
  
  (define gensym
    (let ((c 0))
@@ -40,7 +39,7 @@
        (unless (symbol? x) (error 'gensym "invalid symbol" x))
        (set! c (+ 1 c))
        (string->symbol
-        (string-append (symbol->string x) "_" (number->string c))))))
+         (string-append (symbol->string x) "_" (number->string c))))))
 
  (define iota
    (lambda (n)
@@ -67,7 +66,7 @@
     (let-values (((dim t sz) (decode-vector-type t)))
       sz)))
 
-(define-match (type-of)
+(define-match type-of
   ((deref ,[e]) e)
   ((vector-ref ,t ,v ,i) t)
   ((var ,t ,x) t))

@@ -10,11 +10,11 @@
  (generate-verify move-gpu-data
    (Module wildcard))
 
- (define-match (move-gpu-data)
+ (define-match move-gpu-data
    ((module ,[Decl -> decl*] ...)
     `(module . ,decl*)))
 
- (define-match (Decl)
+ (define-match Decl
    ((gpu-module ,kernel* ...)
     `(gpu-module . ,kernel*))
    ((extern ,name ,args -> ,type)
@@ -22,7 +22,7 @@
    ((fn ,name ,args ,type ,[Stmt -> stmt*] ...)
     `(fn ,name ,args ,type . ,(apply append stmt*))))
 
- (define-match (Stmt)
+ (define-match Stmt
    ((do ,[Expr -> e*] ...)
     `((do . ,e*)))
    ((let ,x ,t ,[Expr -> expr])
@@ -81,7 +81,7 @@
          (values '() expr '()))))
      (,else (error 'make-gpu-decl "Unsupported GPU arg" else))))
  
- (define-match (Expr)
+ (define-match Expr
    ((int ,n) (guard (integer? n))
     `(int ,n))
    ((float ,f) `(float ,f))

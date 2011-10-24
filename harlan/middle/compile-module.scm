@@ -10,7 +10,7 @@
     (util match))
 
 ;; This compile kernel is used in the compile-module pass.
-(define-match (compile-kernel^)
+(define-match compile-kernel^
   ((kernel ,name ,args ,[compile-stmt -> stmt*] ...)
    `(kernel ,name ,args . ,stmt*)))
 
@@ -72,14 +72,14 @@
         `(set! ,(compile-expr x) ,(compile-expr e)))
       (,e (error 'compile-set! "Unknown target type" e)))))
 
-(define-match (scalar-type)
+(define-match scalar-type
   ;; TODO: converting the types should happen after this, so hopefully
   ;; we won't need pointers.
   ((ptr ,[t]) t)
   ((vector ,[t] ,n) t)
   (int 'int))
 
-(define-match (byte-size)
+(define-match byte-size
   (int `(sizeof int))
   ((vector ,[t] ,n) `(* ,n ,t)))
 

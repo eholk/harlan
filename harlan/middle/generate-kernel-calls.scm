@@ -8,11 +8,11 @@
   (util helpers)
   (util match))
 
-  (define-match (generate-kernel-calls)
+ (define-match generate-kernel-calls
    ((module ,[Decl -> decl*] ...)
     `(module . ,decl*)))
 
- (define-match (Decl)
+ (define-match Decl
    ((fn ,name ,args ,type ,[Stmt -> stmt*] ...)
     `(fn ,name ,args ,type . ,stmt*))
    (,else else))

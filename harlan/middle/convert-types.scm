@@ -3,29 +3,30 @@
   (export convert-types)
   (import (only (chezscheme) format)
     (rnrs)
-    (util helpers))
+    (util helpers)
+    (util match))
   
 ;; This pass converts Harlan types into C types.
-(define-match (convert-types)
+(define-match convert-types
   ((,[convert-decl -> decl*] ...)
    decl*))
 
-(define-match (convert-decl)
+(define-match convert-decl
   ((gpu-module ,[convert-kernel -> kernel*] ...)
    `(gpu-module . ,kernel*))
   ((func ,[convert-type -> rtype] ,name ((,x* ,[convert-type -> t*]) ...)
-         ,[convert-stmt -> stmt*] ...)
+     ,[convert-stmt -> stmt*] ...)
    (guard (andmap ident? x*))
    `(func ,rtype ,name ,(map list x* t*) . ,stmt*))
   ((extern ,[convert-type -> t] ,name (,[convert-type -> t*] ...))
    `(extern ,t ,name ,t*)))
 
-(define-match (convert-kernel)
+(define-match convert-kernel
   ((kernel ,k ((,x* ,[convert-type -> t*]) ...) ,[convert-stmt -> stmt*] ...)
    (guard (ident? k))
    `(kernel ,k ,(map list x* t*) . ,stmt*)))
 
-(define-match (convert-stmt)
+(define-match convert-stmt
   ((let ,x ,[convert-type -> type] ,[convert-expr -> e])
    (guard (symbol? x))
    `(let ,x ,type ,e))
@@ -38,23 +39,23 @@
    `(set! ,loc ,val))
   ((print ,[convert-expr -> e]) `(print ,e))
   ((while (,relop ,[convert-expr -> e1] ,[convert-expr -> e2])
-        ,[convert-stmt -> stmt*] ...)
+     ,[convert-stmt -> stmt*] ...)
    (guard (relop? relop))
    `(while (,relop ,e1 ,e2) . ,stmt*))
   ((block ,[stmt*] ...)
    `(block . ,stmt*))
   ((for (,x ,[convert-expr -> begin] ,[convert-expr -> end])
-        ,[convert-stmt -> stmt*] ...)
+     ,[convert-stmt -> stmt*] ...)
    (guard (symbol? x))
    `(for (,x ,begin ,end) . ,stmt*))
   ((kernel (((,x* ,[convert-type -> t*]) (,xs* ,[convert-type -> ts*])) ...)
-           (free-vars (,fx* ,[convert-type -> ft*]) ...)
-           ,[body*] ...)
+     (free-vars (,fx* ,[convert-type -> ft*]) ...)
+     ,[body*] ...)
    `(kernel ,(map (lambda (x t xs ts)
                     `((,x ,t) (,xs ,ts)))
-                  x* t* xs* ts*)
-            (free-vars . ,(map list fx* ft*))
-            . ,body*))
+               x* t* xs* ts*)
+      (free-vars . ,(map list fx* ft*))
+      . ,body*))
   ((apply-kernel ,k ,[convert-expr -> e*] ...)
    (guard (ident? k))
    `(apply-kernel ,k . ,e*))
@@ -63,7 +64,7 @@
   ((return ,[convert-expr -> expr])
    `(return ,expr)))
 
-(define-match (convert-expr)
+(define-match convert-expr
   (,n (guard (number? n)) n)
   (,s (guard (string? s)) s)
   (,x (guard (ident? x))  x)
@@ -73,7 +74,7 @@
   ;; != (sizeof (ptr int))
   ((sizeof ,[convert-type -> t]) `(sizeof ,t))
   ((vector-ref ,[convert-expr -> v]
-               ,[convert-expr -> i])
+     ,[convert-expr -> i])
    `(vector-ref ,v ,i))
   ((cast ,[convert-type -> t] ,[e]) `(cast ,t ,e))
   ((deref ,[e]) `(deref ,e))
@@ -82,7 +83,7 @@
   ((,[fn] ,[convert-expr -> arg*] ...)
    `(,fn . ,arg*)))
 
-(define-match (convert-type)
+(define-match convert-type
   (int 'int)
   (u64 'uint64_t)
   (float 'float)
@@ -99,7 +100,7 @@
   (((,[t*] ...) -> ,[t])
    `(,t* -> ,t)))
 
-(define-match (find-leaf-type)
+(define-match find-leaf-type
   ((vector ,[t] ,size) t)
   (,t (guard (harlan-scalar-type? t)) t))
 

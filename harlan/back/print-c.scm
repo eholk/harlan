@@ -36,7 +36,7 @@
      (unless (symbol? ident) (error 'format-ident "invalid symbol" ident))
      (symbol->string ident)))
 
- (define-match (format-type)
+ (define-match format-type
    (u64 "uint64_t")
    ((ptr ,[t])
     (string-append "__global " t "*"))
@@ -47,7 +47,7 @@
    (,x (guard (symbol? x))
      (symbol->string x)))
 
- (define-match (format-arg)
+ (define-match format-arg
    ((,x ,t)
     (string-append (format-type t) " " (format-ident x))))
 
@@ -93,7 +93,7 @@
           (escape-string-literal
            (substring s 1 (string-length s)))))))
  
- (define-match (format-expr)
+ (define-match format-expr
    ((field ,[obj] ,x)
     (guard (symbol? x))
     (string-append obj "." (symbol->string x)))
@@ -122,7 +122,7 @@
    ((,f ,args ...)
     (string-append (format-expr f) "(" (format-call-args args) ")")))
  
- (define-match (format-stmt)
+ (define-match format-stmt
    ((let ,[format-ident -> ident] ,[format-type -> type]
          ,[format-expr -> expr])
     (string-append type " " ident " = " expr ";"))
@@ -159,14 +159,14 @@
    ((do ,[format-expr -> e*] ...)
     (join "\n" (map (lambda (e) (string-append e ";")) e*))))
  
- (define-match (format-block)
+ (define-match format-block
    ((block ,stmt* ...)
     (string-append
       "{\n"
       (join "\n" (map format-stmt stmt*))
       "\n}")))
  
- (define-match (format-decl)
+ (define-match format-decl
    ((global ,type ,name ,args ...)
     (string-append
       (format-type type) " " (format-ident name)
