@@ -71,7 +71,8 @@
                         (let loop ((body* body*))
                           (match body*
                             ((,[returnify-kernel-stmt -> body^] ... ,body)
-                             (append body^ `((set! (var ,(cadr t2) ,g) ,body))))
+                             (append (apply append body^)
+                                     `((set! (var ,(cadr t2) ,g) ,body))))
                             (,else (error 'returnify-kernel-let
                                      "malformed stuffs" else))))))
                    `((let ,id ,t1 (length ,(car xe*)))

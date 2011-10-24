@@ -5,17 +5,18 @@
     infer-kernel
     infer-stmt
     infer-expr
+    infer-module
     lookup)
   (import
    (rnrs)
    (util mk))
 
 ;;; ********************************* FIX ME !!!! ****
-  
+
 ;;; need to add examples with multiple fn's which call each other.
-  
+
 ;;; add tests with recursive and mutually recursive calls
-  
+
 (define pairo
   (lambda (x)
     (fresh (a d)
@@ -70,7 +71,7 @@
          (== type 'str)))
       ((fresh (x)
          (== expr `(var ,x))
-         (== expro `(var ,type ,x))    
+         (== expro `(var ,type ,x))
          (lookup env x type)))
       ((fresh (e* e^* t n)
          (== expr `(vector . ,e*))
@@ -128,7 +129,7 @@
          (infer-expr e env 'int e^)))
       ((fresh (ve ie ve^ ie^ n)
          (== expr `(vector-ref ,ve ,ie))
-         (== expro `(vector-ref ,type ,ve^ ,ie^))          
+         (== expro `(vector-ref ,type ,ve^ ,ie^))
          (infer-expr ie env 'int ie^)
          (infer-expr ve env `(vector ,type ,n) ve^)))
       ((fresh (fn args arg-types rtype argso)
@@ -187,38 +188,33 @@
            (== stmto `(let ,x ,t ,e^))
            (== envo `((,x . ,t) . ,env))
            (infer-expr e env t e^)))
-        ((fresh (e1 e2 e1^ e2^ t1 t2)
+        ((fresh (e1 e2 e1^ e2^ t)
            (== stmt `(set! ,e1 ,e2))
            (== stmto `(set! ,e1^ ,e2^))
-           (== rtype 'void)
-           (== env envo)            
-           (infer-expr e1 env t1 e1^)
-           (infer-expr e2 env t2 e2^)))
+           (== env envo)
+           (infer-expr e1 env t e1^)
+           (infer-expr e2 env t e2^)))
         ((fresh (e1 e2 e3 e1^ e2^ e3^ t n)
            (== stmt `(vector-set! ,e1 ,e2 ,e3))
            (== stmto `(vector-set! ,t ,e1^ ,e2^ ,e3^))
-           (== rtype 'void)
            (== env envo)
            (infer-expr e1 env `(vector ,t ,n) e1^)
            (infer-expr e2 env 'int e2^)
            (infer-expr e3 env t e3^)))
         ((== stmt `(print ,e))
          (== stmto `(print ,e^))
-         (== rtype 'void)
          (== env envo)
          (fresh (rtype^)
            (infer-expr e env rtype^ e^)))
         ((fresh (e1 e2 e1^ e2^)
            (== stmt `(print ,e1 ,e2))
            (== stmto `(print ,e1^ ,e2^))
-           (== rtype 'void)
            (== env envo)
            (fresh (rtype1^ rtype2^)
              (infer-expr e1 env rtype1^ e1^)
              (infer-expr e2 env rtype2^ e2^))))
         ((== stmt `(assert ,e))
          (== stmto `(assert ,e^))
-         (== rtype 'void)
          (== env envo)
          (infer-expr e env 'bool e^))
         ((== stmt `(return ,e))
@@ -242,7 +238,6 @@
            (== stmt `(while (,relop ,x ,y) . ,stmt*))
            (== stmto `(while (,relop  ,x^ ,y^) . ,stmt*^))
            (== env envo)
-           (== te 'int)
            (infer-expr x env te x^)
            (infer-expr y env te y^)
            (infer-stmts stmt* env rtype stmt*^)))
@@ -321,14 +316,14 @@
 
 (define typecheck
   (lambda (mod)
-    (let ((result (run 2 (q) 
+    (let ((result (run 2 (q)
                     (infer-module mod q))))
       (case (length result)
         ((0) (error 'typecheck "Could not infer type for program." mod))
         ((1) (car result))
         (else
          (display result)
-         (error 'typecheck 
+         (error 'typecheck
                 "Could not infer a unique type for program"
                 result))))))
 )

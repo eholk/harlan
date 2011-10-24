@@ -1,0 +1,10 @@
+;; -*- scheme -*_
+
+(module
+  (fn main ()
+      (let x 0)
+      (set! x (+ x 1))
+      (assert (= x 1))
+      (let y x)
+      (assert (= x y))
+      (return 0)))

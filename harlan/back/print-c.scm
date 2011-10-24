@@ -67,10 +67,9 @@
        ((+) "+")
        ((*) "*")
        ((-) "-")
-       ((-) "/")
+       ((/) "/")
        ((mod) "%")
        (else (error 'binop->string "unknown binop" op)))))
- 
  
  (define relop->string
    (lambda (op)

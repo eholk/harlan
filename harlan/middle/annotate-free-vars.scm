@@ -153,6 +153,9 @@
         (remove x e))
        ((for (,x ,[free-vars-expr -> start] ,[free-vars-expr -> end]) ,[free-vars-stmt -> s])
         (remove x s))
+       ((while ,[free-vars-expr -> test]
+          . ,[free-vars-stmt* -> stmt*])
+        (union test stmt*))
        ((set! (var ,t ,x) ,[free-vars-expr -> e]) (union `(,x) e))
        ((print ,[free-vars-expr -> e]) e)
        ((vec_set_vec ,[free-vars-expr -> e1] ,[free-vars-expr -> e2] ,[free-vars-expr -> e3])
@@ -198,7 +201,7 @@
       [(null? args) '()]
       [(null? (cdr args)) (car args)]
       [else (union (union (car args) (cadr args))
-                   (union*-aux (caddr args)))])))
+                   (union*-aux (cddr args)))])))
 
 (define remove*
   (lambda (x* ls)
