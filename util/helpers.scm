@@ -13,12 +13,22 @@
    ident?
    reduceop?
    float?
-   scalar-type?)
+   scalar-type?
+   join)
  (import
    (rnrs)
    (util match)
    (only (chezscheme) with-implicit))
 
+ (define join
+   (lambda (sep strings)
+     (match strings
+       (() "")
+       ((,a) a)
+       ((,a ,b) (string-append a sep b))
+       ((,a ,b* ...)
+        (string-append a sep (join sep b*))))))
+ 
  ;; This abstracts away most of the boilerplate for writing
  ;; match-based transformations. A little unsafe.
  ;; Stipulation: make sure the match macro is in the environment

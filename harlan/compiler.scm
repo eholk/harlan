@@ -1,14 +1,18 @@
 (library
   (harlan compiler)
-  (export compile-harlan)
+  (export compile-harlan harlan->c++)
   (import
     (rnrs)
     (harlan compile-opts)
     (harlan front compile-front)
-    (harlan middle compile-middle))
+    (harlan middle compile-middle)
+    (harlan back print-c))
 
 (define compile-harlan
   (passes
     compile-harlan-frontend
-    compile-harlan-middle)))
+    compile-harlan-middle))
+
+(define harlan->c++
+  (passes compile-harlan format-c)))
 

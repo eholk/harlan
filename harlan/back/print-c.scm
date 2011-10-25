@@ -6,15 +6,6 @@
          (util match)
          (util helpers))
 
- (define join
-   (lambda (sep strings)
-     (match strings
-       (() "")
-       ((,a) a)
-       ((,a ,b) (string-append a sep b))
-       ((,a ,b* ...)
-         (string-append a sep (join sep b*))))))
-
  (define indent-level 0)
  (define push-indent
    (lambda () (set! indent-level (+ indent-level 1))))
