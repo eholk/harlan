@@ -44,7 +44,7 @@ RUN_TEST = $(1)
 .phony: check
 check : test.bin gc/lib/libgc.a rt/libharlanrt.a \
 	$(call TEST_OUT_NAME, $(RUN_TEST_SRC))
-	@echo -e "\033[32mAll tests succeeded."
+	@echo "\033[32mAll tests succeeded.\033[39m"
 
 .phony: force-check
 force-check :
