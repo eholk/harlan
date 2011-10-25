@@ -15,16 +15,27 @@
     (util verify-grammar))
 
   (grammar-transforms
-    
-    (harlan
+
+    (%static
       (Module (module Decl *))
-      (Decl
-        (extern Var (Type *) -> Type)
-        (fn Var (Var *) Stmt *))
       (Type
         scalar-type
         (vector Type Integer)
         ((Type *) -> Type))
+      (Var ident)
+      (Integer integer)
+      (Reduceop reduceop)
+      (Binop binop)
+      (Relop relop)
+      (Float float)
+      (String string)
+      (Number number))
+    
+    (harlan
+      (Start Module)
+      (Decl
+        (extern Var (Type *) -> Type)
+        (fn Var (Var *) Stmt *))
       (Stmt
         (let Var Expr)
         (print Expr)
@@ -50,15 +61,10 @@
         (make-vector Integer)
         (Binop Expr Expr)
         (Relop Expr Expr)
-        (Var Expr *))
-      (Var ident)
-      (Integer integer)
-      (Reduceop reduceop)
-      (Binop binop)
-      (Relop relop))
+        (Var Expr *)))
 
-    (parse-harlan
-      (%inherits Module Decl Type Var Integer Reduceop Binop Relop)
+    (parse-harlan (%inherits Decl)
+      (Start Module)
       (Stmt
         (let Var Expr)
         (print Expr)
@@ -84,12 +90,10 @@
         (make-vector (num Integer))
         (Binop Expr Expr)
         (Relop Expr Expr)
-        (call Var Expr *))
-      (Float float)
-      (String string))
+        (call Var Expr *)))
 
     (typecheck
-      (%inherits Module Var String Binop Relop Integer Type Reduceop Float)
+      (Start Module)
       (Decl
         (extern Var (Type *) -> Type)
         (fn Var (Var *) Type Stmt *))
@@ -119,12 +123,10 @@
         (make-vector Type (int Integer))
         (Binop Expr Expr)
         (Relop Expr Expr)
-        (call Type Var Expr *))
-      (Number number))
+        (call Type Var Expr *)))
 
-    (returnify
-      (%inherits Module Expr Var Integer Float Number
-        Reduceop Binop Relop String Type)
+    (returnify (%inherits Expr)
+      (Start Module)
       (Decl
         (fn Var (Var *) Type Stmt * Ret-Stmt)
         (extern Var (Type *) -> Type))
@@ -140,9 +142,8 @@
         Ret-Stmt)
       (Ret-Stmt (return Expr)))
 
-    (lift-vectors
-      (%inherits Module Decl Var Integer Reduceop
-        Binop Relop Type String Float Number Ret-Stmt)
+    (lift-vectors (%inherits Decl Ret-Stmt)
+      (Start Module)
       (Stmt
         (let Var Type Let-Expr)
         (print Expr)
@@ -173,9 +174,8 @@
         (Binop Expr Expr)
         (Relop Expr Expr)))
 
-    (lower-vectors
-      (%inherits Module Decl Var String Ret-Stmt
-        Number Integer Type Binop Relop Reduceop)
+    (lower-vectors (%inherits Decl Ret-Stmt)
+      (Start Module)
       (Stmt 
         (print Expr)
         (print Expr Expr)
@@ -205,9 +205,8 @@
         (Relop Expr Expr)
         (Binop Expr Expr)))
 
-    (returnify-kernels
-      (%inherits Module Decl Ret-Stmt Let-Expr Reduceop
-        Expr Var String Number Integer Type Binop Relop)
+    (returnify-kernels (%inherits Decl Ret-Stmt Let-Expr Expr)
+      (Start Module)
       (Stmt 
         (print Expr)
         (print Expr Expr)
@@ -221,9 +220,8 @@
         (do Expr *)
         Ret-Stmt))
 
-    (uglify-vectors
-      (%inherits Module Decl Ret-Stmt Reduceop
-        Var String Number Integer Type Binop Relop)
+    (uglify-vectors (%inherits Decl Ret-Stmt)
+      (Start Module)
       (Stmt 
         (print Expr)
         (print Expr Expr)

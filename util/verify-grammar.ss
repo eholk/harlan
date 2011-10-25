@@ -1,6 +1,12 @@
 ;; verify-grammar.ss
 ;; see eof for an example
 
+;; ideas:
+;; use a FOLD and MAP to do grammar-transforms? duh
+;; figure out wtf is wrong with pattern-match
+;; move (verify) check to passes macro instead
+;; filter out which static nonterms are actually necessary
+
 (library
   (util verify-grammar)
   (export
@@ -10,6 +16,8 @@
   (import
     (rnrs)
     (only (chezscheme)
+      printf
+      trace-define
       errorf
       pretty-print
       with-output-to-string)
@@ -109,10 +117,24 @@
                      right*)))
       #`(or (guard (x ((error? x) #f)) clauses) ...
             #,(meaningful-error left inp))))
+
+  (define (check-nonterms pass left* right**)
+    (let ((left* (map syntax->datum left*)))
+      (let loop ((r right**))
+        (syntax-case r ()
+          ((a . d) (begin (loop #'a) (loop #'b)))
+          (a 
+            (or (not (nonterminal? #'a))
+                (member (syntax->datum #'a) left*)
+                (errorf (syntax->datum (verify-name pass))
+                  "Unbound nonterminal ~s in right hand side" #'a)))))))
   
   ;; actual macro
   (syntax-case x ()
     ((_ pass (left right* ...) (left* right** ...) ...)
+     (check-nonterms #'pass
+       #'(left left* ...)
+       #'((right* ...) (right** ...) ...))
      (with-syntax
          (((name start nonterminals ...)
            (map verify-name #'(pass left left* ...)))
@@ -146,21 +168,25 @@
       ((nt . rest)
        #`(#,(lookup-nt #'nt parent) .
           #,(add-nts parent #'rest)))))
-  (syntax-case x (%inherits)
-    ((_ pass) #'(generate-verify . pass))
-    ((_ (pass0 clause0* ...)
-        (pass1 (%inherits nt* ...) clause1* ...)
-        . rest)
-     (with-syntax (((inherited ...)
-                    (add-nts #'(clause0* ...) #'(nt* ...))))
-       #`(begin
-           (generate-verify pass0 clause0* ...)
-           (grammar-transforms
-             (pass1 inherited ... clause1* ...) . rest))))
-    ((_ pass . rest)
-     #`(begin
-         (generate-verify . pass)
-         (grammar-transforms . rest)))))
+  (define (add-static/inherits passes sclause*)
+    (let loop ((passes passes))
+      (syntax-case passes (%inherits)
+        (((pass clause* ...))
+         #`(generate-verify pass clause* ... . #,sclause*))
+        (((pass0 clause0* ...)
+          (pass1 (%inherits nt* ...) clause1* ...)
+          . rest)
+         (with-syntax ((inherited (add-nts #'(clause0* ...) #'(nt* ...))))
+           #`(begin
+               (generate-verify pass0 clause0* ... . #,sclause*)
+               #,(loop #'((pass1 clause1* ... . inherited) . rest)))))
+        (((pass clause* ...) . rest)
+         #`(begin
+             (generate-verify pass clause* ... . #,sclause*)
+             #,(loop #'rest))))))
+  (syntax-case x (%static)
+    ((_ (%static . sclause*) . passes)
+     (add-static/inherits #'passes #'sclause*))))
 
 )
 
