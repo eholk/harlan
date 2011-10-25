@@ -22,7 +22,7 @@
   (define-option verbose #f)
 
   ;; TODO: we want this on by default.
-  (define-option verify #f)
+  (define-option verify #t)
   
   (define trace-pass
     (lambda (m pass expr)

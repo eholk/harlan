@@ -101,7 +101,7 @@
  (define (scalar-type? t)
    (case t
      ;; TODO: strings aren't quite scalars
-     ((int u64 str void str) #t)
+     ((int u64 str void str float) #t)
      (else #f)))
 
  )
