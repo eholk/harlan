@@ -5,6 +5,9 @@
         (only (util helpers) join)
         (harlan compiler))
 
+(define failures (make-parameter 0))
+(define successes (make-parameter 0))
+
 (define (join-path . components)
   (join (string (directory-separator)) components))
 
@@ -24,16 +27,22 @@
                 (lambda (x)
                   (if (error? x)
                       (begin
+                        (failures (add1 (failures)))
                         (set-color 'red)
                         (printf "FAILED\n")
                         (set-color 'default)
                         (k 'failed))))
                 (lambda ()
                   (let ((c++ (harlan->c++ source)))
-                    (printf "OK\n")
-                    'success)))))))
+                    (begin
+                      (successes (add1 (successes)))
+                      (printf "OK\n")
+                      'success))))))))
 
 (define (do-all-tests)
-  (map do-test (enumerate-tests)))
+  (begin
+    (map do-test (enumerate-tests))
+    (printf "Successes: ~s\nFailures: ~s\nTotal: ~s\n"
+      (successes) (failures) (+ (successes) (failures)))))
 
 (do-all-tests)
