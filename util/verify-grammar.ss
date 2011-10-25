@@ -51,8 +51,10 @@
   
   ;; outputs a boolean expression that pattern matches inp
   ;; at this point, all lower-case symbols are matched exactly
+
   (define (pattern-match pattern inp)
     (syntax-case pattern (* +)
+      (() #`(null? #,inp))
       ((a *) (*form #'a inp))
       ((a * d ...)
        (with-syntax (((rd ...) (reverse #'(d ...)))
@@ -61,16 +63,19 @@
                 (let ((tmp (reverse #,inp)))
                   #,(pattern-match #'(rd ... a *) #'tmp)))))
       ((a + d ...) (pattern-match #'(a a * d ...) inp))
+      (((aa . ad) . d)
+       #`(and (pair? #,inp)
+              #,(pattern-match #'d #`(cdr #,inp))
+              #,(pattern-match #'(aa . ad) #`(car #,inp))))
       ((a . d)
-       (with-syntax (((tmp) (generate-temporaries '(tmp))))
-         #`(and (pair? #,inp)
-                (let ((tmp (car #,inp)))
-                  #,(pattern-match #'a #'tmp))
-                (let ((tmp (cdr #,inp)))
-                  #,(pattern-match #'d #'tmp)))))
+       #`(and (pair? #,inp)
+              #,(if (nonterminal? #'a)
+                    #`(and #,(pattern-match #'d #`(cdr #,inp))
+                           #,(pattern-match #'a #`(car #,inp)))
+                    #`(and (eq? 'a (car #,inp))
+                           #,(pattern-match #'d #`(cdr #,inp))))))
       (_ (nonterminal? pattern)
-        #`(#,(verify-name pattern) #,inp))
-      (_ #`(eq? '#,pattern #,inp))))
+        #`(#,(verify-name pattern) #,inp))))
   
   ;; either returns (terminal? inp)
   ;; or a boolean expression to match pairs
