@@ -196,6 +196,8 @@
       (Expr 
         (int Integer)
         (u64 Number)
+        (float Float)
+        (int->float Expr)
         (str String)
         (var Type Var)
         (call Type Var Expr *)
