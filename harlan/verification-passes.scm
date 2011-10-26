@@ -8,6 +8,8 @@
     verify-typecheck
     verify-lower-vectors
     verify-returnify-kernels
+    verify-remove-nested-kernels
+    verify-returnify-kernels
     verify-uglify-vectors)
   (import
     (rnrs)
@@ -21,6 +23,7 @@
       (Type
         scalar-type
         (vector Type Integer)
+        (ptr Type)
         ((Type *) -> Type))
       (Var ident)
       (Integer integer)
@@ -182,13 +185,13 @@
         (assert Expr)
         (set! (var Type Var) Expr)
         (vector-set! Type Expr Expr Expr)
-        (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
         (let Var Type Let-Expr)
         (for (Var Expr Expr) Stmt *)
         (while Expr Stmt *)
         (do Expr *)
         Ret-Stmt)
       (Let-Expr
+        (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
         (reduce Type Reduceop Expr)
         (vector Expr *)
         (iota (int Integer))
@@ -202,10 +205,12 @@
         (var Type Var)
         (call Type Var Expr *)
         (vector-ref Type Expr Expr)
-        (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
         (length Expr)
         (Relop Expr Expr)
         (Binop Expr Expr)))
+
+    (remove-nested-kernels (%inherits Decl Ret-Stmt Let-Expr Expr Stmt)
+      (Start Module))
 
     (returnify-kernels (%inherits Decl Ret-Stmt Let-Expr Expr)
       (Start Module)
@@ -245,9 +250,10 @@
         (int Integer)
         (u64 Number)
         (str String)
+        (float Float)
         (var Type Var)
         (call Type Var Expr *)
-        (cast Type (call Type Var Expr *))
+        (cast Type Expr)
         (sizeof Type)
         (addressof Expr)
         (vector-ref Type Expr Expr)
