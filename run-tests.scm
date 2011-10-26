@@ -38,16 +38,19 @@
                       (printf "OK\n")
                       'success))))))))
 
-(define (do-all-tests)
+(define (do-*all*-the-tests)
   (begin
     (map do-test (enumerate-tests))
     (printf "Successes: ~a; Failures: ~a; Ignored: ~a; Total: ~a\n"
       (format-in-color 'green (successes))
       (format-in-color 'red (failures))
       (format-in-color 'yellow (ignored))
-      (+ (successes) (failures) (ignored)))))
+      (+ (successes) (failures) (ignored)))
+    (zero? (failures))))
 
 (if (null? (cdr (command-line)))
-    (do-all-tests)
+    (if (do-*all*-the-tests)
+        (exit)
+        (exit #f))
     (let ((test-name (cadr (command-line))))
       (harlan->c++ (read (open-input-file test-name)))))
