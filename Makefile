@@ -15,6 +15,7 @@ ifeq ($(shell uname), Linux)
 # This should work on 64-bit Gentoo with NVIDIA GPUs at least. YMMV.
 CXXFLAGS := $(CXXFLAGS) -I/opt/cuda/include -lOpenCL -lrt
 CXX := g++
+ECHO_ESCAPE := "-e"
 else
 $(error Your operating system is not yet supported.)
 endif
@@ -44,7 +45,7 @@ RUN_TEST = $(1)
 .phony: check
 check : test.bin gc/lib/libgc.a rt/libharlanrt.a
 	@./run-tests.scm
-	@echo "\033[32mAll tests succeeded.\033[39m"
+	@echo $(ECHO_ESCAPE) "\033[32mAll tests succeeded.\033[39m"
 
 .phony: force-check
 force-check :
