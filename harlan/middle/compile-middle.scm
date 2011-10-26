@@ -27,9 +27,13 @@
     lift-vectors
     verify-lift-vectors
     lower-vectors
+    verify-lower-vectors
     remove-nested-kernels
+    ;;verify-remove-nested-kernels
     returnify-kernels
+    ;;verify-returnify-kernels
     uglify-vectors
+    ;;verify-uglify-vectors
     annotate-free-vars
     hoist-kernels
     verify-hoist-kernels
