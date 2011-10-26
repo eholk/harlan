@@ -45,4 +45,7 @@
     (printf "Successes: ~s\nFailures: ~s\nTotal: ~s\n"
       (successes) (failures) (+ (successes) (failures)))))
 
-(do-all-tests)
+(if (null? (cdr (command-line)))
+    (do-all-tests)
+    (let ((test-name (cadr (command-line))))
+      (harlan->c++ (read (open-input-file test-name)))))
