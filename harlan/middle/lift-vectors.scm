@@ -18,6 +18,7 @@
   (lambda (expr finish)
     (match expr
       ((int ,n) (guard (integer? n)) (finish `(int ,n)))
+      ((u64 ,n) (guard (integer? n)) (finish `(u64 ,n)))
       ((float ,f) (finish `(float ,f)))
       ((str ,str) (guard (string? str)) (finish `(str ,str)))
       ((var ,t ,x) (finish `(var ,t ,x)))

@@ -84,6 +84,8 @@
  (define-match Expr
    ((int ,n) (guard (integer? n))
     `(int ,n))
+   ((u64 ,n) (guard (integer? n))
+    `(u64 ,n))
    ((float ,f) `(float ,f))
    ((var ,t ,x) (guard (ident? x))
     `(var ,t ,x))

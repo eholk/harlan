@@ -103,7 +103,7 @@
     (string-append "(&(" e "))"))
    ((,op ,[lhs] ,[rhs])
     (guard (binop? op))
-    (string-append lhs " " (binop->string op) " " rhs))
+    (string-append "(" lhs ") " (binop->string op) " (" rhs ")"))
    (,var (guard (symbol? var))
      (symbol->string var))
    (,n (guard (number? n))

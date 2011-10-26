@@ -109,7 +109,8 @@
   (lambda (gamma)
     (lambda (expr)
       (match expr
-        ((int ,n) (guard (number? n)) `(int ,n))
+        ((int ,n) (guard (integer? n)) `(int ,n))
+        ((u64 ,n) (guard (integer? n)) `(u64 ,n))
         ((float ,f) `(float ,f))
         ((var ,t ,x) (guard (symbol? x)) `(var ,t ,x))
         ((str ,s) (guard (string? s)) `(str ,s))
