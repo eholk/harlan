@@ -8,21 +8,10 @@
   (import
    (rnrs)
    (util color)
-   (only (chezscheme) pretty-print))
+   (only (chezscheme) pretty-print make-parameter))
 
-  (define-syntax define-option
-    (syntax-rules ()
-      ((_ name default)
-       (define name
-         (let ((value default))
-           (case-lambda
-             (() value)
-             ((x) (set! value x))))))))
-
-  (define-option verbose #f)
-
-  ;; TODO: we want this on by default.
-  (define-option verify #t)
+  (define verbose (make-parameter #f))
+  (define verify (make-parameter #t))
   
   (define trace-pass
     (lambda (m pass expr)
