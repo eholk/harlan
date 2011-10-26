@@ -35,6 +35,7 @@
     uglify-vectors
     verify-uglify-vectors
     annotate-free-vars
+    verify-annotate-free-vars
     hoist-kernels
     verify-hoist-kernels
     move-gpu-data

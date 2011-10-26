@@ -10,7 +10,8 @@
     verify-returnify-kernels
     verify-remove-nested-kernels
     verify-returnify-kernels
-    verify-uglify-vectors)
+    verify-uglify-vectors
+    verify-annotate-free-vars)
   (import
     (rnrs)
     (util helpers)
@@ -257,9 +258,23 @@
         (sizeof Type)
         (addressof Expr)
         (vector-ref Type Expr Expr)
-        (kernel Type (((Var Type) (Expr Type)) *) Stmt * Expr)
         (length Expr)
         (Relop Expr Expr)
-        (Binop Expr Expr))))
+        (Binop Expr Expr)))
+
+    (annotate-free-vars (%inherits Decl Let-Expr Expr Ret-Stmt)
+      (Start Module)
+      (Stmt 
+        (print Expr)
+        (print Expr Expr)
+        (assert Expr)
+        (set! (var Type Var) Expr)
+        (set! (vector-ref Type Expr Expr) Expr)
+        (kernel (((Var Type) (Expr Type)) *)  (free-vars (Var Type) *) Stmt *)
+        (let Var Type Let-Expr)
+        (for (Var Expr Expr) Stmt *)
+        (while Expr Stmt *)
+        (do Expr *)
+        Ret-Stmt)))
 
   )
