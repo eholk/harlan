@@ -117,6 +117,10 @@
            ((== op 'mod))
            ((== op '/)))
          (conde
+           ((== #f #f))
+           ((mk-display "ERROR!!!!!!!!")
+            (== #f #t)))
+         (conde
            ((== type 'int))
            ((== type 'u64))
            ((== type 'float)))
@@ -142,6 +146,12 @@
          (== expr `(kernel ,b* . ,body*))
          (== expro `(kernel ,type ,b^* . ,body*^))
          (infer-kernel b* b^* body* body*^ env type n))))))
+
+(define mk-display
+  (lambda (m)
+    (lambda (s)
+      (display m) (newline)
+      ((== #f #f) s))))
 
 (define infer-args
   (lambda (env args arg-types argso)
