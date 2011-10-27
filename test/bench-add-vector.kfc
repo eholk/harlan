@@ -1,9 +1,12 @@
 ;; -*- scheme -*-
 ;; Vector sum
 
-; xfail - We only support constant sized vectors now.
+; We only support constant sized vectors now.
 
 (module
+  (extern nanotime () -> u64)
+  (extern print_int_u64 (int u64) -> void)
+
   (fn main ()
       ; for some reason we're running out of RAM when iters > 1
       (let iters 1)
@@ -13,19 +16,19 @@
            (let ttime 0)
            (for (k 0 (var iters))
                 ;; TODO: make these vectors of length len
-                (let X (make-vector (var len)))
-                (let Y (make-vector (var len)))
-                (for (j 0 (var len))
+                (let X (make-vector 1000))
+                (let Y (make-vector 1000))
+                (for (j 0 1000)
                      (vector-set! (var X) (var j) 1)
                      (vector-set! (var Y) (var j) 1))
-                (let start (time))
+                (let start (nanotime))
                 (let Sum (kernel ((x (var X)) (y (var Y)))
-                           (+ (var x) (var y))))
-                (let stop (time))
+                                 (+ (var x) (var y))))
+                (let stop (nanotime))
                 
-                (for (m 0 (var len))
+                (for (m 0 1000)
                   (assert (= (vector-ref Sum (var m)) 2)))
                 
                 (set! (var ttime) (+ (var ttime) (- (var stop) (var start)))))                     
-           (print (var len) (var ttime)))
+           (print_int_u64 1000 (var ttime)))
       (return 0)))
