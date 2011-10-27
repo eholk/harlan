@@ -1,5 +1,5 @@
 
-ALL_TEST_SRC = $(filter-out %~ %\#, $(wildcard test/*))
+ALL_TEST_SRC = $(filter-out %~ %\# %.m, $(wildcard test/*))
 XFAIL_TEST_SRC = $(shell grep -l xfail $(ALL_TEST_SRC))
 
 RUN_TEST_SRC = $(filter-out $(XFAIL_TEST_SRC), $(ALL_TEST_SRC))
