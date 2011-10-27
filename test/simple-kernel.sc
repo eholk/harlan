@@ -1,5 +1,7 @@
 ;; -*- scheme -*-
 
+;xfail
+
 ;; A hand-written OpenCL kernel, to make sure the backend is in good
 ;; enough shape.
 
