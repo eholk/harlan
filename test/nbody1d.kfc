@@ -1,0 +1,109 @@
+;; -*- scheme -*-
+
+;; code for 1 dimensional nbody simulation 
+;;xfail
+
+(module
+  (fn main ()
+    (let Fx (vector 0 0 0 0 0 0 0 0 0 0 ))
+    (let Fy (vector 0 0 0 0 0 0 0 0 0 0 ))
+    (let Fz (vector 0 0 0 0 0 0 0 0 0 0 ))
+    (let Vx (vector 0 0 0 0 0 0 0 0 0 0 ))
+    (let Vy (vector 0 0 0 0 0 0 0 0 0 0 ))
+    (let Vz (vector 0 0 0 0 0 0 0 0 0 0 ))
+    ;;(set! G  0.000000000001)
+    (set! G  1)
+    ;;for t1 = 1:dT:T
+    (for (t1 1 T)
+      (for (t2 1 n)
+        (let k t2)
+        (let tmp (vector-ref Rx k))
+        (let drx  (kernel((x Rx))
+                    (- (var x) (var tmp))))
+        (let tmp (vector-ref Ry k))
+        (let dry  (kernel((y Ry))
+                    (- (var y) (var tmp))))
+        (let tmp (vector-ref Rz k))
+        (let drz  (kernel((z Rz))
+                    (- (var z) (var tmp))))
+        ;;r = drx.*drx + dry.*dry + drz.*drz;
+        (let sq_drx (kernel((x drx))
+                      (^ (var x) 2)))
+        (let sq_dry (kernel((y dry))
+                      (^ (var y) 2)))
+        (let sq_drz (kernel((z drz))
+                      (^ (var z) 2)))
+        (let r  (kernel((x sq_drx) (y dry) (z drz))
+                  (+ (+ (var x)(var y)) (var  z) )))
+        (let tmp  (vector-ref m k))
+        ;;r(k)  = 1;
+        (vector-set! (var r) (var k)  1)
+        ;;M = M*m(k);
+        (let M  (kernel((m1 m))
+                  (* (var m1) (var tmp))))
+        (vector-set! M k 0)
+        ;;f=G*(M./r);
+        (let f  (kernel((m M)(r1 r))
+                    (* (/ (var m) (var r1)) (var G) )))
+        ;;find the unit direction vector
+        ;;r = sqrt(r) 
+        ;;sqrt() is possibly causing some error; replacing it with some binop
+        (let r  (kernel((r1 r))
+                  (* (var r1) (var r1))))
+        ;;
+        (let drx  (kernel((d drx)(r1 r))
+                    (/ (var d) (var r1))))
+        (let dry  (kernel((d dry)(r1 r))
+                    (/ (var d) (var r1))))
+        (let drz  (kernel((d drz)(r1 r))
+                    (/ (var d) (var r1))))
+        (let frx  (kernel((f1 f) (f2 frx))
+                    (* (var f1) (var f2)  )))
+        (let fry  (kernel((f1 f) (f2 fry))
+                    (* (var f1) (var f2) )))
+        (let frz  (kernel((f1 f) (f2 frz))
+                    (* (var f1) (var f2) )))
+        (let tmp1 (reduce +
+                    (kernel((f frx))
+                      (var f))))
+        (let tmp2 (reduce +
+                    (kernel((f fry))
+                      (var f))))
+        (let tmp3 (reduce +
+                    (kernel((f frz))
+                      (var f))))
+        (vector-set!  Fx k  (/ (var tmp1) (length (var frx))))           
+        (vector-set!  Fy k  (/ (var tmp2) (length (var fry))))           
+        (vector-set!  Fz k  (/ (var tmp3) (length (var frz))))           
+        )
+      (let ax (kernel((f Fx)(m1 m))
+                (/ (var f) (var m1)))) 
+      (let ay (kernel((f Fy)(m1 m))
+                (/ (var f) (var m1)))) 
+      (let az (kernel((f Fz)(m1 m))
+                (/ (var f) (var m1)))) 
+
+      ;;Vx = Vx+ax*dT;
+      ;;Vy = Vy+ay*dT;
+      ;;Vz = Vz+az*dT;
+      
+      (let Vx (kernel((v Vx)(a ax))
+                (+ (* (var v) (var dT)) (var a))))
+      (let Vy (kernel((v Vy)(a ay))
+                (+ (* (var v) (var dT)) (var a))))
+      (let Vz (kernel((v Vz)(a az))
+                (+ (* (var v) (var dT)) (var a))))
+      
+      
+      ;;Rx = Rx+Vx*dT;
+      ;;Ry = Ry+Vy*dT;
+      ;;Rz = Rz+Vz*dT;
+
+      (let Rx (kernel((v Vx)(a Rx))
+                (+ (* (var v) (var dT)) (var a))))
+      (let Ry (kernel((v Vy)(a Ry))
+                (+ (* (var v) (var dT)) (var a))))
+      (let Rz (kernel((v Vz)(a Rz))
+                (+ (* (var v) (var dT)) (var a))))
+      )
+    (return 0)))
