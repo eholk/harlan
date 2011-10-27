@@ -13,7 +13,7 @@
 (library
  (util mk)
  (export == ==-check fresh conde run fail succeed conda unify project lambdag@
-         allow-non-ground-variables)
+         allow-non-ground-variables walk*)
  (import (rnrs)
 	 (only (chezscheme) pretty-print make-parameter))
 
