@@ -11,6 +11,7 @@
 #include <mach/mach_time.h>
 #endif
 
+#include <iostream>
 #include <fstream>
 
 using namespace std;
@@ -66,4 +67,9 @@ void write_pgm(char *filename, int *data) {
             p = 255;
         f << p << " ";
     }
+}
+
+// (int u64) -> void
+void print_int_u64(int x, uint64_t y) {
+  cout << x << "\t" << y << endl;
 }

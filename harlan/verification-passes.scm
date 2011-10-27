@@ -10,7 +10,15 @@
     verify-returnify-kernels
     verify-remove-nested-kernels
     verify-uglify-vectors
-    verify-annotate-free-vars)
+    verify-annotate-free-vars
+    #|
+    verify-hoist-kernels
+    verify-move-gpu-data
+    verify-generate-kernel-calls
+    verify-compile-module
+    verify-convert-types
+    verify-compile-kernels
+    |#)
   (import
     (rnrs)
     (util helpers)
@@ -274,6 +282,26 @@
         (for (Var Expr Expr) Stmt *)
         (while Expr Stmt *)
         (do Expr *)
-        Ret-Stmt)))
+        Ret-Stmt))
 
+    #|
+    (hoist-kernels
+      (Start wildcard))
+
+    (move-gpu-data
+      (%inherits Start))
+
+    (generate-kernel-calls
+      (%inherits Start))
+
+    (compile-module
+      (%inherits Start))
+
+    (convert-types
+      (%inherits Start))
+
+    (compile-kernels
+      (%inherits Start))
+    |#
+    )
   )

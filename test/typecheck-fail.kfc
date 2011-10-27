@@ -1,0 +1,9 @@
+;; -*- scheme -*-
+
+; xfail
+
+(module
+  (fn main ()
+      (let x (+ 0 0))
+      (print x)
+      (return 0)))
