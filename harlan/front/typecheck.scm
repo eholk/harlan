@@ -9,7 +9,9 @@
     lookup)
   (import
    (rnrs)
-   (util mk))
+   (util cKanren mk)
+   (util cKanren ck)
+   (util cKanren pref))
 
 ;;; ********************************* FIX ME !!!! ****
 
@@ -54,13 +56,7 @@
          (== type 'u64)))
       ((fresh (n)
          (== expr `(num ,n))
-         (conda
-          ((== expro `(int ,n))
-           (== type 'int))
-          ((== expro `(u64 ,n))
-           (== type 'u64))
-          ((== expro `(float ,n))
-           (== type 'float)))))
+         (prefo type '(int u64 float))))
       ((fresh (n)
          (== expr `(float ,n))
          (== expro `(float ,n))
@@ -326,4 +322,5 @@
          (error 'typecheck
                 "Could not infer a unique type for program"
                 result))))))
+
 )
