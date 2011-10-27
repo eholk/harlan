@@ -11,8 +11,8 @@
     (let Vx (vector 0 0 0 0 0 0 0 0 0 0 ))
     (let Vy (vector 0 0 0 0 0 0 0 0 0 0 ))
     (let Vz (vector 0 0 0 0 0 0 0 0 0 0 ))
-    ;;(set! G  0.000000000001)
-    (set! G  1)
+    (let G  0.000000000001)
+    ;;(set! G  1)
     ;;for t1 = 1:dT:T
     (for (t1 1 T)
       (for (t2 1 n)
