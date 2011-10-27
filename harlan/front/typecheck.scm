@@ -153,16 +153,17 @@
   (lambda (e env)
     (conde
       ((== #f #f))
-      ((lambda (s)
-         (if (verbose)
-             (begin
-               (printf "~aBacktracking in typecheck on ~s in environment:~a\n"
-                 (set-color-string 'blue)
-                 (walk* e s)
-                 (set-color-string 'default))
-               (pretty-print (walk* env s))))
-         ((== #f #f) s))
-       (== #f #t)))))
+      ((lambda (a)
+         (let ((s (car a)))
+           (if (verbose)
+               (begin
+                 (printf "~aBacktracking in typecheck on ~s in environment:~a\n"
+                         (set-color-string 'blue)
+                         (walk* e s)
+                         (set-color-string 'default))
+                 (pretty-print (walk* env s))))
+           ((== #f #f) s)))
+         (== #f #t)))))
 
 (define infer-args
   (lambda (env args arg-types argso)
