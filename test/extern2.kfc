@@ -3,5 +3,6 @@
 (module
  (extern nanotime () -> u64)
  (fn main ()
-     (print (nanotime))
+     (let x (nanotime))
+     (print x)
      (return 0)))

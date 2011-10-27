@@ -12,10 +12,13 @@
 
 (library
  (util mk)
- (export == ==-check fresh conde run fail succeed conda unify project lambdag@)
+ (export == ==-check fresh conde run fail succeed conda unify project lambdag@
+         allow-non-ground-variables walk*)
  (import (rnrs)
-	 (only (chezscheme) pretty-print))
-         
+	 (only (chezscheme) pretty-print make-parameter))
+
+ (define allow-non-ground-variables (make-parameter #f))
+ 
 (define-syntax lambdag@
   (syntax-rules ()
     ((_ (s) e) (lambda (s) e))))
@@ -136,10 +139,13 @@
   (lambda (v s v^)
     (let ((v (walk v s)))
       (cond
-        ((var? v) 
-	 (pretty-print v^)
-	 (error 'reify-name
-		"Non-ground variable" v^))
+        ((var? v)
+         (if (allow-non-ground-variables)
+             (ext-s v (reify-name (size-s s)) s)
+             (begin
+               (pretty-print v^)
+               (error 'reify-name
+                      "Non-ground variable" v^))))
         ((pair? v) (reify-s^ (cdr v) (reify-s^ (car v) s v^) v^))
         (else s)))))
 

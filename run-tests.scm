@@ -7,6 +7,7 @@
 
 (define failures (make-parameter 0))
 (define successes (make-parameter 0))
+(define ignored (make-parameter 0))
 
 (define (join-path . components)
   (join (string (directory-separator)) components))
@@ -28,10 +29,8 @@
                   (if (error? x)
                       (begin
                         (failures (add1 (failures)))
-                        (set-color 'red)
-                        (printf "FAILED\n")
-                        (set-color 'default)
-                        (k 'failed))))
+                        (with-color 'red (printf "FAILED\n"))
+                        (k #f))))
                 (lambda ()
                   (let ((c++ (harlan->c++ source)))
                     (begin
@@ -39,13 +38,19 @@
                       (printf "OK\n")
                       'success))))))))
 
-(define (do-all-tests)
+(define (do-*all*-the-tests)
   (begin
     (map do-test (enumerate-tests))
-    (printf "Successes: ~s\nFailures: ~s\nTotal: ~s\n"
-      (successes) (failures) (+ (successes) (failures)))))
+    (printf "Successes: ~a; Failures: ~a; Ignored: ~a; Total: ~a\n"
+      (format-in-color 'green (successes))
+      (format-in-color 'red (failures))
+      (format-in-color 'yellow (ignored))
+      (+ (successes) (failures) (ignored)))
+    (zero? (failures))))
 
 (if (null? (cdr (command-line)))
-    (do-all-tests)
+    (if (do-*all*-the-tests)
+        (exit)
+        (exit #f))
     (let ((test-name (cadr (command-line))))
       (harlan->c++ (read (open-input-file test-name)))))

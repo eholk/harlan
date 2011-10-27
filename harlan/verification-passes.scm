@@ -9,7 +9,6 @@
     verify-lower-vectors
     verify-returnify-kernels
     verify-remove-nested-kernels
-    verify-returnify-kernels
     verify-uglify-vectors
     verify-annotate-free-vars
     #|
