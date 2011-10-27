@@ -18,6 +18,7 @@
     (only (chezscheme)
       printf
       trace-define
+      trace-define-syntax
       errorf
       pretty-print
       with-output-to-string)
@@ -154,10 +155,17 @@
                  prg)))))))
 
 (define-syntax (grammar-transforms x)
+  (define (form-pred proc)
+    (lambda (syn)
+      (let ((sym (syntax->datum syn)))
+        (and (symbol? sym)
+             (proc (string-ref (symbol->string sym) 0))))))
+  (define nonterminal? (form-pred char-upper-case?))
+  (define terminal? (form-pred char-lower-case?))
   (define (lookup-nt inp parent)
     (syntax-case parent ()
       (() (errorf 'lookup-nt
-            "You fucked up writing some inheritance for ~s" inp))
+            "Missing parent nonterminal for inheritance of ~s" inp))
       (((nt . t*) . rest)
        (if (eq? (syntax->datum #'nt) (syntax->datum inp))
            #'(nt . t*)
@@ -168,25 +176,46 @@
       ((nt . rest)
        #`(#,(lookup-nt #'nt parent) .
           #,(add-nts parent #'rest)))))
+  (define deep-filter
+    (lambda (pred ls)
+      (cond
+        ((null? ls) '())
+        ((pair? (car ls))
+         (append (deep-filter pred (car ls))
+           (deep-filter pred (cdr ls))))
+        ((pred (car ls))
+         (cons (car ls) (deep-filter pred (cdr ls))))
+        (else (deep-filter pred (cdr ls))))))
+  (define (used-nonterms t*)
+    (let ((t* (map syntax->datum (deep-filter nonterminal? t*))))
+      (lambda (sclause)
+        (let ((nt (car (syntax->datum sclause))))
+          #t
+          #;(memq nt t*)
+          ))))
   (define (add-static/inherits passes sclause*)
     (let loop ((passes passes))
       (syntax-case passes (%inherits)
-        (((pass clause* ...))
-         #`(generate-verify pass clause* ... . #,sclause*))
-        (((pass0 clause0* ...)
-          (pass1 (%inherits nt* ...) clause1* ...)
+        (((pass (nt* t* ...) ...))
+         (with-syntax ((relevant-statics (filter (used-nonterms #'(t* ... ...)) sclause*)))
+           #`(generate-verify pass (nt* t* ...) ... . relevant-statics)))
+        (((parent (nt* t* ...) ...)
+          (child (%inherits i-nt* ...) clause* ...)
           . rest)
-         (with-syntax ((inherited (add-nts #'(clause0* ...) #'(nt* ...))))
+         (with-syntax
+             ((relevant-statics (filter (used-nonterms #'(t* ... ...)) sclause*))
+              (inherited (add-nts #'((nt* t* ...) ...) #'(i-nt* ...))))
            #`(begin
-               (generate-verify pass0 clause0* ... . #,sclause*)
-               #,(loop #'((pass1 clause1* ... . inherited) . rest)))))
-        (((pass clause* ...) . rest)
-         #`(begin
-             (generate-verify pass clause* ... . #,sclause*)
-             #,(loop #'rest))))))
+               (generate-verify parent (nt* t* ...) ... . relevant-statics)
+               #,(loop #'((child clause* ... . inherited) . rest)))))
+        (((pass (nt* t* ...) ...) . rest)
+         (with-syntax ((relevant-statics (filter (used-nonterms #'(t* ... ...)) sclause*)))
+           #`(begin
+               (generate-verify pass (nt* t* ...) ... . relevant-statics)
+               #,(loop #'rest)))))))
   (syntax-case x (%static)
-    ((_ (%static . sclause*) . passes)
-     (add-static/inherits #'passes #'sclause*))))
+    ((_ (%static sclause* ...) . passes)
+     (add-static/inherits #'passes #'(sclause* ...)))))
 
 )
 

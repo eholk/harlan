@@ -285,7 +285,7 @@
         Ret-Stmt))
 
     #|
-    (hoist-kernels
+    (hoist-kernels (%inherits Decl Let-Expr Expr Ret-Stmt)
       (Start wildcard))
 
     (move-gpu-data

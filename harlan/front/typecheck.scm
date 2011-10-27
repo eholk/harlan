@@ -121,7 +121,7 @@
            ((== op 'mod))
            ((== op '/)))
          (prefo type '(int u64 float))
-         ;;(report-backtrack `(,op ,e1 ,e2) env)
+         (report-backtrack `(,op ,e1 ,e2) env)
          (infer-expr e1 env type e1^)
          (infer-expr e2 env type e2^)))
       ((fresh (e e^)
@@ -157,9 +157,9 @@
          (if (verbose)
              (begin
                (printf "~aBacktracking in typecheck on ~s in environment:~a\n"
-                       (set-color-string 'blue)
-                       (walk* e s)
-                       (set-color-string 'default))
+                 (set-color-string 'blue)
+                 (walk* e s)
+                 (set-color-string 'default))
                (pretty-print (walk* env s))))
          ((== #f #f) s))
        (== #f #t)))))
