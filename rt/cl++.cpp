@@ -3,7 +3,6 @@
  *  CLmandelbrot
  *
  *  Created by eholk on 12/3/10.
- *  Copyright 2010 __MyCompanyName__. All rights reserved.
  *
  */
 
@@ -37,19 +36,44 @@ device::operator cl_device_id() const
 device_list::device_list(cl_device_type type)
 : type(type), num_ids(0), devices(NULL)
 {
-  // Get the default platform
-  cl_platform_id platform;
-  cl_uint nPlatform = 0;
-  CL_CHECK(clGetPlatformIDs(1, &platform, &nPlatform));
-  assert(nPlatform > 0);
+    cl_int status = 0;
+
+    // Find the platforms.
+    cl_platform_id *platforms;
+    cl_uint nPlatforms = 0;
+    CL_CHECK(clGetPlatformIDs(0, NULL, &nPlatforms));
+    assert(nPlatforms > 0);
+
+    platforms = new cl_platform_id[nPlatforms];
+    CL_CHECK(clGetPlatformIDs(nPlatforms, platforms, &nPlatforms));
+
+    // Find out how many devices there are.
+    cl_uint n_dev = 0;
+    for(int i = 0; i < nPlatforms; ++i) {
+        status = clGetDeviceIDs(platforms[i], type, CL_UINT_MAX, NULL, &n_dev);
+        if(CL_DEVICE_NOT_FOUND == status)
+            continue;
+        CL_CHECK(status);
+        num_ids += n_dev;
+        break;
+    }
   
-  // Find out how many devices there are.
-  CL_CHECK(clGetDeviceIDs(platform, type, CL_UINT_MAX, NULL, &num_ids));
+    // Allocate memory, gather information about all the devices.
+    devices = new cl_device_id[num_ids];
   
-  // Allocate memory, gather information about all the devices.
-  devices = new cl_device_id[num_ids];
-  
-  CL_CHECK(clGetDeviceIDs(platform, type, num_ids, devices, NULL));
+    size_t offset = 0;
+    for(int i = 0; i < nPlatforms; ++i) {
+        status = clGetDeviceIDs(platforms[i], type, CL_UINT_MAX,
+                                devices + offset, &n_dev);
+        if(CL_DEVICE_NOT_FOUND == status)
+            continue;
+        CL_CHECK(status);
+        offset += n_dev;
+    }
+
+    cerr << "found " << num_ids << " devices" << endl;
+
+    delete [] platforms;
 }
 
 device_list::~device_list()
