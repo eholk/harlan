@@ -30,34 +30,77 @@
                  (lambda ()
                    body ...)))))))
 
+(define (read-source path)
+  (let* ((file (open-input-file path))
+         (source (read file)))
+    (match source
+      ((%testspec ,[parse-testspec -> spec*] ...)
+       (values (read file) spec*))
+      ((module ,decl* ...)
+       (values source '())))))
+
+(define (parse-testspec spec)
+  (match spec
+    (xfail `(xfail))
+    ((iterate ,iterspec* ...)
+     `(iterate . ,iterspec*))
+    (,else (error 'parse-testspec "Invalid test specification" else))))
+
+(define (iterate source iters yield)
+  (if (null? iters)
+      (yield source)
+      (begin
+        (match (car iters)
+          ((,x (range ,start ,stop))
+           (let loop ((i start))
+             (if (= i stop)
+                 (iterate (substq i x source) (cdr iters) yield)
+                 (begin
+                   (iterate (substq i x source) (cdr iters) yield)
+                   (loop (add1 i))))))
+          ((,x (range ,start ,stop ,step))
+           (let loop ((i start))
+             (if (<= i stop)
+                 (begin
+                   (iterate (substq i x source) (cdr iters) yield)
+                   (loop (+ step i))))))
+          (,else (error 'iterate "Invalid iteration clause" else))))))
+
+
 (define (do-test test)
-  (let ((path (join-path "test" test))
-        (bin-path (join-path "./test.bin" (string-append test ".bin")))
-        (out-path (join-path "./test.bin" (string-append test ".out"))))
+  (let* ((path (join-path "test" test))
+         (bin-path (join-path "./test.bin" (string-append test ".bin")))
+         (out-path (join-path "./test.bin" (string-append test ".out")))
+         (test-source
+          (lambda (source)
+            (printf "Generating C++...")
+            (try (catch (x)
+                   (if (error? x)
+                       (begin
+                         (failures (add1 (failures)))
+                         (with-color 'red (printf "FAILED\n")))))
+                 (let ((c++ (harlan->c++ source)))
+                   (printf "OK\n")
+                   (printf "Compiling...")
+                   (g++-compile-stdin c++ bin-path)
+                   (printf "OK\n")
+                   (printf "Running test...")
+                   (if (zero? (system (string-append bin-path " >> " out-path)))
+                       (begin
+                         (successes (add1 (successes)))
+                         (with-color 'green (printf "OK\n")))
+                       (error 'do-test "Test execution failed.")))))))
     (printf "Test ~a\n" path)
-    (let ((source (read (open-input-file path))))
-      (match source
-        ((%testspec xfail)
-         (ignored (add1 (ignored)))
-         (with-color 'yellow (printf "IGNORED\n")))
-        (,else
-         (printf "Generating C++...")
-         (try (catch (x)
-                (if (error? x)
-                    (begin
-                      (failures (add1 (failures)))
-                      (with-color 'red (printf "FAILED\n")))))
-              (let ((c++ (harlan->c++ source)))
-                (printf "OK\n")
-                (printf "Compiling...")
-                (g++-compile-stdin c++ bin-path)
-                (printf "OK\n")
-                (printf "Running test...")
-                (if (zero? (system (string-append bin-path " > " out-path)))
-                    (begin
-                      (successes (add1 (successes)))
-                      (with-color 'green (printf "OK\n")))
-                    (error 'do-test "Test execution failed.")))))))))
+    (let-values (((source spec) (read-source path)))
+      (if (assq 'xfail spec)
+          (begin
+            (ignored (add1 (ignored)))
+            (with-color 'yellow (printf "IGNORED\n")))
+          (begin
+            (delete-file out-path)
+            (if (assq 'iterate spec)
+                (iterate source (cdr (assq 'iterate spec)) test-source)
+                (test-source source)))))))
 
 (define (do-*all*-the-tests)
   (begin

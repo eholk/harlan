@@ -1,0 +1,12 @@
+;; -*- scheme -*-
+
+(%testspec
+ (iterate
+  (N (range 1 10))
+  (M (range 1 2))))
+
+(module
+  (fn main ()
+      (print N)
+      (print M)
+      (return 0)))
