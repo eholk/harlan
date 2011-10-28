@@ -31,6 +31,8 @@
    (u64 "uint64_t")
    ((ptr ,[t])
     (string-append "__global " t "*"))
+   ((const-ptr ,[t])
+    (string-append "__global const " t "*"))
    ((,[t] ,[t*] ...)
     (if (null? t*)
         t

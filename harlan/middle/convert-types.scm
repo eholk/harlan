@@ -88,7 +88,7 @@
   (u64 'uint64_t)
   (float 'float)
   (void 'void)
-  (str '(ptr char))
+  (str '(const-ptr char))
   (cl::kernel 'cl::kernel)
   ((cl::buffer ,[t]) `(cl::buffer ,t))
   ((cl::buffer_map ,[t]) `(cl::buffer_map ,t))

@@ -1,6 +1,6 @@
 (library
   (harlan compiler)
-  (export compile-harlan harlan->c++)
+  (export compile-harlan harlan->c++ g++-compile-stdin)
   (import
    (chezscheme)
    (only (util helpers) join)
@@ -48,10 +48,12 @@
          (join " " (append `("g++"
                              "-x c++ - -x none"
                              "rt/libharlanrt.a"
+                             "gc/lib/libgc.a"
+                             "-Irt"
+                             "-Igc/include"
                              "-o" ,outfile)
                            (get-cflags)
                            args))))
-    (write command)
     (let-values (((to-stdin from-stdout from-stderr proccess-id)
                   (open-process-ports command 'block (native-transcoder))))
       (display src to-stdin)
@@ -59,7 +61,5 @@
       (let ((errors (read-all from-stderr)))
         (if (string=? "" errors)
             #t ;; Assume that if we get no stderr data then g++ succeeded.
-            (begin
-              (display errors)
-              #f))))))
+            (error 'g++-compile-stdin errors))))))
 )

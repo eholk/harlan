@@ -53,7 +53,7 @@ int *rotate_4_int_vec(int *v, int j) {
 }
 
 // (str (vector (vector int 1024) 1024)) -> void
-void write_pgm(char *filename, int *data) {
+void write_pgm(const char *filename, int *data) {
     ofstream f(filename);
 
     f << "P2" << endl;

@@ -1,7 +1,0 @@
-;; -*- scheme -*-
-
-(module
-  (extern printf (str) -> void)
-  (fn main ()
-      (printf "Hello, World!\n")
-      (return 0)))
