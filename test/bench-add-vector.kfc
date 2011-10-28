@@ -1,34 +1,32 @@
 ;; -*- scheme -*-
 ;; Vector sum
 
-; We only support constant sized vectors now.
+(%testspec
+ (iterate
+  (iters (range 10 10))
+  (len (range 100000 10000000 100000))))
 
 (module
   (extern nanotime () -> u64)
   (extern print_int_u64 (int u64) -> void)
 
   (fn main ()
-      ; for some reason we're running out of RAM when iters > 1
-      (let iters 1)
-      
-      (for (i 1 101)
-           (let len (* (var i) 100000))
-           (let ttime 0)
-           (for (k 0 (var iters))
-                ;; TODO: make these vectors of length len
-                (let X (make-vector 1000))
-                (let Y (make-vector 1000))
-                (for (j 0 1000)
-                     (vector-set! (var X) (var j) 1)
-                     (vector-set! (var Y) (var j) 1))
-                (let start (nanotime))
-                (let Sum (kernel ((x (var X)) (y (var Y)))
-                                 (+ (var x) (var y))))
-                (let stop (nanotime))
-                
-                (for (m 0 1000)
-                  (assert (= (vector-ref Sum (var m)) 2)))
-                
-                (set! (var ttime) (+ (var ttime) (- (var stop) (var start)))))                     
-           (print_int_u64 1000 (var ttime)))
+      (let ttime 0)
+      (for (k 0 iters)
+           ;; TODO: make these vectors of length len
+           (let X (make-vector len))
+           (let Y (make-vector len))
+           (for (j 0 len)
+                (vector-set! (var X) (var j) 1)
+                (vector-set! (var Y) (var j) 1))
+           (let start (nanotime))
+           (let Sum (kernel ((x (var X)) (y (var Y)))
+                            (+ (var x) (var y))))
+           (let stop (nanotime))
+           
+           (for (m 0 len)
+                (assert (= (vector-ref Sum (var m)) 2)))
+           
+           (set! (var ttime) (+ (var ttime) (- (var stop) (var start)))))
+      (print_int_u64 1000 (/ (/ (var ttime) 1000) iters))
       (return 0)))

@@ -1,31 +1,31 @@
 ;; -*- scheme -*-
 ;; Dense dot product between two vectors.
 
+(%testspec
+ (iterate
+  (iters (range 10 10))
+  (len (range 100000 10000000 100000))))
+
 (module
   (extern nanotime () -> u64)
   (extern print_int_u64 (int u64) -> void)
   
   (fn main ()
-      (let iters 1)
-      (for (i 1 101)
-           (let len (* i 100000))
-           ;; (let len (* i 100))
-           (let ttime 0)
-           (for (k 0 iters)
-                ;; TODO: make these vectors of length len
-                (let X (make-vector 1000))
-                (let Y (make-vector 1000))
-                (for (j 0 1000)
-                     (vector-set! X j 1)
-                     (vector-set! Y j 1))
-                (let start (nanotime))
-                (let dot (reduce + (kernel ((x X) (y Y))
-                                     (* x y))))
-                (let stop (nanotime))
-                (set! ttime (+ ttime (- stop start)))
-                ;;(assert (= dot len))
-                (assert (= dot 1000)))
-           (print_int_u64 len ttime))
+      (let ttime 0)
+      (for (k 0 iters)
+           ;; TODO: make these vectors of length len
+           (let X (make-vector len))
+           (let Y (make-vector len))
+           (for (j 0 len)
+                (vector-set! X j 1)
+                (vector-set! Y j 1))
+           (let start (nanotime))
+           (let dot (reduce + (kernel ((x X) (y Y))
+                                      (* x y))))
+           (let stop (nanotime))
+           (set! ttime (+ ttime (- stop start)))
+           (assert (= dot len)))
+      (print_int_u64 len (/ (/ ttime 1000) iters))
       (return 0)))
 
 ;; (module

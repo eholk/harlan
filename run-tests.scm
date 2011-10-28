@@ -4,7 +4,8 @@
         (util color)
         (util match)
         (only (util helpers) join)
-        (harlan compiler))
+        (harlan compiler)
+        (harlan compile-opts))
 
 (define failures (make-parameter 0))
 (define successes (make-parameter 0))
@@ -111,6 +112,8 @@
       (format-in-color (if (zero? (ignored)) 'green 'yellow) (ignored))
       (+ (successes) (failures) (ignored)))
     (zero? (failures))))
+
+;;(verbose #t)
 
 (if (null? (cdr (command-line)))
     (if (do-*all*-the-tests)
