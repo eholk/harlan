@@ -53,7 +53,7 @@
                 (g++-compile-stdin c++ bin-path)
                 (printf "OK\n")
                 (printf "Running test...")
-                (if (system (string-append bin-path " > " out-path))
+                (if (zero? (system (string-append bin-path " > " out-path)))
                     (begin
                       (successes (add1 (successes)))
                       (with-color 'green (printf "OK\n")))

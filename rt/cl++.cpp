@@ -37,19 +37,19 @@ device::operator cl_device_id() const
 device_list::device_list(cl_device_type type)
 : type(type), num_ids(0), devices(NULL)
 {
-	// Get the default platform
-	cl_platform_id platform;
-	cl_uint nPlatform = 0;
-	CL_CHECK(clGetPlatformIDs(1, &platform, &nPlatform));
-	assert(nPlatform > 0);
-
-    // Find out how many devices there are.
-    CL_CHECK(clGetDeviceIDs(platform, type, CL_UINT_MAX, NULL, &num_ids));
-
-    // Allocate memory, gather information about all the devices.
-    devices = new cl_device_id[num_ids];
-
-    CL_CHECK(clGetDeviceIDs(platform, type, num_ids, devices, NULL));
+  // Get the default platform
+  cl_platform_id platform;
+  cl_uint nPlatform = 0;
+  CL_CHECK(clGetPlatformIDs(1, &platform, &nPlatform));
+  assert(nPlatform > 0);
+  
+  // Find out how many devices there are.
+  CL_CHECK(clGetDeviceIDs(platform, type, CL_UINT_MAX, NULL, &num_ids));
+  
+  // Allocate memory, gather information about all the devices.
+  devices = new cl_device_id[num_ids];
+  
+  CL_CHECK(clGetDeviceIDs(platform, type, num_ids, devices, NULL));
 }
 
 device_list::~device_list()
@@ -76,10 +76,10 @@ device device_list::operator[](int index)
 
 context::context(device_list &devices)
 {
-	cl_int status;
-	ctx = clCreateContext(0, devices.count(), devices.ids(),
-						  sLogError, this, &status);
-	CL_CHECK(status);
+  cl_int status;
+  ctx = clCreateContext(0, devices.count(), devices.ids(),
+                        sLogError, this, &status);
+  CL_CHECK(status);
 }
 
 context::~context()
@@ -219,16 +219,18 @@ program context::createProgramFromSourceFile(ifstream &input)
 
 program context::createProgramFromSource(string src)
 {
-	const char *c_src = src.c_str();
-    // cout << src << endl;
-	return program(clCreateProgramWithSource(ctx, 1, &c_src, NULL, NULL));
+  const char *c_src = src.c_str();
+  cl_int status;
+  cl_program p = clCreateProgramWithSource(ctx, 1, &c_src, NULL, &status);
+  CL_CHECK(status);
+  return program(p);
 }
 
 command_queue context::createCommandQueue(cl_device_id dev)
 {
 	cl_int status;
 
-	cout << "Creating queue for " << device(dev).name() << endl;
+	cerr << "Creating queue for " << device(dev).name() << endl;
 
 	cl_command_queue q = clCreateCommandQueue(ctx,
 						  dev,
@@ -248,30 +250,30 @@ void cl::handle_error(const char *code, cl_int e)
  
     HANDLE(CL_BUILD_PROGRAM_FAILURE)
     HANDLE(CL_COMPILER_NOT_AVAILABLE)
-	HANDLE(CL_DEVICE_NOT_FOUND)
+    HANDLE(CL_DEVICE_NOT_FOUND)
     HANDLE(CL_INVALID_BINARY)
     HANDLE(CL_INVALID_BUILD_OPTIONS)
     HANDLE(CL_INVALID_COMMAND_QUEUE)
     HANDLE(CL_INVALID_CONTEXT)
     HANDLE(CL_INVALID_DEVICE)
-	HANDLE(CL_INVALID_DEVICE_TYPE)
+    HANDLE(CL_INVALID_DEVICE_TYPE)
     HANDLE(CL_INVALID_EVENT_WAIT_LIST)
     HANDLE(CL_INVALID_GLOBAL_OFFSET)
-	//HANDLE(CL_INVALID_GLOBAL_WORK_SIZE)
+    //HANDLE(CL_INVALID_GLOBAL_WORK_SIZE)
     HANDLE(CL_INVALID_IMAGE_SIZE)
-	HANDLE(CL_INVALID_KERNEL)
+    HANDLE(CL_INVALID_KERNEL)
     HANDLE(CL_INVALID_KERNEL_ARGS)
     HANDLE(CL_INVALID_OPERATION)
     HANDLE(CL_INVALID_PLATFORM)
-	HANDLE(CL_INVALID_PROGRAM)
-	HANDLE(CL_INVALID_PROGRAM_EXECUTABLE)
+    HANDLE(CL_INVALID_PROGRAM)
+    HANDLE(CL_INVALID_PROGRAM_EXECUTABLE)
     HANDLE(CL_INVALID_QUEUE_PROPERTIES)
     HANDLE(CL_INVALID_VALUE)
     HANDLE(CL_INVALID_WORK_DIMENSION)
     HANDLE(CL_INVALID_WORK_GROUP_SIZE)
     HANDLE(CL_INVALID_WORK_ITEM_SIZE)
     HANDLE(CL_MEM_OBJECT_ALLOCATION_FAILURE)
-	//HANDLE(CL_MISALIGNED_SUB_BUFFER_OFFSET)
+    //HANDLE(CL_MISALIGNED_SUB_BUFFER_OFFSET)
     HANDLE(CL_OUT_OF_RESOURCES)
     HANDLE(CL_OUT_OF_HOST_MEMORY)
 

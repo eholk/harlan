@@ -19,14 +19,17 @@ enum error {
 
 #include "cl++.h"
 
-// FIXME: These global variables will cause link errors if we ever
-// combine multiple files into a Harlan program.
-cl::device_list g_devices(CL_DEVICE_TYPE_GPU |
-						  CL_DEVICE_TYPE_CPU |
-						  CL_DEVICE_TYPE_ACCELERATOR |
-						  0);
+cl_device_type get_device_type();
+
+#ifndef NO_GLOBALS
+cl::device_list g_devices(get_device_type());
 cl::context g_ctx(g_devices);
 cl::command_queue g_queue(g_ctx.createCommandQueue(g_devices[0]));
+#else
+extern cl::device_list g_devices;
+extern cl::context g_ctx;
+extern cl::command_queue g_queue;
+#endif
 
 template<typename T>
 class vector {
@@ -111,13 +114,6 @@ void print(T1 n1, T2 n2) {
   std::cout << n1 << "\t" << n2 << std::endl;
 }
 
-
-void print(void *) {
-  // We no longer have enough information to actually print the
-  // contents of vectors.
-  std::cout << "[vector]" << std::endl;
-}
-
 template<typename T>
 void print(const vector<T> &v) {
     std::cout << "[" << std::endl;
@@ -139,11 +135,5 @@ void print(const vector<T> &v1, const vector<T> &v2) {
     }    
     std::cout << "]" << std::endl;
 }
-
-struct free_this {
-    void *p;
-    free_this(void *p) : p(p) {}
-    ~free_this() { GC_FREE(p); }
-};
 
 #define __global
