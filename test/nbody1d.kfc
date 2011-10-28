@@ -1,7 +1,7 @@
 ;; -*- scheme -*-
 
 ;; code for 1 dimensional nbody simulation 
-;;xfail
+(%testspec xfail)
 
 (module
   (fn main ()

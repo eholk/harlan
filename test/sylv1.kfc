@@ -1,7 +1,7 @@
 ;; -*- scheme -*-
 
 ;; code for adding two vectors, from Harlan proposal
-;;xfail
+(%testspec xfail)
 
 (module
   (fn main ()

@@ -1,5 +1,5 @@
 ;; -*- scheme -*-
-;; xfail
+(%testspec xfail)
 ;; code for adding two vectors, from Harlan proposal
 
 ;; This version uses explicit set!'s. It may not actually be legal

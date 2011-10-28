@@ -1,5 +1,5 @@
 ;; -*- scheme -*-
-;;xfail
+(%testspec xfail)
 
 ;; async kernel example from Harlan proposal
 ;; handle = async kernel(x : X, y : Y) { x * y };

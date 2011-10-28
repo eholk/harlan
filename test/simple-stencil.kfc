@@ -1,5 +1,5 @@
 ;; -*- scheme -*-
-;xfail
+(%testspec xfail)
 
 (module
   (extern rotate_4_int_vec ((vector int 4) int) -> (vector int 4))

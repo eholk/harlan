@@ -2,6 +2,7 @@
 
 (import (chezscheme)
         (util color)
+        (util match)
         (only (util helpers) join)
         (harlan compiler))
 
@@ -35,31 +36,36 @@
         (out-path (join-path "./test.bin" (string-append test ".out"))))
     (printf "Test ~a\n" path)
     (let ((source (read (open-input-file path))))
-      (printf "Generating C++...")
-      (try (catch (x)
-             (if (error? x)
-                 (begin
-                   (failures (add1 (failures)))
-                   (with-color 'red (printf "FAILED\n")))))
-           (let ((c++ (harlan->c++ source)))
-             (printf "OK\n")
-             (printf "Compiling...")
-             (g++-compile-stdin c++ bin-path)
-             (printf "OK\n")
-             (printf "Running test...")
-             (if (system (string-append bin-path " > " out-path))
-                 (begin
-                   (successes (add1 (successes)))
-                   (with-color 'green (printf "OK\n")))
-                 (error 'do-test "Test execution failed.")))))))
+      (match source
+        ((%testspec xfail)
+         (ignored (add1 (ignored)))
+         (with-color 'yellow (printf "IGNORED\n")))
+        (,else
+         (printf "Generating C++...")
+         (try (catch (x)
+                (if (error? x)
+                    (begin
+                      (failures (add1 (failures)))
+                      (with-color 'red (printf "FAILED\n")))))
+              (let ((c++ (harlan->c++ source)))
+                (printf "OK\n")
+                (printf "Compiling...")
+                (g++-compile-stdin c++ bin-path)
+                (printf "OK\n")
+                (printf "Running test...")
+                (if (system (string-append bin-path " > " out-path))
+                    (begin
+                      (successes (add1 (successes)))
+                      (with-color 'green (printf "OK\n")))
+                    (error 'do-test "Test execution failed.")))))))))
 
 (define (do-*all*-the-tests)
   (begin
     (map do-test (enumerate-tests))
     (printf "Successes: ~a; Failures: ~a; Ignored: ~a; Total: ~a\n"
       (format-in-color 'green (successes))
-      (format-in-color 'red (failures))
-      (format-in-color 'yellow (ignored))
+      (format-in-color (if (zero? (failures)) 'green 'red) (failures))
+      (format-in-color (if (zero? (ignored)) 'green 'yellow) (ignored))
       (+ (successes) (failures) (ignored)))
     (zero? (failures))))
 

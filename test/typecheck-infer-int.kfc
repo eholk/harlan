@@ -1,7 +1,5 @@
 ;; -*- scheme -*-
 
-; xfail
-
 (module
   (fn main ()
       (let x (+ 0 0))
