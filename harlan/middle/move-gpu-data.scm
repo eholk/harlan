@@ -1,14 +1,10 @@
 (library
  (harlan middle move-gpu-data)
- (export move-gpu-data verify-move-gpu-data)
+ (export move-gpu-data)
  (import
   (rnrs)
-  (util verify-grammar)
   (util match)
   (util helpers))
-
- (generate-verify move-gpu-data
-   (Module wildcard))
 
  (define-match move-gpu-data
    ((module ,[Decl -> decl*] ...)
