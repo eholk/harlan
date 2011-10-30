@@ -12,19 +12,28 @@
   (export
     grammar-transforms
     generate-verify
-    wildcard?)
+    wildcard?
+
+    ;; so that we can test on the REPL in Chez
+    %static
+    %inherits)
   (import
     (rnrs)
     (only (chezscheme)
-      printf
       trace-define
       trace-define-syntax
+      printf
       errorf
       pretty-print
       with-output-to-string)
     (harlan compile-opts))
   
 (define wildcard? (lambda (x) #t))
+
+(define-syntax (%static x)
+  (syntax-violation '%static "misplaced auxiliary keyword" x))
+(define-syntax (%inherits x)
+  (syntax-violation '%inherits "misplaced auxiliary keyword" x))
 
 ;; expands to ALL the procedures
 (define-syntax (generate-verify x)
@@ -128,7 +137,7 @@
             (or (not (nonterminal? #'a))
                 (member (syntax->datum #'a) left*)
                 (errorf (syntax->datum (verify-name pass))
-                  "Unbound nonterminal ~s in right hand side" #'a)))))))
+                  "Unbound nonterminal ~s in rhs" #'a)))))))
   
   ;; actual macro
   (syntax-case x ()
@@ -155,6 +164,7 @@
                  prg)))))))
 
 (define-syntax (grammar-transforms x)
+
   (define (form-pred proc)
     (lambda (syn)
       (let ((sym (syntax->datum syn)))
@@ -162,10 +172,11 @@
              (proc (string-ref (symbol->string sym) 0))))))
   (define nonterminal? (form-pred char-upper-case?))
   (define terminal? (form-pred char-lower-case?))
+  
   (define (lookup-nt inp parent)
     (syntax-case parent ()
       (() (errorf 'lookup-nt
-            "Missing parent nonterminal for inheritance of ~s" inp))
+            "Missing nonterminal for inheritance of ~s" inp))
       (((nt . t*) . rest)
        (if (eq? (syntax->datum #'nt) (syntax->datum inp))
            #'(nt . t*)
@@ -176,50 +187,85 @@
       ((nt . rest)
        #`(#,(lookup-nt #'nt parent) .
           #,(add-nts parent #'rest)))))
-  (define deep-filter
+  
+  (define filter*
     (lambda (pred ls)
       (cond
         ((null? ls) '())
         ((pair? (car ls))
-         (append (deep-filter pred (car ls))
-           (deep-filter pred (cdr ls))))
-        ((pred (car ls))
-         (cons (car ls) (deep-filter pred (cdr ls))))
-        (else (deep-filter pred (cdr ls))))))
-  (define (used-nonterms t*)
-    (let ((t* (map syntax->datum (deep-filter nonterminal? t*))))
-      (lambda (sclause)
-        (let ((nt (car (syntax->datum sclause))))
-          #t
-          #;(memq nt t*)
-          ))))
-  (define (add-static/inherits passes sclause*)
-    (let loop ((passes passes))
-      (syntax-case passes (%inherits)
-        (((pass (nt* t* ...) ...))
-         (with-syntax ((relevant-statics (filter (used-nonterms #'(t* ... ...)) sclause*)))
-           #`(generate-verify pass (nt* t* ...) ... . relevant-statics)))
-        (((parent (nt* t* ...) ...)
-          (child (%inherits i-nt* ...) clause* ...)
-          . rest)
-         (with-syntax
-             ((relevant-statics (filter (used-nonterms #'(t* ... ...)) sclause*))
-              (inherited (add-nts #'((nt* t* ...) ...) #'(i-nt* ...))))
-           #`(begin
-               (generate-verify parent (nt* t* ...) ... . relevant-statics)
-               #,(loop #'((child clause* ... . inherited) . rest)))))
-        (((pass (nt* t* ...) ...) . rest)
-         (with-syntax ((relevant-statics (filter (used-nonterms #'(t* ... ...)) sclause*)))
-           #`(begin
-               (generate-verify pass (nt* t* ...) ... . relevant-statics)
-               #,(loop #'rest)))))))
+         (append
+           (filter* pred (car ls))
+           (filter* pred (cdr ls))))
+        ((symbol? (car ls))
+         (if (pred (car ls))
+             (cons (car ls) (filter* pred (cdr ls)))
+             (filter* pred (cdr ls))))
+        (else
+          (filter* pred
+            (cons (syntax->datum (car ls)) (cdr ls)))))))
+  
+  (define (find-connected t* sclause*)
+    (cond
+      ((null? sclause*) t*)
+      ((let ((nt (car sclause*)))
+         (let ((nt (syntax->datum nt)))
+           (and (memq (car nt) t*) (cdr nt))))
+       =>
+       (lambda (sclause)
+         (let loop ((nt* (filter* nonterminal? sclause))
+                    (t^ t*))
+           (cond
+             ((null? nt*) (find-connected t^ (cdr sclause*)))
+             ((memq (car nt*) t^) (loop (cdr nt*) t^))
+             (else (loop (cdr nt*) (cons (car nt*) t^)))))))
+      (else (find-connected t* (cdr sclause*)))))
+  
+  (define add-used-statics
+    (lambda (t* sclause*)
+      (let loop ((t* (map syntax->datum
+                       (filter* nonterminal? t*))))
+        (let ((t^ (find-connected t* sclause*)))
+          (if (eq? t* t^)
+              (filter
+                (lambda (sclause)
+                  (let ((nt (car (syntax->datum sclause))))
+                    (memq nt t^)))
+                sclause*)
+              (loop t^))))))
+
+  (define (add-inherits passes)
+    (syntax-case passes (%inherits)
+      (((pass (nt* t* ...) ...)) #'((pass (nt* t* ...) ...)))
+      (((parent (nt* t* ...) ...)
+        (child (%inherits i-nt* ...) clause* ...) . rest)
+       (with-syntax
+           ((inherited
+              (add-nts #'((nt* t* ...) ...) #'(i-nt* ...))))
+         #`((parent (nt* t* ...) ... ) .
+            #,(add-inherits
+                #'((child clause* ... . inherited) . rest)))))
+      (((pass (nt* t* ...) ...) . rest)
+       #`((pass (nt* t* ...) ...) . #,(add-inherits #'rest)))))
+  
+  (define (add-static sclause*)
+    (lambda (pass)
+      (syntax-case pass ()
+        ((pass (nt* t* ...) ...)
+         #`(generate-verify pass (nt* t* ...) ... .
+             #,(add-used-statics #'(t* ... ...) sclause*))))))
+
   (syntax-case x (%static)
-    ((_ (%static sclause* ...) . passes)
-     (add-static/inherits #'passes #'(sclause* ...)))))
+    ((_ (%static sclause* ...) passes ...)
+     (with-syntax (((passes ...) (add-inherits #'(passes ...))))
+       (with-syntax (((passes ...)
+                      (map (add-static #'(sclause* ...))
+                        #'(passes ...))))
+         #'(begin passes ...))))))
 
 )
 
 #|
+
 
 Here's an example:
 
