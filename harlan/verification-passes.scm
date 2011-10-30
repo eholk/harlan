@@ -11,14 +11,12 @@
     verify-remove-nested-kernels
     verify-uglify-vectors
     verify-annotate-free-vars
-    #|
     verify-hoist-kernels
     verify-move-gpu-data
     verify-generate-kernel-calls
     verify-compile-module
     verify-convert-types
-    verify-compile-kernels
-    |#)
+    verify-compile-kernels)
   (import
     (rnrs)
     (util helpers)
@@ -204,7 +202,7 @@
         (vector Expr *)
         (iota (int Integer))
         Expr)
-      (Expr 
+      (Expr
         (int Integer)
         (u64 Number)
         (float Float)
@@ -220,7 +218,7 @@
     (remove-nested-kernels (%inherits Decl Ret-Stmt Let-Expr Expr Stmt)
       (Start Module))
 
-    (returnify-kernels (%inherits Decl Ret-Stmt Let-Expr Expr)
+    (returnify-kernels (%inherits Decl Ret-Stmt Expr)
       (Start Module)
       (Stmt 
         (print Expr)
@@ -233,7 +231,12 @@
         (for (Var Expr Expr) Stmt *)
         (while Expr Stmt *)
         (do Expr *)
-        Ret-Stmt))
+        Ret-Stmt)
+      (Let-Expr
+        (reduce Type Reduceop Expr)
+        (vector Expr *)
+        (iota (int Integer))
+        Expr))
 
     (uglify-vectors (%inherits Decl Ret-Stmt)
       (Start Module)
@@ -284,12 +287,11 @@
         (do Expr *)
         Ret-Stmt))
 
-    #|
-    (hoist-kernels (%inherits Decl Let-Expr Expr Ret-Stmt)
-      (Start wildcard))
+    (hoist-kernels (%inherits Decl Let-Expr Expr Ret-Stmt Stmt)
+      (Start Module))
 
     (move-gpu-data
-      (%inherits Start))
+      (Start wildcard))
 
     (generate-kernel-calls
       (%inherits Start))
@@ -302,6 +304,7 @@
 
     (compile-kernels
       (%inherits Start))
-    |#
+    
     )
-  )
+
+)

@@ -81,19 +81,16 @@
                 (let ((tmp (reverse #,inp)))
                   #,(pattern-match #'(rd ... a *) #'tmp)))))
       ((a + d ...) (pattern-match #'(a a * d ...) inp))
-      (((aa . ad) . d)
-       #`(and (pair? #,inp)
-              #,(pattern-match #'d #`(cdr #,inp))
-              #,(pattern-match #'(aa . ad) #`(car #,inp))))
       ((a . d)
-       #`(and (pair? #,inp)
-              #,(if (nonterminal? #'a)
-                    #`(and #,(pattern-match #'d #`(cdr #,inp))
-                           #,(pattern-match #'a #`(car #,inp)))
-                    #`(and (eq? 'a (car #,inp))
-                           #,(pattern-match #'d #`(cdr #,inp))))))
+       (with-syntax (((tmp) (generate-temporaries '(tmp))))
+         #`(and (pair? #,inp)
+                (let ((tmp (car #,inp)))
+                  #,(pattern-match #'a #'tmp))
+                (let ((tmp (cdr #,inp)))
+                  #,(pattern-match #'d #'tmp)))))
       (_ (nonterminal? pattern)
-        #`(#,(verify-name pattern) #,inp))))
+        #`(#,(verify-name pattern) #,inp))
+      (_ #`(eq? '#,pattern #,inp))))
   
   ;; either returns (terminal? inp)
   ;; or a boolean expression to match pairs
@@ -163,15 +160,13 @@
                    (and (start prg) prg))
                  prg)))))))
 
-(define-syntax (grammar-transforms x)
+(trace-define-syntax (grammar-transforms x)
 
   (define (form-pred proc)
-    (lambda (syn)
-      (let ((sym (syntax->datum syn)))
-        (and (symbol? sym)
-             (proc (string-ref (symbol->string sym) 0))))))
+    (lambda (sym)
+      (and (symbol? sym)
+           (proc (string-ref (symbol->string sym) 0)))))
   (define nonterminal? (form-pred char-upper-case?))
-  (define terminal? (form-pred char-lower-case?))
   
   (define (lookup-nt inp parent)
     (syntax-case parent ()
@@ -189,20 +184,21 @@
           #,(add-nts parent #'rest)))))
   
   (define filter*
-    (lambda (pred ls)
+    (lambda (pred expr)
       (cond
-        ((null? ls) '())
-        ((pair? (car ls))
+        ((pair? expr)
          (append
-           (filter* pred (car ls))
-           (filter* pred (cdr ls))))
-        ((symbol? (car ls))
-         (if (pred (car ls))
-             (cons (car ls) (filter* pred (cdr ls)))
-             (filter* pred (cdr ls))))
-        (else
-          (filter* pred
-            (cons (syntax->datum (car ls)) (cdr ls)))))))
+           (filter* pred (car expr))
+           (filter* pred (cdr expr))))
+        ((pred expr) `(,expr))
+        (else '()))))
+
+  (define syntax->datum*
+    (lambda (expr)
+      (let ((expr (syntax->datum expr)))
+        (if (pair? expr)
+            (map syntax->datum* expr)
+            expr))))
   
   (define (find-connected t* sclause*)
     (cond
@@ -222,16 +218,16 @@
   
   (define add-used-statics
     (lambda (t* sclause*)
-      (let loop ((t* (map syntax->datum
-                       (filter* nonterminal? t*))))
-        (let ((t^ (find-connected t* sclause*)))
-          (if (eq? t* t^)
-              (filter
-                (lambda (sclause)
-                  (let ((nt (car (syntax->datum sclause))))
-                    (memq nt t^)))
-                sclause*)
-              (loop t^))))))
+      (let ((fsc* (map syntax->datum* sclause*)))
+        (let loop ((t* (filter* nonterminal?
+                         (map syntax->datum* t*))))
+          (let ((t^ (find-connected t* sclause*)))
+            (if (eq? t* t^)
+                (filter
+                  (lambda (sclause)
+                    (memq (car (syntax->datum sclause)) t^))
+                  sclause*)
+                (loop t^)))))))
 
   (define (add-inherits passes)
     (syntax-case passes (%inherits)
