@@ -1,3 +1,5 @@
+set term pdfcairo
+set output "mandelbrot-sep-cmp.pdf"
 
 set ylab "Execution time (µs)
 set xlab "Iteration count"

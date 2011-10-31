@@ -2,7 +2,7 @@
 
 (%testspec
  (iterate
-  (max_iter (range 1 20000 400))))
+  (max_iter (range 1 5000 100))))
 
 (module
   (extern write_pgm (str (vector (vector int 1024) 1024)) -> void)
