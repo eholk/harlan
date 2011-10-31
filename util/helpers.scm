@@ -14,6 +14,7 @@
    reduceop?
    float?
    scalar-type?
+   c-type?
    join)
  (import
    (rnrs)
@@ -111,7 +112,12 @@
  (define (scalar-type? t)
    (case t
      ;; TODO: strings aren't quite scalars
-     ((int u64 str void str float) #t)
+     ((int u64 void str float cl::queue cl::kernel cl::program) #t)
      (else #f)))
 
- )
+(define (c-type? t)
+  (case t
+    ((int uint64_t void float cl::queue cl::kernel cl::program char) #t)
+    (else #f)))
+
+)
