@@ -210,7 +210,7 @@ command_queue::~command_queue()
 
 void command_queue::execute(kernel &k, size_t global_size, size_t local_size)
 {
-	executeND(k, 1, &global_size, &local_size);
+	executeND(k, 1, &global_size, /*&local_size*/ NULL);
 }
 
 void command_queue::executeND(kernel &k, size_t dimensions,

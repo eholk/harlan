@@ -15,17 +15,14 @@
       (for (k 0 iters)
            ;; TODO: make these vectors of length len
            (let X (make-vector len))
-           (let Y (make-vector len))
            (for (j 0 len)
-                (vector-set! (var X) (var j) 1)
-                (vector-set! (var Y) (var j) 1))
+                (vector-set! (var X) (var j) 1))
            (let start (nanotime))
-           (let Sum (kernel ((x (var X)) (y (var Y)))
-                            (+ (var x) (var y))))
+           (let Sum (kernel ((x X)) x))
            (let stop (nanotime))
            
            (for (m 0 len)
-                (assert (= (vector-ref Sum (var m)) 2)))
+                (assert (= (vector-ref Sum (var m)) 1)))
            
            (set! (var ttime) (+ (var ttime) (- (var stop) (var start)))))
       (print_int_u64 len (/ (/ (var ttime) 1000) iters))
