@@ -47,8 +47,7 @@
     compile-module
     verify-compile-module
     convert-types
-    ;;verify-convert-types
+    verify-convert-types
     compile-kernels
-    ;;verify-compile-kernels
-    )))
+    verify-compile-kernels)))
 

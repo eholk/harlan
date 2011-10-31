@@ -98,7 +98,8 @@
   [(deref ,[e]) `(deref ,e)]
   [(addressof ,[e]) `(addressof ,e)]
   [(cast ,t ,[e]) `(cast ,t ,e)]
-  [(,op ,[e1] ,[e2]) (guard (binop? op)) `(,op ,e1 ,e2)]
+  [(,op ,[e1] ,[e2]) (guard (or (binop? op) (relop? op)))
+   `(,op ,e1 ,e2)]
   [(time) '(nanotime)]
   [(call ,t ,f ,[a*] ...)
    (guard (symbol? f))

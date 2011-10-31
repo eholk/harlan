@@ -42,6 +42,8 @@
               (int 1)))))) ;; local size
   ((for (,i ,start ,end) ,[stmt*] ...)
    `(for (,i ,start ,end) . ,stmt*))
+  ((while ,expr ,[stmt*] ...)
+   `(while ,expr . ,stmt*))
   (,else else))
 
 (define-match unpack-arg
