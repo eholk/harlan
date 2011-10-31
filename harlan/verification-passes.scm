@@ -51,6 +51,7 @@
         string
         ident
         (let Var Expr)
+        (let ((Var Expr) *) Expr)
         (print Expr)
         (assert Expr)
         (set! Expr Expr)
