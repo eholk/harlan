@@ -160,7 +160,7 @@
                    (and (start prg) prg))
                  prg)))))))
 
-(trace-define-syntax (grammar-transforms x)
+(define-syntax (grammar-transforms x)
 
   (define (form-pred proc)
     (lambda (sym)
