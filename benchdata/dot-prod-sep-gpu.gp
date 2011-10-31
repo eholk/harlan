@@ -1,3 +1,5 @@
+set term pdfcairo
+set output "dot-prod-sep-gpu.pdf"
 
 set ylab "Execution time (µs)
 set xlab "Vector size"
