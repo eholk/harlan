@@ -1,0 +1,56 @@
+;; -*- scheme -*-
+
+(%testspec
+ (iterate
+  (max_iter (range 1 20000 400))))
+
+(module
+  (extern write_pgm (str (vector (vector int 1024) 1024)) -> void)
+  (extern nanotime () -> u64)
+  (extern print_int_u64 (int u64) -> void)
+  
+  (fn main ()
+      (let start (nanotime))
+      (let img (kernel ((i (iota 1024)))
+                       (kernel ((j (iota 1024)))
+                               (let cr
+                                   (+ (* (/ (int->float j) 512.0)
+                                         0.000009349778)
+                                      -1.373120668462))
+                               (let ci
+                                   (+ (* (/ (int->float i) 512.0)
+                                         0.000009349778)
+                                      -0.084468836480))
+                               (let xr 0.0)
+                               (let xi 0.0)
+                               (let idx 0)
+                               (let escape 0)
+                               (while (< idx (/ max_iter 2))
+                                 (let xrp (+ (- (* xr xr) (* xi xi)) cr))
+                                 (let xip (+ (* 2.0 (* xr xi)) ci))
+                                 (set! xr xrp)
+                                 (set! xi xip)
+                                 (let m (+ (* xr xr) (* xi xi)))
+                                 (while (< m 4.0)
+                                   ;; Why do the pixels all turn white
+                                   ;; if I just do (set! escape idx)?
+                                   (set! escape (- idx 1))
+                                   (set! m 5.0))
+                                 (set! idx (+ idx 1)))
+                               (while (< idx (/ max_iter 2))
+                                 (let xrp (+ (- (* xr xr) (* xi xi)) cr))
+                                 (let xip (+ (* 2.0 (* xr xi)) ci))
+                                 (set! xr xrp)
+                                 (set! xi xip)
+                                 (let m (+ (* xr xr) (* xi xi)))
+                                 (while (< m 4.0)
+                                   ;; Why do the pixels all turn white
+                                   ;; if I just do (set! escape idx)?
+                                   (set! escape (- idx 1))
+                                   (set! m 5.0))
+                                 (set! idx (+ idx 1)))
+                               (/ (* escape 256) max_iter))))
+      (let stop (nanotime))
+      (write_pgm "test.bin/mandelbrot.pgm" img)
+      (print_int_u64 max_iter (/ (- stop start) 1000000))
+      (return 0)))

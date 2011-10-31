@@ -1,0 +1,29 @@
+;; -*- scheme -*-
+;; Vector sum
+
+(%testspec
+ (iterate
+  (iters (range 10 10))
+  (len (range 100000 10000000 100000))))
+
+(module
+  (extern nanotime () -> u64)
+  (extern print_int_u64 (int u64) -> void)
+
+  (fn main ()
+      (let ttime 0)
+      (for (k 0 iters)
+           ;; TODO: make these vectors of length len
+           (let X (make-vector len))
+           (for (j 0 len)
+                (vector-set! (var X) (var j) 1))
+           (let start (nanotime))
+           (let Sum (kernel ((x X)) x))
+           (let stop (nanotime))
+           
+           (for (m 0 len)
+                (assert (= (vector-ref Sum (var m)) 1)))
+           
+           (set! (var ttime) (+ (var ttime) (- (var stop) (var start)))))
+      (print_int_u64 len (/ (/ (var ttime) 1000) iters))
+      (return 0)))
