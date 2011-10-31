@@ -55,7 +55,6 @@
  (define binop->string
    (lambda (op)
      (case op
-       ((== =) "==")
        ((bitwise-or) "|")
        ((+) "+")
        ((*) "*")
@@ -106,6 +105,9 @@
    ((,op ,[lhs] ,[rhs])
     (guard (binop? op))
     (string-append "(" lhs ") " (binop->string op) " (" rhs ")"))
+   ((,op ,[lhs] ,[rhs])
+    (guard (relop? op))
+    (string-append "(" lhs ") " (relop->string op) " (" rhs ")"))
    (,var (guard (symbol? var))
      (symbol->string var))
    (,n (guard (number? n))

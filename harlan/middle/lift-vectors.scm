@@ -82,7 +82,7 @@
        (lift-expr->stmt
          e (lambda (e^)
              (finish `(length ,e^)))))
-      ((,op ,e1 ,e2) (guard (binop? op))
+      ((,op ,e1 ,e2) (guard (or (binop? op) (relop? op)))
        (lift-expr->stmt
          e1 (lambda (e1^)
               (lift-expr->stmt

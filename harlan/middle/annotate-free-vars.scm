@@ -137,7 +137,7 @@
   ((str ,s) (guard (string? s)) '())
   ((float ,f) '())
   ((,op ,[free-vars-expr -> e1] ,[free-vars-expr -> e2])
-   (guard (binop? op))
+   (guard (or (binop? op) (relop? op)))
    (union e1 e2))
   ((deref ,[free-vars-expr -> e]) e)
   ((cast ,t ,[free-vars-expr -> e]) e)

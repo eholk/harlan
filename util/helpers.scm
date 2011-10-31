@@ -85,7 +85,7 @@
  (define binop?
    (lambda (op)
      (case op
-       ((< = bitwise-or + * - mod /) #t)
+       ((bitwise-or + * - mod /) #t)
        (else #f))))
  
  (define relop?
