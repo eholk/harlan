@@ -357,27 +357,12 @@
               (int 1))))))
 
     (compile-module
-      (%inherits Kernel Decl Expr Ret-Stmt)
-      (Start wildcard)
-      (Module (Decl *))
-      (Stmt
-        (block Stmt *)
-        (let Var (cl::buffer Type)
-          ((field g_ctx createBuffer Type)
-           Expr))
-        (compile-set! Expr Expr)
-        (let Var (cl::buffer_map Type)
-          ((field g_queue mapBuffer Type)
-           Expr)))
-      (Field
-        (field )))
+      (Start wildcard))
 
     (convert-types
-      (%inherits Module Kernel Decl Expr Ret-Stmt Stmt)
-      (Start Module))
+      (Start wildcard))
 
     (compile-kernels
-      (%inherits Module Kernel Decl Expr Ret-Stmt Stmt)
-      (Start Module)))
+      (Start wildcard)))
 
 )
