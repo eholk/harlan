@@ -2,7 +2,7 @@
 
 (%testspec
  (iterate
-  (max_iter (range 1 20000 400))))
+  (max_iter (range 1 5000 100))))
 
 (module
   (extern write_pgm (str (vector (vector int 1024) 1024)) -> void)
@@ -25,7 +25,7 @@
                                (let xi 0.0)
                                (let idx 0)
                                (let escape 0)
-                               (while (< idx (/ max_iter 2))
+                               (while (< idx max_iter)
                                  (let xrp (+ (- (* xr xr) (* xi xi)) cr))
                                  (let xip (+ (* 2.0 (* xr xi)) ci))
                                  (set! xr xrp)
@@ -37,7 +37,7 @@
                                    (set! escape (- idx 1))
                                    (set! m 5.0))
                                  (set! idx (+ idx 1)))
-                               (while (< idx (/ max_iter 2))
+                               #;(while (< idx (/ max_iter 2))
                                  (let xrp (+ (- (* xr xr) (* xi xi)) cr))
                                  (let xip (+ (* 2.0 (* xr xi)) ci))
                                  (set! xr xrp)
