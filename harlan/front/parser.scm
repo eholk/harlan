@@ -80,10 +80,7 @@
    (let* ((x*^ (map gensym x*))
           (env (append (map cons x* x*^) env))
           (body ((parse-stmt* env) body)))
-     (values
-       `(,@(map (lambda (x e) `(let ,x ,e)) x*^ e*)
-         . ,body)
-       env)))
+     (values `((let ((,x*^ ,e*) ...) . ,body)) env)))
   (,[(parse-expr env) -> e] (values `((do ,e)) env)))
 
 (define-match (parse-expr env)

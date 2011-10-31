@@ -3,6 +3,7 @@
   (export
     verify-harlan
     verify-parse-harlan
+    verify-flatten-lets
     verify-returnify
     verify-lift-vectors
     verify-typecheck
@@ -59,6 +60,36 @@
         (vector-set! Expr Expr Expr)
         (for (Var Expr Expr) Expr +)
         (while Expr Expr +)
+        (if Expr Expr)
+        (if Expr Expr Expr)
+        (return Expr)
+        (var Var)
+        (vector Expr +)
+        (vector-ref Expr Expr)
+        (kernel ((Var Expr) +) Expr * Expr)
+        (reduce Reduceop Expr)
+        (iota Integer)
+        (length Expr)
+        (make-vector Integer)
+        (Binop Expr Expr)
+        (Relop Expr Expr)
+        (Var Expr *)))
+
+    (nest-lets (%inherits Module Decl)
+      (Expr
+        integer
+        float
+        string
+        ident
+        (let ((Var Expr) *) Expr +)
+        (print Expr)
+        (assert Expr)
+        (set! Expr Expr)
+        (vector-set! Expr Expr Expr)
+        (for (Var Expr Expr) Expr +)
+        (while Expr Expr +)
+        (if Expr Expr)
+        (if Expr Expr Expr)
         (return Expr)
         (var Var)
         (vector Expr +)
@@ -79,6 +110,9 @@
         (fn Var (Var *) Stmt +))
       (Stmt
         (let Var Expr)
+        (let ((Var Expr) *) Stmt +)
+        (if Expr Expr)
+        (if Expr Expr Expr)
         (print Expr)
         (assert Expr)
         (set! Expr Expr)
@@ -93,6 +127,7 @@
         (str String)
         (var Var)
         (vector Expr +)
+        (if Expr Expr Expr)
         (vector-ref Expr Expr)
         (kernel ((Var Expr) +) Stmt * Expr)
         (reduce Reduceop Expr)
@@ -103,6 +138,21 @@
         (Binop Expr Expr)
         (Relop Expr Expr)
         (call Var Expr *)))
+
+    (flatten-lets (%inherits Module Decl Expr)
+      (Start Module)
+      (Stmt
+        (let Var Expr)
+        (if Expr Expr)
+        (if Expr Expr Expr)
+        (print Expr)
+        (assert Expr)
+        (set! Expr Expr)
+        (vector-set! Expr Expr Expr)
+        (do Expr)
+        (for (Var Expr Expr) Stmt +)
+        (while Expr Stmt +)
+        (return Expr)))
 
     (typecheck (%inherits Module)
       (Start Module)
