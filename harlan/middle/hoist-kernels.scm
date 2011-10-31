@@ -25,15 +25,19 @@
   (lambda (decl)
     (match decl
       ((fn ,name ,args ,type ,[hoist-stmt -> stmt* kernel*] ...)
-       (values
-        (if (and (eq? name 'main) (not (null? (apply append kernel*))))
-            `(fn ,name ,args ,type (do (call void GC_INIT) 
-                                       (call void
-                                             (field (var cl::program g_prog)
-                                                    build))) 
-                 ,stmt* ...)
-            `(fn ,name ,args ,type (do (call void GC_INIT)) ,stmt* ...))
-        (apply append kernel*)))
+       (let ((kernel* (apply append kernel*)))
+         (values
+           (if (and (eq? name 'main)
+                    (not (null? kernel*)))
+               `(fn ,name ,args ,type
+                  (do (call void GC_INIT) 
+                      (call void
+                        (field (var cl::program g_prog)
+                          build))) 
+                  ,stmt* ...)
+               `(fn ,name ,args ,type
+                  (do (call void GC_INIT)) ,stmt* ...))
+           kernel*)))
       ((extern ,name ,arg-types -> ,t)
        (values `(extern ,name ,arg-types -> ,t) '()))
       (,else (error 'hoist-decl "Invalid declaration" else)))))
@@ -59,25 +63,24 @@
                    ts* fv* ft* stmt*)
              (apply append kernel*)))))
       ((for (,i ,start ,end) ,[hoist-stmt -> stmt* kernel*] ...)
-; WEB: have no idea if this is right.
-       (values `(for (,i ,start ,end) ,stmt* ...) (apply append kernel*)))
+       ;; WEB: have no idea if this is right.
+       (values `(for (,i ,start ,end) ,stmt* ...)
+         (apply append kernel*)))
       (,else (values else '())))))
 
 (define generate-kernel
   (lambda (name x* t* xs* ts* fv* ft* stmt*)
     ;; Plan of attack: replace all vectors with renamed char *'s,
-    ;; then immediate use vec_deserialize. Also, for some reason the
-    ;; vector refs don't seem to be being lowered like they should
-    ;; be.
+    ;; then immediate use vec_deserialize. Also, for some reason
+    ;; the vector refs don't seem to be being lowered like they
+    ;; should be.
     ;;
     ;; We can also let-bind vars to the cell we care about, then
     ;; replace everything with a deref. That'll be cleaner.
     (let ((i (gensym 'i)))
       ;; TODO: Correctly handle free vars
-      `(kernel ,name ,(append (map (lambda (x t)
-                                     `(,x ,t))
-                                   xs* ts*)
-                              (map list fv* ft*))
+      `(kernel ,name ,(append (map list xs* ts*)
+                        (map list fv* ft*))
          ;; TODO: allow this to work on n-dimensional vectors.
          (let ,i int (call int get_global_id (int 0)))
          ,@(apply
@@ -85,24 +88,27 @@
              (map
                (lambda (x t xs ts)
                  `((let ,x (ptr ,t)
-                        (addressof (vector-ref
-                                    ,t (var ,ts ,xs) (var int ,i))))))
+                        (addressof
+                          (vector-ref
+                            ,t (var ,ts ,xs) (var int ,i))))))
                x* t* xs* ts*))
          . ,(replace-vec-refs stmt* i x* xs* ts*)))))
 
 (define replace-vec-refs
   (lambda (stmt* i x* xs* ts*)
-    (map (lambda (stmt)
-           (fold-left 
-             (lambda (stmt x xs ts)
-               (let ((t (match ts
-                          ((vector ,t ,n) t)
-                          (,else (error 'replace-vec-refs
-                                        "Unknown type"
-                                        else)))))
+    (map
+      (lambda (stmt)
+        (fold-left 
+          (lambda (stmt x xs ts)
+            (let ((t (match ts
+                       ((vector ,t ,n) t)
+                       (,else (error 'replace-vec-refs
+                                "Unknown type"
+                                else)))))
                  (match stmt
-                   ((var ,t ,y) (guard (eq? x y)) `(deref (var ,t ,x)))
-                   ((,[x] ...) `(,x ...))
+                   ((var ,t ,y) (guard (eq? x y))
+                    `(deref (var ,t ,x)))
+                   ((,[x*] ...) x*)
                    (,x x))))
              stmt x* xs* ts*))
       stmt*)))

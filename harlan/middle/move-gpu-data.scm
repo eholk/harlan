@@ -45,37 +45,32 @@
    ((return ,[Expr -> expr])
     `((return ,expr))))
 
- (define (make-gpu-decls expr*)
-   (if (null? expr*)
-       (values '() '() '())
-       (let-values (((prologue* arg* epilogue*)
-                     (make-gpu-decls (cdr expr*)))
-                    ((prologue arg epilogue)
-                     (make-gpu-decl (car expr*))))
-         (values
-          (append prologue prologue*)
-          (cons arg arg*)
-          (append epilogue epilogue*)))))
+ (define-match make-gpu-decls
+   (() (values '() '() '()))
+   ((,[make-gpu-decl -> prologue arg epilogue] .
+     ,[prologue* arg* epilogue*])
+    (values
+      (append prologue prologue*)
+      (cons arg arg*)
+      (append epilogue epilogue*))))
 
- (define (make-gpu-decl expr)
-   (match expr
-     ((var ,t ,x)
-      (guard (ident? x))
-      (match t
-        ((vector ,t^ ,n)
-         (let ((gpu-var (gensym 'gpu))
-               (gpu-ptr (gensym 'ptr)))
-           (values
-            `((let-gpu ,gpu-var ,t)
-              (map-gpu ((,gpu-ptr (var ,t ,gpu-var)))
-                       (set! (var ,t ,gpu-ptr) (var ,t ,x))))
-            `(var ,t ,gpu-var)
-            `((map-gpu ((,gpu-ptr (var ,t ,gpu-var)))
-                       (set! (var ,t ,x) (var ,t ,gpu-ptr)))))))
-        (,scalar
-         (guard (symbol? scalar))
-         (values '() expr '()))))
-     (,else (error 'make-gpu-decl "Unsupported GPU arg" else))))
+ (define-match make-gpu-decl
+   ((var ,t ,x)
+    (guard (ident? x))
+    (match t
+      ((vector ,t^ ,n)
+       (let ((gpu-var (gensym 'gpu))
+             (gpu-ptr (gensym 'ptr)))
+         (values
+           `((let-gpu ,gpu-var ,t)
+             (map-gpu ((,gpu-ptr (var ,t ,gpu-var)))
+               (set! (var ,t ,gpu-ptr) (var ,t ,x))))
+           `(var ,t ,gpu-var)
+           `((map-gpu ((,gpu-ptr (var ,t ,gpu-var)))
+               (set! (var ,t ,x) (var ,t ,gpu-ptr)))))))
+      (,scalar
+        (guard (symbol? scalar))
+        (values '() `(var ,t ,x) '())))))
  
  (define-match Expr
    ((int ,n) (guard (integer? n))

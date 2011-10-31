@@ -39,13 +39,13 @@
     annotate-free-vars
     verify-annotate-free-vars
     hoist-kernels
-    ;;verify-hoist-kernels
+    verify-hoist-kernels
     move-gpu-data
-    ;;verify-move-gpu-data
+    verify-move-gpu-data
     generate-kernel-calls
-    ;;verify-generate-kernel-calls
+    verify-generate-kernel-calls
     compile-module
-    ;;verify-compile-module
+    verify-compile-module
     convert-types
     ;;verify-convert-types
     compile-kernels

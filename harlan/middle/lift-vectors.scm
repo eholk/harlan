@@ -11,9 +11,6 @@
     (util helpers)
     (harlan front parser))
   
-;; Vector simplification code. Weirdly, this runs before
-;; typechecking.
-  
 (define lift-expr->stmt
   (lambda (expr finish)
     (match expr
@@ -22,8 +19,6 @@
       ((float ,f) (finish `(float ,f)))
       ((str ,str) (guard (string? str)) (finish `(str ,str)))
       ((var ,t ,x) (finish `(var ,t ,x)))
-      ((time)
-       (finish '(time)))
       ((int->float ,e)
        (lift-expr->stmt e (lambda (e) (finish `(int->float ,e)))))
       ((vector-ref ,t ,e1 ,e2)
