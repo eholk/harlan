@@ -3,16 +3,16 @@
   (export parse-harlan)
   (import
     (rnrs)
-    (only (chezscheme) format)
+    (only (chezscheme) format printf)
     (util verify-grammar)
     (util helpers)
     (util match))
 
 ;; parse-harlan takes a syntax tree that a user might actually want
 ;; to write and converts it into something that's more easily
-;; analyzed by the type inferencer and the rest of the compiler. This
-;; subsumes the functionality of the previous simplify-literals
-;; mini-pass.
+;; analyzed by the type inferencer and the rest of the compiler.
+;; This subsumes the functionality of the previous
+;; simplify-literals mini-pass.
 
 ;; unnests lets, checks that all variables are in scope, and
 ;; renames variables to unique identifiers
@@ -57,10 +57,10 @@
           (env (cons `(,x . ,x^) env)))
      (let ((start ((parse-expr env) start))
            (end ((parse-expr env) end))
-           (stmt* (map (parse-stmt env) stmt*)))
-       (values `((for (,x ,start ,end) . ,stmt*)) env))))
-  ((while ,[(parse-expr env) -> test]
-     ,[(parse-stmt env) -> stmt*] ...)
+           (stmt* ((parse-stmt* env) stmt*)))
+       (values `((for (,x^ ,start ,end) . ,stmt*)) env))))
+  ((while ,[(parse-expr env) -> test] .
+          ,[(parse-stmt* env) -> stmt*])
    (values `((while ,test . ,stmt*)) env))
   ((set! ,[(parse-expr env) -> x]
      ,[(parse-expr env) -> e])
@@ -76,11 +76,13 @@
           (env (cons `(,x . ,x^) env))
           (e ((parse-expr env) e)))
      (values `((let ,x^ ,e)) env)))
-  ((let ((,x* ,[(parse-expr env) -> e*]) ...) ,body)
+  ((let ((,x* ,[(parse-expr env) -> e*]) ...) . ,body)
    (let* ((x*^ (map gensym x*))
-          (env (append (map cons x* x*^) env)))
-     (values `(,@(map (lambda (x e) `(let ,x ,e)) x*^ e*)
-               ,((parse-expr env) body))
+          (env (append (map cons x* x*^) env))
+          (body ((parse-stmt* env) body)))
+     (values
+       `(,@(map (lambda (x e) `(let ,x ,e)) x*^ e*)
+         . ,body)
        env)))
   (,[(parse-expr env) -> e] (values `((do ,e)) env)))
 
@@ -111,9 +113,15 @@
   ((kernel ((,x* ,[e*]) ...) ,stmt* ... ,e)
    (let* ((x*^ (map gensym x*))
           (env (append (map cons x* x*^) env)))
-     (let ((stmt* (map (parse-stmt env) stmt*))
-           (e ((parse-expr env) e)))
-       `(kernel ,(map list x*^ e*) ,@stmt* ,e))))
+     `(kernel ((,x*^ ,e*) ...)
+        ,@
+        (let loop ((stmt* stmt*) (env env))
+          (cond
+            ((null? stmt*) `(,((parse-expr env) e)))
+            (else
+              (let-values (((stmt^ env^)
+                            ((parse-stmt env) (car stmt*))))
+                `(,@stmt^ . ,(loop (cdr stmt*) env^)))))))))
   ((reduce ,op ,[e])
    (guard (reduceop? op))
    `(reduce ,op ,e))

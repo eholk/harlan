@@ -25,6 +25,7 @@
   (grammar-transforms
 
     (%static
+      (Ret-Stmt (return Expr))
       (Type
         scalar-type
         (vector Type Integer)
@@ -51,7 +52,7 @@
         string
         ident
         (let Var Expr)
-        (let ((Var Expr) *) Expr)
+        (let ((Var Expr) *) Expr +)
         (print Expr)
         (assert Expr)
         (set! Expr Expr)
@@ -150,10 +151,9 @@
         (do Expr)
         (for ((Var Type) Expr Expr) Stmt +)
         (while Expr Stmt +)
-        Ret-Stmt)
-      (Ret-Stmt (return Expr)))
+        Ret-Stmt))
 
-    (lift-vectors (%inherits Module Decl Ret-Stmt)
+    (lift-vectors (%inherits Module Decl)
       (Start Module)
       (Stmt
         (let Var Type Let-Expr)
@@ -185,7 +185,7 @@
         (Binop Expr Expr)
         (Relop Expr Expr)))
 
-    (lower-vectors (%inherits Module Decl Ret-Stmt)
+    (lower-vectors (%inherits Module Decl)
       (Start Module)
       (Stmt 
         (print Expr)
@@ -214,13 +214,13 @@
         (Binop Expr Expr)))
 
     (remove-nested-kernels
-      (%inherits Module Decl Ret-Stmt Expr Stmt)
+      (%inherits Module Decl Expr Stmt)
       (Start Module)
       (Let-Expr
         (kernel Type (((Var Type) (Expr Type)) +) Stmt * Expr)
         Expr))
 
-    (returnify-kernels (%inherits Module Decl Ret-Stmt Expr)
+    (returnify-kernels (%inherits Module Decl Expr)
       (Start Module)
       (Stmt 
         (print Expr)
@@ -235,9 +235,9 @@
         (do Expr +)
         Ret-Stmt))
 
-    (uglify-vectors (%inherits Module Decl Ret-Stmt)
+    (uglify-vectors (%inherits Module Decl)
       (Start Module)
-      (Stmt 
+      (Stmt
         (print Expr)
         (assert Expr)
         (set! Expr Expr)
@@ -263,7 +263,7 @@
         (Binop Expr Expr)))
 
     (annotate-free-vars
-      (%inherits Module Decl Expr Ret-Stmt)
+      (%inherits Module Decl Expr)
       (Start Module)
       (Stmt 
         (print Expr)
@@ -277,7 +277,7 @@
         (do Expr +)
         Ret-Stmt))
 
-    (hoist-kernels (%inherits Module Ret-Stmt)
+    (hoist-kernels (%inherits Module)
       (Start Module)
       (Decl
         (gpu-module Kernel *)
@@ -315,7 +315,7 @@
         (field (var cl::program g_prog) build)))
 
     (move-gpu-data
-      (%inherits Module Kernel Decl Expr Ret-Stmt Field)
+      (%inherits Module Kernel Decl Expr Field)
       (Start Module)
       (Stmt 
         (print Expr)
@@ -331,7 +331,7 @@
         Ret-Stmt))
 
     (generate-kernel-calls
-      (%inherits Module Kernel Decl Expr Ret-Stmt)
+      (%inherits Module Kernel Decl Expr)
       (Start Module)
       (Stmt
         (print Expr)
@@ -349,7 +349,7 @@
         (field (var Type Var) Var)))
 
     (compile-module
-      (%inherits Ret-Stmt Kernel)
+      (%inherits Kernel)
       (Start Module)
       (Module (Decl *))
       (Decl
@@ -392,7 +392,7 @@
         (cl::buffer_map Type)
         Type))
 
-    (convert-types (%inherits Module Stmt Ret-Stmt)
+    (convert-types (%inherits Module Stmt)
       (Start Module)
       (Decl
         (gpu-module Kernel *)
@@ -430,7 +430,8 @@
         (ptr C-Type)
         c-type))
 
-    (compile-kernels (%inherits Module Stmt Ret-Stmt Expr Field Let-Type C-Type)
+    (compile-kernels
+      (%inherits Module Stmt Expr Field Let-Type C-Type)
       (Start Module)
       (Decl
         (global cl::program g_prog

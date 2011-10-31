@@ -53,10 +53,6 @@
 (define infer-expr
   (lambda (expr env type expro)
     (conde
-      ((fresh ()
-         (== expr '(time))
-         (== expro '(time))
-         (== type 'u64)))
       ((fresh (n)
          (== expr `(num ,n))
          (prefo type '(int float u64))
@@ -91,9 +87,10 @@
          (report-backtrack `(reduce ,op ,e) env)
          (infer-expr e env t e^)
          (conde
-           ((== '+ op)
-            (== 'int type)
-            (== `(vector ,type ,n) t)))))
+           ((== op '+))
+           ((== op '*)))
+         (== 'int type)
+         (== `(vector ,type ,n) t)))
       ((fresh (e e^ t n)
          (== expr `(length ,e))
          (== expro `(length ,e^))
