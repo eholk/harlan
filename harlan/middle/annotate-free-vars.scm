@@ -31,159 +31,120 @@
 ;; so at the end there won't be a distinction between free variables and iterator variables, there will just be variables
 ;; and some of them are implicitly vector-ref'd, and others aren't
 
- (define annotate-free-vars
-   (lambda (mod)
-     (match mod
-       ((module ,[(annotate-decl '()) -> decl*] ...)
-        `(module ,decl* ...)))))
+(define-match annotate-free-vars
+  ((module ,[(annotate-decl '()) -> decl*] ...)
+   `(module ,decl* ...)))
 
- (define annotate-decl
-   (lambda (gamma)
-     (lambda (decl)
-       (match decl
-         ((fn ,name ,args ,type ,stmt* ...)
-          (let-values (((stmt* gamma) ((annotate-stmt* gamma) stmt*)))
-            `(fn ,name ,args ,type . ,stmt*)))
-         ((extern ,name ,arg-types -> ,type)
-          `(extern ,name ,arg-types -> ,type))
-         (,else (error 'annotate-decl "Invalid declaration" else))))))
+(define-match (annotate-decl gamma)
+  ((fn ,name ,args ,type ,stmt* ...)
+   (let-values (((stmt* gamma) ((annotate-stmt* gamma) stmt*)))
+     `(fn ,name ,args ,type . ,stmt*)))
+  ((extern ,name ,arg-types -> ,type)
+   `(extern ,name ,arg-types -> ,type)))
 
-(define annotate-stmt*
-  (lambda (gamma)
-    (lambda (stmt*)
-      (let loop ([stmt* stmt*][gamma gamma][new-stmt* '()])
-        (cond
-          [(null? stmt*)
-           (values (reverse new-stmt*) gamma)]
-          [else
-           (let-values (((stmt gamma) ((annotate-stmt gamma) (car stmt*))))
-             (loop (cdr stmt*) gamma (cons stmt new-stmt*)))])))))
+(define (annotate-stmt* gamma)
+  (lambda (stmt*)
+    (let loop ([stmt* stmt*] [gamma gamma] [new-stmt* '()])
+      (cond
+        [(null? stmt*)
+         (values (reverse new-stmt*) gamma)]
+        [else
+          (let-values (((stmt gamma)
+                        ((annotate-stmt gamma) (car stmt*))))
+            (loop (cdr stmt*) gamma (cons stmt new-stmt*)))]))))
 
- (define annotate-stmt
-   (lambda (gamma)
-     (lambda (stmt)
-       (match stmt
-         ((kernel (((,x* ,t*) (,xs* ,ts*)) ...) ,stmt* ...)
-          (let ((gamma (append (map cons x* t*) gamma)))
-            (let-values (((stmt* gamma) ((annotate-stmt* gamma) stmt*)))
-              (let* ((fv* (remove* x* (free-vars-stmt* stmt*)))
-                     (fvt* (map (lambda (x) (lookup x gamma)) fv*)))
-                (let ((kernel-args (map (lambda (x t xs ts) (list (list x t) (list xs ts))) x* t* xs* ts*)))
-                  (let ((fv* (map list fv* fvt*)))
-                    (values
-                     `(kernel ,kernel-args (free-vars ,@fv*) . ,stmt*)
-                     gamma)))))))
-         ((return ,[(annotate-expr gamma) -> e])
-          (values `(return ,e) gamma))
-         ((do ,[(annotate-expr gamma) -> e*] ...)
-          (values `(do ,e* ...) gamma))
-         ((let ,x ,t ,e)
-          (let* ((gamma `((,x . ,t) . ,gamma))
-                 (e ((annotate-expr gamma) e)))
-            (values `(let ,x ,t ,e) gamma)))
-         ((while (,relop ,[(annotate-expr gamma) -> e1]
-                   ,[(annotate-expr gamma) -> e2])
-               ,s ...)
-          (let-values (((s gamma) ((annotate-stmt* gamma) s)))
-              (values `(while (,relop ,e1 ,e2) ,s ...) gamma)))
-         ((for (,x ,[(annotate-expr gamma) -> start]
-                   ,[(annotate-expr gamma) -> end])
-               ,s ...)
-          (let ((gamma `((,x . int) . ,gamma)))
-            (let-values (((s gamma) ((annotate-stmt* gamma) s)))
-              (values `(for (,x ,start ,end) ,s ...) gamma))))
-         ((set! ,x ,[(annotate-expr gamma) -> e])
-          (values `(set! ,x ,e) gamma))
-         ((print ,[(annotate-expr gamma) -> e])
-          (values `(print ,e) gamma))
-         ((print ,[(annotate-expr gamma) -> e1] ,[(annotate-expr gamma) -> e2])
-          (values `(print ,e1 ,e2) gamma))         
-         ((assert ,[(annotate-expr gamma) -> e])
-          (values `(assert ,e) gamma))
-         (,else
-          (error 'annotate-stmt
-                 (format "annotate-free-vars--unknown statement type: ~s"
-                         stmt)))))))
+(define-match (annotate-stmt gamma)
+  ((kernel (((,x* ,t*) (,xs* ,ts*)) ...) . ,stmt*)
+   (let ((gamma (append (map cons x* t*) gamma)))
+     (let-values (((stmt* gamma) ((annotate-stmt* gamma) stmt*)))
+       (let* ((fv* (remove* x* (free-vars-stmt* stmt*)))
+              (fvt* (map (lambda (x) (lookup x gamma)) fv*)))
+         (let ((fv* (map list fv* fvt*)))
+           (values
+             `(kernel (((,x* ,t*) (,xs* ,ts*)) ...)
+                (free-vars ,@fv*) . ,stmt*)
+             gamma))))))
+  ((return ,[(annotate-expr gamma) -> e])
+   (values `(return ,e) gamma))
+  ((do ,[(annotate-expr gamma) -> e*] ...)
+   (values `(do ,e* ...) gamma))
+  ((let ,x ,t ,e)
+   (let* ((gamma `((,x . ,t) . ,gamma))
+          (e ((annotate-expr gamma) e)))
+     (values `(let ,x ,t ,e) gamma)))
+  ((while ,[(annotate-expr gamma) -> e] . ,s)
+   (let-values (((s gamma) ((annotate-stmt* gamma) s)))
+     (values `(while ,e ,s ...) gamma)))
+  ((for (,x ,[(annotate-expr gamma) -> start]
+          ,[(annotate-expr gamma) -> end])
+     . ,s)
+   (let ((gamma `((,x . int) . ,gamma)))
+     (let-values (((s gamma) ((annotate-stmt* gamma) s)))
+       (values `(for (,x ,start ,end) ,s ...) gamma))))
+  ((set! ,x ,[(annotate-expr gamma) -> e])
+   (values `(set! ,x ,e) gamma))
+  ((print ,[(annotate-expr gamma) -> e])
+   (values `(print ,e) gamma))
+  ((assert ,[(annotate-expr gamma) -> e])
+   (values `(assert ,e) gamma)))
 
-(define annotate-expr
-  (lambda (gamma)
-    (lambda (expr)
-      (match expr
-        ((int ,n) (guard (integer? n)) `(int ,n))
-        ((u64 ,n) (guard (integer? n)) `(u64 ,n))
-        ((float ,f) `(float ,f))
-        ((var ,t ,x) (guard (symbol? x)) `(var ,t ,x))
-        ((str ,s) (guard (string? s)) `(str ,s))
-        ((nanotime) '(nanotime))
-        ((cast ,t ,[(annotate-expr gamma) -> e]) `(cast ,t ,e))
-        ((call ,t ,rator ,[rand*] ...)
-         (guard (symbol? rator))
-         `(call ,t ,rator ,rand* ...))
-        ((sizeof ,t)
-         `(sizeof ,t))
-        ((addressof ,[e]) `(addressof ,e))
-        ((,op ,[lhs] ,[rhs])
-         (guard (binop? op))
-         `(,op ,lhs ,rhs))
-        ((vector-ref ,t ,[v] ,[i])
-         `(vector-ref ,t ,v ,i))
-        (,else
-         (error 'annotate-expr
-                (format "annotate-free-vars--unknown expr type: ~s" else)))))))
+(define-match (annotate-expr gamma)
+  ((int ,n) (guard (integer? n)) `(int ,n))
+  ((u64 ,n) (guard (integer? n)) `(u64 ,n))
+  ((float ,f) `(float ,f))
+  ((var ,t ,x) (guard (symbol? x)) `(var ,t ,x))
+  ((str ,s) (guard (string? s)) `(str ,s))
+  ((cast ,t ,[(annotate-expr gamma) -> e]) `(cast ,t ,e))
+  ((call ,t ,rator ,[rand*] ...)
+   (guard (symbol? rator))
+   `(call ,t ,rator ,rand* ...))
+  ((sizeof ,t)
+   `(sizeof ,t))
+  ((addressof ,[e]) `(addressof ,e))
+  ((,op ,[lhs] ,[rhs])
+   (guard (or (binop? op) (relop? op)))
+   `(,op ,lhs ,rhs))
+  ((vector-ref ,t ,[v] ,[i])
+   `(vector-ref ,t ,v ,i)))
 
- (define free-vars-stmt*
-   (lambda (stmt*)
-     (let loop ([stmt* stmt*])
-       (match stmt*
-         [() '()]
-         [((let ,x ,t ,[free-vars-expr -> e]) . ,rest)         
-          (union e (remove x (loop rest)))]
-         [(,stmt . ,rest)
-          (union (free-vars-stmt stmt) (loop rest))]))))
+ (define-match free-vars-stmt*
+   [() '()]
+   [((let ,x ,t ,[free-vars-expr -> e]) . ,[rest])         
+    (union e (remove x rest))]
+   [(,[free-vars-stmt -> stmt] . ,[rest])
+    (union stmt rest)])
 
- (define free-vars-stmt
-   (lambda (stmt)
-     (match stmt
-       ((kernel (((,x* ,t*) (,xs* ,ts*)) ...) ,stmt* ...)
-        (let ((stmt* (free-vars-stmt* stmt*)))
-          (remove* x* stmt*)))
-       ((return ,[free-vars-expr -> e]) e)
-       ((do ,[free-vars-stmt -> s]) s)
-       ((assert ,[free-vars-expr -> e]) e)       
-       ((let ,x ,t ,[free-vars-expr -> e])
-        (remove x e))
-       ((for (,x ,[free-vars-expr -> start] ,[free-vars-expr -> end]) ,[free-vars-stmt -> s])
-        (remove x s))
-       ((while ,[free-vars-expr -> test]
-          . ,[free-vars-stmt* -> stmt*])
-        (union test stmt*))
-       ((set! (var ,t ,x) ,[free-vars-expr -> e]) (union `(,x) e))
-       ((print ,[free-vars-expr -> e]) e)
-       ((vec_set_vec ,[free-vars-expr -> e1] ,[free-vars-expr -> e2] ,[free-vars-expr -> e3])
-        (union (union e1 e2) e3))
-       (,else (error 'free-vars-stmt (format "annotate-free-vars--unknown statement type: ~s" stmt))))))
+ (define-match free-vars-stmt
+   ((kernel (((,x* ,t*) (,xs* ,ts*)) ...) .
+      ,[free-vars-stmt* -> stmt*])
+    (remove* x* stmt*))
+   ((return ,[free-vars-expr -> e]) e)
+   ((do ,[free-vars-stmt -> s]) s)
+   ((assert ,[free-vars-expr -> e]) e)       
+   ((let ,x ,t ,[free-vars-expr -> e])
+    (remove x e))
+   ((for (,x ,[free-vars-expr -> start] ,[free-vars-expr -> end]) ,[free-vars-stmt -> s])
+    (remove x s))
+   ((while ,[free-vars-expr -> test]
+      . ,[free-vars-stmt* -> stmt*])
+    (union test stmt*))
+   ((set! (var ,t ,x) ,[free-vars-expr -> e]) (union `(,x) e))
+   ((print ,[free-vars-expr -> e]) e))
 
-(define free-vars-expr
-  (lambda (expr)
-    (match expr
-      ((int ,n) (guard (number? n)) '())
-      ((var ,t ,x) (guard (symbol? x)) `(,x))
-      ((str ,s) (guard (string? s)) '())
-      ((float ,f) '())
-      ((,+ ,[free-vars-expr -> e1] ,[free-vars-expr -> e2])
-       (guard (binop? +))
-       (union e1 e2))
-      ((= ,[free-vars-expr -> e1] ,[free-vars-expr -> e2])
-       (union e1 e2))
-      ((deref ,[free-vars-expr -> e]) e)
-      ((cast ,t ,[free-vars-expr -> e]) e)
-      ((addressof ,[free-vars-expr -> e]) e)
-      ((vector-ref ,t ,[v] ,[i])
-       (union v i))
-      ((sizeof ,t) '())
-      ((mk_vec ,[free-vars-expr -> e1] ,[free-vars-expr -> e2] ,[free-vars-expr -> e3])
-       (union (union e1 e2) e3))
-      (,else (error 'free-vars-expr (format "annotate-free-vars--unknown expr type: ~s" expr))))))
+(define-match free-vars-expr
+  ((int ,n) (guard (number? n)) '())
+  ((var ,t ,x) (guard (symbol? x)) `(,x))
+  ((str ,s) (guard (string? s)) '())
+  ((float ,f) '())
+  ((,op ,[free-vars-expr -> e1] ,[free-vars-expr -> e2])
+   (guard (binop? op))
+   (union e1 e2))
+  ((deref ,[free-vars-expr -> e]) e)
+  ((cast ,t ,[free-vars-expr -> e]) e)
+  ((addressof ,[free-vars-expr -> e]) e)
+  ((vector-ref ,t ,[v] ,[i])
+   (union v i))
+  ((sizeof ,t) '()))
 
 (define union
   (lambda (s1 s2)

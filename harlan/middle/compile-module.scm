@@ -21,7 +21,7 @@
   [(extern ,name ,arg-types -> ,rtype)
    `(extern ,rtype ,name ,arg-types)]
   [(gpu-module ,[compile-kernel^ -> kernel*] ...)
-   `(gpu-module ,kernel* ...)])
+   `(gpu-module . ,kernel*)])
 
 (define-match compile-stmt
   [(let ,x ,t ,[compile-expr -> e])
