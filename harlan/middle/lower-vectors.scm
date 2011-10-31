@@ -61,7 +61,7 @@
    `((vector-set! ,t ,e1 ,i ,e2)))
   ((while ,expr ,[body*] ...)
    `((while ,expr . ,(apply append body*))))
-  ((for ((,x ,t) ,start ,end) ,[body*] ...)
+  ((for (,x ,start ,end) ,[body*] ...)
    `((for (,x ,start ,end) . ,(apply append body*))))
   ((return ,expr)
    `((return ,expr)))

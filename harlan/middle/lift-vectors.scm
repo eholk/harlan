@@ -136,7 +136,7 @@
                  (lambda (e2^)
                    (cons `(vector-set! ,t ,x^ ,e1^ ,e2^)
                      rest))))))))             
-      #;(((kernel ,iters ,body* ...) . ,[rest])
+      (((kernel ,iters ,body* ...) . ,[rest])
        ;; TODO: For now just pass the kernel through... this
        ;; won't let us declare vectors inside kernels though.
        (cons `(kernel ,iters ,body* ...) rest))
@@ -159,15 +159,12 @@
                  rest))))))
       (((do ,e) . ,[rest])
        (lift-expr->stmt e (lambda (e) (cons `(do ,e) rest))))
-      (((while (,relop ,x ,y) ,stmt* ...) . ,[rest])
+      (((while ,expr ,stmt* ...) . ,[rest])
        (lift-expr->stmt
-         x
-         (lambda (x)
-           (lift-expr->stmt
-             y
-             (lambda (y)
-               (cons `( while(,relop ,x ,y) . ,(lift-stmt* stmt*))
-                     rest))))))
+         expr
+         (lambda (expr)
+           (cons `(while ,expr . ,(lift-stmt* stmt*))
+             rest))))
       (,else (error 'lift-stmt* "unknown statement" else)))))
 
 (define (lift-decl fn)

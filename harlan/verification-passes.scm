@@ -116,7 +116,7 @@
         (set! Expr Expr)
         (vector-set! Type Expr Expr Expr)
         (do Expr)
-        (for ((Var Type) Expr Expr) Stmt +)
+        (for (Var Expr Expr) Stmt +)
         (while Expr Stmt +)
         (return Expr))
       (Expr
@@ -149,7 +149,7 @@
         (set! Expr Expr)
         (vector-set! Type Expr Expr Expr)
         (do Expr)
-        (for ((Var Type) Expr Expr) Stmt +)
+        (for (Var Expr Expr) Stmt +)
         (while Expr Stmt +)
         Ret-Stmt))
 
@@ -162,11 +162,12 @@
         (set! Expr Expr)
         (vector-set! Type Expr Expr Expr)
         (do Expr +)
-        (for ((Var Type) Expr Expr) Stmt +)
+        (for (Var Expr Expr) Stmt +)
         (while Expr Stmt *)
         Ret-Stmt)
       (Let-Expr
-        (kernel Type (((Var Type) (Let-Expr Type)) +) Stmt * Let-Expr)
+        (kernel Type (((Var Type) (Let-Expr Type)) +)
+          Stmt * Let-Expr)
         (vector Let-Expr +)
         (reduce Type Reduceop Let-Expr)
         (make-vector Type (int Integer))
