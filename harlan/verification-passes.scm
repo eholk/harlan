@@ -281,7 +281,7 @@
       (Decl
         (gpu-module Kernel *)
         (fn Var (Var *) ((Type *) -> Type) Stmt +)
-        (extern Var (Type *) Var Type))
+        (extern Var (Type *) -> Type))
       (Kernel
         (kernel Var ((Var Type) +) Stmt *))
       (Stmt 
@@ -302,17 +302,19 @@
         (var Type Var)
         (deref (var Type Var))
         (call Type Var Expr *)
-        (call void (field (var cl::program g_prog) build))
+        (call Type Field Expr *)
         (cast Type Expr)
         (sizeof Type)
         (addressof Expr)
         (vector-ref Type Expr Expr)
         (length Expr)
         (Relop Expr Expr)
-        (Binop Expr Expr)))
+        (Binop Expr Expr))
+      (Field
+        (field (var cl::program g_prog) build)))
 
     (move-gpu-data
-      (%inherits Module Kernel Decl Expr Ret-Stmt)
+      (%inherits Module Kernel Decl Expr Ret-Stmt Field)
       (Start Module)
       (Stmt 
         (print Expr)
@@ -340,29 +342,99 @@
         (for (Var Expr Expr) Stmt +)
         (while Expr Stmt +)
         (do Expr +)
-        Ret-Stmt
-        (block
-          (let Var cl::kernel
-            (call cl::kernel
-              (field (var cl::program g_prog) createKernel)
-              (str String)))
-          (do
-            (call void
-              (field (var cl::kernel Var) setArg)
-              (int Integer)
-              (var Type Var)) *
-            (call void (field (var cl::queue g_queue) execute)
-              (var cl::kernel Var)
-              (int Integer)
-              (int 1))))))
+        (block Stmt +)
+        Ret-Stmt)
+      (Field
+        (field (var Type Var) Var)))
 
     (compile-module
-      (Start wildcard))
+      (%inherits Ret-Stmt Kernel)
+      (Start Module)
+      (Module (Decl *))
+      (Decl
+        (gpu-module Kernel *)
+        (func Type Var (Type *) Stmt +)
+        (extern Type Var (Type *)))
+      (Stmt
+        (print Expr)
+        (set! Expr Expr)
+        (map-gpu ((Var Expr)) Stmt)
+        (let Var Let-Type Expr)
+        (for (Var Expr Expr) Stmt +)
+        (while Expr Stmt +)
+        (do Expr +)
+        (block Stmt +)
+        Ret-Stmt)
+      (Expr 
+        integer
+        number
+        string
+        float
+        Var
+        (deref Var)
+        (Var Expr *)
+        (Field Expr *)
+        (assert Expr)
+        (cast Type Expr)
+        (memcpy Expr Expr Expr)
+        (sizeof Type)
+        (addressof Expr)
+        (vector-ref Expr Expr)
+        (length Expr)
+        (Relop Expr Expr)
+        (Binop Expr Expr))
+      (Field
+        (field Var +)
+        (field Var + Type))
+      (Let-Type
+        (cl::buffer Type)
+        (cl::buffer_map Type)
+        Type))
 
-    (convert-types
-      (Start wildcard))
+    (convert-types (%inherits Module Stmt Ret-Stmt)
+      (Start Module)
+      (Decl
+        (gpu-module Kernel *)
+        (func C-Type Var (C-Type *) Stmt +)
+        (extern C-Type Var (C-Type *))) 
+      (Kernel
+        (kernel Var ((Var C-Type) +) Stmt *))
+      (Expr 
+        integer
+        number
+        string
+        float
+        Var
+        (deref Var)
+        (Var Expr *)
+        (Field Expr *)
+        (assert Expr)
+        (cast C-Type Expr)
+        (memcpy Expr Expr Expr)
+        (sizeof C-Type)
+        (addressof Expr)
+        (vector-ref Expr Expr)
+        (length Expr)
+        (Relop Expr Expr)
+        (Binop Expr Expr))
+      (Field
+        (field Var +)
+        (field Var + C-Type))
+      (Let-Type
+        (cl::buffer C-Type)
+        (cl::buffer_map C-Type)
+        C-Type)
+      (C-Type
+        (const-ptr C-Type)
+        (ptr C-Type)
+        c-type))
 
-    (compile-kernels
-      (Start wildcard)))
+    (compile-kernels (%inherits Module Stmt Ret-Stmt Expr Field Let-Type C-Type)
+      (Start Module)
+      (Decl
+        (global cl::program g_prog
+          ((field g_ctx createProgramFromSource) String))
+        (func C-Type Var (C-Type *) Stmt +)
+        (extern C-Type Var (C-Type *)))))
 
 )
