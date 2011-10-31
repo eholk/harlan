@@ -28,5 +28,5 @@
                 (assert (= (vector-ref Sum (var m)) 2)))
            
            (set! (var ttime) (+ (var ttime) (- (var stop) (var start)))))
-      (print_int_u64 1000 (/ (/ (var ttime) 1000) iters))
+      (print_int_u64 len (/ (/ (var ttime) 1000) iters))
       (return 0)))
