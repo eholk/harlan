@@ -27,8 +27,9 @@
 (define (unroll-lets def* stmt*)
   (cond
     ((null? def*) stmt*)
-    (else `((let (,(car def*)) .
-              ,(unroll-lets (cdr def*) stmt*))))))
+    (else
+      `((let (,(car def*)) .
+          ,(unroll-lets (cdr def*) stmt*))))))
 
 (define-match (Stmt* def*)
   ((,stmt) (unroll-lets def* (Stmt stmt)))
