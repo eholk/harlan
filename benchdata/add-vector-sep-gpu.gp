@@ -1,3 +1,5 @@
+set term pdfcairo
+set output "add-vector-sep-gpu.pdf"
 
 set ylab "Execution time (µs)
 set xlab "Vector size"
