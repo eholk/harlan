@@ -53,18 +53,22 @@
       (begin
         (match (car iters)
           ((,x (range ,start ,stop))
-           (let loop ((i start))
-             (if (= i stop)
-                 (iterate (substq i x source) (cdr iters) yield)
-                 (begin
-                   (iterate (substq i x source) (cdr iters) yield)
-                   (loop (add1 i))))))
+           (if (benchmark)
+               (let loop ((i start))
+                 (if (= i stop)
+                     (iterate (substq i x source) (cdr iters) yield)
+                     (begin
+                       (iterate (substq i x source) (cdr iters) yield)
+                       (loop (add1 i)))))
+               (iterate (substq start x source) (cdr iters) yield)))
           ((,x (range ,start ,stop ,step))
-           (let loop ((i start))
-             (if (<= i stop)
-                 (begin
-                   (iterate (substq i x source) (cdr iters) yield)
-                   (loop (+ step i))))))
+           (if (benchmark)
+               (let loop ((i start))
+                 (if (<= i stop)
+                     (begin
+                       (iterate (substq i x source) (cdr iters) yield)
+                       (loop (+ step i)))))
+               (iterate (substq start x source) (cdr iters) yield)))
           (,else (error 'iterate "Invalid iteration clause" else))))))
 
 
@@ -115,9 +119,15 @@
 
 ;;(verbose #t)
 
-(if (null? (cdr (command-line)))
-    (if (do-*all*-the-tests)
-        (exit)
-        (exit #f))
-    (let ((test-name (cadr (command-line))))
-      (do-test test-name)))
+(let loop ((cl (cdr (command-line))))
+  (cond
+    ((null? cl)
+     (if (do-*all*-the-tests) (exit) (exit #f)))
+    ((equal? (car cl) "-v")
+     (begin (verbose #t) (loop (cdr cl))))
+    ((equal? (car cl) "--benchmark")
+     (begin (benchmark #t) (loop (cdr cl))))
+    ((equal? (car cl) "--noverify")
+     (begin (verify #f) (loop (cdr cl))))
+    (else
+      (begin (do-test (car cl)) (exit)))))
