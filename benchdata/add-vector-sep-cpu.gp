@@ -1,5 +1,5 @@
-set term pdfcairo
-set output "add-vector-sep-gpu.pdf"
+set term pdfcairo font ",12"
+set output "add-vector-sep-cpu.pdf"
 
 set ylab "Execution time (µs)
 set xlab "Vector size"

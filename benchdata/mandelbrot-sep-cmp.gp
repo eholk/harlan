@@ -1,7 +1,7 @@
-set term pdfcairo
+set term pdfcairo font ",12"
 set output "mandelbrot-sep-cmp.pdf"
 
-set ylab "Execution time (µs)
+set ylab "Execution time (ms)
 set xlab "Iteration count"
 
 set key left

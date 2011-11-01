@@ -1,4 +1,4 @@
-set term pdfcairo
+set term pdfcairo font ",12"
 set output "add-vector-sep-gpu.pdf"
 
 set ylab "Execution time (µs)

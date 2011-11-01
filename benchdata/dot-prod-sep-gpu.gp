@@ -1,4 +1,4 @@
-set term pdfcairo
+set term pdfcairo font ",12"
 set output "dot-prod-sep-gpu.pdf"
 
 set ylab "Execution time (µs)
