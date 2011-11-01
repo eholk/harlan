@@ -20,31 +20,39 @@
    `(module . ,decl*)))
 
 (define-match Decl
-  ((fn ,name ,args . ,[(Stmt* '()) -> stmt*])
-   `(fn ,name ,args . ,stmt*))
+  ((fn ,name ,args . ,[(Expr* '()) -> expr*])
+   `(fn ,name ,args . ,expr*))
   (,else else))
 
-(define (unroll-lets def* stmt*)
+(define (unroll-lets def* expr*)
   (cond
-    ((null? def*) stmt*)
+    ((null? def*) expr*)
     (else
       `((let (,(car def*)) .
-          ,(unroll-lets (cdr def*) stmt*))))))
+          ,(unroll-lets (cdr def*) expr*))))))
 
-(define-match (Stmt* def*)
-  ((,stmt) (unroll-lets def* (Stmt stmt)))
-  (((let ,x ,e) . ,stmt*)
-   ((Stmt* (append def* `((,x ,e)))) stmt*))
-  ((,[Stmt -> stmt] . ,stmt*)
+(define-match (Expr* def*)
+  (((let ,x ,[Expr -> e]))
+   (guard (symbol? x))
+   (unroll-lets def* `(,e)))
+  (((let ,x ,[Expr -> e]) . ,expr*)
+   (guard (symbol? x))
+   ((Expr* (append def* `((,x ,e)))) expr*))
+  ((,expr) (unroll-lets def* `(,(Expr expr))))
+  ((,[Expr -> expr] . ,expr*)
    (unroll-lets def*
-     (append stmt ((Stmt* '()) stmt*)))))
+     (cons expr ((Expr* '()) expr*)))))
 
-(define-match Stmt
-  ((for (,x ,start ,end) . ,[(Stmt* '()) -> stmt*])
-   `((for (,x ,start ,end) . ,stmt*)))
-  ((while ,test . ,[(Stmt* '()) -> stmt*])
-   `((while ,test . ,stmt*)))
-  (,else `(,else)))
+(define-match Expr
+  ((for (,x ,start ,end) . ,[(Expr* '()) -> expr*])
+   `(for (,x ,start ,end) . ,expr*))
+  ((while ,[Expr -> test] . ,[(Expr* '()) -> expr*])
+   `(while ,test . ,expr*))
+  ((kernel ((,x ,[Expr -> e]) ...) . ,[(Expr* '()) -> expr*])
+   `(kernel ((,x ,e) ...) . ,expr*))
+  ((let ((,x ,[Expr -> e]) ...) . ,[(Expr* '()) -> expr*])
+   `(let ((,x ,e) ...) . ,expr*))
+  (,else else))
 
 ;; end library
 )

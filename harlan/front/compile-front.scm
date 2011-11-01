@@ -10,20 +10,22 @@
     (harlan compile-opts)
     (only (harlan verification-passes)
       verify-harlan
+      verify-nest-lets
       verify-parse-harlan
       verify-flatten-lets
       verify-typecheck))
-
-(define compile-harlan-frontend
-  (passes
-    verify-harlan
-    nest-lets
-    parse-harlan
-    verify-parse-harlan
-    flatten-lets
-    verify-flatten-lets
-    typecheck
-    verify-typecheck))
-
-;; end library
-)
+  
+  (define compile-harlan-frontend
+    (passes
+      verify-harlan
+      nest-lets
+      verify-nest-lets
+      parse-harlan
+      verify-parse-harlan
+      flatten-lets
+      verify-flatten-lets
+      typecheck
+      verify-typecheck))
+  
+  ;; end library
+  )

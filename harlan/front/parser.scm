@@ -16,7 +16,7 @@
 
 ;; unnests lets, checks that all variables are in scope, and
 ;; renames variables to unique identifiers
-  
+
 (define-match parse-harlan
   ((module ,[parse-decl -> decl*] ...)
    `(module . ,decl*)))
@@ -25,7 +25,7 @@
   ((extern ,name . ,[parse-type -> t])
    (guard (symbol? name))
    `(extern ,name . ,t))
-  ((fn ,name ,args . ,[(parse-stmt* '()) -> stmt*])
+  ((fn ,name ,args ,[(parse-stmt '()) -> stmt*] ...)
    `(fn ,name ,args . ,stmt*)))
 
 (define-match parse-type
@@ -37,51 +37,48 @@
   ((vector ,[t] ,n)
    (guard (integer? n))
    `(vector ,t ,n))
-  (((,[t*] ...) -> ,[t]) `(,t* -> ,t)))
-
-(define-match (parse-stmt* env)
-  (() '())
-  ((,[(parse-stmt env) -> stmt env^] . ,stmt*)
-   (append stmt ((parse-stmt* env^) stmt*))))
+  (((,[t*] ...) -> ,[t])
+   `(,t* -> ,t)))
 
 (define-match (parse-stmt env)
   ((assert ,[(parse-expr env) -> e])
-   (values `((assert ,e)) env))
+   `(assert ,e))
   ((print ,[(parse-expr env) -> e])
-   (values `((print ,e)) env))
+   `(print ,e))
   ((return ,[(parse-expr env) -> e])
-   (values `((return ,e)) env))
+   `(return ,e))
+  ((if ,[(parse-expr env) -> test]
+       ,[(parse-expr env) -> conseq])
+   `(if ,test ,conseq))
+  ((if ,[(parse-expr env) -> test]
+       ,[(parse-expr env) -> conseq]
+       ,[(parse-expr env) -> alt])
+   `(if ,test ,conseq ,alt))
   ((for (,x ,start ,end) . ,stmt*)
    (guard (symbol? x))
    (let* ((x^ (gensym x))
           (env (cons `(,x . ,x^) env)))
      (let ((start ((parse-expr env) start))
            (end ((parse-expr env) end))
-           (stmt* ((parse-stmt* env) stmt*)))
-       (values `((for (,x^ ,start ,end) . ,stmt*)) env))))
-  ((while ,[(parse-expr env) -> test] .
-          ,[(parse-stmt* env) -> stmt*])
-   (values `((while ,test . ,stmt*)) env))
+           (stmt* (map (parse-stmt env) stmt*)))
+       `(for (,x^ ,start ,end) . ,stmt*))))
+  ((while ,[(parse-expr env) -> test]
+          ,[(parse-stmt env) -> stmt*] ...)
+   `(while ,test . ,stmt*))
   ((set! ,[(parse-expr env) -> x]
      ,[(parse-expr env) -> e])
-   (values `((set! ,x ,e)) env))
+   `(set! ,x ,e))
   ((vector-set!
      ,[(parse-expr env) -> v]
      ,[(parse-expr env) -> i]
      ,[(parse-expr env) -> e])
-   (values `((vector-set! ,v ,i ,e)) env))
-  ((let ,x ,e)
-   (guard (symbol? x))
-   (let* ((x^ (gensym x))
-          (env (cons `(,x . ,x^) env))
-          (e ((parse-expr env) e)))
-     (values `((let ,x^ ,e)) env)))
+   `(vector-set! ,v ,i ,e))
   ((let ((,x* ,[(parse-expr env) -> e*]) ...) . ,body)
    (let* ((x*^ (map gensym x*))
           (env (append (map cons x* x*^) env))
-          (body ((parse-stmt* env) body)))
-     (values `((let ((,x*^ ,e*) ...) . ,body)) env)))
-  (,[(parse-expr env) -> e] (values `((do ,e)) env)))
+          (body (map (parse-stmt env) body)))
+     `(let ((,x*^ ,e*) ...) . ,body)))
+  (,[(parse-expr env) -> e] `(do ,e)))
 
 (define-match (parse-expr env)
   (,f (guard (float? f)) `(float ,f))
@@ -107,18 +104,18 @@
   ((length ,[e])
    `(length ,e))
   ((int->float ,[e]) `(int->float ,e))
+  ((let ((,x* ,[(parse-expr env) -> e*]) ...) ,stmt* ... ,expr)
+   (let* ((x*^ (map gensym x*))
+          (env (append (map cons x* x*^) env))
+          (stmt* (map (parse-stmt env) stmt*))
+          (expr ((parse-expr env) expr)))
+     `(let ((,x*^ ,e*) ...) ,@stmt* ,expr)))
   ((kernel ((,x* ,[e*]) ...) ,stmt* ... ,e)
    (let* ((x*^ (map gensym x*))
           (env (append (map cons x* x*^) env)))
      `(kernel ((,x*^ ,e*) ...)
-        ,@
-        (let loop ((stmt* stmt*) (env env))
-          (cond
-            ((null? stmt*) `(,((parse-expr env) e)))
-            (else
-              (let-values (((stmt^ env^)
-                            ((parse-stmt env) (car stmt*))))
-                `(,@stmt^ . ,(loop (cdr stmt*) env^)))))))))
+        ,@(map (parse-stmt env) stmt*)
+        ,((parse-expr env) e))))
   ((reduce ,op ,[e])
    (guard (reduceop? op))
    `(reduce ,op ,e))

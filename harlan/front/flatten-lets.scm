@@ -20,17 +20,19 @@
    `(module . ,decl*)))
 
 (define-match Decl
-  ((fn ,name ,args ,[Stmt -> stmt*] ...)
+  ((fn ,name ,args ,[walk-tree -> stmt*] ...)
    `(fn ,name ,args . ,(apply append stmt*)))
   (,else else))
 
-(define-match Stmt
+(define-match walk-tree
   ((for (,x ,start ,end) ,[stmt*] ...)
    `((for (,x ,start ,end) . ,(apply append stmt*))))
   ((while ,test ,[stmt*] ...)
    `((while ,test . ,(apply append stmt*))))
-  ((let ((,x* ,e*) ...) ,[stmt*] ...)
-   `(,@(map (lambda (x e) `(let ,x ,e)) x* e*)
+  ((kernel ((,x ,[e*]) ...) ,[stmt*] ... ,[expr])
+   `((kernel ((,x . ,e*) ...) ,@(apply append stmt*) . ,expr)))
+  ((let ((,x* ,[e*]) ...) ,[stmt*] ...)
+   `(,@(map (lambda (x e) `(let ,x . ,e)) x* e*)
      . ,(apply append stmt*)))
   (,else `(,else)))
 

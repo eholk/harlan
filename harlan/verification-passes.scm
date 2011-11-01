@@ -2,6 +2,7 @@
   (harlan verification-passes)
   (export
     verify-harlan
+    verify-nest-lets
     verify-parse-harlan
     verify-flatten-lets
     verify-returnify
@@ -76,6 +77,7 @@
         (Var Expr *)))
 
     (nest-lets (%inherits Module Decl)
+      (Start Module)
       (Expr
         integer
         float
@@ -94,7 +96,7 @@
         (var Var)
         (vector Expr +)
         (vector-ref Expr Expr)
-        (kernel ((Var Expr) +) Expr * Expr)
+        (kernel ((Var Expr) +) Expr +)
         (reduce Reduceop Expr)
         (iota Integer)
         (length Expr)
@@ -109,7 +111,6 @@
         (extern Var (Type *) -> Type)
         (fn Var (Var *) Stmt +))
       (Stmt
-        (let Var Expr)
         (let ((Var Expr) *) Stmt +)
         (if Expr Expr)
         (if Expr Expr Expr)
@@ -129,6 +130,7 @@
         (vector Expr +)
         (if Expr Expr Expr)
         (vector-ref Expr Expr)
+        (let ((Var Expr) *) Stmt * Expr)
         (kernel ((Var Expr) +) Stmt * Expr)
         (reduce Reduceop Expr)
         (iota (num Integer))
