@@ -5,10 +5,10 @@
   (import
     (only (chezscheme) format)
     (rnrs)
-    (util match)
-    (harlan back print-c)
+    (elegant-weapons match)
+    (elegant-weapons print-c)
     (util verify-grammar)
-    (util helpers))
+    (elegant-weapons helpers))
 
 ;; Moves to a lower-level allocate and set! representation for
 ;; vectors. This runs after typechecking.

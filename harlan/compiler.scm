@@ -3,11 +3,11 @@
   (export compile-harlan harlan->c++)
   (import
    (chezscheme)
-   (only (util helpers) join)
+   (only (elegant-weapons helpers) join)
    (harlan compile-opts)
    (harlan front compile-front)
    (harlan middle compile-middle)
-   (harlan back print-c))
+   (elegant-weapons print-c))
 
 (define compile-harlan
   (passes

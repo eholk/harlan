@@ -4,8 +4,8 @@
     generate-kernel-calls)
   (import
     (rnrs)
-    (util helpers)
-    (util match))
+    (elegant-weapons helpers)
+    (elegant-weapons match))
   
 (define-match generate-kernel-calls
   ((module ,[Decl -> decl*] ...)

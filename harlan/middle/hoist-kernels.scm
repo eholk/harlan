@@ -4,8 +4,8 @@
   (import
     (only (chezscheme) format)
     (rnrs)
-    (util match)
-    (util helpers))
+    (elegant-weapons match)
+    (elegant-weapons helpers))
 
 ;; This pass is probably too big. It finds all the kernel
 ;; expressions, hoists them into a GPU module, replaces the old

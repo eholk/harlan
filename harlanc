@@ -4,7 +4,7 @@
   (chezscheme)
   (harlan compile-opts)
   (harlan driver)
-  (harlan back print-c)
+  (elegant-weapons print-c)
   (harlan middle kernels)
   (harlan compiler)
   (harlan middle compile-middle))

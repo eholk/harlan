@@ -3,7 +3,7 @@
   (export read-all shell get-os join-path)
   (import
    (chezscheme)
-   (only (util helpers) join))
+   (only (elegant-weapons helpers) join))
 
   (define (read-all port)
   (let loop ((result ""))

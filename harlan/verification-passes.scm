@@ -21,7 +21,7 @@
     verify-compile-kernels)
   (import
     (rnrs)
-    (util helpers)
+    (elegant-weapons helpers)
     (util verify-grammar))
 
   (grammar-transforms

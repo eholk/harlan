@@ -3,8 +3,8 @@
   (export remove-nested-kernels)
   (import
     (rnrs)
-    (util helpers)
-    (util match))
+    (elegant-weapons helpers)
+    (elegant-weapons match))
 
 ;; This pass takes a nest of kernels and turns all but the innermost
 ;; one into for loops. This isn't the best way to do this, but it's

@@ -3,8 +3,8 @@
   (export move-gpu-data)
   (import
     (rnrs)
-    (util match)
-    (util helpers))
+    (elegant-weapons match)
+    (elegant-weapons helpers))
   
 (define-match move-gpu-data
   ((module ,[Decl -> decl*] ...)

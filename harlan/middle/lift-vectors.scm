@@ -6,9 +6,9 @@
   (import
     (only (chezscheme) format)
     (rnrs)
-    (util match)
+    (elegant-weapons match)
     (util verify-grammar)
-    (util helpers)
+    (elegant-weapons helpers)
     (harlan front parser))
   
 (define lift-expr->stmt

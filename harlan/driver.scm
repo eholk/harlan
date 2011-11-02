@@ -3,8 +3,8 @@
   (export get-cflags g++-compile-stdin read-source)
   (import
    (chezscheme)
-   (only (util helpers) join)
-   (util match)
+   (only (elegant-weapons helpers) join)
+   (elegant-weapons match)
    (util system))
 
   (define (get-cflags)

@@ -2,7 +2,7 @@
 
 (import (chezscheme)
         (util color)
-        (util match)
+        (elegant-weapons match)
         (util system)
         (harlan driver)
         (harlan compiler)
