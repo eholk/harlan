@@ -58,6 +58,8 @@
      (apply append kernel*)))
   ((while ,expr ,[hoist-stmt -> stmt* kernel*] ...)
    (values `(while ,expr . ,stmt*) (apply append kernel*)))
+  ((if ,test ,[hoist-stmt -> conseq ckernel*] ,[hoist-stmt -> alt akernel*])
+   (values `(if ,test ,conseq ,alt) (append ckernel* akernel*)))
   (,else (values else '())))
 
 (define generate-kernel

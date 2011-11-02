@@ -92,6 +92,8 @@
    ((field ,[obj] ,x ,[format-type -> t])
     (guard (symbol? x))
     (string-append obj "." (symbol->string x) "<" t ">"))
+   ((if ,[test] ,[conseq] ,[alt])
+    (string-append "(" test ") ? (" conseq ") : (" alt ")"))
    ((vector-ref ,[v] ,[i])
     (string-append v "[" i "]"))
    ((sizeof ,[format-type -> t])
@@ -124,6 +126,10 @@
    ((let ,ident ,type ,expr* ...)
     (string-append (format-type type) " " (format-ident ident)
       "(" (join ", " (map format-expr expr*)) ");"))
+   ((if ,[format-expr -> test] ,[conseq])
+    (string-append "if(" test ") {" conseq "}"))
+   ((if ,[format-expr -> test] ,[conseq] ,[alt])
+    (string-append "if(" test ") {" conseq "} else {" alt "}"))
    ((block ,stmt* ...)
     (format-block `(block . ,stmt*)))
    ((return ,expr)
@@ -138,12 +144,9 @@
     (string-append (format-expr vec-expr)
       "[" (format-expr i-expr) "] = "
       (format-expr val-expr) ";"))
-   ((while (,[relop->string -> relop]
-            ,[format-expr -> e1] ,[format-expr -> e2])
+   ((while ,[format-expr -> expr]
       ,[format-stmt -> stmt*] ...)
-    (string-append "while(" e1 " " relop " " e2 ") {\n"
-      (join "\n" stmt*)
-      "\n}"))
+    (string-append "while(" expr ") {\n" (join "\n" stmt*) "\n}"))
    ((for (,[format-ident -> i]
           ,[format-expr -> start] ,[format-expr -> end])
       ,[format-stmt -> stmt*] ...)
@@ -175,8 +178,7 @@
       (format-block `(block . ,stmt*))))
    ((extern ,[format-type -> type] ,[format-ident -> name]
       (,[format-type -> args] ...))
-    (string-append type " " name "(" (join ", " args) ");\n"))
-   (,else (error 'format-decl "Invalid declaration" else)))
+    (string-append type " " name "(" (join ", " args) ");\n")))
  
  (define format-c
    (lambda (decls)

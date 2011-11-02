@@ -31,11 +31,10 @@
                                  (set! xr xrp)
                                  (set! xi xip)
                                  (let m (+ (* xr xr) (* xi xi)))
-                                 (while (< m 4.0)
+                                 (if (< m 4.0)
                                    ;; Why do the pixels all turn white
                                    ;; if I just do (set! escape idx)?
-                                   (set! escape (- idx 1))
-                                   (set! m 5.0))
+                                   (set! escape (- idx 1)))
                                  (set! idx (+ idx 1)))
                                (/ (* escape 256) max_iter))))
       (let stop (nanotime))

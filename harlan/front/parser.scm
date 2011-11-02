@@ -48,11 +48,11 @@
   ((return ,[(parse-expr env) -> e])
    `(return ,e))
   ((if ,[(parse-expr env) -> test]
-       ,[(parse-expr env) -> conseq])
+       ,[(parse-stmt env) -> conseq])
    `(if ,test ,conseq))
   ((if ,[(parse-expr env) -> test]
-       ,[(parse-expr env) -> conseq]
-       ,[(parse-expr env) -> alt])
+       ,[(parse-stmt env) -> conseq]
+       ,[(parse-stmt env) -> alt])
    `(if ,test ,conseq ,alt))
   ((for (,x ,start ,end) . ,stmt*)
    (guard (symbol? x))
@@ -97,6 +97,8 @@
    `(vector . ,e*))
   ((make-vector ,[e])
    `(make-vector ,e))
+  ((if ,[test] ,[conseq] ,[alt])
+   `(if ,test ,conseq ,alt))
   ((iota ,[e])
    `(iota ,e))
   ((vector-ref ,[v] ,[i])

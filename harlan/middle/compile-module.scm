@@ -26,6 +26,10 @@
 (define-match compile-stmt
   [(let ,x ,t ,[compile-expr -> e])
    `(let ,x ,t ,e)]
+  ((if ,[compile-expr -> test] ,[conseq])
+   `(if ,test ,conseq))
+  ((if ,[compile-expr -> test] ,[conseq] ,[alt])
+   `(if ,test ,conseq ,alt))
   [(let-gpu ,x ,t)
    `(let ,x (cl::buffer ,(scalar-type t))
          ((field g_ctx createBuffer ,(scalar-type t))
@@ -88,6 +92,8 @@
   [(var ,t ,x) (guard (symbol? x)) x]
   [(str ,s) (guard (string? s)) s]
   [(vector-ref ,t ,[v] ,[i]) `(vector-ref ,v ,i)]
+  ((if ,[test] ,[conseq] ,[alt])
+   `(if ,test ,conseq ,alt))
   [(field ,[obj] ,x)
    (guard (ident? x))
    `(field ,obj ,x)]

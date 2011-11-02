@@ -21,13 +21,21 @@
       ((var ,t ,x) (finish `(var ,t ,x)))
       ((int->float ,e)
        (lift-expr->stmt e (lambda (e) (finish `(int->float ,e)))))
-      ((vector-ref ,t ,e1 ,e2)
+      ((if ,test ,conseq ,alt)
        (lift-expr->stmt
-         (if (symbol? e1)
-             (error 'lift-expr->stmt
-                    "This form is not legal"
-                    e1)
-             e1)
+         test
+         (lambda (t)
+           (lift-expr->stmt
+             conseq
+             (lambda (c)
+               (lift-expr->stmt
+                 alt
+                 (lambda (a)
+                   (finish `(if ,t ,c ,a)))))))))
+      ((vector-ref ,t ,e1 ,e2)
+       (if (symbol? e1) (error 'lift-expr->stmt "This form is not legal" e1))
+       (lift-expr->stmt
+         e1
          (lambda (e1^)
            (lift-expr->stmt
              e2 (lambda (e2^)
@@ -123,6 +131,16 @@
        (lift-expr->stmt e (lambda (e^)
                             (cons `(set! ,x ,e^)
                               rest))))
+      (((if ,test ,conseq) . ,[rest])
+       (lift-expr->stmt
+         test
+         (lambda (t)
+           (cons `(if ,t ,conseq) rest))))
+      (((if ,test ,conseq ,alt) . ,[rest])
+       (lift-expr->stmt
+         test
+         (lambda (t)
+           (cons `(if ,t ,conseq ,alt) rest))))
       (((vector-set! ,t ,x ,e1 ,e2) . ,[rest])
        ;; TODO: should x be any expression, or just a variable?
        ;; WEB: any expression

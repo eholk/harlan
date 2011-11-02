@@ -57,6 +57,10 @@
   ((assert ,expr)
    `((assert ,expr)))
   ((set! ,x ,i) `((set! ,x ,i)))
+  ((if ,test ,[conseq]) ;; this is a hack.
+   `((if ,test ,@conseq)))
+  ((if ,test ,[conseq] ,[alt])
+   `((if ,test ,@conseq ,@alt)))
   ((vector-set! ,t ,e1 ,i ,e2)
    `((vector-set! ,t ,e1 ,i ,e2)))
   ((while ,expr ,[body*] ...)
@@ -66,5 +70,4 @@
   ((return ,expr)
    `((return ,expr)))
   ((do . ,expr*) `((do . ,expr*))))
-
 )

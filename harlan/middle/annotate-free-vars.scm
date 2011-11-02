@@ -1,11 +1,12 @@
 (library
   (harlan middle annotate-free-vars)
- (export annotate-free-vars)
- (import (only (chezscheme) format printf)
-         (rnrs)
-         (harlan back print-c)
-         (util match)
-         (util helpers))
+  (export annotate-free-vars)
+  (import
+    (only (chezscheme) format printf)
+    (rnrs)
+    (harlan back print-c)
+    (util match)
+    (util helpers))
 
 ;; Is there anything else I should work on tomorrow, once I get this pass working?
 ;; either the for loop pass, or the pass that uses the free variables, or keep working on returnify kernels
@@ -36,7 +37,7 @@
    `(module ,decl* ...)))
 
 (define-match (annotate-decl gamma)
-  ((fn ,name ,args ,type ,stmt* ...)
+  ((fn ,name ,args ,type . ,stmt*)
    (let-values (((stmt* gamma) ((annotate-stmt* gamma) stmt*)))
      `(fn ,name ,args ,type . ,stmt*)))
   ((extern ,name ,arg-types -> ,type)
@@ -66,8 +67,15 @@
              gamma))))))
   ((return ,[(annotate-expr gamma) -> e])
    (values `(return ,e) gamma))
+  ((if ,[(annotate-expr gamma) -> test]
+       ,[(annotate-stmt gamma) -> conseq gamma^])
+   (values `(if ,test ,conseq) gamma))
+  ((if ,[(annotate-expr gamma) -> test]
+       ,[(annotate-stmt gamma) -> conseq gamma^]
+       ,[(annotate-stmt gamma) -> alt gamma^^])
+   (values `(if ,test ,conseq ,alt) gamma))
   ((do ,[(annotate-expr gamma) -> e*] ...)
-   (values `(do ,e* ...) gamma))
+   (values `(do . ,e*) gamma))
   ((let ,x ,t ,e)
    (let* ((gamma `((,x . ,t) . ,gamma))
           (e ((annotate-expr gamma) e)))
@@ -98,6 +106,10 @@
   ((call ,t ,rator ,[rand*] ...)
    (guard (symbol? rator))
    `(call ,t ,rator ,rand* ...))
+  ((if ,[(annotate-expr gamma) -> test]
+       ,[(annotate-expr gamma) -> conseq]
+       ,[(annotate-expr gamma) -> alt])
+   `(if ,test ,conseq ,alt))
   ((sizeof ,t)
    `(sizeof ,t))
   ((addressof ,[e]) `(addressof ,e))
@@ -120,10 +132,16 @@
     (remove* x* stmt*))
    ((return ,[free-vars-expr -> e]) e)
    ((do ,[free-vars-stmt -> s]) s)
-   ((assert ,[free-vars-expr -> e]) e)       
+   ((assert ,[free-vars-expr -> e]) e)
+   ((if ,[free-vars-expr -> test] ,[conseq])
+    (union test conseq))
+   ((if ,[free-vars-expr -> test] ,[conseq] ,[alt])
+    (union* test conseq alt))
    ((let ,x ,t ,[free-vars-expr -> e])
     (remove x e))
-   ((for (,x ,[free-vars-expr -> start] ,[free-vars-expr -> end]) ,[free-vars-stmt -> s])
+   ((for (,x ,[free-vars-expr -> start]
+           ,[free-vars-expr -> end])
+      ,[free-vars-stmt -> s])
     (remove x s))
    ((while ,[free-vars-expr -> test]
       . ,[free-vars-stmt* -> stmt*])
@@ -139,6 +157,8 @@
   ((,op ,[free-vars-expr -> e1] ,[free-vars-expr -> e2])
    (guard (or (binop? op) (relop? op)))
    (union e1 e2))
+  ((if ,[test] ,[conseq] ,[alt])
+   (union* test conseq alt))
   ((deref ,[free-vars-expr -> e]) e)
   ((cast ,t ,[free-vars-expr -> e]) e)
   ((addressof ,[free-vars-expr -> e]) e)

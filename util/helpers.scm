@@ -36,6 +36,13 @@
  ;; everywhere this macro is used.
  (define-syntax (define-match x)
    (syntax-case x ()
+     ((k (name args ...) clauses ...)
+      (with-implicit (k match)
+        #'(define (name args ...)
+            (lambda (arg)
+              (match arg
+                clauses ...
+                (,else (error 'name "Unrecognized item" else)))))))
      ((k name clauses ...)
       (with-implicit (k match)
         #'(define name
