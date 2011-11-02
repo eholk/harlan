@@ -40,6 +40,8 @@
               (var cl::kernel ,kernel)
               (int ,(get-arg-length (car arg*))) ;; global size
               (int 1)))))) ;; local size
+  ((begin ,[stmt*] ...)
+   `(begin . ,stmt*))
   ((for (,i ,start ,end) ,[stmt*] ...)
    `(for (,i ,start ,end) . ,stmt*))
   ((while ,expr ,[stmt*] ...)

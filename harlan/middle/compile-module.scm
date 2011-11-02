@@ -24,6 +24,8 @@
    `(gpu-module . ,kernel*)])
 
 (define-match compile-stmt
+  ((begin ,[stmt*] ...)
+   `(begin . ,stmt*))
   [(let ,x ,t ,[compile-expr -> e])
    `(let ,x ,t ,e)]
   ((if ,[compile-expr -> test] ,[conseq])

@@ -55,6 +55,8 @@
             (loop (cdr stmt*) gamma (cons stmt new-stmt*)))]))))
 
 (define-match (annotate-stmt gamma)
+  ((begin . ,[(annotate-stmt* gamma) -> stmt* gamma^])
+   (values `(begin . ,stmt*) gamma^))
   ((kernel (((,x* ,t*) (,xs* ,ts*)) ...) . ,stmt*)
    (let ((gamma (append (map cons x* t*) gamma)))
      (let-values (((stmt* gamma) ((annotate-stmt* gamma) stmt*)))
@@ -130,6 +132,7 @@
    ((kernel (((,x* ,t*) (,xs* ,ts*)) ...) .
       ,[free-vars-stmt* -> stmt*])
     (remove* x* stmt*))
+   ((begin . ,[free-vars-stmt* -> e]) e)
    ((return ,[free-vars-expr -> e]) e)
    ((do ,[free-vars-stmt -> s]) s)
    ((assert ,[free-vars-expr -> e]) e)

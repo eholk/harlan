@@ -14,7 +14,8 @@
 (define-match convert-decl
   ((gpu-module ,[convert-kernel -> kernel*] ...)
    `(gpu-module . ,kernel*))
-  ((func ,[convert-type -> rtype] ,name ((,x* ,[convert-type -> t*]) ...)
+  ((func ,[convert-type -> rtype] ,name
+     ((,x* ,[convert-type -> t*]) ...)
      ,[convert-stmt -> stmt*] ...)
    (guard (andmap ident? x*))
    `(func ,rtype ,name ,(map list x* t*) . ,stmt*))
@@ -22,11 +23,14 @@
    `(extern ,t ,name ,t*)))
 
 (define-match convert-kernel
-  ((kernel ,k ((,x* ,[convert-type -> t*]) ...) ,[convert-stmt -> stmt*] ...)
+  ((kernel ,k ((,x* ,[convert-type -> t*]) ...)
+     ,[convert-stmt -> stmt*] ...)
    (guard (ident? k))
    `(kernel ,k ,(map list x* t*) . ,stmt*)))
 
 (define-match convert-stmt
+  ((begin ,[stmt*] ...)
+   `(begin . ,stmt*))
   ((let ,x ,[convert-type -> type] ,[convert-expr -> e])
    (guard (symbol? x))
    `(let ,x ,type ,e))

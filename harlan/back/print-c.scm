@@ -1,6 +1,7 @@
 (library
  (harlan back print-c)
- (export format-c print-c join format-arg format-ident format-block)
+ (export
+   format-c print-c join format-arg format-ident format-block)
  (import (only (chezscheme) format)
          (rnrs)
          (util match)
@@ -24,7 +25,8 @@
  
  (define format-ident
    (lambda (ident)
-     (unless (symbol? ident) (error 'format-ident "invalid symbol" ident))
+     (unless (symbol? ident)
+       (error 'format-ident "invalid symbol" ident))
      (symbol->string ident)))
 
  (define-match format-type
@@ -120,6 +122,8 @@
     (string-append (format-expr f) "(" (format-call-args args) ")")))
  
  (define-match format-stmt
+   ((begin ,[stmt*] ...)
+    (apply string-append stmt*))
    ((let ,[format-ident -> ident] ,[format-type -> type]
          ,[format-expr -> expr])
     (string-append type " " ident " = " expr ";"))

@@ -53,6 +53,8 @@
       (,else else))))
 
 (define-match uglify-stmt
+  ((begin ,[uglify-stmt -> stmt*] ...)
+   `((begin ,(apply append stmt*))))
   ((let ,x (vector ,t ,n) ,[uglify-expr -> init])
    (let ((vv (uglify-let-vec t init n)))
      `((let ,x (vector ,t ,n) ,vv))))

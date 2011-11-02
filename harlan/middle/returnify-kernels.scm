@@ -26,9 +26,9 @@
     ((assert ,expr) `((assert ,expr)))
     ((set! ,x ,e) `((set! ,x ,e)))
     ((if ,test ,[conseq]) ;; this is a hack
-     `((if ,test ,@conseq)))
+     `((if ,test (begin ,@conseq))))
     ((if ,test ,[conseq] ,[alt])
-     `((if ,test ,@conseq ,@alt)))
+     `((if ,test (begin ,@conseq) (begin ,@alt))))
     ((vector-set! ,t ,x ,e1 ,e2) `((vector-set! ,t ,x ,e1 ,e2)))
     ((return ,expr) `((return ,expr)))
     ((while ,expr . ,[returnify-kernel-stmt* -> body*])

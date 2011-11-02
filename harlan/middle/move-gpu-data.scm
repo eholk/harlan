@@ -24,6 +24,8 @@
   ((let ,x ,t ,[Expr -> expr])
    (guard (ident? x))
    `((let ,x ,t ,expr)))
+  ((begin ,[stmt*] ...)
+   `((begin . ,(apply append stmt*))))
   ((for (,x ,[Expr -> start] ,[Expr -> end]) ,[stmt*] ...)
    (guard (ident? x))
    `((for (,x ,start ,end) . ,(apply append stmt*))))
