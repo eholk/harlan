@@ -3,6 +3,7 @@
 (import
   (chezscheme)
   (harlan compile-opts)
+  (harlan driver)
   (harlan back print-c)
   (harlan middle kernels)
   (harlan compiler)
@@ -46,9 +47,12 @@
 
 (define print-compile-harlan
   (lambda (filename)
-    (let ((input (read (open-input-file filename))))
-      (let ((c-code (compile-harlan input)))
-        (print-c c-code)))))
+    (let-values (((input testspec) (read-source filename)))
+      (if (assq 'iterate testspec)
+          (error 'harlanc
+                 "Test iteration is not supported. Use run-tests.scm instead.")
+          (let ((c-code (compile-harlan input)))
+            (print-c c-code))))))
 
 (let* ((fverbose (equal? (cadr (command-line)) "-v"))
        (args (if fverbose
@@ -62,9 +66,5 @@
          (system (string-append "cat " filename)))
         ((sexpr-c)
          (print-c (read (open-input-file filename))))
-        ((kernel-c)
-         (print-c (compile-kernels (read (open-input-file filename)))))
-        ((typed-fried-chicken)
-         (print-c (compile-harlan-middle (read (open-input-file filename)))))
         ((harlan)
          (print-compile-harlan filename))))))
