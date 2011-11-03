@@ -54,7 +54,7 @@
 
 (define-match uglify-stmt
   ((begin ,[uglify-stmt -> stmt*] ...)
-   `((begin ,(apply append stmt*))))
+   `(,(make-begin (apply append stmt*))))
   ((let ,x (vector ,t ,n) ,[uglify-expr -> init])
    (let ((vv (uglify-let-vec t init n)))
      `((let ,x (vector ,t ,n) ,vv))))
@@ -113,6 +113,8 @@
   ((int->float ,[e]) `(cast float ,e))
   ((call ,t ,name ,[args] ...)
    `(call ,t ,name . ,args))
+  ((begin ,[uglify-stmt -> stmt*] ... ,[expr])
+   `(begin ,@(apply append stmt*) ,expr))
   ((if ,[test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
   ((,op ,[lhs] ,[rhs]) (guard (or (binop? op) (relop? op)))

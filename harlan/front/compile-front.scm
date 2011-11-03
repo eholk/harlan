@@ -22,10 +22,10 @@
       verify-nest-lets
       parse-harlan
       verify-parse-harlan
-      flatten-lets
-      verify-flatten-lets
       typecheck
-      verify-typecheck))
+      verify-typecheck
+      flatten-lets
+      verify-flatten-lets))
   
   ;; end library
   )

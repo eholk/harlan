@@ -48,6 +48,8 @@
                   ,@(apply append stmt*) ,e))))
      #t))
   ((let ,x ,t ,e) (values `((let ,x ,t ,e)) #f))
+  ((begin ,[stmt* has-kernel*] ...)
+   (values `(,(make-begin (apply append stmt*))) (any? has-kernel*)))
   ((for (,i ,start ,end) ,[stmt* has-kernel*] ...)
    (values `((for (,i ,start ,end) . ,(apply append stmt*)))
      (any? has-kernel*)))

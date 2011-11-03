@@ -53,7 +53,7 @@
                ts* fv* ft* stmt*)
          (apply append kernel*)))))
   ((begin ,[hoist-stmt -> stmt* kernel*] ...)
-   (values `(begin . ,stmt*) (append append kernel*)))
+   (values (make-begin stmt*) (apply append kernel*)))
   ((for (,i ,start ,end) ,[hoist-stmt -> stmt* kernel*] ...)
    ;; WEB: have no idea if this is right.
    (values `(for (,i ,start ,end) . ,stmt*)

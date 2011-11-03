@@ -52,6 +52,8 @@
    `((let ,x ,t (kernel ,t ,iter ,@(apply append body*) ,e))))
   ((let ,x ,t ,e)
    `((let ,x ,t ,e)))
+  ((begin ,[stmt*] ...)
+   `(,(make-begin (apply append stmt*))))
   ((print ,expr)
    `((print ,expr)))      
   ((assert ,expr)

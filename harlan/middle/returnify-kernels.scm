@@ -25,7 +25,9 @@
     ((print ,expr) `((print ,expr)))
     ((assert ,expr) `((assert ,expr)))
     ((set! ,x ,e) `((set! ,x ,e)))
-    ((if ,test ,[conseq]) ;; this is a hack
+    ((begin . ,stmt*)
+     (returnify-kernel-stmt* stmt*))
+    ((if ,test ,[conseq])
      `((if ,test (begin ,@conseq))))
     ((if ,test ,[conseq] ,[alt])
      `((if ,test (begin ,@conseq) (begin ,@alt))))
@@ -53,13 +55,12 @@
            ((((,x* ,tx*) (,xe* ,xet*)) ...)
             (let ((g (gensym 'retval)))
               (let ((body*
-                      (let loop ((body* body*)) ;; why is this a loop
-                        (match body*
-                          ((,[returnify-kernel-stmt -> body^] ... ,body)
-                           (append (apply append body^)
-                             `((set! (var ,(cadr t2) ,g) ,body))))
-                          (,else (error 'returnify-kernel-let
-                                   "malformed stuffs" else))))))
+                      (match body*
+                        ((,[returnify-kernel-stmt -> body^] ...
+                          ,[(returnify-expr t2 g) -> expr])
+                         (append (apply append body^) expr))
+                        (,else (error 'returnify-kernel-let
+                                 "malformed stuffs" else)))))
                 `((let ,id ,t1 (length ,(car xe*)))
                   (kernel ,t2 (((,g ,(cadr t2)) ((var ,t1 ,id) ,t1))
                                . ,arg*)
@@ -70,4 +71,15 @@
            "Only 1-dimensional return values are allowed.")))
     ((let ,id ,type ,expr) `((let ,id ,type ,expr))))
 
+  (define-match (returnify-expr t x)
+    ((begin ,stmt* ... ,[(returnify-expr t x) -> expr])
+     `(,@stmt* . ,expr))
+    ((if ,test
+         ,[(returnify-expr t x) -> conseq]
+         ,[(returnify-expr t x) -> alt])
+     `((if ,test ,(make-begin conseq) ,(make-begin alt))))
+    (,else `((set! (var ,(cadr t) ,x) ,else))))
+
+  ;; end library
   )
+

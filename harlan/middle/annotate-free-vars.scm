@@ -108,6 +108,11 @@
   ((call ,t ,rator ,[rand*] ...)
    (guard (symbol? rator))
    `(call ,t ,rator ,rand* ...))
+  ((begin ,stmt* ... ,expr)
+   (let-values (((stmt* gamma^)
+                 ((annotate-stmt* gamma) stmt*)))
+     (let ((expr ((annotate-expr gamma^) expr)))
+       (make-begin `(,@stmt* ,expr)))))
   ((if ,[(annotate-expr gamma) -> test]
        ,[(annotate-expr gamma) -> conseq]
        ,[(annotate-expr gamma) -> alt])
@@ -160,6 +165,8 @@
   ((,op ,[free-vars-expr -> e1] ,[free-vars-expr -> e2])
    (guard (or (binop? op) (relop? op)))
    (union e1 e2))
+  ((begin ,[free-vars-stmt -> se] ... ,[e])
+   (apply union* e se))
   ((if ,[test] ,[conseq] ,[alt])
    (union* test conseq alt))
   ((deref ,[free-vars-expr -> e]) e)

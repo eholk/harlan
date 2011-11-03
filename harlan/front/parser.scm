@@ -26,7 +26,7 @@
    (guard (symbol? name))
    `(extern ,name . ,t))
   ((fn ,name ,args ,[(parse-stmt '()) -> stmt*] ...)
-   `(fn ,name ,args . ,stmt*)))
+   `(fn ,name ,args ,(make-begin stmt*))))
 
 (define-match parse-type
   (int 'int)
@@ -54,6 +54,8 @@
        ,[(parse-stmt env) -> conseq]
        ,[(parse-stmt env) -> alt])
    `(if ,test ,conseq ,alt))
+  ((begin ,[(parse-stmt env) -> stmt*] ...)
+   `(begin . ,stmt*))
   ((for (,x ,start ,end) . ,stmt*)
    (guard (symbol? x))
    (let* ((x^ (gensym x))
@@ -61,10 +63,10 @@
      (let ((start ((parse-expr env) start))
            (end ((parse-expr env) end))
            (stmt* (map (parse-stmt env) stmt*)))
-       `(for (,x^ ,start ,end) . ,stmt*))))
+       `(for (,x^ ,start ,end) ,(make-begin stmt*)))))
   ((while ,[(parse-expr env) -> test]
           ,[(parse-stmt env) -> stmt*] ...)
-   `(while ,test . ,stmt*))
+   `(while ,test ,(make-begin stmt*)))
   ((set! ,[(parse-expr env) -> x]
      ,[(parse-expr env) -> e])
    `(set! ,x ,e))
@@ -77,7 +79,7 @@
    (let* ((x*^ (map gensym x*))
           (env (append (map cons x* x*^) env))
           (body (map (parse-stmt env) body)))
-     `(let ((,x*^ ,e*) ...) . ,body)))
+     `(let ((,x*^ ,e*) ...) ,(make-begin body))))
   (,[(parse-expr env) -> e] `(do ,e)))
 
 (define-match (parse-expr env)
@@ -95,6 +97,8 @@
      `(var ,(cdr x^))))
   ((vector ,[e*] ...)
    `(vector . ,e*))
+  ((begin ,[(parse-stmt env) -> stmt*] ... ,[(parse-expr env) -> expr])
+   `(begin ,@stmt* ,expr))
   ((make-vector ,[e])
    `(make-vector ,e))
   ((if ,[test] ,[conseq] ,[alt])
@@ -111,13 +115,14 @@
           (env (append (map cons x* x*^) env))
           (stmt* (map (parse-stmt env) stmt*))
           (expr ((parse-expr env) expr)))
-     `(let ((,x*^ ,e*) ...) ,@stmt* ,expr)))
+     `(let ((,x*^ ,e*) ...) ,(make-begin `(,@stmt* ,expr)))))
   ((kernel ((,x* ,[e*]) ...) ,stmt* ... ,e)
    (let* ((x*^ (map gensym x*))
           (env (append (map cons x* x*^) env)))
      `(kernel ((,x*^ ,e*) ...)
-        ,@(map (parse-stmt env) stmt*)
-        ,((parse-expr env) e))))
+        ,(make-begin
+           `(,@(map (parse-stmt env) stmt*)
+             ,((parse-expr env) e))))))
   ((reduce ,op ,[e])
    (guard (reduceop? op))
    `(reduce ,op ,e))
