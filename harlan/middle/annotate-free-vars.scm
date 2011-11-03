@@ -4,9 +4,9 @@
   (import
     (only (chezscheme) format printf)
     (rnrs)
-    (harlan back print-c)
-    (util match)
-    (util helpers))
+    (elegant-weapons print-c)
+    (elegant-weapons match)
+    (elegant-weapons helpers))
 
 ;; Is there anything else I should work on tomorrow, once I get this pass working?
 ;; either the for loop pass, or the pass that uses the free variables, or keep working on returnify kernels

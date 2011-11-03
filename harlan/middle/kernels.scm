@@ -11,10 +11,9 @@
   (import
     (only (chezscheme) format)
     (rnrs)
-    (util match)
-    (harlan back print-c)
-    (util verify-grammar)
-    (util helpers)
+    (elegant-weapons match)
+    (elegant-weapons print-c)
+    (elegant-weapons helpers)
     (harlan middle generate-kernel-calls))
   
 (generate-verify generate-kernel-calls

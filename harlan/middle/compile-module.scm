@@ -4,10 +4,10 @@
   (import
     (rnrs)
     (only (chezscheme) format)
-    (util helpers)
-    (harlan back print-c)
+    (elegant-weapons helpers)
+    (elegant-weapons print-c)
     (harlan front parser)
-    (util match))
+    (elegant-weapons match))
 
 ;; This compile kernel is used in the compile-module pass.
 (define-match compile-kernel^

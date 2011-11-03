@@ -2,9 +2,8 @@
   (harlan middle returnify-kernels)
   (export returnify-kernels)
   (import (rnrs)
-    (util match)
-    (util verify-grammar)
-    (util helpers))
+    (elegant-weapons match)
+    (elegant-weapons helpers))
   
   (define-match returnify-kernels
     ((module ,[returnify-kernel-decl -> fn*] ...)

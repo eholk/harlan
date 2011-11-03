@@ -3,8 +3,8 @@
   (export convert-types)
   (import (only (chezscheme) format)
     (rnrs)
-    (util helpers)
-    (util match))
+    (elegant-weapons helpers)
+    (elegant-weapons match))
   
 ;; This pass converts Harlan types into C types.
 (define-match convert-types

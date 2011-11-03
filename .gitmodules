@@ -1,0 +1,3 @@
+[submodule "external/elegant-weapons"]
+	path = external/elegant-weapons
+	url = git@github.com:eholk/elegant-weapons.git

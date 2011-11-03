@@ -5,10 +5,10 @@
   (import
     (only (chezscheme) format)
     (rnrs)
-    (util match)
+    (elegant-weapons match)
     (util verify-grammar)
-    (util helpers)
-    (harlan back print-c))
+    (elegant-weapons helpers)
+    (elegant-weapons print-c))
   
 (define format-kernel-arg
   (lambda (arg)

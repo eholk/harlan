@@ -3,8 +3,8 @@
   (export nest-lets)
   (import
     (rnrs)
-    (util helpers)
-    (util match))
+    (elegant-weapons helpers)
+    (elegant-weapons match))
 
 ;; parse-harlan takes a syntax tree that a user might actually want
 ;; to write and converts it into something that's more easily

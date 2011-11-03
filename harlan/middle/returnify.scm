@@ -4,8 +4,8 @@
  (import
    (rnrs)
    (only (chezscheme) format)
-   (util helpers)
-   (util match)
+   (elegant-weapons helpers)
+   (elegant-weapons match)
    (util verify-grammar))
 
  (define-match returnify

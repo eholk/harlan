@@ -2,17 +2,15 @@
 
 (import (chezscheme)
         (util color)
-        (util match)
-        (only (util helpers) join)
+        (elegant-weapons match)
+        (util system)
+        (harlan driver)
         (harlan compiler)
         (harlan compile-opts))
 
 (define failures (make-parameter 0))
 (define successes (make-parameter 0))
 (define ignored (make-parameter 0))
-
-(define (join-path . components)
-  (join (string (directory-separator)) components))
 
 (define (is-test? filename)
   (equal? (path-extension filename) "kfc"))
@@ -30,22 +28,6 @@
                    handler-body ... (k e))
                  (lambda ()
                    body ...)))))))
-
-(define (read-source path)
-  (let* ((file (open-input-file path))
-         (source (read file)))
-    (match source
-      ((%testspec ,[parse-testspec -> spec*] ...)
-       (values (read file) spec*))
-      ((module ,decl* ...)
-       (values source '())))))
-
-(define (parse-testspec spec)
-  (match spec
-    (xfail `(xfail))
-    ((iterate ,iterspec* ...)
-     `(iterate . ,iterspec*))
-    (,else (error 'parse-testspec "Invalid test specification" else))))
 
 (define (iterate source iters yield)
   (if (null? iters)
