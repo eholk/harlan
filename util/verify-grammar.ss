@@ -64,7 +64,8 @@
     (with-syntax (((loopvar) (generate-temporaries '(inp))))
       #`(let loop ((loopvar #,inp))
           (or (null? loopvar)
-              (and #,(pattern-match repeated #`(car loopvar))
+              (and (pair? loopvar)
+                   #,(pattern-match repeated #`(car loopvar))
                    (loop (cdr loopvar)))))))
   
   ;; outputs a boolean expression that pattern matches inp
