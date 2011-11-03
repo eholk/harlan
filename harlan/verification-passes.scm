@@ -250,8 +250,8 @@
         (set! Expr Expr)
         (vector-set! Type Expr Expr Expr)
         (do Expr +)
-        (for (Var Expr Expr) Stmt +)
-        (while Expr Stmt +)
+        (for (Var Expr Expr) Stmt)
+        (while Expr Stmt)
         Ret-Stmt)
       (Let-Expr
         (kernel Type (((Var Type) (Let-Expr Type)) +)
@@ -287,8 +287,8 @@
         (begin Stmt * Stmt)
         (if Expr Stmt)
         (if Expr Stmt Stmt)
-        (for (Var Expr Expr) Stmt +)
-        (while Expr Stmt +)
+        (for (Var Expr Expr) Stmt)
+        (while Expr Stmt)
         (do Expr +)
         Ret-Stmt)
       (Let-Expr

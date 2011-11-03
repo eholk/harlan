@@ -174,7 +174,7 @@
        (lift-expr->stmt
          end
          (lambda (end)
-           (cons `(for (,x ,start ,end) . ,(lift-stmt* stmt*))
+           (cons `(for (,x ,start ,end) ,(make-begin (lift-stmt* stmt*)))
              rest))))))
   (((do ,e) . ,[rest])
    (lift-expr->stmt e (lambda (e) (cons `(do ,e) rest))))
@@ -182,7 +182,7 @@
    (lift-expr->stmt
      expr
      (lambda (expr)
-       (cons `(while ,expr . ,(lift-stmt* stmt*))
+       (cons `(while ,expr ,(make-begin (lift-stmt* stmt*)))
          rest)))))
 
 (define-match lift-decl
