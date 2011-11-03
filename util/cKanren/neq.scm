@@ -1,5 +1,5 @@
 (library
-  (neq)
+  (util cKanren neq)
 
   (export
     ;; goals
@@ -14,8 +14,8 @@
 
   (import
     (rnrs)
-    (mk)
-    (ck))
+    (util cKanren mk)
+    (util cKanren ck))
 
 ;;; little helpers
 

@@ -1,6 +1,6 @@
 (library
   (util cKanren pref)
-  (export prefo)
+  (export prefo get-dom enforce-constraintspref)
   (import
     (chezscheme)
     (util cKanren ck)
