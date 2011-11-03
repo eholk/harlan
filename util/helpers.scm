@@ -15,13 +15,23 @@
    float?
    scalar-type?
    c-type?
-   join)
+   join
+   make-begin)
  (import
    (rnrs)
    (util match)
    (only (chezscheme) with-implicit))
 
- (define join
+(define make-begin
+  (lambda (expr*)
+    (match
+      (match `(begin ,@expr*)
+        [(begin ,[expr*] ...) (apply append expr*)]
+        [,expr (list expr)])
+      [(,x) x]
+      [(,x ,x* ...) `(begin ,x ,x* ...)])))
+
+(define join
    (lambda (sep strings)
      (match strings
        (() "")
