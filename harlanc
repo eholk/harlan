@@ -5,7 +5,6 @@
   (harlan compile-opts)
   (harlan driver)
   (elegant-weapons print-c)
-  (harlan middle kernels)
   (harlan compiler)
   (harlan middle compile-middle))
 
