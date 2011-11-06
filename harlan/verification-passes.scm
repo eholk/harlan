@@ -6,7 +6,7 @@
     verify-parse-harlan
     verify-flatten-lets
     verify-returnify
-    verify-lift-vectors
+    verify-lift-complex
     verify-typecheck
     verify-lower-vectors
     verify-returnify-kernels
@@ -238,7 +238,7 @@
         (while Expr Stmt)
         Ret-Stmt))
 
-    (lift-vectors (%inherits Module Decl)
+    (lift-complex (%inherits Module Decl)
       (Start Module)
       (Stmt
         (let Var Type Let-Expr)
@@ -254,6 +254,7 @@
         (while Expr Stmt)
         Ret-Stmt)
       (Let-Expr
+        (begin Stmt * Let-Expr)
         (kernel Type (((Var Type) (Let-Expr Type)) +)
           Stmt * Let-Expr)
         (vector Let-Expr +)
@@ -269,7 +270,6 @@
         (var Type Var)
         (int->float Expr)
         (length Expr)
-        (begin Stmt * Expr)
         (if Expr Expr Expr)
         (call Type Var Expr *)
         (vector-ref Type Expr Expr)

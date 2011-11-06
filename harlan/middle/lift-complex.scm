@@ -1,13 +1,10 @@
 (library
-  (harlan middle lift-vectors)
-  (export
-    lift-vectors
-    lift-expr->stmt)
+  (harlan middle lift-complex)
+  (export lift-complex)
   (import
-    (only (chezscheme) format)
     (rnrs)
+    (only (chezscheme) format)
     (elegant-weapons match)
-    (util verify-grammar)
     (elegant-weapons helpers)
     (harlan front parser))
   
@@ -23,7 +20,7 @@
        (lift-expr->stmt e (lambda (e) (finish `(int->float ,e)))))
       ((begin ,stmt* ... ,e)
        (lift-expr->stmt e
-         (lambda (e) (finish (make-begin `(,@(lift-stmt* stmt*)  ,e))))))
+         (lambda (e) (append (lift-stmt* stmt*) (finish e)))))
       ((if ,test ,conseq ,alt)
        (lift-expr->stmt
          test
@@ -191,7 +188,7 @@
   ((extern ,name ,args -> ,rtype)
    `(extern ,name ,args -> ,rtype)))
 
-(define-match lift-vectors
+(define-match lift-complex
   ((module ,[lift-decl -> fn*] ...)
    `(module . ,fn*)))
 
