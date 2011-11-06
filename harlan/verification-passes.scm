@@ -521,7 +521,7 @@
         (func C-Type Var (C-Type *) Stmt +)
         (extern C-Type Var (C-Type *))) 
       (Kernel
-        (kernel Var ((Var C-Type) +) Stmt *))
+        (kernel Var ((Var C-Type) +) Stmt +))
       (Expr 
         integer
         number

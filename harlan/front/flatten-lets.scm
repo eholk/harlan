@@ -29,9 +29,11 @@
    `(,@(map (lambda (x t e) `(let ,x ,t . ,e)) x* t* e*)
      ,(make-begin stmt*)))
   ((if ,[Expr -> test tt] ,[conseq])
-   `((if ,@test ,@conseq)))
+   `((if ,(make-begin test) ,(make-begin conseq))))
   ((if ,[Expr -> test tt] ,[conseq] ,[alt])
-   `((if ,@test ,@conseq ,@alt)))
+   `((if ,(make-begin test)
+         ,(make-begin conseq)
+         ,(make-begin alt))))
   ((begin ,[stmt*] ...)
    `(,(make-begin (apply append stmt*))))
   ((print ,[Expr -> expr _])
@@ -47,10 +49,13 @@
   ((do ,[Expr -> expr _])
    `((do . ,expr)))
   ((set! ,[Expr -> e1 t1] ,[Expr -> e2 t2])
-   `((set! ,@e1 ,@e2)))
+   `((set! ,(make-begin e1) ,(make-begin e2))))
   ((vector-set! ,t ,[Expr -> e1 t1]
      ,[Expr -> e2 t2] ,[Expr -> e3 t3])
-   `((vector-set! ,t ,@e1 ,@e2 ,@e3))))
+   `((vector-set! ,t
+       ,(make-begin e1)
+       ,(make-begin e2)
+       ,(make-begin e3)))))
 
 (define-match Expr
   ((int ,n) (values `((int ,n)) 'int))
@@ -73,7 +78,7 @@
   ((vector ,type ,[e t] ...)
    (values `((vector ,type . ,(apply append e))) type))
   ((vector-ref ,type ,[e1 t1] ,[e2 t2])
-   (values `((vector-ref ,type ,@e1 ,@e2)) type))
+   (values `((vector-ref ,type ,(make-begin e1) ,(make-begin e2))) type))
   ((kernel ,type (((,x ,tx) (,[e* te^] ,te)) ...)
      ,[Stmt -> stmt*] ... ,[expr t^])
    (values
@@ -87,15 +92,16 @@
   ((length ,n)
    (values `((length ,n)) 'int))
   ((int->float ,[expr t])
-   (values `((int->float ,@expr)) 'float))
+   (values `((int->float ,(make-begin expr))) 'float))
   ((make-vector ,type (int ,n))
    (values `((make-vector ,type (int ,n))) `(vector ,type ,n)))
   ((,op ,[e1 t1] ,[e2 t2]) (guard (binop? op))
-   (values `((,op ,@e1 ,@e2)) t1))
+   (values `((,op ,(make-begin e1) ,(make-begin e2))) t1))
   ((,op ,[e1 t1] ,[e2 t2]) (guard (relop? op))
-   (values `((,op ,@e1 ,@e2)) 'bool))
+   (values `((,op ,(make-begin e1) ,(make-begin e2))) 'bool))
   ((call ,type ,var ,[expr* t*] ...)
    (values `((call ,type ,var . ,(apply append expr*))) type)))
 
 ;; end library
+
 )
