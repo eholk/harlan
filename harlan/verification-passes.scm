@@ -461,7 +461,6 @@
         (for (Var Expr Expr) Stmt +)
         (while Expr Stmt +)
         (do Expr +)
-        (block Stmt +)
         Ret-Stmt)
       (Field
         (field (var Type Var) Var)))
@@ -485,7 +484,6 @@
         (for (Var Expr Expr) Stmt +)
         (while Expr Stmt +)
         (do Expr +)
-        (block Stmt +)
         Ret-Stmt)
       (Expr 
         integer

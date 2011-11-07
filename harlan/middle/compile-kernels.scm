@@ -20,7 +20,7 @@
    (string-append
      "__kernel void " (format-ident name)
      "(" (join ", " args*) ") "
-     (format-block `(block . ,stmts)))))
+     (format-stmt (make-begin stmts)))))
 
 (define-match unpack-type
   ((var (vector ,t ,n) ,x^) t))

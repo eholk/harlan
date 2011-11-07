@@ -24,7 +24,7 @@
 (define-match Stmt
   ((apply-kernel ,k ,arg* ...)
    (let ((kernel (gensym k)))
-     `(block
+     `(begin
         (let ,kernel cl::kernel
              (call cl::kernel
                (field (var cl::program g_prog)

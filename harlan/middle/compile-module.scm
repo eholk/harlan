@@ -52,7 +52,7 @@
    `(for (,i ,start ,end) . ,stmt*)]
   [(do ,[compile-expr -> e] ...) `(do ,e ...)]
   [(map-gpu ((,x* ,e*) ...) ,[stmt*] ...)
-   `(block
+   `(begin
       ,@(map
           (lambda (x e)
             `(let ,x (cl::buffer_map ,(scalar-type (type-of e)))
@@ -62,7 +62,7 @@
           x* e*)
       ,stmt* ...)]
   [(block ,[stmt*] ...)
-   `(block . ,stmt*)])
+   `(begin . ,stmt*)])
 
 (define (compile-set! x e)
   (let ((lhs-t (type-of x)))
