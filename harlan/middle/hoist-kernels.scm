@@ -19,20 +19,18 @@
       . ,decl*)))
 
 (define-match hoist-decl
-  ((fn ,name ,args ,type ,[hoist-stmt -> stmt* kernel*] ...)
-   (let ((kernel* (apply append kernel*)))
-     (values
-       (if (and (eq? name 'main)
-                (not (null? kernel*)))
-           `(fn ,name ,args ,type
-              (do (call void GC_INIT) 
-                  (call void
-                    (field (var cl::program g_prog)
-                      build))) 
-              . ,stmt*)
-           `(fn ,name ,args ,type
-              (do (call void GC_INIT)) . ,stmt*))
-       kernel*)))
+  ((fn ,name ,args ,type ,[hoist-stmt -> stmt kernel*])
+   (values
+     (if (and (eq? name 'main) (not (null? kernel*)))
+         `(fn ,name ,args ,type
+            ,(make-begin
+              `((do (call void GC_INIT) 
+                    (call void
+                      (field (var cl::program g_prog) build))) 
+                ,stmt)))
+         `(fn ,name ,args ,type
+            ,(make-begin `((do (call void GC_INIT)) ,stmt))))
+     kernel*))
   ((extern ,name ,arg-types -> ,t)
    (values `(extern ,name ,arg-types -> ,t) '())))
 

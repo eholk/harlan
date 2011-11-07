@@ -16,8 +16,8 @@
    `(module . ,decl*)))
 
 (define-match Decl
-  ((fn ,name ,args ,type ,[Stmt -> stmt* _*] ...)
-   `(fn ,name ,args ,type . ,(apply append stmt*)))
+  ((fn ,name ,args ,type ,[Stmt -> stmt _])
+   `(fn ,name ,args ,type . ,stmt))
   ((extern . ,rest)
    `(extern . ,rest)))
 
@@ -28,11 +28,10 @@
 
 (define-match Stmt
   ((let ,x (vector ,t ,n)
-        (kernel (vector ,t ,n)
-          (((,x* ,t*) (,xs* ,ts*)) ...)
-          ,[Stmt -> stmt* _*] ... ,e))
+        (kernel (vector ,t ,n) (((,x* ,t*) (,xs* ,ts*)) ...)
+          ,[Expr -> e kernel]))
    (values
-     (if (any? _*)
+     (if kernel
          (let ((i (gensym 'i)))
            `((let ,x (vector ,t ,n) (int ,n))
              (for (,i (int 0) (int ,n))
@@ -40,13 +39,12 @@
                  ,@(map (lambda (x t xs ts)
                           `(let ,x ,t (vector-ref ,t ,xs (var int ,i))))
                      x* t* xs* ts*)
-                 ,@(apply append stmt*)
-                 (vector-set! ,t (var (vector ,t ,n) ,x) (var int ,i)
-                   ,e)))))
+                 ,((set-kernel-return
+                     (lambda (e) `(vector-set! ,t (var (vector ,t ,n) ,x) (var int ,i) ,e)))
+                   e)
+                 ))))
          `((let ,x (vector ,t ,n)
-                (kernel (vector ,t ,n)
-                  (((,x* ,t*) (,xs* ,ts*)) ...)
-                  ,(make-begin `(,@(apply append stmt*) ,e))))))
+                (kernel (vector ,t ,n) (((,x* ,t*) (,xs* ,ts*)) ...) ,e))))
      #t))
   ((let ,x ,t ,e) (values `((let ,x ,t ,e)) #f))
   ((begin ,[stmt* has-kernel*] ...)
@@ -68,6 +66,17 @@
   ((print ,e) (values `((print ,e)) #f))
   ((assert ,e) (values `((assert ,e)) #f))
   ((return ,e) (values `((return ,e)) #f)))
+
+(define-match Expr
+  ((begin ,[Stmt -> stmt* kernel*] ... ,[e has-kernel])
+   (values `(begin ,@(apply append stmt*) ,e)
+     (or has-kernel (any? kernel*))))
+  (,else (values else #f)))
+
+(define-match (set-kernel-return finish)
+  ((begin ,stmt* ... ,[(set-kernel-return finish) -> expr])
+   `(begin ,@stmt* ,expr))
+  (,else (finish else)))
 
 ;;end library
 )

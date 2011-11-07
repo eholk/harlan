@@ -48,9 +48,10 @@
                  (let ((v (gensym 'v)))
                    (cons `(let ,v ,t
                                (kernel ,t (((,x* ,t*) (,e*^ ,ts*)) ...)
-                                 ,@(lift-stmt* body*)
-                                 ,@(lift-expr->stmt
-                                     body (lambda (body^) `(,body^)))))
+                                 ,(make-begin
+                                    `(,@(lift-stmt* body*)
+                                      ,@(lift-expr->stmt
+                                          body (lambda (body^) `(,body^)))))))
                      (finish `(var ,t ,v)))))))
          (let loop ((e* e*) (e*^ '()))
            (if (null? e*)
@@ -184,7 +185,7 @@
 
 (define-match lift-decl
   ((fn ,name ,args ,t . ,[lift-stmt* -> stmt*])
-   `(fn ,name ,args ,t . ,stmt*))
+   `(fn ,name ,args ,t ,(make-begin stmt*)))
   ((extern ,name ,args -> ,rtype)
    `(extern ,name ,args -> ,rtype)))
 

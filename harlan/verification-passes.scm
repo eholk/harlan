@@ -33,6 +33,12 @@
         (vector Type Integer)
         (ptr Type)
         ((Type *) -> Type))
+      (Body
+        (begin Stmt * Body)
+        (let ((Var Expr) *) Body)
+        (if Expr Body)
+        (if Expr Body Body)
+        Ret-Stmt)
       (Var ident)
       (Integer integer)
       (Reduceop reduceop)
@@ -149,7 +155,7 @@
       (Start Module)
       (Decl
         (extern Var (Type *) -> Type)
-        (fn Var (Var *) Type Stmt +))
+        (fn Var (Var *) Type Stmt))
       (Stmt
         (let ((Var Expr) *) Stmt)
         (if Expr Stmt)
@@ -222,7 +228,7 @@
     (returnify (%inherits Module Expr)
       (Start Module)
       (Decl
-        (fn Var (Var *) Type Stmt * Ret-Stmt)
+        (fn Var (Var *) Type Body)
         (extern Var (Type *) -> Type))
       (Stmt
         (let Var Type Expr)
@@ -255,8 +261,7 @@
         Ret-Stmt)
       (Let-Expr
         (begin Stmt * Let-Expr)
-        (kernel Type (((Var Type) (Let-Expr Type)) +)
-          Stmt * Let-Expr)
+        (kernel Type (((Var Type) (Let-Expr Type)) +) Let-Expr)
         (vector Let-Expr +)
         (reduce Type Reduceop Let-Expr)
         (make-vector Type (int Integer))
@@ -292,7 +297,8 @@
         (do Expr +)
         Ret-Stmt)
       (Let-Expr
-        (kernel Type (((Var Type) (Expr Type)) +) Stmt * Let-Expr)
+        (begin Stmt * Expr)
+        (kernel Type (((Var Type) (Expr Type)) +) Let-Expr)
         Expr)
       (Expr
         (int Integer)
@@ -313,7 +319,8 @@
       (%inherits Module Decl Expr Stmt)
       (Start Module)
       (Let-Expr
-        (kernel Type (((Var Type) (Expr Type)) +) Stmt * Expr)
+        (begin Stmt * Let-Expr)
+        (kernel Type (((Var Type) (Expr Type)) +) Expr)
         Expr))
 
     (returnify-kernels (%inherits Module Decl Expr)
@@ -324,12 +331,12 @@
         (assert Expr)
         (set! (var Type Var) Expr)
         (vector-set! Type Expr Expr Expr)
-        (kernel Type (((Var Type) (Expr Type)) +) Stmt +)
+        (kernel Type (((Var Type) (Expr Type)) +) Stmt)
         (let Var Type Expr)
         (if Expr Stmt)
         (if Expr Stmt Stmt)
-        (for (Var Expr Expr) Stmt +)
-        (while Expr Stmt +)
+        (for (Var Expr Expr) Stmt)
+        (while Expr Stmt)
         (do Expr +)
         (begin Stmt +)
         Ret-Stmt))
@@ -388,7 +395,7 @@
       (Start Module)
       (Decl
         (gpu-module Kernel *)
-        (fn Var (Var *) ((Type *) -> Type) Stmt +)
+        (fn Var (Var *) ((Type *) -> Type) Body)
         (extern Var (Type *) -> Type))
       (Kernel
         (kernel Var ((Var Type) +) Stmt *))
@@ -471,7 +478,7 @@
       (Module (Decl *))
       (Decl
         (gpu-module Kernel *)
-        (func Type Var (Type *) Stmt +)
+        (func Type Var (Type *) Body)
         (extern Type Var (Type *)))
       (Stmt
         (print Expr)
@@ -516,7 +523,7 @@
       (Start Module)
       (Decl
         (gpu-module Kernel *)
-        (func C-Type Var (C-Type *) Stmt +)
+        (func C-Type Var (C-Type *) Body)
         (extern C-Type Var (C-Type *))) 
       (Kernel
         (kernel Var ((Var C-Type) +) Stmt +))

@@ -18,8 +18,8 @@
    `(module . ,fn*)))
 
 (define-match lower-decl
-  ((fn ,name ,args ,t ,[lower-stmt -> stmt*] ...)
-   `(fn ,name ,args ,t . ,(apply append stmt*)))
+  ((fn ,name ,args ,t ,[lower-stmt -> stmt*])
+   `(fn ,name ,args ,t ,(make-begin stmt*)))
   (,else else))
 
 (define-match lower-stmt
@@ -29,8 +29,9 @@
                    (i 0))
           (if (null? e*)
               '()
-              `((vector-set! ,(cadr t) (var ,t ,x) (int ,i) ,(car e*)) .
-                ,(loop (cdr e*) (+ 1 i)))))))
+              `((vector-set!
+                  ,(cadr t) (var ,t ,x) (int ,i) ,(car e*))
+                . ,(loop (cdr e*) (+ 1 i)))))))
   
   ((let ,x ,t (make-vector ,vt ,e))
    `((let ,x ,t ,e)))
@@ -48,8 +49,8 @@
          (set! (var ,t ,x)
            (+ (var ,t ,x)
              (vector-ref ,t (var ,tv ,v) (var int ,i))))))))
-  ((let ,x ,t (kernel ,t ,iter ,[body*] ... ,e))
-   `((let ,x ,t (kernel ,t ,iter ,@(apply append body*) ,e))))
+  ((let ,x ,t (kernel ,t ,iter ,[lower-expr -> e]))
+   `((let ,x ,t (kernel ,t ,iter ,e))))
   ((let ,x ,t ,e)
    `((let ,x ,t ,e)))
   ((begin ,[stmt*] ...)
@@ -72,4 +73,9 @@
   ((return ,expr)
    `((return ,expr)))
   ((do . ,expr*) `((do . ,expr*))))
+
+(define-match lower-expr
+  ((begin ,[lower-stmt -> stmt*] ... ,[expr])
+   `(begin ,@(apply append stmt*) ,expr))
+  (,else else))
 )
