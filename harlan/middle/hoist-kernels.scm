@@ -76,17 +76,18 @@
       `(kernel ,name ,(append (map list xs* ts*)
                         (map list fv* ft*))
          ;; TODO: allow this to work on n-dimensional vectors.
-         (let ,i int (call int get_global_id (int 0)))
-         ,@(apply
-             append
-             (map
-               (lambda (x t xs ts)
-                 `((let ,x (ptr ,t)
-                        (addressof
-                          (vector-ref
-                            ,t (var ,ts ,xs) (var int ,i))))))
-               x* t* xs* ts*))
-         . ,(replace-vec-refs stmt* i x* xs* ts*)))))
+         (begin
+           (let ,i int (call int get_global_id (int 0)))
+           ,@(apply
+               append
+               (map
+                 (lambda (x t xs ts)
+                   `((let ,x (ptr ,t)
+                          (addressof
+                            (vector-ref
+                              ,t (var ,ts ,xs) (var int ,i))))))
+                 x* t* xs* ts*))
+           . ,(replace-vec-refs stmt* i x* xs* ts*))))))
 
 (define replace-vec-refs
   (lambda (stmt* i x* xs* ts*)

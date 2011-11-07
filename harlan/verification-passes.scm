@@ -347,12 +347,12 @@
         (print Expr)
         (assert Expr)
         (set! Expr Expr)
-        (kernel (((Var Type) (Expr Type)) +) Stmt +)
+        (kernel (((Var Type) (Expr Type)) +) Stmt)
         (let Var Type Expr)
         (if Expr Stmt)
         (if Expr Stmt Stmt)
-        (for (Var Expr Expr) Stmt +)
-        (while Expr Stmt +)
+        (for (Var Expr Expr) Stmt)
+        (while Expr Stmt)
         (do Expr +)
         (begin Stmt +)
         Ret-Stmt)
@@ -381,13 +381,13 @@
         (assert Expr)
         (set! Expr Expr)
         (kernel (((Var Type) (Expr Type)) +)
-          (free-vars (Var Type) *) Stmt +)
+          (free-vars (Var Type) *) Stmt)
         (let Var Type Expr)
         (begin Stmt * Stmt)
         (if Expr Stmt)
         (if Expr Stmt Stmt)
-        (for (Var Expr Expr) Stmt +)
-        (while Expr Stmt +)
+        (for (Var Expr Expr) Stmt)
+        (while Expr Stmt)
         (do Expr +)
         Ret-Stmt))
 
@@ -398,7 +398,7 @@
         (fn Var (Var *) ((Type *) -> Type) Body)
         (extern Var (Type *) -> Type))
       (Kernel
-        (kernel Var ((Var Type) +) Stmt *))
+        (kernel Var ((Var Type) +) Stmt))
       (Stmt 
         (print Expr)
         (assert Expr)
@@ -408,8 +408,8 @@
         (begin Stmt * Stmt)
         (if Expr Stmt)
         (if Expr Stmt Stmt)
-        (for (Var Expr Expr) Stmt +)
-        (while Expr Stmt +)
+        (for (Var Expr Expr) Stmt)
+        (while Expr Stmt)
         (do Expr +)
         Ret-Stmt)
       (Expr 
@@ -447,8 +447,8 @@
         (begin Stmt * Stmt)
         (if Expr Stmt)
         (if Expr Stmt Stmt)
-        (for (Var Expr Expr) Stmt +)
-        (while Expr Stmt +)
+        (for (Var Expr Expr) Stmt)
+        (while Expr Stmt)
         (do Expr +)
         Ret-Stmt))
 
@@ -465,8 +465,8 @@
         (begin Stmt * Stmt)
         (if Expr Stmt)
         (if Expr Stmt Stmt)
-        (for (Var Expr Expr) Stmt +)
-        (while Expr Stmt +)
+        (for (Var Expr Expr) Stmt)
+        (while Expr Stmt)
         (do Expr +)
         Ret-Stmt)
       (Field
@@ -488,8 +488,8 @@
         (if Expr Stmt Stmt)
         (let Var Let-Type Expr)
         (begin Stmt * Stmt)
-        (for (Var Expr Expr) Stmt +)
-        (while Expr Stmt +)
+        (for (Var Expr Expr) Stmt)
+        (while Expr Stmt)
         (do Expr +)
         Ret-Stmt)
       (Expr 
@@ -526,7 +526,7 @@
         (func C-Type Var (C-Type *) Body)
         (extern C-Type Var (C-Type *))) 
       (Kernel
-        (kernel Var ((Var C-Type) +) Stmt +))
+        (kernel Var ((Var C-Type) +) Stmt))
       (Expr 
         integer
         number
@@ -564,7 +564,7 @@
       (Decl
         (global cl::program g_prog
           ((field g_ctx createProgramFromSource) String))
-        (func C-Type Var (C-Type *) Stmt +)
+        (func C-Type Var (C-Type *) Stmt)
         (extern C-Type Var (C-Type *)))))
 
 )
