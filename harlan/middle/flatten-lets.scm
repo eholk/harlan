@@ -1,5 +1,5 @@
 (library
-  (harlan front flatten-lets)
+  (harlan middle flatten-lets)
   (export flatten-lets)
   (import
     (rnrs)

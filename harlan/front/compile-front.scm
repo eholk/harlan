@@ -4,7 +4,6 @@
   (import
     (rnrs)
     (harlan front parser)
-    (harlan front flatten-lets)
     (harlan front typecheck)
     (harlan front nest-lets)
     (harlan compile-opts)
@@ -12,7 +11,6 @@
       verify-harlan
       verify-nest-lets
       verify-parse-harlan
-      verify-flatten-lets
       verify-typecheck))
   
   (define compile-harlan-frontend
@@ -23,9 +21,7 @@
       parse-harlan
       verify-parse-harlan
       typecheck
-      verify-typecheck
-      flatten-lets
-      verify-flatten-lets))
+      verify-typecheck))
   
   ;; end library
   )

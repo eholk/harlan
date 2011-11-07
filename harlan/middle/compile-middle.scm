@@ -7,6 +7,7 @@
     (harlan verification-passes)
 
     (harlan middle returnify)
+    (harlan middle flatten-lets)
     (harlan middle lift-complex)
     (harlan middle lower-vectors)
     (harlan middle remove-nested-kernels)
@@ -26,6 +27,8 @@
   (passes
     returnify
     verify-returnify
+    flatten-lets
+    verify-flatten-lets
     lift-complex
     verify-lift-complex
     lower-vectors

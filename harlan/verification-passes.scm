@@ -190,6 +190,25 @@
         (Relop Expr Expr)
         (call Type Var Expr *)))
 
+    (returnify (%inherits Module Expr)
+      (Start Module)
+      (Decl
+        (fn Var (Var *) Type Body)
+        (extern Var (Type *) -> Type))
+      (Stmt
+        (let ((Var Expr) *) Stmt)
+        (if Expr Stmt)
+        (if Expr Stmt Stmt)
+        (begin Stmt * Stmt)
+        (print Expr)
+        (assert Expr)
+        (set! Expr Expr)
+        (vector-set! Type Expr Expr Expr)
+        (do Expr)
+        (for (Var Expr Expr) Stmt)
+        (while Expr Stmt)
+        Ret-Stmt))
+
     (flatten-lets (%inherits Module Decl)
       (Start Module)
       (Stmt
@@ -224,25 +243,6 @@
         (Binop Expr Expr)
         (Relop Expr Expr)
         (call Type Var Expr *)))
-
-    (returnify (%inherits Module Expr)
-      (Start Module)
-      (Decl
-        (fn Var (Var *) Type Body)
-        (extern Var (Type *) -> Type))
-      (Stmt
-        (let Var Type Expr)
-        (if Expr Stmt)
-        (if Expr Stmt Stmt)
-        (begin Stmt * Stmt)
-        (print Expr)
-        (assert Expr)
-        (set! Expr Expr)
-        (vector-set! Type Expr Expr Expr)
-        (do Expr)
-        (for (Var Expr Expr) Stmt)
-        (while Expr Stmt)
-        Ret-Stmt))
 
     (lift-complex (%inherits Module Decl)
       (Start Module)
