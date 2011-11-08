@@ -23,6 +23,7 @@
   (,else else))
 
 (define-match lower-stmt
+
   ((let ,x ,t (vector . ,e*))
    `((let ,x ,t (int ,(length e*)))
      . ,(let loop ((e* e*)
@@ -49,12 +50,14 @@
          (set! (var ,t ,x)
            (+ (var ,t ,x)
              (vector-ref ,t (var ,tv ,v) (var int ,i))))))))
-  ((let ,x ,t (kernel ,t ,iter ,[lower-expr -> e]))
-   `((let ,x ,t (kernel ,t ,iter ,e))))
+
   ((let ,x ,t ,e)
    `((let ,x ,t ,e)))
+  
   ((begin ,[stmt*] ...)
    `(,(make-begin (apply append stmt*))))
+  ((kernel ,t ,b ,[stmt])
+   `((kernel ,t ,b (begin ,@stmt))))
   ((print ,expr)
    `((print ,expr)))      
   ((assert ,expr)

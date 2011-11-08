@@ -31,12 +31,12 @@
     verify-flatten-lets
     lift-complex
     verify-lift-complex
-    lower-vectors
-    verify-lower-vectors
     remove-nested-kernels
     verify-remove-nested-kernels
     returnify-kernels
     verify-returnify-kernels
+    lower-vectors
+    verify-lower-vectors
     uglify-vectors
     verify-uglify-vectors
     annotate-free-vars

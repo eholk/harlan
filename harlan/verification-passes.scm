@@ -281,6 +281,42 @@
         (Binop Expr Expr)
         (Relop Expr Expr)))
 
+    (remove-nested-kernels
+      (%inherits Module Decl Expr Stmt)
+      (Start Module)
+      (Let-Expr
+        (begin Stmt * Let-Expr)
+        (kernel Type (((Var Type) (Let-Expr Type)) +) Let-Expr)
+        (vector Let-Expr +)
+        (reduce Type Reduceop Let-Expr)
+        (make-vector Type (int Integer))
+        (iota (int Integer))
+        Expr))
+
+    (returnify-kernels (%inherits Module Decl Expr)
+      (Start Module)
+      (Stmt 
+        (print Expr)
+        (assert Expr)
+        (set! (var Type Var) Expr)
+        (vector-set! Type Expr Expr Expr)
+        (kernel Type (((Var Type) (Expr Type)) +) Stmt)
+        (let Var Type Let-Expr)
+        (if Expr Stmt)
+        (if Expr Stmt Stmt)
+        (for (Var Expr Expr) Stmt)
+        (while Expr Stmt)
+        (do Expr +)
+        (begin Stmt +)
+        Ret-Stmt)
+      (Let-Expr
+        (begin Stmt * Let-Expr)
+        (vector Let-Expr +)
+        (reduce Type Reduceop Let-Expr)
+        (make-vector Type (int Integer))
+        (iota (int Integer))
+        Expr))
+
     (lower-vectors (%inherits Module Decl)
       (Start Module)
       (Stmt 
@@ -288,7 +324,8 @@
         (assert Expr)
         (set! Expr Expr)
         (vector-set! Type Expr Expr Expr)
-        (let Var Type Let-Expr)
+        (kernel Type (((Var Type) (Expr Type)) +) Stmt)
+        (let Var Type Expr)
         (begin Stmt * Stmt)
         (if Expr Stmt)
         (if Expr Stmt Stmt)
@@ -296,10 +333,6 @@
         (while Expr Stmt)
         (do Expr +)
         Ret-Stmt)
-      (Let-Expr
-        (begin Stmt * Expr)
-        (kernel Type (((Var Type) (Expr Type)) +) Let-Expr)
-        Expr)
       (Expr
         (int Integer)
         (u64 Number)
@@ -314,32 +347,6 @@
         (length Expr)
         (Relop Expr Expr)
         (Binop Expr Expr)))
-
-    (remove-nested-kernels
-      (%inherits Module Decl Expr Stmt)
-      (Start Module)
-      (Let-Expr
-        (begin Stmt * Let-Expr)
-        (kernel Type (((Var Type) (Expr Type)) +) Expr)
-        Expr))
-
-    (returnify-kernels (%inherits Module Decl Expr)
-      (Start Module)
-      (Stmt 
-        (print Expr)
-        (print Expr Expr)
-        (assert Expr)
-        (set! (var Type Var) Expr)
-        (vector-set! Type Expr Expr Expr)
-        (kernel Type (((Var Type) (Expr Type)) +) Stmt)
-        (let Var Type Expr)
-        (if Expr Stmt)
-        (if Expr Stmt Stmt)
-        (for (Var Expr Expr) Stmt)
-        (while Expr Stmt)
-        (do Expr +)
-        (begin Stmt +)
-        Ret-Stmt))
 
     (uglify-vectors (%inherits Module Decl)
       (Start Module)
