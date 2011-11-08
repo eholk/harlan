@@ -18,9 +18,19 @@
       ((var ,t ,x) (finish `(var ,t ,x)))
       ((int->float ,e)
        (lift-expr->stmt e (lambda (e) (finish `(int->float ,e)))))
-      ((begin ,stmt* ... ,e)
+      ((begin ,[lift-stmt -> stmt*] ... ,e)
        (lift-expr->stmt e
-         (lambda (e) (append (lift-stmt* stmt*) (finish e)))))
+         (lambda (e) (finish `(begin ,@stmt* ,e)))))
+      ((let ((,x* ,e*) ...) ,expr)
+       (let loop ((e* e*) (e*^ '()))
+         (if (null? e*)
+             (lift-expr->stmt
+               expr
+               (lambda (expr)
+                 `(let (,@(map list x* (reverse e*^))) ,(finish expr))))
+             (lift-expr->stmt
+               (car e*)
+               (lambda (e^) (loop (cdr e*) (cons e^ e*^)))))))
       ((if ,test ,conseq ,alt)
        (lift-expr->stmt
          test
@@ -42,17 +52,14 @@
                   (finish `(vector-ref ,t ,e1^ ,e2^)))))))
       ((make-vector ,t ,e)
        (lift-expr->stmt e (lambda (e^) (finish `(make-vector ,t ,e^)))))
-      ((kernel ,t (((,x* ,t*) (,e* ,ts*)) ...) ,body* ... ,body)
+      ((kernel ,t (((,x* ,t*) (,e* ,ts*)) ...) ,body)
        (let ((finish
                (lambda (e*^)
                  (let ((v (gensym 'v)))
-                   (cons `(let ,v ,t
-                               (kernel ,t (((,x* ,t*) (,e*^ ,ts*)) ...)
-                                 ,(make-begin
-                                    `(,@(lift-stmt* body*)
-                                      ,@(lift-expr->stmt
-                                          body (lambda (body^) `(,body^)))))))
-                     (finish `(var ,t ,v)))))))
+                   `(let ((,v
+                            (kernel ,t (((,x* ,t*) (,e*^ ,ts*)) ...)
+                              ,(lift-expr->stmt body (lambda (b) b)))))
+                      ,(finish `(var ,t ,v)))))))
          (let loop ((e* e*) (e*^ '()))
            (if (null? e*)
                (finish (reverse e*^))
@@ -63,8 +70,8 @@
       ((vector ,t . ,e*)
        (let ((finish (lambda (e*^)
                        (let ((v (gensym 'v)))
-                         (cons `(let ,v ,t (vector . ,e*^))
-                           (finish `(var ,t ,v)))))))
+                         `(let ((,v (vector ,t . ,e*^)))
+                            ,(finish `(var ,t ,v)))))))
          (let loop ((e* e*) (e*^ '()))
            (if (null? e*)
                (finish (reverse e*^))
@@ -76,15 +83,15 @@
        (finish `(make-vector ,c)))
       ((iota (int ,c))
        (let ((v (gensym 'iota)))
-         (cons `(let ,v (vector int ,c) (iota (int ,c)))
-           (finish `(var (vector int ,c) ,v)))))
+         `(let ((,v (iota (int ,c))))
+            ,(finish `(var (vector int ,c) ,v)))))
       ((reduce ,t ,op ,e)
        (lift-expr->stmt
          e
          (lambda (e^)
            (let ((v (gensym 'v)))
-             (cons `(let ,v ,t (reduce ,t ,op ,e^))
-               (finish `(var ,t ,v)))))))
+             `(let ((,v (reduce ,t ,op ,e^)))
+                ,(finish `(var ,t ,v)))))))
       ((length ,e) 
        (lift-expr->stmt
          e (lambda (e^)
@@ -106,43 +113,27 @@
                  (loop (cdr e*) (cons e^ e*^)))))))
       (,else (error 'lift-expr->stmt "unknown expression" else)))))
 
-(define-match lift-stmt*
-  (() '())
-  (((begin . ,stmt*) . ,[rest])
-   (cons (make-begin (lift-stmt* stmt*)) rest))
-  (((print ,expr) . ,[rest])
-   (lift-expr->stmt expr (lambda (e^)
-                           (cons `(print ,e^)
-                             rest))))
-  (((print ,e1 ,e2) . ,[rest])
-   (lift-expr->stmt
-     e1 (lambda (e1^)
-          (lift-expr->stmt
-            e2 (lambda (e2^)
-                 (cons `(print ,e1^ ,e2^)
-                   rest))))))
-  (((assert ,expr) . ,[rest])
-   (lift-expr->stmt expr (lambda (e^)
-                           (cons `(assert ,e^)
-                             rest))))
-  (((set! ,x ,e) . ,[rest])
-   ;; TODO: should x be any expression, or just a variable?
-   (lift-expr->stmt e (lambda (e^)
-                        (cons `(set! ,x ,e^)
-                          rest))))
-  (((if ,test ,conseq) . ,[rest])
-   (lift-expr->stmt
-     test
-     (lambda (t)
-       (cons `(if ,t ,conseq) rest))))
-  (((if ,test ,conseq ,alt) . ,[rest])
-   (lift-expr->stmt
-     test
-     (lambda (t)
-       (cons `(if ,t ,conseq ,alt) rest))))
-  (((vector-set! ,t ,x ,e1 ,e2) . ,[rest])
-   ;; TODO: should x be any expression, or just a variable?
-   ;; WEB: any expression
+(define-match lift-stmt
+  ((begin ,[lift-stmt -> stmt*] ...)
+   (make-begin stmt*))
+  ((print ,expr)
+   (lift-expr->stmt expr (lambda (e^) `(print ,e^))))
+  ((assert ,expr)
+   (lift-expr->stmt expr (lambda (e^) `(assert ,e^))))
+  ((set! ,x ,e)
+   (lift-expr->stmt e (lambda (e^) `(set! ,x ,e^))))
+  ((let ((,x* ,e*) ...) ,[stmt])
+   (let loop ((e* e*) (e*^ '()))
+     (if (null? e*)
+         `(let (,@(map list x* (reverse e*^))) ,stmt)
+         (lift-expr->stmt
+           (car e*)
+           (lambda (e^) (loop (cdr e*) (cons e^ e*^)))))))
+  ((if ,test ,conseq)
+   (lift-expr->stmt test (lambda (t) `(if ,t ,conseq))))
+  ((if ,test ,conseq ,alt)
+   (lift-expr->stmt test (lambda (t) `(if ,t ,conseq ,alt))))
+  ((vector-set! ,t ,x ,e1 ,e2)
    (lift-expr->stmt
      x
      (lambda (x^)
@@ -150,42 +141,29 @@
          e1
          (lambda (e1^)
            (lift-expr->stmt e2
-             (lambda (e2^)
-               (cons `(vector-set! ,t ,x^ ,e1^ ,e2^)
-                 rest))))))))             
-  (((kernel ,iters ,body* ...) . ,[rest])
+             (lambda (e2^) `(vector-set! ,t ,x^ ,e1^ ,e2^))))))))             
+  ((kernel ,iters ,body)
    ;; TODO: For now just pass the kernel through... this
    ;; won't let us declare vectors inside kernels though.
-   (cons `(kernel ,iters ,body* ...) rest))
-  (((let ,x ,t ,e) . ,[rest])
-   (lift-expr->stmt e (lambda (e^)
-                        (cons `(let ,x ,t ,e^)
-                          rest))))
-  (((return ,expr) . ,[rest])
-   (lift-expr->stmt expr
-     (lambda (e^)
-       (cons `(return ,e^) rest))))
-  (((for (,x ,start ,end) ,stmt* ...) . ,[rest])
+   `(kernel ,iters ,body))
+  ((return ,expr)
+   (lift-expr->stmt expr (lambda (e^) `(return ,e^))))
+  ((for (,x ,start ,end) ,[stmt])
    (lift-expr->stmt
      start
      (lambda (start)
        (lift-expr->stmt
          end
          (lambda (end)
-           (cons `(for (,x ,start ,end) ,(make-begin (lift-stmt* stmt*)))
-             rest))))))
-  (((do ,e) . ,[rest])
-   (lift-expr->stmt e (lambda (e) (cons `(do ,e) rest))))
-  (((while ,expr ,stmt* ...) . ,[rest])
-   (lift-expr->stmt
-     expr
-     (lambda (expr)
-       (cons `(while ,expr ,(make-begin (lift-stmt* stmt*)))
-         rest)))))
+           `(for (,x ,start ,end) ,stmt))))))
+  ((do ,e)
+   (lift-expr->stmt e (lambda (e) `(do ,e))))
+  ((while ,expr ,stmt)
+   (lift-expr->stmt expr (lambda (expr) `(while ,expr ,stmt)))))
 
 (define-match lift-decl
-  ((fn ,name ,args ,t . ,[lift-stmt* -> stmt*])
-   `(fn ,name ,args ,t ,(make-begin stmt*)))
+  ((fn ,name ,args ,t ,[lift-stmt -> stmt])
+   `(fn ,name ,args ,t ,stmt))
   ((extern ,name ,args -> ,rtype)
    `(extern ,name ,args -> ,rtype)))
 

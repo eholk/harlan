@@ -33,12 +33,6 @@
         (vector Type Integer)
         (ptr Type)
         ((Type *) -> Type))
-      (Body
-        (begin Stmt * Body)
-        (let ((Var Expr) *) Body)
-        (if Expr Body)
-        (if Expr Body Body)
-        Ret-Stmt)
       (Var ident)
       (Integer integer)
       (Reduceop reduceop)
@@ -195,6 +189,12 @@
       (Decl
         (fn Var (Var *) Type Body)
         (extern Var (Type *) -> Type))
+      (Body
+        (begin Stmt * Body)
+        (let ((Var Expr) *) Body)
+        (if Expr Body)
+        (if Expr Body Body)
+        Ret-Stmt)
       (Stmt
         (let ((Var Expr) *) Stmt)
         (if Expr Stmt)
@@ -209,45 +209,16 @@
         (while Expr Stmt)
         Ret-Stmt))
 
-    (flatten-lets (%inherits Module Decl)
-      (Start Module)
-      (Stmt
-        (let Var Type Expr)
-        (if Expr Stmt)
-        (if Expr Stmt Stmt)
-        (begin Stmt * Stmt)
-        (print Expr)
-        (assert Expr)
-        (set! Expr Expr)
-        (vector-set! Type Expr Expr Expr)
-        (do Expr)
-        (for (Var Expr Expr) Stmt)
-        (while Expr Stmt)
-        (return Expr))
-      (Expr
-        (int Integer)
-        (u64 Number)
-        (float Float)
-        (str String)
-        (var Type Var)
-        (if Expr Expr Expr)
-        (begin Stmt * Expr)
-        (vector Type Expr +)
-        (vector-ref Type Expr Expr)
-        (kernel Type (((Var Type) (Expr Type)) +) Expr)
-        (reduce Type Reduceop Expr)
-        (iota (int Integer))
-        (length Expr)
-        (int->float Expr)
-        (make-vector Type (int Integer))
-        (Binop Expr Expr)
-        (Relop Expr Expr)
-        (call Type Var Expr *)))
-
     (lift-complex (%inherits Module Decl)
       (Start Module)
+      (Body
+        (begin Stmt * Body)
+        (let ((Var Let-Expr) *) Body)
+        (if Expr Body)
+        (if Expr Body Body)
+        Ret-Stmt)      
       (Stmt
-        (let Var Type Let-Expr)
+        (let ((Var Let-Expr) *) Stmt)
         (if Expr Stmt)
         (if Expr Stmt Stmt)
         (begin Stmt * Stmt)
@@ -261,8 +232,56 @@
         Ret-Stmt)
       (Let-Expr
         (begin Stmt * Let-Expr)
+        (let ((Var Let-Expr) *) Let-Expr)
         (kernel Type (((Var Type) (Let-Expr Type)) +) Let-Expr)
-        (vector Let-Expr +)
+        (vector Type Let-Expr +)
+        (reduce Type Reduceop Let-Expr)
+        (make-vector Type (int Integer))
+        (iota (int Integer))
+        Expr)
+      (Expr
+        (int Integer)
+        (u64 Number)
+        (float Float)
+        (str String)
+        (var Type Var)
+        (int->float Expr)
+        (length Expr)
+        (if Expr Expr Expr)
+        (let ((Var Let-Expr) *) Expr)
+        (call Type Var Expr *)
+        (vector-ref Type Expr Expr)
+        (Binop Expr Expr)
+        (Relop Expr Expr)))
+
+    (remove-nested-kernels
+      (%inherits Module Decl Expr Stmt Body Let-Expr)
+      (Start Module))
+
+    (flatten-lets (%inherits Module Decl)
+      (Start Module)
+      (Body
+        (begin Stmt * Body)
+        (if Expr Body)
+        (if Expr Body Body)
+        Ret-Stmt)
+      (Stmt
+        (let Var Type Let-Expr)
+        (if Expr Stmt)
+        (if Expr Stmt Stmt)
+        (begin Stmt * Stmt)
+        (print Expr)
+        (assert Expr)
+        (set! Expr Expr)
+        (vector-set! Type Expr Expr Expr)
+        (do Expr)
+        (for (Var Expr Expr) Stmt)
+        (while Expr Stmt)
+        (return Expr))
+      (Let-Expr
+        (begin Stmt * Let-Expr)
+        (kernel Type (((Var Type) (Let-Expr Type)) +) Let-Expr)
+        (vector Type Let-Expr +)
         (reduce Type Reduceop Let-Expr)
         (make-vector Type (int Integer))
         (iota (int Integer))
@@ -281,19 +300,7 @@
         (Binop Expr Expr)
         (Relop Expr Expr)))
 
-    (remove-nested-kernels
-      (%inherits Module Decl Expr Stmt)
-      (Start Module)
-      (Let-Expr
-        (begin Stmt * Let-Expr)
-        (kernel Type (((Var Type) (Let-Expr Type)) +) Let-Expr)
-        (vector Let-Expr +)
-        (reduce Type Reduceop Let-Expr)
-        (make-vector Type (int Integer))
-        (iota (int Integer))
-        Expr))
-
-    (returnify-kernels (%inherits Module Decl Expr)
+    (returnify-kernels (%inherits Module Decl Expr Body)
       (Start Module)
       (Stmt 
         (print Expr)
@@ -310,13 +317,13 @@
         (begin Stmt * Stmt)
         Ret-Stmt)
       (Let-Expr
-        (vector Let-Expr +)
+        (vector Type Let-Expr +)
         (reduce Type Reduceop Let-Expr)
         (make-vector Type (int Integer))
         (iota (int Integer))
         Expr))
 
-    (lower-vectors (%inherits Module Decl)
+    (lower-vectors (%inherits Module Decl Body)
       (Start Module)
       (Stmt 
         (print Expr)
@@ -346,7 +353,7 @@
         (Relop Expr Expr)
         (Binop Expr Expr)))
 
-    (uglify-vectors (%inherits Module Decl)
+    (uglify-vectors (%inherits Module Decl Body)
       (Start Module)
       (Stmt
         (print Expr)
@@ -378,7 +385,7 @@
         (Binop Expr Expr)))
 
     (annotate-free-vars
-      (%inherits Module Decl Expr)
+      (%inherits Module Decl Expr Body)
       (Start Module)
       (Stmt 
         (print Expr)
@@ -395,7 +402,7 @@
         (do Expr +)
         Ret-Stmt))
 
-    (hoist-kernels (%inherits Module)
+    (hoist-kernels (%inherits Module Body)
       (Start Module)
       (Decl
         (gpu-module Kernel *)
@@ -437,7 +444,7 @@
         (field (var cl::program g_prog) build)))
 
     (move-gpu-data
-      (%inherits Module Kernel Decl Expr Field)
+      (%inherits Module Kernel Decl Expr Field Body)
       (Start Module)
       (Stmt 
         (print Expr)
@@ -456,7 +463,7 @@
         Ret-Stmt))
 
     (generate-kernel-calls
-      (%inherits Module Kernel Decl Expr)
+      (%inherits Module Kernel Decl Expr Body)
       (Start Module)
       (Stmt
         (print Expr)
@@ -476,7 +483,7 @@
         (field (var Type Var) Var)))
 
     (compile-module
-      (%inherits Kernel)
+      (%inherits Kernel Body)
       (Start Module)
       (Module (Decl *))
       (Decl
@@ -522,7 +529,7 @@
         (cl::buffer_map Type)
         Type))
 
-    (convert-types (%inherits Module Stmt)
+    (convert-types (%inherits Module Stmt Body)
       (Start Module)
       (Decl
         (gpu-module Kernel *)
@@ -562,7 +569,7 @@
         c-type))
 
     (compile-kernels
-      (%inherits Module Stmt Expr Field Let-Type C-Type)
+      (%inherits Module Stmt Expr Field Let-Type C-Type Body)
       (Start Module)
       (Decl
         (global cl::program g_prog

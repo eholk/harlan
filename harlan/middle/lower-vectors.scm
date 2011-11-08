@@ -24,7 +24,7 @@
 
 (define-match lower-stmt
 
-  ((let ,x ,t (vector . ,e*))
+  ((let ,x ,t (vector ,t . ,e*))
    `((let ,x ,t (int ,(length e*)))
      . ,(let loop ((e* e*)
                    (i 0))

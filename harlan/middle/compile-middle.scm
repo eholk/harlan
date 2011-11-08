@@ -27,12 +27,12 @@
   (passes
     returnify
     verify-returnify
-    flatten-lets
-    verify-flatten-lets
     lift-complex
     verify-lift-complex
     remove-nested-kernels
     verify-remove-nested-kernels
+    flatten-lets
+    verify-flatten-lets
     returnify-kernels
     verify-returnify-kernels
     lower-vectors
