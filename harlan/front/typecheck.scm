@@ -1,6 +1,6 @@
 (library
   (harlan front typecheck)
-  (export typecheck lookup)
+  (export typecheck)
   (import
     (rnrs)
     (util cKanren mk)
