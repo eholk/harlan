@@ -33,10 +33,10 @@
     verify-remove-nested-kernels
     returnify-kernels
     verify-returnify-kernels
-    flatten-lets
-    verify-flatten-lets
     lower-vectors
     verify-lower-vectors
+    flatten-lets
+    verify-flatten-lets
     uglify-vectors
     verify-uglify-vectors
     annotate-free-vars

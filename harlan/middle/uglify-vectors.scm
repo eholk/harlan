@@ -29,11 +29,7 @@
 
 (define-match extract-expr-type
   ((int ,n) 'int)
-  ((var ,t ,x) t)
-  ;; This next case is sort of a hack
-  ;; But it works without said hack?
-  ;;(,n (guard (integer? n)) 'int)
-  )
+  ((var ,t ,x) t))
 
 (define uglify-let-vec
   (lambda (t e n)
@@ -113,14 +109,13 @@
   ((int->float ,[e]) `(cast float ,e))
   ((call ,t ,name ,[args] ...)
    `(call ,t ,name . ,args))
-  ((begin ,[uglify-stmt -> stmt*] ... ,[expr])
-   `(begin ,@(apply append stmt*) ,expr))
   ((if ,[test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
   ((,op ,[lhs] ,[rhs]) (guard (or (binop? op) (relop? op)))
    `(,op ,lhs ,rhs))
   ((vector-ref ,t ,[e] ,[i])
    (uglify-vector-ref t e i))
+  ((make-vector ,t ,n) `(int ,n))
   ((length ,e)
    (match (expr-type e)
      ((vector ,t ,n)
