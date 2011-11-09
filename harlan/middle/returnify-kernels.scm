@@ -10,61 +10,70 @@
      `(module . ,fn*)))
 
   (define-match returnify-kernel-decl
-    ((fn ,name ,args ,type . ,[returnify-kernel-stmt* -> stmt*])
-     `(fn ,name ,args ,type . ,stmt*))
+    ((fn ,name ,args ,type ,[returnify-kernel-stmt -> stmt])
+     `(fn ,name ,args ,type ,stmt))
     ((extern ,name ,args -> ,type)
      `(extern ,name ,args -> ,type)))
 
-  (define-match returnify-kernel-stmt*
-    (() '())
-    ((,[returnify-kernel-stmt -> stmt] . ,[rest])
-     (append stmt rest)))
-
   (define-match returnify-kernel-stmt
-    ((print ,expr) `((print ,expr)))
-    ((assert ,expr) `((assert ,expr)))
-    ((set! ,x ,e) `((set! ,x ,e)))
-    ((begin . ,stmt*)
-     `((begin . ,(returnify-kernel-stmt* stmt*))))
+    ((print ,expr) `(print ,expr))
+    ((assert ,expr) `(assert ,expr))
+    ((set! ,x ,e) `(set! ,x ,e))
+    ((begin ,[stmt*] ...)
+     `(begin . ,stmt*))
     ((if ,test ,[conseq])
-     `((if ,test (begin . ,conseq))))
+     `(if ,test ,conseq))
     ((if ,test ,[conseq] ,[alt])
-     `((if ,test (begin . ,conseq) (begin . ,alt))))
-    ((vector-set! ,t ,x ,e1 ,e2) `((vector-set! ,t ,x ,e1 ,e2)))
-    ((return ,expr) `((return ,expr)))
-    ((while ,expr ,[returnify-kernel-stmt -> body])
-     `((while ,expr ,(make-begin body))))
-    ((for (,x ,e1 ,e2) ,[returnify-kernel-stmt -> body])
-     `((for (,x ,e1 ,e2) ,(make-begin body))))
-    ((let ,id ,type ,expr)
-     (returnify-kernel-let `(let ,id ,type ,expr)))
-    ((do ,expr) `((do ,expr))))
+     `(if ,test ,conseq ,alt))
+    ((vector-set! ,t ,x ,e1 ,e2) `(vector-set! ,t ,x ,e1 ,e2))
+    ((return ,expr) `(return ,expr))
+    ((while ,expr ,[body])
+     `(while ,expr ,body))
+    ((for (,x ,e1 ,e2) ,[body])
+     `(for (,x ,e1 ,e2) ,body))
+    ((let ((,id ,e) ...) ,[stmt])
+     ((returnify-kernel-let stmt) `((,id ,e) ...)))
+    ((do ,expr) `(do ,expr)))
+
+  (define-match returnify-kernel-expr
+    ((begin ,[returnify-kernel-stmt -> stmt*] ,[expr])
+     `(begin ,@stmt* ,expr))
+    ((let ((,id ,e) ...) ,[expr])
+     ((returnify-kernel-let expr) `((,id ,e) ...)))
+    (,else else))
 
   (define-match type-dim
     ((vector ,[t] ,n) (+ 1 t))
     (,x 0))
   
-  (define-match returnify-kernel-let
-    ((let ,id ,t1 (kernel void ,arg* ,body))
-     ;; TODO: we still need to traverse the body*
-     `(let ,id ,t1 (kernel void ,arg* ,body)))
-    ((let ,id ,t1 (kernel ,t2 ,arg* ,body))
-     (if (= 1 (type-dim t1))
-         (match arg*
-           ((((,x* ,tx*) (,xe* ,xet*)) ...)
-            (let ((g (gensym 'retval)))
-              (let ((body ((returnify-expr t2 g) body)))
-                `((let ,id ,t1 (length ,(car xe*)))
-                  (kernel ,t2 (((,g ,(cadr t2)) ((var ,t1 ,id) ,t1)) . ,arg*)
-                    ,body))))))
-         (error 'returnify-kernel-let
-           "Only 1-dimensional return values are allowed.")))
-    ((let ,id ,type ,expr) `((let ,id ,type ,expr))))
+  (define-match (returnify-kernel-let finish)
+    (() finish)
+    (((,id (kernel void ,arg* ,body))
+      . ,[(returnify-kernel-let finish) -> rest])
+     ;; TODO: we still need to traverse the body
+     `(let ((,id (kernel void ,arg* ,body))) ,rest))
+    (((,id (kernel (vector ,t ,n) ,arg* ,body))
+      . ,[(returnify-kernel-let finish) -> rest])
+     (match arg*
+       ((((,x* ,tx*) (,xe* ,xet*)) ...)
+        (let ((retvar (gensym 'retval)))
+          `(let ((,id (make-vector ,t (int ,n))))
+             (begin
+               (kernel (vector ,t ,n)
+                 (((,retvar ,t)
+                   ((var (vector ,t ,n) ,id) (vector ,t ,n)))
+                  . ,arg*)
+                 ,((set-retval t retvar) body))
+               ,rest))))))
+    (((,id ,expr) . ,[(returnify-kernel-let finish) -> rest])
+     `(let ((,id ,expr)) ,rest)))
 
-  (define-match (returnify-expr t x)
-    ((begin ,stmt* ... ,[(returnify-expr t x) -> expr])
+  (define-match (set-retval t retvar)
+    ((begin ,stmt* ... ,[(set-retval t retvar) -> expr])
      `(begin ,@stmt* ,expr))
-    (,else `(set! (var ,(cadr t) ,x) ,else)))
+    ((let ,b ,[(set-retval t retvar) -> expr])
+     `(let ,b ,expr))
+    (,else `(set! (var ,t ,retvar) ,else)))
 
   ;; end library
   )

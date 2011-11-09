@@ -31,10 +31,10 @@
     verify-lift-complex
     remove-nested-kernels
     verify-remove-nested-kernels
-    flatten-lets
-    verify-flatten-lets
     returnify-kernels
     verify-returnify-kernels
+    flatten-lets
+    verify-flatten-lets
     lower-vectors
     verify-lower-vectors
     uglify-vectors
