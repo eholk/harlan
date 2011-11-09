@@ -355,6 +355,24 @@
         (Relop Expr Expr)
         (Binop Expr Expr)))
 
+    (annotate-free-vars
+      (%inherits Module Decl Expr Body)
+      (Start Module)
+      (Stmt 
+        (print Expr)
+        (assert Expr)
+        (set! Expr Expr)
+        (kernel (((Var Type) (Expr Type)) +)
+          (free-vars Var *) Stmt)
+        (let ((Var Expr) *) Stmt)
+        (begin Stmt * Stmt)
+        (if Expr Stmt)
+        (if Expr Stmt Stmt)
+        (for (Var Expr Expr) Stmt)
+        (while Expr Stmt)
+        (do Expr +)
+        Ret-Stmt))
+
     (flatten-lets (%inherits Module Decl)
       (Start Module)
       (Body
@@ -366,7 +384,8 @@
         (print Expr)
         (assert Expr)
         (set! Expr Expr)
-        (kernel (((Var Type) (Expr Type)) +) Stmt)
+        (kernel (((Var Type) (Expr Type)) +)
+          (free-vars (Var Type) *) Stmt)
         (let Var Type Expr)
         (if Expr Stmt)
         (if Expr Stmt Stmt)
@@ -390,24 +409,6 @@
         (length Expr)
         (Relop Expr Expr)
         (Binop Expr Expr)))
-
-    (annotate-free-vars
-      (%inherits Module Decl Expr Body)
-      (Start Module)
-      (Stmt 
-        (print Expr)
-        (assert Expr)
-        (set! Expr Expr)
-        (kernel (((Var Type) (Expr Type)) +)
-          (free-vars (Var Type) *) Stmt)
-        (let Var Type Expr)
-        (begin Stmt * Stmt)
-        (if Expr Stmt)
-        (if Expr Stmt Stmt)
-        (for (Var Expr Expr) Stmt)
-        (while Expr Stmt)
-        (do Expr +)
-        Ret-Stmt))
 
     (hoist-kernels (%inherits Module Body)
       (Start Module)

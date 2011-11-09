@@ -8,30 +8,6 @@
     (elegant-weapons match)
     (elegant-weapons helpers))
 
-;; Is there anything else I should work on tomorrow, once I get this pass working?
-;; either the for loop pass, or the pass that uses the free variables, or keep working on returnify kernels
-;; my short term goal is to get dot-product.kfc all the way through the compiler, and generating C++ that compiles and runs
-;; it currently gets through the compiler (at least last I checked), but it doesn't generate valid C++
-;; okay
-;; the pass that uses the free variables
-;; seems like a good next step
-;; since that's what I've got on my mind
-;; alright
-;; do you know what to do there?
-;; not exactly
-;; ok
-;; so, in generate-kernel, in kernels.scm
-;; it takes a list of all the iterator parameters and generates a new top level kernel
-;; basically, for all the vectors, these get passed into the kernel as a void *
-;; for each of these, it generates a call to vec_deserialize, which converts the void * into a vec struct
-;; this represents the big X
-;; it also looks up the kernel's global id
-;; and then let-binds small x to be (vec_ref_1d X id)
-;; this is a pointer to some T, so it goes through and replaces all the uses of x with a deref
-;; for the free variables, we need to do the exact same thing, except that you don't implicitly unpack a small x
-;; so at the end there won't be a distinction between free variables and iterator variables, there will just be variables
-;; and some of them are implicitly vector-ref'd, and others aren't
-
 (define-match annotate-free-vars
   ((module ,[(annotate-decl '()) -> decl*] ...)
    `(module ,decl* ...)))
@@ -50,7 +26,7 @@
         [(null? stmt*)
          (values (reverse new-stmt*) gamma)]
         [else
-          (let-values (((stmt gamma)
+          (let-values (((stmt gamma^)
                         ((annotate-stmt gamma) (car stmt*))))
             (loop (cdr stmt*) gamma (cons stmt new-stmt*)))]))))
 
@@ -60,9 +36,8 @@
   ((kernel (((,x* ,t*) (,xs* ,ts*)) ...) . ,stmt*)
    (let ((gamma (append (map cons x* t*) gamma)))
      (let-values (((stmt* gamma) ((annotate-stmt* gamma) stmt*)))
-       (let* ((fv* (remove* x* (free-vars-stmt* stmt*)))
-              (fvt* (map (lambda (x) (lookup x gamma)) fv*)))
-         (let ((fv* (map list fv* fvt*)))
+       (let* ((fv* (remove* x* (free-vars-stmt* stmt*))))
+         (let ((fv* fv*))
            (values
              `(kernel (((,x* ,t*) (,xs* ,ts*)) ...)
                 (free-vars ,@fv*) . ,stmt*)
@@ -78,10 +53,10 @@
    (values `(if ,test ,conseq ,alt) gamma))
   ((do ,[(annotate-expr gamma) -> e*] ...)
    (values `(do . ,e*) gamma))
-  ((let ,x ,t ,e)
-   (let* ((gamma `((,x . ,t) . ,gamma))
-          (e ((annotate-expr gamma) e)))
-     (values `(let ,x ,t ,e) gamma)))
+  ((let ((,x* ,[(annotate-expr gamma) -> e*]) ...) ,stmt)
+   (let ((gamma (union x* gamma)))
+     (let-values (((stmt gamma^) ((annotate-stmt gamma) stmt)))
+       (values `(let ((,x* ,e*) ...) ,stmt) gamma))))
   ((while ,[(annotate-expr gamma) -> e] . ,s)
    (let-values (((s gamma) ((annotate-stmt* gamma) s)))
      (values `(while ,e ,s ...) gamma)))
@@ -108,6 +83,10 @@
   ((call ,t ,rator ,[rand*] ...)
    (guard (symbol? rator))
    `(call ,t ,rator ,rand* ...))
+  ((let ((,x* ,[(annotate-expr gamma) -> e*]) ...) ,expr)
+   (let* ((gamma (union x* gamma))
+          (expr ((annotate-expr gamma) expr)))
+     `(let ((,x* ,e*) ...) ,expr)))
   ((begin ,stmt* ... ,expr)
    (let-values (((stmt* gamma^)
                  ((annotate-stmt* gamma) stmt*)))
@@ -128,8 +107,6 @@
 
  (define-match free-vars-stmt*
    [() '()]
-   [((let ,x ,t ,[free-vars-expr -> e]) . ,[rest])         
-    (union e (remove x rest))]
    [(,[free-vars-stmt -> stmt] . ,[rest])
     (union stmt rest)])
 
@@ -145,8 +122,8 @@
     (union test conseq))
    ((if ,[free-vars-expr -> test] ,[conseq] ,[alt])
     (union* test conseq alt))
-   ((let ,x ,t ,[free-vars-expr -> e])
-    (remove x e))
+   ((let ((,x ,[free-vars-expr -> fv**])) ,[fv*])
+    (union (apply union* fv**) (remove x fv*)))
    ((for (,x ,[free-vars-expr -> start]
            ,[free-vars-expr -> end])
       ,[free-vars-stmt -> s])

@@ -3,6 +3,7 @@
   (export flatten-lets)
   (import
     (rnrs)
+    (only (chezscheme) printf)
     (elegant-weapons helpers)
     (elegant-weapons match))
 
@@ -47,8 +48,21 @@
    `(for (,x ,start ,end) ,stmt))
   ((while ,test ,[stmt])
    `(while ,test ,stmt))
-  ((kernel (((,x ,tx) (,[Expr -> e* te^] ,te)) ...) ,[stmt])
-   `(kernel (((,x ,tx) (,e* ,te)) ...) ,stmt))
+  ((kernel (((,x ,tx) (,[Expr -> e* te^] ,te)) ...)
+     (free-vars . ,fv*) ,[stmt])
+   ;; this is an amazing hack because we don't
+   ;; do any sort of typechecking later
+   (let ((fvt* (match stmt
+                 ((var ,t ,x) (guard (memq x fv*))
+                  `((,x . ,t)))
+                 ((,[x] ...)
+                  (apply append x))
+                 (,x '()))))
+     `(kernel (((,x ,tx) (,e* ,te)) ...)
+        (free-vars ,@(map (lambda (fv)
+                            `(,fv ,(cdr (assq fv fvt*))))
+                       fv*))
+        ,stmt)))
   ((do ,[Expr -> expr _])
    `(do ,expr))
   ((set! ,[Expr -> e1 t1] ,[Expr -> e2 t2])

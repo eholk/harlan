@@ -37,10 +37,10 @@
     verify-lower-vectors
     uglify-vectors
     verify-uglify-vectors
-    flatten-lets
-    verify-flatten-lets
     annotate-free-vars
     verify-annotate-free-vars
+    flatten-lets
+    verify-flatten-lets
     hoist-kernels
     verify-hoist-kernels
     move-gpu-data
