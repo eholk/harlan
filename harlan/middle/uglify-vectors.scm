@@ -22,8 +22,8 @@
    `(module . ,fn*)))
 
 (define-match uglify-decl
-  ((fn ,name ,args ,t ,[uglify-stmt -> stmt*] ...)
-   `(fn ,name ,args ,t . ,(apply append stmt*)))
+  ((fn ,name ,args ,t ,[uglify-stmt -> stmt])
+   `(fn ,name ,args ,t ,stmt))
   ((extern ,name ,args -> ,t)
    `(extern ,name ,args -> ,t)))
 
@@ -35,7 +35,7 @@
   (lambda (t e n)
     (match e
       ((int ,y)
-       (let-values (((dim t sz)
+       (let-values (((dim t^ sz)
                      (decode-vector-type `(vector ,t ,n))))
          `(cast (vector ,t ,n) (call (ptr void) GC_MALLOC ,sz))))
       ((var int ,y)
@@ -48,38 +48,44 @@
       ;; information here.
       (,else else))))
 
+(define-match (uglify-let finish)
+  (() finish)
+  (((,x (make-vector ,t (int ,n))) .
+    ,[(uglify-let finish) -> rest])
+   (let ((vv (uglify-let-vec t `(int ,n) n)))
+     `(let ((,x ,vv)) ,rest)))
+  (((,x ,[uglify-expr -> e]) . ,[(uglify-let finish) -> rest])
+   `(let ((,x ,e)) ,rest)))
+
 (define-match uglify-stmt
+  ((let ((,x ,e) ...) ,[stmt])
+   ((uglify-let stmt) `((,x ,e) ...)))
   ((begin ,[uglify-stmt -> stmt*] ...)
-   `(,(make-begin (apply append stmt*))))
-  ((let ,x (vector ,t ,n) ,[uglify-expr -> init])
-   (let ((vv (uglify-let-vec t init n)))
-     `((let ,x (vector ,t ,n) ,vv))))
-  ((let ,x ,t ,[uglify-expr -> e])
-   `((let ,x ,t ,e)))
+   (make-begin stmt*))
   ((if ,[uglify-expr -> test] ,conseq)
-   `((if ,test ,conseq)))
+   `(if ,test ,conseq))
   ((if ,[uglify-expr -> test] ,conseq ,alt)
-   `((if ,test ,conseq ,alt)))
-  ((while ,[uglify-expr -> e] ,[uglify-stmt -> stmt*] ...)
-   `((while ,e ,(apply append stmt*) ...)))
+   `(if ,test ,conseq ,alt))
+  ((while ,[uglify-expr -> e] ,[uglify-stmt -> stmt])
+   `(while ,e ,stmt))
   ((for (,i ,[uglify-expr -> start] ,[uglify-expr -> end])
-     ,[uglify-stmt -> stmt*] ...)
-   `((for (,i ,start ,end) . ,(apply append stmt*))))
+     ,[uglify-stmt -> stmt])
+   `(for (,i ,start ,end) ,stmt))
   ((set! ,[uglify-expr -> lhs] ,[uglify-expr -> rhs])
-   `((set! ,lhs ,rhs)))
+   `(set! ,lhs ,rhs))
   ((return ,[uglify-expr -> e])
-   `((return ,e)))
+   `(return ,e))
   ((assert ,[uglify-expr -> e])
-   `((assert ,e)))
+   `(assert ,e))
   ((vector-set! ,t ,[uglify-expr -> x] ,[uglify-expr -> i]
      ,[uglify-expr -> v])
    (uglify-vector-set! t x i v))
   ((print ,[uglify-expr -> e])
-   `((print ,e)))
-  ((kernel ,t ,iters ,[stmt*] ...)
-   `((kernel ,iters ,(apply append stmt*) ...)))
+   `(print ,e))
+  ((kernel ,t ,iters ,[stmt])
+   `(kernel ,iters ,stmt))
   ((do ,[uglify-expr -> e])
-   `((do ,e))))
+   `(do ,e)))
 
 (define uglify-vector-set!
   (lambda (t x i v)
@@ -87,12 +93,12 @@
       ((vector ,t ,n)
        (let-values (((dim t sz)
                      (decode-vector-type `(vector ,t ,n))))
-         `((do (call void memcpy 
-                 ,(uglify-vector-ref `(vector ,t ,n) x i)
-                 ,v
-                 ,sz)))))
+         `(do (call void memcpy 
+                ,(uglify-vector-ref `(vector ,t ,n) x i)
+                ,v
+                ,sz))))
       (,scalar (guard (symbol? scalar))
-        `((set! ,(uglify-vector-ref scalar x i) ,v)))
+        `(set! ,(uglify-vector-ref scalar x i) ,v))
       (,else (error 'uglify-vector-set!
                "unsupported vector type" else)))))
 
@@ -115,7 +121,6 @@
    `(,op ,lhs ,rhs))
   ((vector-ref ,t ,[e] ,[i])
    (uglify-vector-ref t e i))
-  ((make-vector ,t ,n) `(int ,n))
   ((length ,e)
    (match (expr-type e)
      ((vector ,t ,n)

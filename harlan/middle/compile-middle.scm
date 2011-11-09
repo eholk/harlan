@@ -35,10 +35,10 @@
     verify-returnify-kernels
     lower-vectors
     verify-lower-vectors
-    flatten-lets
-    verify-flatten-lets
     uglify-vectors
     verify-uglify-vectors
+    flatten-lets
+    verify-flatten-lets
     annotate-free-vars
     verify-annotate-free-vars
     hoist-kernels
