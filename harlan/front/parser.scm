@@ -15,7 +15,7 @@
 ;; simplify-literals mini-pass.
 
 ;; unnests lets, checks that all variables are in scope, and
-;; renames variables to unique identifiers
+;; renames variables to unique identifiers, changes bools to ints
 
 (define-match parse-harlan
   ((module ,[parse-decl -> decl*] ...)
@@ -85,6 +85,7 @@
 (define-match (parse-expr env)
   (,f (guard (float? f)) `(float ,f))
   (,n (guard (integer? n)) `(num ,n))
+  (,b (guard (boolean? b)) (if b `(num 1) `(num 0)))
   (,x (guard (symbol? x))
     (let ((x^ (assq x env)))
       (unless x^ (error 'parse-expr (format "Free variable ~s" x)))
