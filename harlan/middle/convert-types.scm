@@ -67,8 +67,8 @@
   ((apply-kernel ,k ,[convert-expr -> e*] ...)
    (guard (ident? k))
    `(apply-kernel ,k . ,e*))
-  ((do ,[convert-expr -> e*] ...)
-   `(do . ,e*))
+  ((do ,[convert-expr -> e])
+   `(do ,e))
   ((return ,[convert-expr -> expr])
    `(return ,expr)))
 

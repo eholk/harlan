@@ -77,7 +77,7 @@
    `(for (,x ,start ,end) ,body))
   ((return ,expr)
    `(return ,expr))
-  ((do . ,expr*) `(do . ,expr*)))
+  ((do ,expr) `(do ,expr)))
 
 (define-match lower-expr
   ((begin ,[lower-stmt -> stmt*] ... ,[expr])

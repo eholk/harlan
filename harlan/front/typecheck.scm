@@ -275,10 +275,9 @@
          (== stmto `(return ,e^))
          (infer-expr e env rtype e^)))
       ((fresh (e e^ type)
-         ;; why do they all have to be of the same type?
-         (== stmt `(do . ,e))
-         (== stmto `(do . ,e^))
-         (infer-exprs e env type e^)))
+         (== stmt `(do ,e))
+         (== stmto `(do ,e^))
+         (infer-expr e env type e^)))
       ((fresh (x start start^ end end^ s s^)
          (== stmt `(for (,x ,start ,end) ,s))
          (== stmto `(for (,x ,start^ ,end^) ,s^))

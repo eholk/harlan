@@ -30,13 +30,13 @@
                (field (var cl::program g_prog)
                  createKernel)
                (str ,(symbol->string k))))
-        (do ,@(map (lambda (arg i)
-                     `(call void
+        ,@(map (lambda (arg i)
+                 `(do (call void
                         (field (var cl::kernel ,kernel) setArg)
                         (int ,i)
-                        ,arg))
-                arg* (iota (length arg*)))
-            (call void (field (var cl::queue g_queue) execute)
+                        ,arg)))
+            arg* (iota (length arg*)))
+        (do (call void (field (var cl::queue g_queue) execute)
               (var cl::kernel ,kernel)
               (int ,(get-arg-length (car arg*))) ;; global size
               (int 1)))))) ;; local size

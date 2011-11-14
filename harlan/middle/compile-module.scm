@@ -50,7 +50,7 @@
   [(for (,i ,[compile-expr -> start] ,[compile-expr -> end])
      ,[stmt*] ...)
    `(for (,i ,start ,end) . ,stmt*)]
-  [(do ,[compile-expr -> e] ...) `(do ,e ...)]
+  [(do ,[compile-expr -> e]) `(do ,e)]
   [(map-gpu ((,x* ,e*) ...) ,[stmt*] ...)
    `(begin
       ,@(map

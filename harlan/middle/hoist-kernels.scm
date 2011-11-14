@@ -24,9 +24,9 @@
      (if (and (eq? name 'main) (not (null? kernel*)))
          `(fn ,name ,args ,type
             ,(make-begin
-              `((do (call void GC_INIT) 
-                    (call void
-                      (field (var cl::program g_prog) build))) 
+              `((do (call void GC_INIT))
+                (do (call void
+                      (field (var cl::program g_prog) build)))
                 ,stmt)))
          `(fn ,name ,args ,type
             ,(make-begin `((do (call void GC_INIT)) ,stmt))))

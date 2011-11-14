@@ -19,8 +19,8 @@
    `(fn ,name ,args ,type . ,(apply append stmt*))))
 
 (define-match Stmt
-  ((do ,[Expr -> e*] ...)
-   `((do . ,e*)))
+  ((do ,[Expr -> e])
+   `((do ,e)))
   ((let ,x ,t ,[Expr -> expr])
    (guard (ident? x))
    `((let ,x ,t ,expr)))
