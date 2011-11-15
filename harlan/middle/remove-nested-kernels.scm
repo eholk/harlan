@@ -1,10 +1,7 @@
 (library
   (harlan middle remove-nested-kernels)
   (export remove-nested-kernels)
-  (import
-    (rnrs)
-    (elegant-weapons helpers)
-    (elegant-weapons match))
+  (import (rnrs) (elegant-weapons helpers))
 
 ;; This pass takes a nest of kernels and turns all but the innermost
 ;; one into for loops. This isn't the best way to do this, but it's

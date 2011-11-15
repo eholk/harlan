@@ -1,15 +1,7 @@
 (library
   (harlan middle uglify-vectors)
-  (export
-    uglify-vectors
-    uglify-vector-ref)
-  (import
-    (only (chezscheme) format)
-    (rnrs)
-    (elegant-weapons match)
-    (elegant-weapons print-c)
-    (util verify-grammar)
-    (elegant-weapons helpers))
+  (export uglify-vectors)
+  (import (rnrs) (elegant-weapons helpers))
 
 ;; Uglify vectors takes our nice surface-level vector syntax and
 ;; converts it into an abomination of C function calls to the generic

@@ -1,13 +1,7 @@
 (library
   (harlan middle compile-module)
   (export compile-module)
-  (import
-    (rnrs)
-    (only (chezscheme) format)
-    (elegant-weapons helpers)
-    (elegant-weapons print-c)
-    (harlan front parser)
-    (elegant-weapons match))
+  (import (rnrs) (elegant-weapons helpers))
 
 ;; This compile kernel is used in the compile-module pass.
 (define-match compile-kernel^

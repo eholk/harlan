@@ -1,11 +1,7 @@
 (library
   (harlan middle flatten-lets)
   (export flatten-lets)
-  (import
-    (rnrs)
-    (only (chezscheme) printf)
-    (elegant-weapons helpers)
-    (elegant-weapons match))
+  (import (rnrs) (elegant-weapons helpers))
 
 ;; parse-harlan takes a syntax tree that a user might actually want
 ;; to write and converts it into something that's more easily

@@ -1,12 +1,7 @@
 (library
   (harlan front parser)
   (export parse-harlan)
-  (import
-    (rnrs)
-    (only (chezscheme) format printf)
-    (util verify-grammar)
-    (elegant-weapons helpers)
-    (elegant-weapons match))
+  (import (rnrs) (elegant-weapons helpers))
 
 ;; parse-harlan takes a syntax tree that a user might actually want
 ;; to write and converts it into something that's more easily
@@ -88,13 +83,13 @@
   (,b (guard (boolean? b)) (if b `(num 1) `(num 0)))
   (,x (guard (symbol? x))
     (let ((x^ (assq x env)))
-      (unless x^ (error 'parse-expr (format "Free variable ~s" x)))
+      (unless x^ (error 'parse-expr "Free variable" x))
       `(var ,(cdr x^))))
   (,str (guard (string? str)) `(str ,str))
   ((var ,x)
    (guard (symbol? x))
    (let ((x^ (assq x env)))
-     (unless x^ (error 'parse-expr (format "Free variable ~s" x)))
+     (unless x^ (error 'parse-expr "Free variable" x))
      `(var ,(cdr x^))))
   ((vector ,[e*] ...)
    `(vector . ,e*))

@@ -1,12 +1,7 @@
 (library
   (harlan middle lift-complex)
   (export lift-complex)
-  (import
-    (rnrs)
-    (only (chezscheme) format)
-    (elegant-weapons match)
-    (elegant-weapons helpers)
-    (harlan front parser))
+  (import (rnrs) (elegant-weapons helpers))
   
 (define lift-expr->stmt
   (lambda (expr finish)

@@ -1,14 +1,7 @@
 (library
   (harlan middle lower-vectors)
-  (export
-    lower-vectors)
-  (import
-    (only (chezscheme) format)
-    (rnrs)
-    (elegant-weapons match)
-    (elegant-weapons print-c)
-    (util verify-grammar)
-    (elegant-weapons helpers))
+  (export lower-vectors)
+  (import (rnrs) (elegant-weapons helpers))
 
 (define-match lower-vectors
   ((module ,[lower-decl -> fn*] ...)

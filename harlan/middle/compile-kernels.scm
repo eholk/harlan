@@ -1,12 +1,7 @@
 (library
   (harlan middle compile-kernels)
-  (export
-    compile-kernels)
-  (import
-    (only (chezscheme) format)
-    (rnrs)
-    (elegant-weapons match)
-    (util verify-grammar)
+  (export compile-kernels)
+  (import (rnrs)
     (elegant-weapons helpers)
     (elegant-weapons print-c))
   

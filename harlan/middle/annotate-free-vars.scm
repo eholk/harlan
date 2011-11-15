@@ -1,12 +1,7 @@
 (library
   (harlan middle annotate-free-vars)
   (export annotate-free-vars)
-  (import
-    (only (chezscheme) format printf)
-    (rnrs)
-    (elegant-weapons print-c)
-    (elegant-weapons match)
-    (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers))
 
 (define c-globals '(GC_MALLOC memcpy))
 
@@ -24,8 +19,7 @@
    (let ((fv* (fold-right remove fv* globals)))
      (if (null? fv*)
          `(fn ,name ,args ,type ,stmt)
-         (error 'annotate-free-vars
-           (format "unbound varaible(s) ~s\n" fv*)))))
+         (error 'annotate-free-vars "unbound varaible(s)" fv*))))
   ((extern ,name ,arg-types -> ,type)
    `(extern ,name ,arg-types -> ,type)))
 
