@@ -1,10 +1,7 @@
 (library
   (harlan middle convert-types)
   (export convert-types)
-  (import (only (chezscheme) format)
-    (rnrs)
-    (elegant-weapons helpers)
-    (elegant-weapons match))
+  (import (rnrs) (elegant-weapons helpers))
   
 ;; This pass converts Harlan types into C types.
 (define-match convert-types

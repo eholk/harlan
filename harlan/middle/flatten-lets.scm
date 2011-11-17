@@ -1,11 +1,7 @@
 (library
   (harlan middle flatten-lets)
   (export flatten-lets)
-  (import
-    (rnrs)
-    (only (chezscheme) printf)
-    (elegant-weapons helpers)
-    (elegant-weapons match))
+  (import (rnrs) (elegant-weapons helpers))
 
 ;; parse-harlan takes a syntax tree that a user might actually want
 ;; to write and converts it into something that's more easily
@@ -33,9 +29,7 @@
   ((if ,[Expr -> test tt] ,[conseq])
    `(if ,test ,conseq))
   ((if ,[Expr -> test tt] ,[conseq] ,[alt])
-   `(if ,(make-begin test)
-        ,(make-begin conseq)
-        ,(make-begin alt)))
+   `(if ,test ,conseq ,alt))
   ((begin ,[stmt*] ...)
    (make-begin stmt*))
   ((print ,[Expr -> expr _])

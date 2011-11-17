@@ -47,9 +47,10 @@
       (Module (module Decl +))
       (Decl
         (extern Var (Type *) -> Type)
-        (fn Var (Var *) Expr +))
+        (fn Var (Var *) Value +))
       (Value
         integer
+        boolean
         float
         string
         ident
@@ -81,6 +82,7 @@
       (Start Module)
       (Value
         integer
+        boolean
         float
         string
         ident
