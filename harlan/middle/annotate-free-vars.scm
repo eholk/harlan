@@ -3,15 +3,13 @@
   (export annotate-free-vars)
   (import (rnrs) (elegant-weapons helpers))
 
-(define c-globals '(GC_MALLOC memcpy))
-
 (define-match annotate-free-vars
   ((module . ,[annotate-decl* -> decl*])
    `(module . ,decl*)))
 
 (define-match annotate-decl*
   (((,tag* ,name* . ,rest*) ...)
-   (map (annotate-decl (append name* c-globals))
+   (map (annotate-decl name*)
      `((,tag* ,name* . ,rest*) ...))))
 
 (define-match (annotate-decl globals)
@@ -26,7 +24,9 @@
 (define-match annotate-stmt
   ((begin ,[stmt* fv**] ...)
    (values `(begin . ,stmt*) (apply union* fv**)))
-  ((kernel (((,x* ,t*) (,[annotate-expr -> xs* fv**] ,ts*)) ...) ,[stmt fv*])
+  ((kernel (((,x* ,t*)
+             (,[annotate-expr -> xs* fv**] ,ts*)) ...)
+     ,[stmt fv*])
    (let ((fv* (fold-right remove fv* x*)))
      (values
        `(kernel (((,x* ,t*) (,xs* ,ts*)) ...)
@@ -61,16 +61,17 @@
    (values `(assert ,e) fv*)))
 
 (define-match annotate-expr
-  ((int ,n) (guard (integer? n)) (values `(int ,n) '()))
-  ((u64 ,n) (guard (integer? n)) (values `(u64 ,n) '()))
+  ((int ,n) (values `(int ,n) '()))
+  ((u64 ,n) (values `(u64 ,n) '()))
   ((float ,f) (values `(float ,f) '()))
-  ((str ,s) (guard (string? s)) (values `(str ,s) '()))
-  ((var ,t ,x) (guard (symbol? x))
-   (values `(var ,t ,x) `(,x)))
+  ((str ,s) (values `(str ,s) '()))
+  ((var ,t ,x) (values `(var ,t ,x) `(,x)))
+  ((c-expr ,t ,x) (values `(c-expr ,t ,x) `()))
   ((cast ,t ,[e fv*]) (values `(cast ,t ,e) fv*))
-  ((call ,t ,rator ,[rand* fv**] ...)
-   (guard (symbol? rator))
-   (values `(call ,t ,rator . ,rand*) (apply union* `(,rator) fv**)))
+  ((call ,[rator fv*] ,[rand* fv**] ...)
+   (values
+     `(call ,rator . ,rand*)
+     (apply union* fv* fv**)))
   ((let ((,x* ,[e* fv**]) ...) ,[expr fv*])
    (let ((fv* (fold-right remove fv* x*)))
      (values `(let ((,x* ,e*) ...) ,expr)

@@ -14,14 +14,15 @@
 
 (define-match (lower-let finish)
   (() finish)
-  (((,x (vector (vector ,t ,n) . ,e*)) . ,[(lower-let finish) -> rest])
+  (((,x (vector (vec ,t ,n) . ,e*))
+    . ,[(lower-let finish) -> rest])
    `(let ((,x (make-vector ,t (int ,n))))
       ,(make-begin
          (let loop ((e* e*) (i 0))
            (if (null? e*)
                `(,rest)
                `((vector-set!
-                   ,t (var (vector ,t ,n) ,x) (int ,i) ,(car e*))
+                   ,t (var (vec ,t ,n) ,x) (int ,i) ,(car e*))
                  . ,(loop (cdr e*) (+ 1 i))))))))
   
   (((,x (iota (int ,n))) . ,[(lower-let finish) -> rest])
@@ -29,7 +30,8 @@
      `(let ((,x (make-vector int (int ,n))))
         (begin
           (for (,i (int 0) (int ,n))
-            (vector-set! int (var (vector int ,n) ,x) (var int ,i) (var int ,i)))
+            (vector-set! int
+              (var (vec int ,n) ,x) (var int ,i) (var int ,i)))
           ,rest))))
   
   (((,x (reduce ,t2 ,op (var ,tv ,v))) . ,[(lower-let finish) -> rest])

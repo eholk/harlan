@@ -79,7 +79,7 @@
       ((iota (int ,c))
        (let ((v (gensym 'iota)))
          `(let ((,v (iota (int ,c))))
-            ,(finish `(var (vector int ,c) ,v)))))
+            ,(finish `(var (vec int ,c) ,v)))))
       ((reduce ,t ,op ,e)
        (lift-expr->stmt
          e
@@ -97,16 +97,14 @@
               (lift-expr->stmt
                 e2 (lambda (e2^)
                      (finish `(,op ,e1^ ,e2^)))))))
-      ((call ,t ,rator . ,rand*)
-       (guard (symbol? rator))
-       (let loop ((e* rand*) (e*^ '()))
+      ((call ,rator . ,rand*)
+       (let loop ((e* (cons rator rand*)) (e*^ '()))
          (if (null? e*)
-             (finish `(call ,t ,rator . ,(reverse e*^)))
+             (finish `(call . ,(reverse e*^)))
              (lift-expr->stmt
                (car e*)
                (lambda (e^)
-                 (loop (cdr e*) (cons e^ e*^)))))))
-      (,else (error 'lift-expr->stmt "unknown expression" else)))))
+                 (loop (cdr e*) (cons e^ e*^))))))))))
 
 (define-match lift-stmt
   ((begin ,[lift-stmt -> stmt*] ...)

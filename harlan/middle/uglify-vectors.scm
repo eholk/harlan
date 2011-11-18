@@ -28,11 +28,14 @@
     (match e
       ((int ,y)
        (let-values (((dim t^ sz)
-                     (decode-vector-type `(vector ,t ,n))))
-         `(cast (vector ,t ,n) (call (ptr void) GC_MALLOC ,sz))))
+                     (decode-vector-type `(vec ,t ,n))))
+         `(cast (vec ,t ,n)
+            (call (c-expr ((int) -> (ptr void)) GC_MALLOC) ,sz))))
       ((var int ,y)
-       (let-values (((dim t sz) (decode-vector-type `(vector ,t ,y))))
-         `(cast (vector ,t ,n) (call (ptr void) GC_MALLOC ,sz))))
+       (let-values (((dim t sz)
+                     (decode-vector-type `(vec ,t ,y))))
+         `(cast (vec ,t ,n)
+            (call (ptr void) (c-expr GC_MALLOC) ,sz))))
       ((var ,tv ,y)
        ;; TODO: this probably needs a copy instead.
        `(var ,tv ,y))
@@ -82,11 +85,12 @@
 (define uglify-vector-set!
   (lambda (t x i v)
     (match t
-      ((vector ,t ,n)
+      ((vec ,t ,n)
        (let-values (((dim t sz)
-                     (decode-vector-type `(vector ,t ,n))))
-         `(do (call void memcpy 
-                ,(uglify-vector-ref `(vector ,t ,n) x i)
+                     (decode-vector-type `(vec ,t ,n))))
+         `(do (call
+                (c-expr (() -> void) memcpy)
+                ,(uglify-vector-ref `(vec ,t ,n) x i)
                 ,v
                 ,sz))))
       (,scalar (guard (symbol? scalar))
@@ -105,17 +109,18 @@
   ((str ,s) `(str ,s))
   ((var ,tx ,x) `(var ,tx ,x))
   ((int->float ,[e]) `(cast float ,e))
-  ((call ,t ,name ,[args] ...)
-   `(call ,t ,name . ,args))
+  ((call ,[name] ,[args] ...)
+   `(call ,name . ,args))
   ((if ,[test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
-  ((,op ,[lhs] ,[rhs]) (guard (or (binop? op) (relop? op)))
+  ((,op ,[lhs] ,[rhs])
+   (guard (or (binop? op) (relop? op)))
    `(,op ,lhs ,rhs))
   ((vector-ref ,t ,[e] ,[i])
    (uglify-vector-ref t e i))
   ((length ,e)
    (match (expr-type e)
-     ((vector ,t ,n)
+     ((vec ,t ,n)
       `(int ,n))
      (,else (error 'uglify-expr "Took length of non-vector"
               else (expr-type e))))))
@@ -123,7 +128,7 @@
 (define uglify-vector-ref
   (lambda (t e i)
     (match t
-      ((vector ,t ,n)
+      ((vec ,t ,n)
        `(addressof (vector-ref ,t ,e (* ,i (int ,n)))))
       (,scalar
         (guard (symbol? scalar))
