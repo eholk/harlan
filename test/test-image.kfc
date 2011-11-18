@@ -1,7 +1,7 @@
 ;; -*- scheme -*-
 
 (module
-  (extern write_pgm (str (vector (vector int 1024) 1024)) -> void)
+  (extern write_pgm (str (vec (vec int 1024) 1024)) -> void)
 
   (fn main ()
       (let img (kernel ((i (iota 1024)))
