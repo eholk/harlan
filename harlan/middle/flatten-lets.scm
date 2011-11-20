@@ -68,6 +68,7 @@
   ((float ,n) (values `(float ,n) 'float))
   ((str ,s) (values `(str ,s) 'str))
   ((var ,type ,x) (values `(var ,type ,x) type))
+  ((c-expr ,type ,x) (values `(c-expr ,type ,x) type))
   ((if ,[test tt] ,[conseq tc] ,[alt ta])
    (values `(if ,test ,conseq ,alt) tc))
   ((cast ,t ,[expr t^])
@@ -90,8 +91,10 @@
    (values `(,op ,e1 ,e2) t1))
   ((,op ,[e1 t1] ,[e2 t2]) (guard (relop? op))
    (values `(,op ,e1 ,e2) 'bool))
-  ((call ,type ,var ,[expr* t*] ...)
-   (values `(call ,type ,var . ,expr*) type)))
+  ((call ,[expr t] ,[expr* t*] ...)
+   (match t
+     ((,argtypes -> ,rtype)
+      (values `(call ,expr . ,expr*) rtype)))))
 
 ;; end library
 

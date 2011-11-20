@@ -29,9 +29,9 @@
   (void 'void)
   (str 'str)
   (float 'float)
-  ((vector ,[t] ,n)
+  ((vec ,[t] ,n)
    (guard (integer? n))
-   `(vector ,t ,n))
+   `(vec ,t ,n))
   (((,[t*] ...) -> ,[t])
    `(,t* -> ,t)))
 

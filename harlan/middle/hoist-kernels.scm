@@ -20,12 +20,11 @@
      (if (and (eq? name 'main) (not (null? kernel*)))
          `(fn ,name ,args ,type
             ,(make-begin
-              `((do (call void GC_INIT))
-                (do (call void
-                      (field (var cl::program g_prog) build)))
-                ,stmt)))
+               `((do (call (c-expr (() -> void) GC_INIT)))
+                 (do (call (field (var cl::program g_prog) build)))
+                 ,stmt)))
          `(fn ,name ,args ,type
-            ,(make-begin `((do (call void GC_INIT)) ,stmt))))
+            ,(make-begin `((do (call (c-expr (() -> void) GC_INIT))) ,stmt))))
      kernel*))
   ((extern ,name ,arg-types -> ,t)
    (values `(extern ,name ,arg-types -> ,t) '())))
@@ -73,7 +72,9 @@
                         (map list fv* ft*))
          ;; TODO: allow this to work on n-dimensional vectors.
          (begin
-           (let ,i int (call int get_global_id (int 0)))
+           (let ,i int (call
+                         (c-expr ((int) -> int) get_global_id)
+                         (int 0)))
            ,@(apply
                append
                (map
@@ -92,7 +93,7 @@
         (fold-left 
           (lambda (stmt x xs ts)
             (let ((t (match ts
-                       ((vector ,t ,n) t)
+                       ((vec ,t ,n) t)
                        (,else (error 'replace-vec-refs
                                 "Unknown type"
                                 else)))))

@@ -4,7 +4,7 @@
 ;; use loops instead of nested kernels
 
 (module
-  (extern print_2x2_int_vec ((vector (vector int 2) 2)) -> void)
+  (extern print_2x2_int_vec ((vec (vec int 2) 2)) -> void)
   
   (fn main ()
       (let B (vector
