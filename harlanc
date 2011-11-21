@@ -53,6 +53,8 @@
           (let ((c-code (compile-harlan input)))
             (print-c c-code))))))
 
+;;(trace-pass 'remove-nested-kernels)
+
 (let* ((fverbose (equal? (cadr (command-line)) "-v"))
        (args (if fverbose
                  (cddr (command-line))
