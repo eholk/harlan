@@ -34,14 +34,13 @@
            `(let ((,x (make-vector ,t (int ,n))))
               (begin
                 (for (,i (int 0) (int ,n))
-                  (begin
-                    (let (,@(map (lambda (x t xs)
+                  (let (,@(map (lambda (x t xs)
                                    `(,x (vector-ref ,t ,xs (var int ,i))))
                               x* t* xs*))
                       ,((set-kernel-return
                           (lambda (e) `(vector-set!
                                     ,t (var (vec ,t ,n) ,x) (var int ,i) ,e)))
-                        e))))
+                        e)))
                 ,rest)))
          `(let ((,x (kernel (vec ,t ,n) (((,x* ,t*) (,xs* ,ts*)) ...) ,e)))
             ,rest))

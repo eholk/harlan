@@ -21,12 +21,16 @@
 (define (trace-pass? pass)
   (or (verbose) (memq pass trace-passes)))
 
-(define (trace-pass pass)
-  (unless (memq pass trace-passes)
-    (set! trace-passes (cons pass trace-passes))))
+(define (trace-pass . passes)
+  (map (lambda (pass)
+         (unless (memq pass trace-passes)
+           (set! trace-passes (cons pass trace-passes))))
+       passes))
 
-(define (untrace-pass pass)
-  (set! trace-passes (remove pass trace-passes)))
+(define (untrace-pass . passes)
+  (map (lambda (pass)
+         (set! trace-passes (remove pass trace-passes)))
+       passes))
 
 (define do-trace-pass
   (lambda (pass-name pass expr)
