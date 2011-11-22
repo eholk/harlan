@@ -53,9 +53,9 @@
           (let ((c-code (compile-harlan input)))
             (print-c c-code))))))
 
-(trace-pass
- 'lift-complex
- 'remove-nested-kernels)
+;; (trace-pass
+;;  'remove-nested-kernels
+;;  'optimize-lift-lets)
 
 (let* ((fverbose (equal? (cadr (command-line)) "-v"))
        (args (if fverbose

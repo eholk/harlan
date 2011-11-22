@@ -11,6 +11,7 @@
     (harlan middle lift-complex)
     (harlan middle lower-vectors)
     (harlan middle remove-nested-kernels)
+    (harlan middle optimize-lift-lets)
     (harlan middle returnify-kernels)
     (harlan middle uglify-vectors)
     (harlan middle annotate-free-vars)
@@ -31,6 +32,8 @@
     verify-lift-complex
     remove-nested-kernels
     verify-remove-nested-kernels
+    optimize-lift-lets
+    verify-optimize-lift-lets
     returnify-kernels
     verify-returnify-kernels
     lower-vectors
