@@ -105,7 +105,8 @@
   [(call ,[f] ,[a*] ...) `(call ,f ,a* ...)])
 
 (define-match compile-module
-  [(module ,[compile-decl -> decl*] ...) decl*])
+  [(module ,[compile-decl -> decl*] ...)
+   `((include "harlan.hpp") . ,decl*)])
 
 
 ;; end library

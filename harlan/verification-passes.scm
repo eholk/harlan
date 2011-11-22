@@ -496,6 +496,7 @@
     (Start Module)
     (Module (Decl *))
     (Decl
+      (include String)
       (gpu-module Kernel *)
       (func Type Var (Type *) Body)
       (extern Type Var (Type *)))
@@ -538,6 +539,7 @@
   (convert-types (%inherits Module Stmt Body)
     (Start Module)
     (Decl
+      (include String)
       (gpu-module Kernel *)
       (func C-Type Var (C-Type *) Body)
       (extern C-Type Var (C-Type *))) 
@@ -577,6 +579,7 @@
     (%inherits Module Stmt Expr Let-Type C-Type Body)
     (Start Module)
     (Decl
+      (include String)
       (global C-Type Var Expr)
       (func C-Type Var (C-Type *) Stmt)
       (extern C-Type Var (C-Type *))))
@@ -585,6 +588,7 @@
     (Start Module)
     (Module (Decl *))
     (Decl
+      (include String)
       (global C-Type Var Expr *)
       (func C-Type Var (C-Type *) Stmt)
       (extern C-Type Var (C-Type *)))

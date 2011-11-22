@@ -8,6 +8,7 @@
   ((,[convert-decl -> decl*] ...) decl*))
 
 (define-match convert-decl
+  ((include ,h) `(include ,h))
   ((gpu-module ,[convert-kernel -> kernel*] ...)
    `(gpu-module . ,kernel*))
   ((func ,[convert-type -> rtype] ,name
