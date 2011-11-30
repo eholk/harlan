@@ -1,10 +1,7 @@
 (library
   (harlan middle move-gpu-data)
   (export move-gpu-data)
-  (import
-    (rnrs)
-    (elegant-weapons match)
-    (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers))
   
 (define-match move-gpu-data
   ((module ,[Decl -> decl*] ...)
@@ -19,8 +16,8 @@
    `(fn ,name ,args ,type . ,(apply append stmt*))))
 
 (define-match Stmt
-  ((do ,[Expr -> e*] ...)
-   `((do . ,e*)))
+  ((do ,[Expr -> e])
+   `((do ,e)))
   ((let ,x ,t ,[Expr -> expr])
    (guard (ident? x))
    `((let ,x ,t ,expr)))
@@ -64,7 +61,7 @@
   ((var ,t ,x)
    (guard (ident? x))
    (match t
-     ((vector ,t^ ,n)
+     ((vec ,t^ ,n)
       (let ((gpu-var (gensym 'gpu))
             (gpu-ptr (gensym 'ptr)))
         (values
@@ -79,14 +76,12 @@
        (values '() `(var ,t ,x) '())))))
 
 (define-match Expr
-  ((int ,n) (guard (integer? n))
-   `(int ,n))
-  ((u64 ,n) (guard (integer? n))
-   `(u64 ,n))
+  ((int ,n) `(int ,n))
+  ((u64 ,n) `(u64 ,n))
   ((float ,f) `(float ,f))
-  ((var ,t ,x) (guard (ident? x))
-   `(var ,t ,x))
-  ((str ,s) (guard (string? s)) `(str ,s))
+  ((var ,t ,x) `(var ,t ,x))
+  ((str ,s) `(str ,s))
+  ((c-expr ,t ,x) `(c-expr ,t ,x))
   ((cast ,t ,[e])
    `(cast ,t ,e))
   ((sizeof ,t) `(sizeof ,t))
@@ -96,11 +91,8 @@
   ((field ,[obj] ,x)
    (guard (ident? x))
    `(field ,obj ,x))
-  ((call ,t ,f ,[e*] ...)
-   (guard (ident? f))
-   `(call ,t ,f . ,e*))
-  ((call ,t ,[f] ,[e*] ...)
-   `(call ,t ,f . ,e*))
+  ((call ,[f] ,[e*] ...)
+   `(call ,f . ,e*))
   ((vector-ref ,t ,[v] ,[i])
    `(vector-ref ,t ,v ,i))
   ((,op ,[lhs] ,[rhs])

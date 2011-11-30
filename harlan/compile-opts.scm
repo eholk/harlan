@@ -5,7 +5,8 @@
     verbose
     benchmark
     verify
-    trace-pass)
+    trace-pass
+    untrace-pass)
   (import
     (rnrs)
     (util color)
@@ -15,16 +16,32 @@
 (define verify (make-parameter #t))
 (define benchmark (make-parameter #f))
 
-(define trace-pass
-  (lambda (m pass expr)
-    (if (verbose)
+(define trace-passes '())
+
+(define (trace-pass? pass)
+  (or (verbose) (memq pass trace-passes)))
+
+(define (trace-pass . passes)
+  (map (lambda (pass)
+         (unless (memq pass trace-passes)
+           (set! trace-passes (cons pass trace-passes))))
+       passes))
+
+(define (untrace-pass . passes)
+  (map (lambda (pass)
+         (set! trace-passes (remove pass trace-passes)))
+       passes))
+
+(define do-trace-pass
+  (lambda (pass-name pass expr)
+    (if (trace-pass? pass-name)
         (begin
           (newline)
-          (set-color 'green) (display "Beginning pass ") (display m)
+          (set-color 'green) (display "Beginning pass ") (display pass-name)
           (set-color 'default) (newline)
           (let ((expr (pass expr)))
             (set-color 'green)
-            (display "Pass ") (display m) (display " output:")
+            (display "Pass ") (display pass-name) (display " output:")
             (set-color 'default) (newline)
             (pretty-print expr) (newline)
             expr))
@@ -34,7 +51,7 @@
   (syntax-rules ()
     ((_ pass-name ...)
      (lambda (expr)
-       (let* ((expr (trace-pass (symbol->string 'pass-name) pass-name expr))
+       (let* ((expr (do-trace-pass 'pass-name pass-name expr))
               ...)
          expr)))))
 

@@ -43,9 +43,14 @@ COMPILE_TEST = $(call HC, $(1), $(call TEST_EXE_NAME, $(1)))
 RUN_TEST = $(1)
 
 .phony: check
-check : test.bin gc/lib/libgc.a rt/libharlanrt.a
+check : test.bin gc/lib/libgc.a rt/libharlanrt.a update-submodules
 	@./run-tests.scm
 	@echo $(ECHO_ESCAPE) "\033[32mAll tests succeeded.\033[39m"
+
+.phony: update-submodules
+update-submodules:
+	git submodule foreach git checkout master
+	git submodule foreach git pull
 
 .phony: force-check
 force-check :

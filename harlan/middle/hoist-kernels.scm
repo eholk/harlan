@@ -1,11 +1,7 @@
 (library
   (harlan middle hoist-kernels)
   (export hoist-kernels)
-  (import
-    (only (chezscheme) format)
-    (rnrs)
-    (elegant-weapons match)
-    (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers))
 
 ;; This pass is probably too big. It finds all the kernel
 ;; expressions, hoists them into a GPU module, replaces the old
@@ -19,20 +15,17 @@
       . ,decl*)))
 
 (define-match hoist-decl
-  ((fn ,name ,args ,type ,[hoist-stmt -> stmt* kernel*] ...)
-   (let ((kernel* (apply append kernel*)))
-     (values
-       (if (and (eq? name 'main)
-                (not (null? kernel*)))
-           `(fn ,name ,args ,type
-              (do (call void GC_INIT) 
-                  (call void
-                    (field (var cl::program g_prog)
-                      build))) 
-              . ,stmt*)
-           `(fn ,name ,args ,type
-              (do (call void GC_INIT)) . ,stmt*))
-       kernel*)))
+  ((fn ,name ,args ,type ,[hoist-stmt -> stmt kernel*])
+   (values
+     (if (and (eq? name 'main) (not (null? kernel*)))
+         `(fn ,name ,args ,type
+            ,(make-begin
+               `((do (call (c-expr (() -> void) GC_INIT)))
+                 (do (call (field (var cl::program g_prog) build)))
+                 ,stmt)))
+         `(fn ,name ,args ,type
+            ,(make-begin `((do (call (c-expr (() -> void) GC_INIT))) ,stmt))))
+     kernel*))
   ((extern ,name ,arg-types -> ,t)
    (values `(extern ,name ,arg-types -> ,t) '())))
 
@@ -78,17 +71,20 @@
       `(kernel ,name ,(append (map list xs* ts*)
                         (map list fv* ft*))
          ;; TODO: allow this to work on n-dimensional vectors.
-         (let ,i int (call int get_global_id (int 0)))
-         ,@(apply
-             append
-             (map
-               (lambda (x t xs ts)
-                 `((let ,x (ptr ,t)
-                        (addressof
-                          (vector-ref
-                            ,t (var ,ts ,xs) (var int ,i))))))
-               x* t* xs* ts*))
-         . ,(replace-vec-refs stmt* i x* xs* ts*)))))
+         (begin
+           (let ,i int (call
+                         (c-expr ((int) -> int) get_global_id)
+                         (int 0)))
+           ,@(apply
+               append
+               (map
+                 (lambda (x t xs ts)
+                   `((let ,x (ptr ,t)
+                          (addressof
+                            (vector-ref
+                              ,t (var ,ts ,xs) (var int ,i))))))
+                 x* t* xs* ts*))
+           . ,(replace-vec-refs stmt* i x* xs* ts*))))))
 
 (define replace-vec-refs
   (lambda (stmt* i x* xs* ts*)
@@ -97,7 +93,7 @@
         (fold-left 
           (lambda (stmt x xs ts)
             (let ((t (match ts
-                       ((vector ,t ,n) t)
+                       ((vec ,t ,n) t)
                        (,else (error 'replace-vec-refs
                                 "Unknown type"
                                 else)))))

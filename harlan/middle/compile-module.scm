@@ -1,13 +1,7 @@
 (library
   (harlan middle compile-module)
   (export compile-module)
-  (import
-    (rnrs)
-    (only (chezscheme) format)
-    (elegant-weapons helpers)
-    (elegant-weapons print-c)
-    (harlan front parser)
-    (elegant-weapons match))
+  (import (rnrs) (elegant-weapons helpers))
 
 ;; This compile kernel is used in the compile-module pass.
 (define-match compile-kernel^
@@ -34,9 +28,10 @@
    `(if ,test ,conseq ,alt))
   [(let-gpu ,x ,t)
    `(let ,x (cl::buffer ,(scalar-type t))
-         ((field g_ctx createBuffer ,(scalar-type t))
-          ,(byte-size t)
-          CL_MEM_READ_WRITE))]
+         (call
+           (field g_ctx createBuffer ,(scalar-type t))
+           ,(byte-size t)
+           (c-expr void CL_MEM_READ_WRITE)))]
   [(print ,[compile-expr -> expr]) `(print ,expr)]
   [(return ,[compile-expr -> expr]) `(return ,expr)]
   [(assert ,[compile-expr -> expr]) `(do (assert ,expr))]
@@ -44,31 +39,32 @@
    (compile-set! x e)]
   [(vector-set! ,v ,i ,[compile-expr -> expr])
    `(vector-set! ,v ,i ,expr)]
-  [(while (,relop ,[compile-expr -> e1] ,[compile-expr -> e2])
-     ,[stmt*] ...)
-   `(while (,relop ,e1 ,e2) . ,stmt*)]
+  [(while ,[compile-expr -> expr] ,[stmt])
+   `(while ,expr ,stmt)]
   [(for (,i ,[compile-expr -> start] ,[compile-expr -> end])
      ,[stmt*] ...)
    `(for (,i ,start ,end) . ,stmt*)]
-  [(do ,[compile-expr -> e] ...) `(do ,e ...)]
+  [(do ,[compile-expr -> e]) `(do ,e)]
   [(map-gpu ((,x* ,e*) ...) ,[stmt*] ...)
    `(begin
       ,@(map
           (lambda (x e)
             `(let ,x (cl::buffer_map ,(scalar-type (type-of e)))
-                  ((field g_queue mapBuffer
-                     ,(scalar-type (type-of e)))
-                   ,(compile-expr e))))
+                  (call
+                    (field g_queue mapBuffer
+                      ,(scalar-type (type-of e)))
+                    ,(compile-expr e))))
           x* e*)
-      ,stmt* ...)]
-  [(block ,[stmt*] ...)
-   `(begin . ,stmt*)])
+      ,stmt* ...)])
 
 (define (compile-set! x e)
   (let ((lhs-t (type-of x)))
     (match lhs-t
-      ((vector ,t ,n)
-       `(do (memcpy ,(compile-expr x) ,(compile-expr e)
+      ((vec ,t ,n)
+       `(do (call
+              (c-expr (() -> void) memcpy)
+              ,(compile-expr x)
+              ,(compile-expr e)
               ,(byte-size lhs-t))))
       (,scalar
         (guard (symbol? scalar))
@@ -80,28 +76,25 @@
   ;; converting the types should happen after this, so hopefully
   ;; we won't need pointers.
   ((ptr ,[t]) t)
-  ((vector ,[t] ,n) t)
+  ((vec ,[t] ,n) t)
   (int 'int))
 
 (define-match byte-size
   (int `(sizeof int))
-  ((vector ,[t] ,n) `(* ,n ,t)))
+  ((vec ,[t] ,n) `(* (int ,n) ,t)))
 
 (define-match compile-expr
-  [(int ,n) (guard (number? n)) n]
-  [(u64 ,n) (guard (number? n)) n]
-  [(float ,f) f]
-  [(var ,t ,x) (guard (symbol? x)) x]
-  [(str ,s) (guard (string? s)) s]
+  [(int ,n) `(int ,n)]
+  [(u64 ,n) `(u64 ,n)]
+  [(float ,f) `(float ,f)]
+  [(var ,t ,x) `(var ,x)]
+  [(str ,s) `(str ,s)]
+  [(c-expr ,t ,x) `(c-expr ,t ,x)]
   [(vector-ref ,t ,[v] ,[i]) `(vector-ref ,v ,i)]
   ((if ,[test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
-  [(field ,[obj] ,x)
-   (guard (ident? x))
-   `(field ,obj ,x)]
-  ((field ,[obj] ,x ,t)
-   (guard (ident? x))
-   `(field ,obj ,x ,t))
+  [(field (var ,t ,obj) ,x) `(field ,obj ,x)]
+  ((field (var ,t ,obj) ,x ,t) `(field ,obj ,x ,t))
   [(sizeof ,t) `(sizeof ,t)]
   [(deref ,[e]) `(deref ,e)]
   [(addressof ,[e]) `(addressof ,e)]
@@ -109,13 +102,11 @@
   [(,op ,[e1] ,[e2]) (guard (or (binop? op) (relop? op)))
    `(,op ,e1 ,e2)]
   [(time) '(nanotime)]
-  [(call ,t ,f ,[a*] ...)
-   (guard (symbol? f))
-   `(,f ,a* ...)]
-  [(call ,t ,[f] ,[a*] ...) `(,f ,a* ...)])
+  [(call ,[f] ,[a*] ...) `(call ,f ,a* ...)])
 
 (define-match compile-module
-  [(module ,[compile-decl -> decl*] ...) decl*])
+  [(module ,[compile-decl -> decl*] ...)
+   `((include "harlan.hpp") . ,decl*)])
 
 
 ;; end library

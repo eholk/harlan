@@ -7,9 +7,11 @@
     (harlan verification-passes)
 
     (harlan middle returnify)
+    (harlan middle flatten-lets)
     (harlan middle lift-complex)
     (harlan middle lower-vectors)
     (harlan middle remove-nested-kernels)
+    (harlan middle optimize-lift-lets)
     (harlan middle returnify-kernels)
     (harlan middle uglify-vectors)
     (harlan middle annotate-free-vars)
@@ -28,16 +30,20 @@
     verify-returnify
     lift-complex
     verify-lift-complex
-    lower-vectors
-    verify-lower-vectors
     remove-nested-kernels
     verify-remove-nested-kernels
+    optimize-lift-lets
+    verify-optimize-lift-lets
     returnify-kernels
     verify-returnify-kernels
+    lower-vectors
+    verify-lower-vectors
     uglify-vectors
     verify-uglify-vectors
     annotate-free-vars
     verify-annotate-free-vars
+    flatten-lets
+    verify-flatten-lets
     hoist-kernels
     verify-hoist-kernels
     move-gpu-data
