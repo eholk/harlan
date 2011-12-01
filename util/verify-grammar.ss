@@ -19,13 +19,7 @@
     %inherits)
   (import
     (rnrs)
-    (only (chezscheme)
-      trace-define
-      trace-define-syntax
-      printf
-      errorf
-      pretty-print
-      with-output-to-string)
+    (util verify-helpers)
     (harlan compile-opts))
   
 (define wildcard? (lambda (x) #t))
@@ -37,28 +31,6 @@
 
 ;; expands to ALL the procedures
 (define-syntax (generate-verify x)
-  
-  ;; nonterminal ->  verify-nonterminal
-  ;; terminal    ->  terminal?
-  (define (create-name completion)
-    (lambda (syn)
-      (datum->syntax syn
-        (string->symbol
-          (completion (symbol->string (syntax->datum syn)))))))
-  (define pred-name
-    (create-name (lambda (str) (string-append str "?"))))
-  (define verify-name
-    (create-name (lambda (str) (string-append "verify-" str))))
-  
-  ;; terminals have a lowercase first char,
-  ;; nonterminals are capitalized
-  (define (form-pred proc)
-    (lambda (syn)
-      (let ((sym (syntax->datum syn)))
-        (and (symbol? sym)
-             (proc (string-ref (symbol->string sym) 0))))))
-  (define nonterminal? (form-pred char-upper-case?))
-  (define terminal? (form-pred char-lower-case?))
   
   (define (*form repeated inp)
     (with-syntax (((loopvar) (generate-temporaries '(inp))))
@@ -105,16 +77,13 @@
   (define (meaningful-error left inp)
     (syntax-case x ()
       ((_ pass . clauses)
-       #`(errorf
+       #`(error
            '#,(verify-name #'pass)
            (string-append
-             "\nFollowing ~s ....\n~a\n"
-             "... does not conform to this grammar:\n~a")
+             "Does not conform to this grammar")
            #,left
-           (with-output-to-string
-             (lambda () (pretty-print #,inp)))
-           (with-output-to-string
-             (lambda () (pretty-print 'clauses)))))))
+           #,inp
+           'clauses))))
   
   ;; outputs the body of a pass verify-nonterm
   ;; catches errors, throws one if no options match
@@ -134,8 +103,8 @@
           (a 
             (or (not (nonterminal? #'a))
                 (member (syntax->datum #'a) left*)
-                (errorf (syntax->datum (verify-name pass))
-                  "Unbound nonterminal ~s in rhs" #'a)))))))
+                (error (syntax->datum (verify-name pass))
+                  "Unbound nonterminal in rhs" #'a)))))))
   
   ;; actual macro
   (syntax-case x ()
@@ -163,16 +132,10 @@
 
 (define-syntax (grammar-transforms x)
 
-  (define (form-pred proc)
-    (lambda (sym)
-      (and (symbol? sym)
-           (proc (string-ref (symbol->string sym) 0)))))
-  (define nonterminal? (form-pred char-upper-case?))
-  
   (define (lookup-nt inp parent)
     (syntax-case parent ()
-      (() (errorf 'lookup-nt
-            "Missing nonterminal for inheritance of ~s" inp))
+      (() (error 'lookup-nt
+            "Missing nonterminal for inheritance" inp))
       (((nt . t*) . rest)
        (if (eq? (syntax->datum #'nt) (syntax->datum inp))
            #'(nt . t*)
