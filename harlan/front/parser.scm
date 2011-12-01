@@ -20,6 +20,8 @@
   ((extern ,name . ,[parse-type -> t])
    (guard (symbol? name))
    `(extern ,name . ,t))
+  ((define (,name . ,args) ,[(parse-stmt '()) -> stmt*] ...)
+   `(fn ,name ,args ,(make-begin stmt*)))
   ((fn ,name ,args ,[(parse-stmt '()) -> stmt*] ...)
    `(fn ,name ,args ,(make-begin stmt*))))
 
