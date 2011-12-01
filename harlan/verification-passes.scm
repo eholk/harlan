@@ -18,7 +18,8 @@
     verify-generate-kernel-calls
     verify-compile-module
     verify-convert-types
-    verify-compile-kernels)
+    verify-compile-kernels
+    verify-print-c)
   (import
     (rnrs)
     (elegant-weapons helpers)
@@ -47,7 +48,8 @@
     (Module (module Decl +))
     (Decl
       (extern Var (Type *) -> Type)
-      (fn Var (Var *) Value +))
+      (fn Var (Var *) Value +)
+      (define (Var Var *) Value +))
     (Value
       integer
       boolean
@@ -581,7 +583,7 @@
     (Decl
       (include String)
       (global C-Type Var Expr)
-      (func C-Type Var (C-Type *) Stmt)
+      (func C-Type Var (C-Type *) Body)
       (extern C-Type Var (C-Type *))))
 
   (print-c
@@ -590,8 +592,13 @@
     (Decl
       (include String)
       (global C-Type Var Expr *)
-      (func C-Type Var (C-Type *) Stmt)
+      (func C-Type Var (C-Type *) Body)
       (extern C-Type Var (C-Type *)))
+    (Body
+      (return Expr)
+      (begin Stmt * Body)
+      (if Expr Body)
+      (if Expr Body Body))
     (Stmt
       (begin Stmt * Stmt)
       (let Var Let-Type Expr)
@@ -609,10 +616,11 @@
       (str String)
       (float Float)
       (var Var)
-      (c-Expr Type Var)
+      (c-expr Type Var)
       (field Var +)
       (field Var + C-Type)
       (deref Expr)
+      (assert Expr)
       (call Expr Expr *)
       (if Expr Expr Expr)
       (cast C-Type Expr)
@@ -628,7 +636,8 @@
     (C-Type
       (const-ptr C-Type)
       (ptr C-Type)
-      c-type))
+      c-type
+      cl-type))
 
   )
 
