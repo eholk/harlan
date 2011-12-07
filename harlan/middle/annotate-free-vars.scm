@@ -27,12 +27,13 @@
 (define-match annotate-stmt
   ((begin ,[stmt* fv**] ...)
    (values `(begin . ,stmt*) (apply union fv**)))
-  ((kernel (((,x* ,t*)
-             (,[annotate-expr -> xs* fv**] ,ts*)) ...)
+  ((kernel ,dims (((,x* ,t*)
+                   (,[annotate-expr -> xs* fv**] ,ts*)
+                   ,dim*) ...)
      ,[stmt fv*])
    (let ((fv* (fold-right remove fv* x*)))
      (values
-       `(kernel (((,x* ,t*) (,xs* ,ts*)) ...)
+       `(kernel ,dims (((,x* ,t*) (,xs* ,ts*) ,dim*) ...)
           (free-vars . ,fv*) ,stmt)
        (apply union fv* fv**))))
   ((return ,[annotate-expr -> e fv*])

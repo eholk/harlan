@@ -77,8 +77,8 @@
    (uglify-vector-set! t x i v))
   ((print ,[uglify-expr -> e])
    `(print ,e))
-  ((kernel ,t ,iters ,[stmt])
-   `(kernel ,iters ,stmt))
+  ((kernel ,t ,dims ,iters ,[stmt])
+   `(kernel ,dims ,iters ,stmt))
   ((do ,[uglify-expr -> e])
    `(do ,e)))
 

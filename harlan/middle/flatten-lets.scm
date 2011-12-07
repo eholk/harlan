@@ -42,7 +42,7 @@
    `(for (,x ,start ,end) ,stmt))
   ((while ,test ,[stmt])
    `(while ,test ,stmt))
-  ((kernel (((,x ,tx) (,[Expr -> e* te^] ,te)) ...)
+  ((kernel ,dims (((,x ,tx) (,[Expr -> e* te^] ,te) ,dim) ...)
      (free-vars . ,fv*) ,[stmt])
    ;; this is an amazing hack because we don't
    ;; do any sort of typechecking later
@@ -52,7 +52,7 @@
                  ((,[x] ...)
                   (apply append x))
                  (,x '()))))
-     `(kernel (((,x ,tx) (,e* ,te)) ...)
+     `(kernel ,dims (((,x ,tx) (,e* ,te) ,dim) ...)
         (free-vars ,@(map (lambda (fv)
                             `(,fv ,(cdr (assq fv fvt*))))
                        fv*))
