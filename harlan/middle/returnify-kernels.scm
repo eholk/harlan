@@ -50,16 +50,16 @@
     . ,[(returnify-kernel-let finish) -> rest])
    ;; TODO: we still need to traverse the body
    `(let ((,id (kernel void ,arg* ,body))) ,rest))
-  (((,id (kernel (vec ,t ,n) ,arg* ,body))
+  (((,id (kernel (vec ,t ,n) ,dims ,arg* ,body))
     . ,[(returnify-kernel-let finish) -> rest])
    (match arg*
-     ((((,x* ,tx*) (,xe* ,xet*)) ...)
+     ((((,x* ,tx*) (,xe* ,xet*) ,dim) ...)
       (let ((retvar (gensym 'retval)))
         `(let ((,id (make-vector ,t (int ,n))))
            (begin
-             (kernel (vec ,t ,n)
+             (kernel (vec ,t ,n) ,dims
                (((,retvar ,t)
-                 ((var (vec ,t ,n) ,id) (vec ,t ,n)))
+                 ((var (vec ,t ,n) ,id) (vec ,t ,n)) 0)
                 . ,arg*)
                ,((set-retval t retvar) body))
              ,rest))))))

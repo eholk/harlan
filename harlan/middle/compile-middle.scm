@@ -20,7 +20,8 @@
     (harlan middle generate-kernel-calls)
     (harlan middle compile-module)
     (harlan middle convert-types)
-    (harlan middle compile-kernels))
+    (harlan middle compile-kernels)
+    (harlan middle make-kernel-dimensions-explicit))
 
 ;; The "middle end" of a compiler. No one ever knows what's supposed
 ;; to go here. This goes from TFC to something we can give to print-c.
@@ -28,6 +29,8 @@
   (passes
     returnify
     verify-returnify
+    make-kernel-dimensions-explicit
+    verify-make-kernel-dimensions-explicit
     lift-complex
     verify-lift-complex
     remove-nested-kernels

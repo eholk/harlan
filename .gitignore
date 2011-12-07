@@ -1,3 +1,5 @@
+*.#*
+*#*#
 *.o
 *.lo
 gc/
@@ -8,6 +10,9 @@ rt/libharlanrt.a
 */.libs/
 */autom4te.cache/
 .DS_Store
+a.out
+*/a.out
+data/
 gc-7.2alpha6/Makefile
 gc-7.2alpha6/bdw-gc.pc
 gc-7.2alpha6/config.log
