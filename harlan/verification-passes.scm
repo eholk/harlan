@@ -289,7 +289,7 @@
 
   (returnify-kernels (%inherits Module Decl Expr Body)
     (Start Module)
-    (Stmt 
+    (Stmt
       (print Expr)
       (assert Expr)
       (set! (var Type Var) Expr)
