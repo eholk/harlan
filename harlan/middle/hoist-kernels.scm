@@ -30,7 +30,7 @@
    (values `(extern ,name ,arg-types -> ,t) '())))
 
 (define-match hoist-stmt
-  ((kernel (((,x* ,t*) (,xs* ,ts*)) ...)
+  ((kernel ,dims (((,x* ,t*) (,xs* ,ts*) ,dim) ...)
      ;; TODO: correctly handle free variables.
      (free-vars (,fv* ,ft*) ...)
      ;; TODO: What if this introduces free variables? What
@@ -38,19 +38,18 @@
      ,[hoist-stmt -> stmt* kernel*] ...)
    (let ((k-name (gensym 'kernel)))
      (values
-       `(apply-kernel ,k-name ,xs* ...
-          ,@(map (lambda (x t) `(var ,t ,x))
-              fv* ft*))
-       (cons (generate-kernel k-name x* t*
-               (map (lambda (xs) (gensym 'k_arg)) xs*)
-               ts* fv* ft* stmt*)
-         (apply append kernel*)))))
+      `(apply-kernel ,k-name ,xs* ...
+                     ,@(map (lambda (x t) `(var ,t ,x))
+                            fv* ft*))
+      (cons (generate-kernel k-name x* t*
+                             (map (lambda (xs) (gensym 'k_arg)) xs*)
+                             ts* dim fv* ft* stmt*)
+            (apply append kernel*)))))
   ((begin ,[hoist-stmt -> stmt* kernel*] ...)
    (values (make-begin stmt*) (apply append kernel*)))
   ((for (,i ,start ,end) ,[hoist-stmt -> stmt* kernel*] ...)
-   ;; WEB: have no idea if this is right.
    (values `(for (,i ,start ,end) . ,stmt*)
-     (apply append kernel*)))
+           (apply append kernel*)))
   ((while ,expr ,[hoist-stmt -> stmt* kernel*] ...)
    (values `(while ,expr . ,stmt*) (apply append kernel*)))
   ((if ,test ,[hoist-stmt -> conseq ckernel*] ,[hoist-stmt -> alt akernel*])
@@ -58,7 +57,7 @@
   (,else (values else '())))
 
 (define generate-kernel
-  (lambda (name x* t* xs* ts* fv* ft* stmt*)
+  (lambda (name x* t* xs* ts* dim fv* ft* stmt*)
     ;; Plan of attack: replace all vectors with renamed char *'s,
     ;; then immediate use vec_deserialize. Also, for some reason
     ;; the vector refs don't seem to be being lowered like they
@@ -66,28 +65,25 @@
     ;;
     ;; We can also let-bind vars to the cell we care about, then
     ;; replace everything with a deref. That'll be cleaner.
-    (let ((i (gensym 'i)))
-      ;; TODO: Correctly handle free vars
-      `(kernel ,name ,(append (map list xs* ts*)
-                        (map list fv* ft*))
-         ;; TODO: allow this to work on n-dimensional vectors.
-         (begin
-           (let ,i int (call
-                         (c-expr ((int) -> int) get_global_id)
-                         (int 0)))
-           ,@(apply
-               append
-               (map
-                 (lambda (x t xs ts)
-                   `((let ,x (ptr ,t)
-                          (addressof
-                            (vector-ref
-                              ,t (var ,ts ,xs) (var int ,i))))))
-                 x* t* xs* ts*))
-           . ,(replace-vec-refs stmt* i x* xs* ts*))))))
+    `(kernel ,name ,(append (map list xs* ts*)
+                            (map list fv* ft*))
+             (begin
+               ,@(apply
+                  append
+                  (map
+                   (lambda (x t xs ts d)
+                     `((let ,x (ptr ,t)
+                            (addressof
+                             (vector-ref
+                              ,t (var ,ts ,xs)
+                              (call
+                               (c-expr ((int) -> int) get_global_id)
+                               (int ,d)))))))
+                   x* t* xs* ts* dim))
+               . ,(replace-vec-refs stmt* x* xs* ts*)))))
 
 (define replace-vec-refs
-  (lambda (stmt* i x* xs* ts*)
+  (lambda (stmt* x* xs* ts*)
     (map
       (lambda (stmt)
         (fold-left 
