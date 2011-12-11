@@ -262,7 +262,7 @@
     (Let-Expr
       (begin Stmt * Let-Expr)
       (let ((Var Let-Expr) *) Let-Expr)
-      (kernel Type (Integer +) (((Var Type) (Expr Type) Integer) +) Expr)
+      (kernel Type (Integer +) (((Var Type) (Expr Type) Integer) +) Let-Expr)
       (vector Type Let-Expr +)
       (reduce Type Reduceop Let-Expr)
       (make-vector Type (int Integer))
