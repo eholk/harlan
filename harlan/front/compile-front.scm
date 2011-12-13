@@ -6,10 +6,12 @@
     (harlan front parser)
     (harlan front typecheck)
     (harlan front nest-lets)
+    (harlan front returnify)
     (harlan compile-opts)
     (only (harlan verification-passes)
       verify-harlan
       verify-nest-lets
+      verify-returnify
       verify-parse-harlan
       verify-typecheck))
   
@@ -20,6 +22,8 @@
       verify-nest-lets
       parse-harlan
       verify-parse-harlan
+      returnify
+      verify-returnify
       typecheck
       verify-typecheck))
   
