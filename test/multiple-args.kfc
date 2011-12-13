@@ -1,0 +1,20 @@
+;; -*- scheme -*-
+
+;; code for adding two vectors, from Harlan proposal
+
+#;
+(module
+  (define (main)
+    (let ((X (vector 1)))
+      (let ((Y (kernel ((x X)) (+ x 1))))
+        (assert (= (vector-ref Y 0) 2))
+        (return 0)))))
+
+(module
+  (define (map_add1 X)
+    (kernel ((x X)) (+ x 1)))
+  (define (main)
+    (let ((X (vector 1)))
+      (let ((Y (map_add1 X)))
+        (assert (= (vector-ref Y 0) 2))
+        (return 0)))))
