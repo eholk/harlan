@@ -49,8 +49,8 @@ check : test.bin gc/lib/libgc.a rt/libharlanrt.a update-submodules
 
 .phony: update-submodules
 update-submodules:
-	git submodule foreach git checkout master
-	git submodule foreach git pull
+	git submodule init
+	git submodule update
 
 .phony: force-check
 force-check :

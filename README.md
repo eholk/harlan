@@ -27,11 +27,6 @@ Scheme. Below are several OpenCL implementations that should work.
 Petite Cheze Scheme can be downloaded from
 [http://www.scheme.com](http://www.scheme.com).
 
-The Elegant Weapons submodule needs to be downloaded as well. You can do this by running:
-
-    git submodule init
-    git submodule update
-
 Once all the prerequisites are installed, you can compile and run the
 test suite as follows.
 
