@@ -11,7 +11,7 @@
 (define-match compile-decl
   [(fn ,name ,args (,arg-types -> ,ret-type)
      ,[compile-stmt -> stmt*] ...)
-   `(func ,ret-type ,name ,(map cons arg-types args) . ,stmt*)]
+   `(func ,ret-type ,name ,(map list args arg-types) . ,stmt*)]
   [(extern ,name ,arg-types -> ,rtype)
    `(extern ,rtype ,name ,arg-types)]
   [(gpu-module ,[compile-kernel^ -> kernel*] ...)
@@ -84,6 +84,7 @@
   ((vec ,[t] ,n) `(* (int ,n) ,t)))
 
 (define-match compile-expr
+  ((void) `(void))
   [(int ,n) `(int ,n)]
   [(u64 ,n) `(u64 ,n)]
   [(float ,f) `(float ,f)]
