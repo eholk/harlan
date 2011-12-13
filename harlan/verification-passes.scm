@@ -149,6 +149,51 @@
       (Relop Expr Expr)
       (call Var Expr *)))
 
+  (returnify (%inherits Module)
+    (Start Module)
+    (Decl
+      (fn Var (Var *) Body)
+      (extern Var (Type *) -> Type))
+    (Body
+      (begin Stmt * Body)
+      (let ((Var Expr) *) Body)
+      (if Expr Body)
+      (if Expr Body Body)
+      Ret-Stmt)
+    (Stmt
+      (let ((Var Expr) *) Stmt)
+      (if Expr Stmt)
+      (if Expr Stmt Stmt)
+      (begin Stmt * Stmt)
+      (print Expr)
+      (assert Expr)
+      (set! Expr Expr)
+      (vector-set! Expr Expr Expr)
+      (do Expr)
+      (for (Var Expr Expr) Stmt)
+      (while Expr Stmt)
+      Ret-Stmt)
+    (Expr
+      (void)
+      (num Integer)
+      (float Float)
+      (str String)
+      (var Var)
+      (vector Expr +)
+      (begin Stmt * Expr)
+      (if Expr Expr Expr)
+      (vector-ref Expr Expr)
+      (let ((Var Expr) *) Expr)
+      (kernel ((Var Expr) +) Expr)
+      (reduce Reduceop Expr)
+      (iota (num Integer))
+      (length Expr)
+      (int->float Expr)
+      (make-vector (num Integer))
+      (Binop Expr Expr)
+      (Relop Expr Expr)
+      (call Var Expr *)))
+
   (typecheck (%inherits Module)
     (Start Module)
     (Decl
@@ -168,6 +213,7 @@
       (while Expr Stmt)
       (return Expr))
     (Expr
+      (void)
       (int Integer)
       (u64 Number)
       (float Float)
@@ -187,31 +233,6 @@
       (Binop Expr Expr)
       (Relop Expr Expr)
       (call Expr Expr *)))
-
-  (returnify (%inherits Module Expr)
-    (Start Module)
-    (Decl
-      (fn Var (Var *) Type Body)
-      (extern Var (Type *) -> Type))
-    (Body
-      (begin Stmt * Body)
-      (let ((Var Expr) *) Body)
-      (if Expr Body)
-      (if Expr Body Body)
-      Ret-Stmt)
-    (Stmt
-      (let ((Var Expr) *) Stmt)
-      (if Expr Stmt)
-      (if Expr Stmt Stmt)
-      (begin Stmt * Stmt)
-      (print Expr)
-      (assert Expr)
-      (set! Expr Expr)
-      (vector-set! Type Expr Expr Expr)
-      (do Expr)
-      (for (Var Expr Expr) Stmt)
-      (while Expr Stmt)
-      Ret-Stmt))
 
   (lift-complex (%inherits Module Decl)
     (Start Module)
@@ -244,6 +265,7 @@
       (iota (int Integer))
       Expr)
     (Expr
+      (void)
       (int Integer)
       (u64 Number)
       (float Float)
@@ -307,6 +329,7 @@
       (make-vector Type (int Integer))
       Expr)
     (Expr
+      (void)
       (int Integer)
       (u64 Number)
       (float Float)
@@ -342,7 +365,8 @@
       (do Expr)
       (begin Stmt +)
       Ret-Stmt)
-    (Expr 
+    (Expr
+      (void)
       (int Integer)
       (u64 Number)
       (str String)
@@ -399,7 +423,8 @@
       (do Expr)
       (begin Stmt +)
       Ret-Stmt)
-    (Expr 
+    (Expr
+      (void)
       (int Integer)
       (u64 Number)
       (str String)
@@ -437,7 +462,8 @@
       (while Expr Stmt)
       (do Expr)
       Ret-Stmt)
-    (Expr 
+    (Expr
+      (void)
       (int Integer)
       (u64 Number)
       (str String)
@@ -500,7 +526,7 @@
     (Decl
       (include String)
       (gpu-module Kernel *)
-      (func Type Var (Type *) Body)
+      (func Type Var ((Var Type) *) Body)
       (extern Type Var (Type *)))
     (Stmt
       (print Expr)
@@ -514,7 +540,8 @@
       (while Expr Stmt)
       (do Expr)
       Ret-Stmt)
-    (Expr 
+    (Expr
+      (void)
       (int Integer)
       (u64 Number)
       (str String)
@@ -543,11 +570,12 @@
     (Decl
       (include String)
       (gpu-module Kernel *)
-      (func C-Type Var (C-Type *) Body)
+      (func C-Type Var ((Var C-Type) *) Body)
       (extern C-Type Var (C-Type *))) 
     (Kernel
       (kernel Var ((Var C-Type) +) Stmt))
-    (Expr 
+    (Expr
+      (void)
       (int Integer)
       (u64 Number)
       (str String)
@@ -583,7 +611,7 @@
     (Decl
       (include String)
       (global C-Type Var Expr)
-      (func C-Type Var (C-Type *) Body)
+      (func C-Type Var ((Var C-Type) *) Body)
       (extern C-Type Var (C-Type *))))
 
   (print-c
@@ -592,7 +620,7 @@
     (Decl
       (include String)
       (global C-Type Var Expr *)
-      (func C-Type Var (C-Type *) Body)
+      (func C-Type Var ((Var C-Type) *) Body)
       (extern C-Type Var (C-Type *)))
     (Body
       (return Expr)
@@ -610,7 +638,8 @@
       (while Expr Stmt)
       (for (Var Expr Expr) Stmt)
       (do Expr))
-    (Expr 
+    (Expr
+      (void)
       (int Integer)
       (u64 Number)
       (str String)
