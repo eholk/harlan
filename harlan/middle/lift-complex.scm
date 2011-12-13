@@ -6,6 +6,7 @@
 (define lift-expr->stmt
   (lambda (expr finish)
     (match expr
+      ((void) (finish `(void)))
       ((int ,n) (guard (integer? n)) (finish `(int ,n)))
       ((u64 ,n) (guard (integer? n)) (finish `(u64 ,n)))
       ((float ,f) (finish `(float ,f)))

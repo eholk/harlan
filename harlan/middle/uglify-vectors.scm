@@ -103,6 +103,7 @@
   ((vector-ref ,t ,v ,i) t))
 
 (define-match uglify-expr
+  ((void) `(void))
   ((int ,n) `(int ,n))
   ((u64 ,n) `(u64 ,n))
   ((float ,f) `(float ,f))
