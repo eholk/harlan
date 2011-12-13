@@ -17,7 +17,7 @@
 
 (define-match (annotate-decl globals)
   ((fn ,name ,args ,type ,[annotate-stmt -> stmt fv*])
-   (let ((fv* (fold-right remove fv* globals)))
+   (let ((fv* (fold-right remove fv* (append globals args))))
      (if (null? fv*)
          `(fn ,name ,args ,type ,stmt)
          (error 'annotate-free-vars "unbound varaible(s)" fv*))))
@@ -64,6 +64,7 @@
    (values `(assert ,e) fv*)))
 
 (define-match annotate-expr
+  ((void) (values `(void) '()))
   ((int ,n) (values `(int ,n) '()))
   ((u64 ,n) (values `(u64 ,n) '()))
   ((float ,f) (values `(float ,f) '()))
