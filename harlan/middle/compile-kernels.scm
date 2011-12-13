@@ -20,14 +20,19 @@
 
 (define-match compile-decl
   ((gpu-module ,kernel* ...)
-   (if (null? kernel*)
-       '()
-       `((global cl::program g_prog
-           (call
-             (field g_ctx createProgramFromSource)
-             (str
-               ,(join "\n" (map compile-kernel kernel*))))))))
-  (,else `(,else)))
+   `(global cl::program g_prog
+      (call
+        (field g_ctx createProgramFromSource)
+        (str
+          ,(join "\n" (map compile-kernel kernel*))))))
+  ((func ,type main ,args ,stmt)
+   `(func ,type main ,args
+      (begin
+        (do (call [c-expr (() -> void) GC_INIT]))
+        (do (call [field g_prog build]))
+        ,stmt)))
+  (,else else))
 
 (define-match compile-kernels
-  ((,[compile-decl -> decl*] ...) (apply append decl*))))
+  (((gpu-module) . ,rest) rest)
+  ((,[compile-decl -> decl*] ...) decl*)))
