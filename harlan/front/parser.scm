@@ -20,10 +20,14 @@
   ((extern ,name . ,[parse-type -> t])
    (guard (symbol? name))
    `(extern ,name . ,t))
-  ((define (,name . ,args) ,[(parse-stmt '()) -> stmt*] ...)
-   `(fn ,name ,args ,(make-begin stmt*)))
-  ((fn ,name ,args ,[(parse-stmt '()) -> stmt*] ...)
-   `(fn ,name ,args ,(make-begin stmt*))))
+  ((define (,name . ,args) . ,stmt*)
+   (let* ((args^ (map gensym args))
+          (env (map cons args args^)))
+     `(fn ,name ,args^ ,(make-begin (map (parse-stmt env) stmt*)))))
+  ((fn ,name ,args . ,stmt*)
+   (let* ((args^ (map gensym args))
+          (env (map cons args args^)))
+     `(fn ,name ,args^ ,(make-begin (map (parse-stmt env) stmt*))))))
 
 (define-match parse-type
   (int 'int)
