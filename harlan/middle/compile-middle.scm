@@ -6,7 +6,6 @@
     (harlan compile-opts)
     (harlan verification-passes)
 
-    (harlan middle returnify)
     (harlan middle flatten-lets)
     (harlan middle lift-complex)
     (harlan middle lower-vectors)
@@ -26,8 +25,6 @@
 ;; to go here. This goes from TFC to something we can give to print-c.
 (define compile-harlan-middle
   (passes
-    returnify
-    verify-returnify
     lift-complex
     verify-lift-complex
     remove-nested-kernels
