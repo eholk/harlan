@@ -42,12 +42,9 @@ all the output:
 
     All tests succeeded.
 
-Our tests are currently written in as S-expressions that represent
-abstract syntax trees for whatever concrete syntax we eventually give
-Harlan. The test programs are available in the `test`
-directory. End-to-end test programs have the `.kfc` extension. Other
-extensions represent code that is valid at various intermediate passes
-in the compiler.
+The test programs are available in the `test` directory. End-to-end
+test programs have the `.kfc` extension. Other extensions represent
+code that is valid at various intermediate passes in the compiler.
 
 Make puts test binaries in the `test.bin` directory, and also saves
 output from test programs here. Programs may be run directly from this
@@ -67,3 +64,7 @@ each compiler pass.
 Assuming the Harlan compiler is successful, the compiler will dump C++
 code to the terminal. This can be saved in a file or piped directly
 into a C++ compiler to produce a running executable.
+
+If Latex is installed, you can build the Harlan User's Guide as follows.
+
+    make docs

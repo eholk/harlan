@@ -6,6 +6,10 @@ gc/
 test.bin/
 rt/libharlanrt.a
 *~
+doc/harlan-manual.pdf
+*.log
+*.aux
+*.toc
 */.deps/
 */.libs/
 */autom4te.cache/

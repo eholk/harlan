@@ -82,3 +82,7 @@ gc/lib/libgc.a :
 
 rt/libharlanrt.a : rt/*.h rt/*.cpp
 	make -C rt
+
+.phony: docs
+docs:
+	make -C doc
