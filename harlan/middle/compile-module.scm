@@ -33,6 +33,7 @@
            ,(byte-size t)
            (c-expr void CL_MEM_READ_WRITE)))]
   [(print ,[compile-expr -> expr]) `(print ,expr)]
+  ((return) `(return))
   [(return ,[compile-expr -> expr]) `(return ,expr)]
   [(assert ,[compile-expr -> expr]) `(do (assert ,expr))]
   [(set! ,x ,e)
@@ -84,7 +85,6 @@
   ((vec ,[t] ,n) `(* (int ,n) ,t)))
 
 (define-match compile-expr
-  ((void) `(void))
   [(int ,n) `(int ,n)]
   [(u64 ,n) `(u64 ,n)]
   [(float ,f) `(float ,f)]

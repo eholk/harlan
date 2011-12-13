@@ -68,6 +68,7 @@
    `(for (,i ,start ,end) ,stmt))
   ((set! ,[uglify-expr -> lhs] ,[uglify-expr -> rhs])
    `(set! ,lhs ,rhs))
+  ((return) `(return))
   ((return ,[uglify-expr -> e])
    `(return ,e))
   ((assert ,[uglify-expr -> e])
@@ -103,7 +104,6 @@
   ((vector-ref ,t ,v ,i) t))
 
 (define-match uglify-expr
-  ((void) `(void))
   ((int ,n) `(int ,n))
   ((u64 ,n) `(u64 ,n))
   ((float ,f) `(float ,f))

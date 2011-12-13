@@ -36,6 +36,7 @@
    `(print ,expr))
   ((assert ,[Expr -> expr _])
    `(assert ,expr))
+  ((return) `(return))
   ((return ,[Expr -> expr _])
    `(return ,expr))
   ((for (,x ,start ,end) ,[stmt])
@@ -63,7 +64,6 @@
    `(set! ,e1 ,e2)))
 
 (define-match Expr
-  ((void) (values `(void) 'void))
   ((int ,n) (values `(int ,n) 'int))
   ((u64 ,n) (values `(u64 ,n) 'u64))
   ((float ,n) (values `(float ,n) 'float))

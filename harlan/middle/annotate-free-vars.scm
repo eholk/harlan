@@ -36,6 +36,7 @@
        `(kernel ,dims (((,x* ,t*) (,xs* ,ts*) ,dim*) ...)
           (free-vars . ,fv*) ,stmt)
        (apply union fv* fv**))))
+  ((return) (values `(return) '()))
   ((return ,[annotate-expr -> e fv*])
    (values `(return ,e) fv*))
   ((if ,[annotate-expr -> test tfv*] ,[conseq cfv*])

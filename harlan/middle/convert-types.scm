@@ -60,11 +60,11 @@
    `(apply-kernel ,k . ,e*))
   ((do ,[convert-expr -> e])
    `(do ,e))
+  ((return) `(return))
   ((return ,[convert-expr -> expr])
    `(return ,expr)))
 
 (define-match convert-expr
-  ((void) `(void))
   ((int ,n) `(int ,n))
   ((u64 ,n) `(u64 ,n))
   ((str ,s) `(str ,s))

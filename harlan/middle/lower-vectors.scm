@@ -70,6 +70,7 @@
    `(while ,expr ,body))
   ((for (,x ,start ,end) ,[body])
    `(for (,x ,start ,end) ,body))
+  ((return) `(return))
   ((return ,expr)
    `(return ,expr))
   ((do ,expr) `(do ,expr)))

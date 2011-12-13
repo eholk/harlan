@@ -30,9 +30,9 @@
      `(fn ,name ,args^ ,(make-begin (map (parse-stmt env) stmt*))))))
 
 (define-match parse-type
+  (void 'void)
   (int 'int)
   (u64 'u64)
-  (void 'void)
   (str 'str)
   (float 'float)
   ((vec ,[t] ,n)
@@ -46,6 +46,7 @@
    `(assert ,e))
   ((print ,[(parse-expr env) -> e])
    `(print ,e))
+  ((return) `(return))
   ((return ,[(parse-expr env) -> e])
    `(return ,e))
   ((if ,[(parse-expr env) -> test]

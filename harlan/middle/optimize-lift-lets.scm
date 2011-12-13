@@ -98,7 +98,6 @@
     (,e (values e '())))
 
   (define-match free-vars
-    ((void) '())
     ((int ,n) '())
     ((float ,f) '())
     ((var ,t ,x) (list x))

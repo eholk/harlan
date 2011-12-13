@@ -36,6 +36,7 @@
      `(print ,e))
     ((assert ,[Expr -> e])
      `(assert ,e))
+    ((return) `(return))
     ((return ,[Expr -> e])
      `(return ,e))
     ((do ,[Expr -> e])

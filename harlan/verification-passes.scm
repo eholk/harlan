@@ -29,7 +29,7 @@
 (grammar-transforms
 
   (%static
-    (Ret-Stmt (return Expr))
+    (Ret-Stmt (return Expr) (return))
     (Type
       scalar-type
       (vec Type Integer)
@@ -175,7 +175,6 @@
       (while Expr Stmt)
       Ret-Stmt)
     (Expr
-      (void)
       (num Integer)
       (float Float)
       (str String)
@@ -199,7 +198,13 @@
     (Start Module)
     (Decl
       (extern Var (Type *) -> Type)
-      (fn Var (Var *) Type Stmt))
+      (fn Var (Var *) Type Body))
+    (Body
+      (begin Stmt * Body)
+      (let ((Var Expr) *) Body)
+      (if Expr Body)
+      (if Expr Body Body)
+      Ret-Stmt)
     (Stmt
       (let ((Var Expr) *) Stmt)
       (if Expr Stmt)
@@ -214,7 +219,6 @@
       (while Expr Stmt)
       (return Expr))
     (Expr
-      (void)
       (int Integer)
       (u64 Number)
       (float Float)
@@ -290,7 +294,6 @@
       (iota (int Integer))
       Expr)
     (Expr
-      (void)
       (int Integer)
       (u64 Number)
       (float Float)
@@ -354,7 +357,6 @@
       (make-vector Type (int Integer))
       Expr)
     (Expr
-      (void)
       (int Integer)
       (u64 Number)
       (float Float)
@@ -391,7 +393,6 @@
       (begin Stmt +)
       Ret-Stmt)
     (Expr
-      (void)
       (int Integer)
       (u64 Number)
       (str String)
@@ -450,7 +451,6 @@
       (begin Stmt +)
       Ret-Stmt)
     (Expr
-      (void)
       (int Integer)
       (u64 Number)
       (str String)
@@ -489,7 +489,6 @@
       (do Expr)
       Ret-Stmt)
     (Expr
-      (void)
       (int Integer)
       (u64 Number)
       (str String)
@@ -567,7 +566,6 @@
       (do Expr)
       Ret-Stmt)
     (Expr
-      (void)
       (int Integer)
       (u64 Number)
       (str String)
@@ -601,7 +599,6 @@
     (Kernel
       (kernel Var ((Var C-Type) +) Stmt))
     (Expr
-      (void)
       (int Integer)
       (u64 Number)
       (str String)
@@ -665,7 +662,6 @@
       (for (Var Expr Expr) Stmt)
       (do Expr))
     (Expr
-      (void)
       (int Integer)
       (u64 Number)
       (str String)

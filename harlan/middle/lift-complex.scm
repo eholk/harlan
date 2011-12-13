@@ -136,6 +136,7 @@
          (lambda (e1^)
            (lift-expr->stmt e2
              (lambda (e2^) `(vector-set! ,t ,x^ ,e1^ ,e2^))))))))             
+  ((return) `(return))
   ((return ,expr)
    (lift-expr->stmt expr (lambda (e^) `(return ,e^))))
   ((for (,x ,start ,end) ,[stmt])

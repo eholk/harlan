@@ -43,6 +43,7 @@
    `(print ,expr))
   ((assert ,expr)
    `(assert ,expr))
+  ((return) `(return))
   ((return ,expr)
    `(return ,expr)))
 
