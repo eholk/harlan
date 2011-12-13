@@ -16,12 +16,27 @@
 
 ;;; add tests with recursive and mutually recursive calls
 
-(define pairo
+(define-syntax (define-mk x)
+  (define trace-mk #f)
+  (syntax-case x ()
+    ((_ name (lambda (a* ...) body))
+     #`(define name
+         (lambda (a* ...)
+           (fresh ()
+             #,(if trace-mk
+                   #'(project (a* ...)
+                       (begin
+                         (printf "~s\n" (cons 'name `(,a* ...)))
+                         succeed))
+                   #'succeed)
+             body))))))
+
+(define-mk pairo
   (lambda (x)
     (fresh (a d)
       (== `(,a . ,d) x))))
 
-(define lookup
+(define-mk lookup
   (lambda (env x type)
     (fresh (env^)
       ;; use conda instead of conde
@@ -35,7 +50,7 @@
            (lookup env^ x type)))))))
 
 ;; ensures that all expressions have the same type
-(define infer-exprs
+(define-mk infer-exprs
   (lambda (exprs env type exprso)
     (fresh (expr expro expr* expro*)
       (conde
@@ -46,13 +61,16 @@
          (infer-expr expr env type expro)
          (infer-exprs expr* env type expro*))))))
 
-(define infer-expr
+(define-mk infer-expr
   (lambda (expr env type expro)
     (conde
       ((fresh (n)
          (== expr `(num ,n))
          (prefo type '(int float u64))
          (== expro `(,type ,n))))
+      ((== expr `(void))
+       (== expro `(void))
+       (== type 'void))
       ((fresh (n)
          (== expr `(float ,n))
          (== expro `(float ,n))
@@ -177,7 +195,7 @@
          (infer-kernel-bindings b* b^* env env^ n)
          (infer-expr body env^ t body^))))))
 
-(define report-backtrack
+(define-mk report-backtrack
   (lambda (e env)
     (conde
       ((== #f #f))
@@ -193,7 +211,7 @@
            ((== #f #f) s)))
          (== #f #t)))))
 
-(define infer-args
+(define-mk infer-args
   (lambda (env args arg-types argso)
     (conde
       ((== args '()) (== argso '()))
@@ -204,7 +222,7 @@
          (infer-expr e env t e^)
          (infer-args env e* t* e^*))))))
 
-(define infer-kernel-bindings
+(define-mk infer-kernel-bindings
   (lambda (b* b^* env envo n)
     (conde
       ((== '() b*) (== '() b^*) (== env envo))
@@ -217,7 +235,7 @@
          (infer-expr e env te e^)
          (infer-kernel-bindings rest rest^ env env^ n))))))
 
-(define infer-let-bindings
+(define-mk infer-let-bindings
   (lambda (b b^ env envo)
     (conde
       ((== b '()) (== b b^) (== env envo))
@@ -228,7 +246,7 @@
          (infer-expr e env type e^)
          (infer-let-bindings rest rest^ env env^))))))
 
-(define infer-stmt
+(define-mk infer-stmt
   (lambda (stmt env rtype stmto)
     (conde
       ((fresh (b b^ s s^ envo)
@@ -267,7 +285,7 @@
          (== stmto `(print ,e^))
          (infer-expr e env type e^)))
       ((fresh (e e^)
-         (== stmt `(assert ,e))
+          (== stmt `(assert ,e))
          (== stmto `(assert ,e^))
          (infer-expr e env 'bool e^)))
       ((fresh (e e^)
@@ -290,7 +308,7 @@
          (infer-expr e env 'bool e^)
          (infer-stmt s env rtype s^))))))
 
-(define infer-stmts
+(define-mk infer-stmts
   (lambda (stmts env rtype stmtso)
     (conde
       ((== stmts '()) (== stmts stmtso))
@@ -301,34 +319,55 @@
          (infer-stmt stmt env rtype stmt^)
          (infer-stmts stmt* env rtype stmt*^))))))
 
-(define infer-decl*
-  (lambda (decl* decl^* env)
+(define-mk infer-fn-args
+  (lambda (args arg-types env envo)
     (conde
-      ((== '() decl*) (== decl* decl^*))
-      ((fresh (decl decl^ rest rest^ env^ name type)
+      ((== args '()) (== arg-types '()) (== env envo))
+      ((fresh (a at rest restt env^)
+         (== args `(,a . ,rest))
+         (== arg-types `(,at . ,restt))
+         (== envo `((,a . ,at) . ,env^))
+         (infer-fn-args rest restt env env^))))))
+
+(define-mk infer-decl*
+  (lambda (decl* declo* env)
+    (conde
+      ((== '() decl*) (== '() declo*))
+      ((fresh (decl declo rest resto name type)
          (== decl* `(,decl . ,rest))
-         (== env^ `((,name . ,type) . ,env))
          (conde
-           ((fresh (stmt stmt^ arg-types rtype)
-              (== decl `(fn ,name () ,stmt))
-              (== decl^ `(fn ,name () ,type ,stmt^))
-              (== arg-types '())
+           ((fresh (stmt stmto args arg-types rtype env^)
+              (== decl `(fn ,name ,args ,stmt))
+              (== declo `(fn ,name ,args ,type ,stmto))
               (== type `(,arg-types -> ,rtype))
-              (infer-stmt stmt env^ rtype stmt^)
+              (lookup env name `(,arg-types -> ,rtype))
+              (infer-fn-args args arg-types env env^)
               (conde
                 ((== 'main name) (== 'int rtype))
-                ((=/= 'main name)))))
+                ((=/= 'main name)))
+              (infer-stmt stmt env^ rtype stmto)))
            ((== decl `(extern ,name . ,type))
-            (== decl^ decl)))
-         (infer-decl* rest rest^ env^)
-         (== decl^* `(,decl^ . ,rest^)))))))
+            (lookup env name type)
+            (== declo decl)))
+         (infer-decl* rest resto env)
+         (== declo* `(,declo . ,resto)))))))
 
-(define infer-module
+(define-mk infer-initial-env
+  (lambda (decl* envo)
+    (conde
+      ((== decl* '()) (== envo '()))
+      ((fresh (extern/fn name r rest type env^)
+         (== decl* `((,extern/fn ,name . ,r) . ,rest))
+         (== envo `((,name . ,type) . ,env^))
+         (infer-initial-env rest env^))))))
+
+(define-mk infer-module
   (lambda (mod typed-mod)
-    (fresh (decl* decl*^)
+    (fresh (decl* decl*^ envo)
       (== mod `(module . ,decl*))
       (== typed-mod `(module . ,decl*^))
-      (infer-decl* decl* decl*^ '()))))
+      (infer-initial-env decl* envo)
+      (infer-decl* decl* decl*^ envo))))
 
 (define typecheck
   (lambda (mod)
