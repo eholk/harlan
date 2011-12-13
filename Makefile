@@ -63,7 +63,7 @@ test.bin:
 .phony: clean
 clean:
 	rm -rf test.bin *.dSYM gc
-	Make -C rt clean
+	make -C rt clean
 
 test.bin/%.out : test.bin/%.bin
 	@echo Running $<
@@ -74,9 +74,21 @@ test.bin/%.bin : test/% rt/libharlanrt.a $(HARLAN_SRC)
 	@echo Compiling $<
 	$(call COMPILE_TEST, $<)
 
-gc/lib/libgc.a :
-	cd gc-7.2alpha6 && \
-	./configure --prefix=`pwd`/../gc && \
+gc/lib/libgc.a : gc/lib/libatomic_ops.a update-submodules
+	cd external/gc && \
+	./autogen.sh && \
+	PKG_CONFIG_PATH=`pwd`/../../gc/lib/pkgconfig ./configure --prefix=`pwd`/../../gc && \
+	make -j4 && \
+	make install
+
+gc/lib/libatomic_ops.a : update-submodules
+	cd external/libatomic_ops && \
+	aclocal && \
+	autoconf && \
+	autoheader && \
+	libtoolize --automake --force && \
+	automake -ac && \
+	./configure --prefix=`pwd`/../../gc && \
 	make -j4 && \
 	make install
 

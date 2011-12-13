@@ -2,7 +2,7 @@
 *#*#
 *.o
 *.lo
-gc/
+/gc/
 test.bin/
 rt/libharlanrt.a
 *~

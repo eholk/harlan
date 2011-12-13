@@ -1,3 +1,9 @@
 [submodule "external/elegant-weapons"]
 	path = external/elegant-weapons
 	url = https://github.com/eholk/elegant-weapons.git
+[submodule "external/gc"]
+	path = external/gc
+	url = https://github.com/eholk/bdwgc.git
+[submodule "external/libatomic_ops"]
+	path = external/libatomic_ops
+	url = https://github.com/ivmai/libatomic_ops.git
