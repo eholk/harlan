@@ -48,12 +48,12 @@
                   (finish `(vector-ref ,t ,e1^ ,e2^)))))))
       ((make-vector ,t ,e)
        (lift-expr->stmt e (lambda (e^) (finish `(make-vector ,t ,e^)))))
-      ((kernel ,t (((,x* ,t*) (,e* ,ts*)) ...) ,body)
+      ((kernel ,t ,dims (((,x* ,t*) (,e* ,ts*) ,dim*) ...) ,body)
        (let ((finish
                (lambda (e*^)
                  (let ((v (gensym 'v)))
                    `(let ((,v
-                            (kernel ,t (((,x* ,t*) (,e*^ ,ts*)) ...)
+                            (kernel ,t ,dims (((,x* ,t*) (,e*^ ,ts*) ,dim*) ...)
                               ,(lift-expr->stmt body (lambda (b) b)))))
                       ,(finish `(var ,t ,v)))))))
          (let loop ((e* e*) (e*^ '()))
@@ -136,10 +136,6 @@
          (lambda (e1^)
            (lift-expr->stmt e2
              (lambda (e2^) `(vector-set! ,t ,x^ ,e1^ ,e2^))))))))             
-  ((kernel ,iters ,body)
-   ;; TODO: For now just pass the kernel through... this
-   ;; won't let us declare vectors inside kernels though.
-   `(kernel ,iters ,body))
   ((return ,expr)
    (lift-expr->stmt expr (lambda (e^) `(return ,e^))))
   ((for (,x ,start ,end) ,[stmt])

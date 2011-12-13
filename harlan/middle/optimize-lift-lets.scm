@@ -115,7 +115,7 @@
      (apply union e*))
     ((vector-ref ,t ,[x] ,[i])
      (union x i))
-    ((kernel ,t (((,x* ,t*) (,[xs*] ,ts*)) ...) ,[e])
+    ((kernel ,t ,dims (((,x* ,t*) (,[xs*] ,ts*) ,d) ...) ,[e])
      (apply union (cons (difference e x*) xs*)))
     ((reduce ,t ,op ,[e]) e)
     ((let ((,x* ,[e*]) ...) ,[e])

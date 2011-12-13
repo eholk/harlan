@@ -6,6 +6,7 @@
     verify-parse-harlan
     verify-flatten-lets
     verify-returnify
+    verify-make-kernel-dimensions-explicit
     verify-lift-complex
     verify-typecheck
     verify-lower-vectors
@@ -234,6 +235,30 @@
       (Relop Expr Expr)
       (call Expr Expr *)))
 
+  (make-kernel-dimensions-explicit
+   (%inherits Module Decl Body Stmt)
+   (Start Module)
+   (Expr
+      (int Integer)
+      (u64 Number)
+      (float Float)
+      (str String)
+      (var Type Var)
+      (if Expr Expr Expr)
+      (let ((Var Expr) *) Expr)
+      (begin Stmt * Expr)
+      (vector Type Expr +)
+      (vector-ref Type Expr Expr)
+      (kernel Type (Integer +) (((Var Type) (Expr Type) Integer) +) Expr)
+      (reduce Type Reduceop Expr)
+      (iota (int Integer))
+      (length Expr)
+      (int->float Expr)
+      (make-vector Type (int Integer))
+      (Binop Expr Expr)
+      (Relop Expr Expr)
+      (call Expr Expr *)))
+  
   (lift-complex (%inherits Module Decl)
     (Start Module)
     (Body
@@ -258,7 +283,7 @@
     (Let-Expr
       (begin Stmt * Let-Expr)
       (let ((Var Let-Expr) *) Let-Expr)
-      (kernel Type (((Var Type) (Let-Expr Type)) +) Let-Expr)
+      (kernel Type (Integer +) (((Var Type) (Expr Type) Integer) +) Let-Expr)
       (vector Type Let-Expr +)
       (reduce Type Reduceop Let-Expr)
       (make-vector Type (int Integer))
@@ -286,12 +311,12 @@
 
   (returnify-kernels (%inherits Module Decl Expr Body)
     (Start Module)
-    (Stmt 
+    (Stmt
       (print Expr)
       (assert Expr)
       (set! (var Type Var) Expr)
       (vector-set! Type Expr Expr Expr)
-      (kernel Type (((Var Type) (Expr Type)) +) Stmt)
+      (kernel Type (Integer +) (((Var Type) (Expr Type) Integer) +) Stmt)
       (let ((Var Let-Expr) *) Stmt)
       (if Expr Stmt)
       (if Expr Stmt Stmt)
@@ -315,7 +340,7 @@
       (assert Expr)
       (set! Expr Expr)
       (vector-set! Type Expr Expr Expr)
-      (kernel Type (((Var Type) (Expr Type)) +) Stmt)
+      (kernel Type (Integer +) (((Var Type) (Expr Type) Integer) +) Stmt)
       (let ((Var Let-Expr) *) Stmt)
       (begin Stmt * Stmt)
       (if Expr Stmt)
@@ -356,7 +381,7 @@
       (print Expr)
       (assert Expr)
       (set! Expr Expr)
-      (kernel (((Var Type) (Expr Type)) +) Stmt)
+      (kernel (Integer +) (((Var Type) (Expr Type) Integer) +) Stmt)
       (let ((Var Expr) *) Stmt)
       (if Expr Stmt)
       (if Expr Stmt Stmt)
@@ -391,8 +416,9 @@
       (print Expr)
       (assert Expr)
       (set! Expr Expr)
-      (kernel (((Var Type) (Expr Type)) +)
-        (free-vars Var *) Stmt)
+      (kernel (Integer +) (((Var Type) (Expr Type) Integer) +)
+              (free-vars Var *)
+              Stmt)
       (let ((Var Expr) *) Stmt)
       (begin Stmt * Stmt)
       (if Expr Stmt)
@@ -413,7 +439,7 @@
       (print Expr)
       (assert Expr)
       (set! Expr Expr)
-      (kernel (((Var Type) (Expr Type)) +)
+      (kernel (Integer +) (((Var Type) (Expr Type) Integer) +)
         (free-vars (Var Type) *) Stmt)
       (let Var Type Expr)
       (if Expr Stmt)
