@@ -98,6 +98,7 @@
     (,e (values e '())))
 
   (define-match free-vars
+    ((void) '())
     ((int ,n) '())
     ((float ,f) '())
     ((var ,t ,x) (list x))
@@ -105,6 +106,8 @@
      (guard (or (binop? op) (relop? op)))
      (union e1 e2))
     ((iota ,[e]) e)
+    ((call ,[fn] ,[args] ...)
+     (apply union fn args))
     ((int->float ,[e]) e)
     ((length ,[e]) e)
     ((make-vector ,t ,[e]) e)
