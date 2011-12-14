@@ -235,6 +235,7 @@ namespace cl {
         program createProgramFromSourceFile(std::ifstream &input);
         program createProgramFromSourceFile(std::string filename);
         program createProgramFromSource(std::string source);
+        program createAndBuildProgramFromSource(std::string source);
         
         command_queue createCommandQueue(cl_device_id dev);
         

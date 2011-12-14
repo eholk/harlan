@@ -256,6 +256,13 @@ program context::createProgramFromSource(string src)
   return program(p);
 }
 
+program context::createAndBuildProgramFromSource(string src)
+{
+    program p = createProgramFromSource(src);
+    p.build();
+    return p;
+}
+
 command_queue context::createCommandQueue(cl_device_id dev)
 {
 	cl_int status;
