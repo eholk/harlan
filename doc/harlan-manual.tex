@@ -9,7 +9,7 @@
   morekeywords= {
     extern, kernel, reduce, vector, void, int, u64, float, str,
     print, module, return, for, while, vector-set!, vector-ref,
-    length
+    length, iota
   }
 }
 
@@ -235,6 +235,57 @@ and returns no value. This program executes and produces the following result.
 \begin{verbatim}
 [ 1 2 ]
 [ 3 4 ]
+\end{verbatim}
+
+\section{Data Parallelism}
+
+Harlan supports data parallelism through two forms: \lstinline{kernel}
+and \lstinline{reduce}. Kernels most naturally correspond to GPU
+kernel functions from CUDA or OpenCL. The reduce operator, on the
+other hand, is used to combine multiple values into a single
+one. Kernels are written as follows:
+
+\begin{lstlisting}
+(let ((xs (vector 1 2 3 4)))
+  (kernel ((x xs))
+    (+ x 1)))
+\end{lstlisting}
+
+The kernel block takes a list of bindings followed by an
+expression. In this example, the binding \lstinline{(x xs)} states
+that \lstinline{x} ranges over the values in the vector
+\lstinline{xs}. For each value of \lstinline{x}, the kernel returns
+the value of \lstinline{x} plus one. The result of the kernel
+expression is a vector containing 2, 3, 4 and 5.
+
+Kernels are allowed to refer to free variables. For example, the
+previous example can be written like this:
+
+\begin{lstlisting}
+(let ((xs (vector 1 2 3 4)))
+  (kernel ((i (iota 4)))
+    (+ (vector-ref xs i) 1)))
+\end{lstlisting}
+
+Here, \lstinline{(iota 4)} expands into the vector containing 0, 1, 2
+and 3. The kernel expression evaluates to the same thing, but the
+vector references are now explicit.
+
+Kernels can also be nested.
+
+\begin{lstlisting}
+(kernel ((a (vector 2 3)))
+  (kernel ((b (vector 5 7)))
+    (* a b)))  
+\end{lstlisting}
+
+This expresion computes the outer product of \lstinline{(vector 2 3)}
+and \lstinline{(vector 5 7)}. If we print the result, we see we get
+the expected value:
+
+\begin{verbatim}
+[ 10 14 ]
+[ 15 21 ]
 \end{verbatim}
 
 \chapter{The Runtime Library}
