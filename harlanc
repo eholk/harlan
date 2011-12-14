@@ -5,8 +5,11 @@
   (harlan compile-opts)
   (harlan driver)
   (elegant-weapons print-c)
-  (harlan compiler)
-  (harlan middle compile-middle))
+  (harlan compiler))
+
+;; Converts foo/bar.kfc to bar
+(define (output-filename input)
+  (path-last (path-root input)))
 
 (define print-compile-harlan
   (lambda (filename)
@@ -14,8 +17,9 @@
       (if (assq 'iterate testspec)
           (error 'harlanc
                  "Test iteration is not supported. Use run-tests.scm instead.")
-          (let ((c-code (compile-harlan input)))
-            (print-c c-code))))))
+          (let* ((c-expr (compile-harlan input))
+                 (c-code (format-c c-expr)))
+            (g++-compile-stdin c-code (output-filename filename)))))))
 
 ;; (trace-pass
 ;;  'remove-nested-kernels
