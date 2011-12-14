@@ -1,0 +1,10 @@
+;; -*- scheme -*-
+
+;; An example from the Harlan manual. We want to make sure these all
+;; run.
+
+(module
+  (define (main)
+    (let ((x (vector 1 2)))
+      (return 0))))
+

@@ -1,0 +1,12 @@
+;; -*- scheme -*-
+
+;; An example from the Harlan manual. We want to make sure these all
+;; run.
+
+(module
+  (define (add x y)
+    (return (+ x y)))
+
+  (define (main)
+    (print (add 2 3))
+    (return 0)))

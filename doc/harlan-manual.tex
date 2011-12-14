@@ -8,7 +8,8 @@
   language=Scheme,
   morekeywords= {
     extern, kernel, reduce, vector, void, int, u64, float, str,
-    print, module, return
+    print, module, return, for, while, vector-set!, vector-ref,
+    length
   }
 }
 
@@ -29,8 +30,9 @@ Harlan is known to build and run on the following operating systems.
 
 Others will probably work as well.
 
-Harlan requires an OpenCL implementation as well as Petite Chez
-Scheme. Below are several OpenCL implementations that should work.
+Harlan requires an OpenCL implementation as well as Chez Scheme or
+Petite Chez Scheme. Below are several OpenCL implementations that
+should work.
 
 \begin{itemize}
 \item Intel OpenCL SDK
@@ -98,7 +100,7 @@ you are currently reading) as follows.
 \end{verbatim}
 
 
-\chapter{Using the Harlan Compiler}
+%\chapter{Using the Harlan Compiler}
 
 \chapter{The Harlan Language}
 
@@ -108,6 +110,8 @@ have been added to support parallel processing. One key difference is
 that Harlan is statically typed. The compiler infers the type for each
 expression, however, so the programmer is not burdened by type
 annotations.
+
+\section{Basics}
 
 The traditional Hello, World! program is written as follows.
 
@@ -119,7 +123,89 @@ The traditional Hello, World! program is written as follows.
 \end{lstlisting}
 
 This program demonstrates several characteristics of Harlan. All
-programs exist within a top-level \lstinline{module} form. 
+programs exist within a top-level \lstinline{module} form. Harlan
+modules contain a number of top-level definitions. The
+\lstinline{(define (main) ...)} form defines a function called
+\lstinline{main}, which is the entry point to a Harlan program.
+
+The \lstinline{print} form is used to print any value to standard
+out. In this program, it will cause the phrase ``Hello, World!'' to be
+printed to the terminal. Finally, \lstinline{(return 0)} passes the
+value of 0 to the calling function, which is the C convention for
+indicating a successful program run.
+
+Programs can contain multiple procedures, and procedures can take
+arguments:
+
+\begin{lstlisting}
+(module
+  (define (add x y)
+    (return (+ x y)))
+
+  (define (main)
+    (print (add 2 3))
+    (return 0)))
+\end{lstlisting}
+
+This program prints the value 5 to the terminal and then exits
+successfully.
+
+Harlan supports a number of different data types, such as integers,
+floating point numbers and strings. A critical component for data
+parallelism is the \lstinline{vector} type. Vectors are collections of
+data of a certain type. Each element must have the same type. Vectors
+can contain other vectors, but since the length of a vector is
+considered part of its type, only rectangle shapes are
+allowed. Vectors are created as follows.
+
+\begin{lstlisting}
+(module
+  (define (main)
+    (let ((x (vector 1 2)))
+      (return 0))))
+\end{lstlisting}
+
+This program also demonstrates the \lstinline{let} form, which behaves
+like the usual Scheme let.
+
+Vectors can also be nested:
+
+\begin{lstlisting}
+(module
+  (define (main)
+    (let ((x (vector
+              (vector 1 2)
+              (vector 3 4))))
+      (return 0))))
+\end{lstlisting}
+
+Harlan supports several vector manipulation forms. These include
+\lstinline{vector-ref} and \lstinline{vector-set!}, which behave like
+their Scheme equivalents. There is also \lstinline{length}, which
+gives the length of a vector. The following program uses these forms
+to copy the vector \lstinline{x} to \lstinline{y}.
+
+\begin{lstlisting}
+(module
+  (define (main)
+    (let ((x (vector 1 2))
+          (y (vector 0 0)))
+      (for (i 0 (length x))
+        (vector-set! y i (vector-ref x i)))
+      (return 0))))
+\end{lstlisting}
+
+This program also introduces the \lstinline{for} loop. For loops have
+the following form.
+
+\begin{lstlisting}
+  (for (<var> <start> <end>) <body>)
+\end{lstlisting}
+
+For loops bind the variable \lstinline{<var>} and executes
+\lstinline{<body>} with the loop variable set to each value in the
+range from \lstinline{<start>} up to but not including
+\lstinline{<end>}.
 
 \chapter{The Runtime Library}
 

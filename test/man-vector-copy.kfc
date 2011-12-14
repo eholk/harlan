@@ -1,0 +1,13 @@
+;; -*- scheme -*-
+
+;; An example from the Harlan manual. We want to make sure these all
+;; run.
+
+(module
+  (define (main)
+    (let ((x (vector 1 2))
+          (y (vector 0 0)))
+      (for (i 0 (length x))
+        (vector-set! y i (vector-ref x i)))
+      (return 0))))
+
