@@ -1,5 +1,6 @@
 \documentclass{book}
 \usepackage{listings,color,textcomp}
+\usepackage{url}
 
 \begin{document}
 
@@ -15,6 +16,80 @@
 \tableofcontents
 
 \chapter{Getting Started}
+
+Harlan is known to build and run on the following operating systems.
+\begin{itemize}
+\item Mac OS X 10.6 (Snow Leopard)
+\item Mac OS X 10.7 (Lion)
+\item Gentoo Linux
+\end{itemize}
+
+Others will probably work as well.
+
+Harlan requires an OpenCL implementation as well as Petite Chez
+Scheme. Below are several OpenCL implementations that should work.
+
+\begin{itemize}
+\item Intel OpenCL SDK
+  \footnote{\url{http://software.intel.com/en-us/articles/opencl-sdk/}}
+\item NVIDIA CUDA Toolkit
+  \footnote{\url{http://developer.nvidia.com/cuda-toolkit}}
+\item AMD Accelerated Parallel Processing (APP) SDK
+  \footnote{\url{http://developer.amd.com/SDKS/AMDAPPSDK/Pages/default.aspx}}
+\end{itemize}
+
+Petite Cheze Scheme can be downloaded from
+\url{http://www.scheme.com}.
+
+Once all the prerequisites are installed, you can compile and run the
+test suite as follows.
+
+\begin{verbatim}
+    make check
+\end{verbatim}
+
+If the tests are successful, you will see the following at the end of
+all the output.
+
+\begin{verbatim}
+    All tests succeeded.
+\end{verbatim}
+
+The test programs are available in the \texttt{test}
+directory. End-to-end test programs have the \texttt{.kfc}
+extension. Other extensions represent code that is valid at various
+intermediate passes in the compiler.
+
+Make puts test binaries in the \texttt{test.bin} directory, and also
+saves output from test programs here. Programs may be run directly
+from this directory for easier debugging.
+
+Harlan programs can be compiled manually as follows.
+
+\begin{verbatim}
+    ./harlanc hello.kfc
+\end{verbatim}
+
+For debugging purposes, the \texttt{-v} flag can be used.
+
+\begin{verbatim}
+    ./harlanc -v hello.kfc
+\end{verbatim}
+
+This causes the compiler to write out the intermediate results from
+each compiler pass.
+
+Assuming the Harlan compiler is successful, the compiler will dump C++
+code to the terminal. This can be saved in a file or piped directly
+into a C++ compiler to produce a running executable.
+
+If Latex is installed, you can build the Harlan User's Guide (which
+you are currently reading) as follows.
+
+\begin{verbatim}
+    make docs
+\end{verbatim}
+
 
 \chapter{Using the Harlan Compiler}
 
@@ -47,8 +122,9 @@ Formats a $2 \times 2$ matrix and prints it to standard out.
 
 This function treats its second argument as a $1024 \times 1024$
 grayscale image and writes it to a Portable GrayMap (PGM) file named
-by the function's string argument. The resulting file may then be
-viewed by a program such as ToyViewer on the Mac.
+by the function's string argument. Each entry in the image should be
+between 0 and 255, inclusive. The resulting file may then be viewed by
+a program such as ToyViewer on the Mac.
 
 This function is used by the Mandelbrot set test cases to allow us to
 visually confirm the program is behaving correctly.
