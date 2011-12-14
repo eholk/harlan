@@ -10,7 +10,7 @@
   morekeywords= {
     extern, kernel, reduce, vector, void, int, u64, float, str,
     print, module, return, for, while, vector-set!, vector-ref,
-    length, iota
+    length, iota, vec
   }
 }
 
@@ -289,6 +289,24 @@ the expected value:
 [ 15 21 ]
 \end{verbatim}
 
+The other data parallel operator in Harlan is the \lstinline{reduce}
+operator. This is used to combine a vector of values into a single
+value. Below is a simple example.
+
+\begin{lstlisting}
+(reduce + (vector 1 1 1 1))  
+\end{lstlisting}
+
+This expression combines all the values in its vector using the
+addition operator. The expression evaluates to 4.
+
+Reduce can be used to calculate a dot product as follows.
+
+\begin{lstlisting}
+(reduce + (kernel ((x xs) (y ys))
+            (* x y)))
+\end{lstlisting}
+
 \section{Example: The Mandelbrot Set}
 
 Below is a program that calculates the Mandelbrot set and writes it to
@@ -349,7 +367,7 @@ January 1, 1970. It is useful for timing benchmark programs.
 
 \section{print\_2x2\_int\_vec}
 
-\textbf{Prototype:} \lstinline{(extern print_2x2_int_vec ((vector (vector int 2) 2)) -> void)}
+\textbf{Prototype:} \lstinline{(extern print_2x2_int_vec ((vec (vec int 2) 2)) -> void)}
 
 Formats a $2 \times 2$ matrix and prints it to standard out.
 
@@ -357,7 +375,7 @@ Formats a $2 \times 2$ matrix and prints it to standard out.
 
 \section{write\_pgm}
 
-\textbf{Prototype:} \lstinline{(extern write_pgm (str (vector (vector int 1024) 1024)) -> void)}
+\textbf{Prototype:} \lstinline{(extern write_pgm (str (vec (vec int 1024) 1024)) -> void)}
 
 This function treats its second argument as a $1024 \times 1024$
 grayscale image and writes it to a Portable GrayMap (PGM) file named
