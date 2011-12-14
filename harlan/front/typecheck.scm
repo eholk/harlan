@@ -20,16 +20,16 @@
   (define trace-mk #f)
   (syntax-case x ()
     ((_ name (lambda (a* ...) body))
-     #`(define name
-         (lambda (a* ...)
-           (fresh ()
-             #,(if trace-mk
-                   #'(project (a* ...)
-                       (begin
-                         (printf "~s\n" (cons 'name `(,a* ...)))
-                         succeed))
-                   #'succeed)
-             body))))))
+     (if trace-mk
+         #`(define name
+             (lambda (a* ...)
+               (fresh ()
+                 (project (a* ...)
+                   (begin
+                     (printf "~s\n" (list 'name a* ...))
+                     succeed))
+                 body)))
+         #`(define name (lambda (a* ...) body))))))
 
 (define-mk pairo
   (lambda (x)
@@ -387,3 +387,4 @@
                 result))))))
 
 )
+
