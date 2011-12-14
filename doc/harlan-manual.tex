@@ -1,4 +1,4 @@
-\documentclass{book}
+\documentclass[oneside]{report}
 \usepackage{listings,color,textcomp}
 \usepackage{url}
 
@@ -207,6 +207,36 @@ For loops bind the variable \lstinline{<var>} and executes
 range from \lstinline{<start>} up to but not including
 \lstinline{<end>}.
 
+These vector examples so far have not been terribly interesting, since
+they do not display anything to the user. Fortunately, the Harlan
+runtime library provides \lstinline{print_2x2_int_vec} to help with
+this. You can include this function in your program using a new
+top-level declaration called \lstinline{extern}.
+
+\begin{lstlisting}
+(module
+  (extern print_2x2_int_vec ((vec (vec int 2) 2)) -> void)
+  
+  (define (main)
+    (let ((x (vector
+              (vector 1 2)
+              (vector 3 4))))
+      (print_2x2_int_vec x)
+      (return 0))))
+\end{lstlisting}
+
+The \lstinline{extern} form takes the name of a procedure, as well as
+a type signature for it. The type signature is necessary because the
+runtime library is written in C++ and Harlan needs to know the
+corresponding type. The declaration above states that
+\lstinline{print_2x2_inc_vec} takes a $2 \times 2$ vector of integers
+and returns no value. This program executes and produces the following result.
+
+\begin{verbatim}
+[ 1 2 ]
+[ 3 4 ]
+\end{verbatim}
+
 \chapter{The Runtime Library}
 
 Harlan provides a small library of built-in functions. These are
@@ -222,7 +252,7 @@ January 1, 1970. It is useful for timing benchmark programs.
 
 \section{print\_2x2\_int\_vec}
 
-\textbf{Prototype:} \lstinline{(extern print_2x2_int_vec (vector (vector int 2) 2) -> void)}
+\textbf{Prototype:} \lstinline{(extern print_2x2_int_vec ((vector (vector int 2) 2)) -> void)}
 
 Formats a $2 \times 2$ matrix and prints it to standard out.
 
@@ -230,7 +260,7 @@ Formats a $2 \times 2$ matrix and prints it to standard out.
 
 \section{write\_pgm}
 
-\textbf{Prototype:} \lstinline{(extern write_pgm str (vector (vector int 1024) 1024) -> void)}
+\textbf{Prototype:} \lstinline{(extern write_pgm (str (vector (vector int 1024) 1024)) -> void)}
 
 This function treats its second argument as a $1024 \times 1024$
 grayscale image and writes it to a Portable GrayMap (PGM) file named
