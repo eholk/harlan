@@ -74,20 +74,10 @@ test.bin/%.bin : test/% rt/libharlanrt.a $(HARLAN_SRC)
 	@echo Compiling $<
 	$(call COMPILE_TEST, $<)
 
-gc/lib/libgc.a : gc/lib/libatomic_ops.a update-submodules
+gc/lib/libgc.a : update-submodules
 	cd external/gc && \
-	./autogen.sh && \
-	PKG_CONFIG_PATH=`pwd`/../../gc/lib/pkgconfig ./configure --prefix=`pwd`/../../gc && \
-	make -j4 && \
-	make install
-
-gc/lib/libatomic_ops.a : update-submodules
-	cd external/libatomic_ops && \
-	aclocal && \
-	autoconf && \
-	autoheader && \
-	libtoolize --automake --force && \
-	automake -ac && \
+	rm -f libatomic_ops && \
+	ln -s ../libatomic_ops && \
 	./configure --prefix=`pwd`/../../gc && \
 	make -j4 && \
 	make install
