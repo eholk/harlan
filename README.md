@@ -56,9 +56,10 @@ For debugging purposes, the `-v` flag can be used.
 This causes the compiler to write out the intermediate results from
 each compiler pass.
 
-Assuming the Harlan compiler is successful, the compiler will dump C++
-code to the terminal. This can be saved in a file or piped directly
-into a C++ compiler to produce a running executable.
+Assuming the Harlan compiler is successful, the compiler will produce
+an executable based on the program's filename. For example, the
+previous example will produce the file `hello`, which can be executed
+directly.
 
 If Latex is installed, you can build the Harlan User's Guide as follows.
 
