@@ -1,3 +1,5 @@
+TEXINPUTS:=../external/scheme-listings:$(TEXINPUTS)
+
 .phony: all
 all:
 	xelatex harlan-manual

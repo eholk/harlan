@@ -7,3 +7,6 @@
 [submodule "external/libatomic_ops"]
 	path = external/libatomic_ops
 	url = https://github.com/ivmai/libatomic_ops.git
+[submodule "external/scheme-listings"]
+	path = external/scheme-listings
+	url = https://github.com/stuhlmueller/scheme-listings.git

@@ -1,6 +1,12 @@
 \documentclass{book}
+\usepackage{listings,color,textcomp}
 
 \begin{document}
+
+\lstset{
+  language=Scheme,
+  morekeywords={extern, kernel, reduce, vector, void, int, u64, float, str}
+}
 
 \title{Harlan User's Guide}
 
@@ -14,5 +20,37 @@
 
 \chapter{The Harlan Language}
 
+\chapter{The Runtime Library}
+
+Harlan provides a small library of built-in functions. These are
+described in this chapter. Each of these may be used in a program by
+adding the appropriate \lstinline{extern} definition.
+
+\section{nanotime}
+
+\textbf{Prototype:} \lstinline{(extern nanotime () -> u64)}
+
+This function returns the number of nanoseconds that has elapsed since
+January 1, 1970. It is useful for timing benchmark programs.
+
+\section{print\_2x2\_int\_vec}
+
+\textbf{Prototype:} \lstinline{(extern print_2x2_int_vec (vector (vector int 2) 2) -> void)}
+
+Formats a $2 \times 2$ matrix and prints it to standard out.
+
+% TODO: include example output
+
+\section{write\_pgm}
+
+\textbf{Prototype:} \lstinline{(extern write_pgm str (vector (vector int 1024) 1024) -> void)}
+
+This function treats its second argument as a $1024 \times 1024$
+grayscale image and writes it to a Portable GrayMap (PGM) file named
+by the function's string argument. The resulting file may then be
+viewed by a program such as ToyViewer on the Mac.
+
+This function is used by the Mandelbrot set test cases to allow us to
+visually confirm the program is behaving correctly.
 
 \end{document}

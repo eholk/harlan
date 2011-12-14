@@ -48,7 +48,7 @@ check : test.bin gc/lib/libgc.a rt/libharlanrt.a update-submodules
 	@echo $(ECHO_ESCAPE) "\033[32mAll tests succeeded.\033[39m"
 
 .phony: update-submodules
-update-submodules:
+update-submodules: .gitmodules
 	git submodule init
 	git submodule update
 
@@ -86,5 +86,5 @@ rt/libharlanrt.a : rt/*.h rt/*.cpp
 	make -C rt
 
 .phony: docs
-docs:
+docs: update-submodules
 	make -C doc
