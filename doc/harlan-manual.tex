@@ -6,7 +6,10 @@
 
 \lstset{
   language=Scheme,
-  morekeywords={extern, kernel, reduce, vector, void, int, u64, float, str}
+  morekeywords= {
+    extern, kernel, reduce, vector, void, int, u64, float, str,
+    print, module, return
+  }
 }
 
 \title{Harlan User's Guide}
@@ -98,6 +101,25 @@ you are currently reading) as follows.
 \chapter{Using the Harlan Compiler}
 
 \chapter{The Harlan Language}
+
+Harlan is a language for data parallel computing that has its roots in
+C and Scheme. Programs resemble Scheme programs, but several forms
+have been added to support parallel processing. One key difference is
+that Harlan is statically typed. The compiler infers the type for each
+expression, however, so the programmer is not burdened by type
+annotations.
+
+The traditional Hello, World! program is written as follows.
+
+\begin{lstlisting}
+(module
+  (define (main)
+    (print "Hello, World!")
+    (return 0)))
+\end{lstlisting}
+
+This program demonstrates several characteristics of Harlan. All
+programs exist within a top-level \lstinline{module} form. 
 
 \chapter{The Runtime Library}
 
