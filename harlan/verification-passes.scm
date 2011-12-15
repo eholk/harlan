@@ -68,6 +68,7 @@
       (while Value Value +)
       (if Value Value)
       (if Value Value Value)
+      (return)
       (return Value)
       (var Var)
       (vector Value +)
@@ -129,6 +130,7 @@
       (do Expr)
       (for (Var Expr Expr) Stmt)
       (while Expr Stmt)
+      (return)
       (return Expr))
     (Expr
       (num Integer)

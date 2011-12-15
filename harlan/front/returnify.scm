@@ -19,6 +19,7 @@
    `(let ((,x ,e) ...) ,stmt))
   ((print ,e) `(begin (print ,e) (return)))
   ((assert ,e) `(begin (assert ,e) (return)))
+  ((return) `(return))
   ((return ,expr)
    `(return ,expr))
   ((do ,expr) `(return ,expr))
