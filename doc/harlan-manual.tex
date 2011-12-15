@@ -1,6 +1,7 @@
-\documentclass{book}
+\documentclass[oneside]{report}
 \usepackage{listings,color,textcomp}
 \usepackage{url}
+\usepackage{graphicx}
 
 \begin{document}
 
@@ -9,7 +10,7 @@
   morekeywords= {
     extern, kernel, reduce, vector, void, int, u64, float, str,
     print, module, return, for, while, vector-set!, vector-ref,
-    length
+    length, iota, vec
   }
 }
 
@@ -205,6 +206,150 @@ For loops bind the variable \lstinline{<var>} and executes
 range from \lstinline{<start>} up to but not including
 \lstinline{<end>}.
 
+These vector examples so far have not been terribly interesting, since
+they do not display anything to the user. Fortunately, the Harlan
+runtime library provides \lstinline{print_2x2_int_vec} to help with
+this. You can include this function in your program using a new
+top-level declaration called \lstinline{extern}.
+
+\begin{lstlisting}
+(module
+  (extern print_2x2_int_vec ((vec (vec int 2) 2)) -> void)
+  
+  (define (main)
+    (let ((x (vector
+              (vector 1 2)
+              (vector 3 4))))
+      (print_2x2_int_vec x)
+      (return 0))))
+\end{lstlisting}
+
+The \lstinline{extern} form takes the name of a procedure, as well as
+a type signature for it. The type signature is necessary because the
+runtime library is written in C++ and Harlan needs to know the
+corresponding type. The declaration above states that
+\lstinline{print_2x2_inc_vec} takes a $2 \times 2$ vector of integers
+and returns no value. This program executes and produces the following result.
+
+\begin{verbatim}
+[ 1 2 ]
+[ 3 4 ]
+\end{verbatim}
+
+\section{Data Parallelism}
+
+Harlan supports data parallelism through two forms: \lstinline{kernel}
+and \lstinline{reduce}. Kernels most naturally correspond to GPU
+kernel functions from CUDA or OpenCL. The reduce operator, on the
+other hand, is used to combine multiple values into a single
+one. Kernels are written as follows:
+
+\begin{lstlisting}
+(let ((xs (vector 1 2 3 4)))
+  (kernel ((x xs))
+    (+ x 1)))
+\end{lstlisting}
+
+The kernel block takes a list of bindings followed by an
+expression. In this example, the binding \lstinline{(x xs)} states
+that \lstinline{x} ranges over the values in the vector
+\lstinline{xs}. For each value of \lstinline{x}, the kernel returns
+the value of \lstinline{x} plus one. The result of the kernel
+expression is a vector containing 2, 3, 4 and 5.
+
+Kernels are allowed to refer to free variables. For example, the
+previous example can be written like this:
+
+\begin{lstlisting}
+(let ((xs (vector 1 2 3 4)))
+  (kernel ((i (iota 4)))
+    (+ (vector-ref xs i) 1)))
+\end{lstlisting}
+
+Here, \lstinline{(iota 4)} expands into the vector containing 0, 1, 2
+and 3. The kernel expression evaluates to the same thing, but the
+vector references are now explicit.
+
+Kernels can also be nested.
+
+\begin{lstlisting}
+(kernel ((a (vector 2 3)))
+  (kernel ((b (vector 5 7)))
+    (* a b)))  
+\end{lstlisting}
+
+This expresion computes the outer product of \lstinline{(vector 2 3)}
+and \lstinline{(vector 5 7)}. If we print the result, we see we get
+the expected value:
+
+\begin{verbatim}
+[ 10 14 ]
+[ 15 21 ]
+\end{verbatim}
+
+The other data parallel operator in Harlan is the \lstinline{reduce}
+operator. This is used to combine a vector of values into a single
+value. Below is a simple example.
+
+\begin{lstlisting}
+(reduce + (vector 1 1 1 1))  
+\end{lstlisting}
+
+This expression combines all the values in its vector using the
+addition operator. The expression evaluates to 4.
+
+Reduce can be used to calculate a dot product as follows.
+
+\begin{lstlisting}
+(reduce + (kernel ((x xs) (y ys))
+            (* x y)))
+\end{lstlisting}
+
+\section{Example: The Mandelbrot Set}
+
+Below is a program that calculates the Mandelbrot set and writes it to
+a file.  Running this program produces the image in Figure
+\ref{fig:mandelbrot}.
+
+\begin{lstlisting}
+(module
+  (extern write_pgm (str (vec (vec int 1024) 1024)) -> void)
+  (extern nanotime () -> u64)
+  
+  (fn main ()
+    (let start (nanotime))
+    (let img (kernel ((i (iota 1024)))
+               (kernel ((j (iota 1024)))
+                 (let ((cr (- (/ (int->float j) 512.0) 1.5))
+                       (ci (- (/ (int->float i) 512.0) 1.0))
+                       (xr 0.0)
+                       (xi 0.0)
+                       (idx 0)
+                       (escape 0))
+                   (while (< idx 256)
+                     (let ((xrp (+ (- (* xr xr) (* xi xi)) cr))
+                           (xip (+ (* 2.0 (* xr xi)) ci)))
+                       (set! xr xrp)
+                       (set! xi xip)
+                       (let m (+ (* xr xr) (* xi xi)))
+                       (if (< m 4.0)
+                           (set! escape (- idx 1)))
+                       (set! idx (+ idx 1))))
+                   escape))))
+    (let stop (nanotime))
+    (write_pgm "test.bin/mandelbrot.pgm" img)
+    (print "Time to generate Mandelbrot Set in milliseconds:")
+    (print (/ (- stop start) 1000000))
+    (return 0)))  
+\end{lstlisting}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{figures/mandelbrot.eps}
+  \caption{The Mandelbrot Set, as generated by a Harlan program.}
+  \label{fig:mandelbrot}
+\end{figure}
+
 \chapter{The Runtime Library}
 
 Harlan provides a small library of built-in functions. These are
@@ -220,7 +365,7 @@ January 1, 1970. It is useful for timing benchmark programs.
 
 \section{print\_2x2\_int\_vec}
 
-\textbf{Prototype:} \lstinline{(extern print_2x2_int_vec (vector (vector int 2) 2) -> void)}
+\textbf{Prototype:} \lstinline{(extern print_2x2_int_vec ((vec (vec int 2) 2)) -> void)}
 
 Formats a $2 \times 2$ matrix and prints it to standard out.
 
@@ -228,7 +373,7 @@ Formats a $2 \times 2$ matrix and prints it to standard out.
 
 \section{write\_pgm}
 
-\textbf{Prototype:} \lstinline{(extern write_pgm str (vector (vector int 1024) 1024) -> void)}
+\textbf{Prototype:} \lstinline{(extern write_pgm (str (vec (vec int 1024) 1024)) -> void)}
 
 This function treats its second argument as a $1024 \times 1024$
 grayscale image and writes it to a Portable GrayMap (PGM) file named

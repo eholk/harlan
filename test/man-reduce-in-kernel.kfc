@@ -1,0 +1,19 @@
+;; -*- scheme -*-
+
+(%testspec xfail)
+
+;; This should work, but we fail in convert-type. We'll have to debug
+;; more.
+
+;; Reducing within a kernel.
+
+(module
+  (define (main)
+    (let ((A (vector
+              (vector 1 2 3)
+              (vector 4 5 6))))
+      (let ((B (kernel ((a A))
+                 (reduce + a))))
+        (for (i 0 (length B))
+          (print (vector-ref B i)))))
+    (return 0)))

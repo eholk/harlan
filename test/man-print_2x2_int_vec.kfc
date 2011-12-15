@@ -1,0 +1,15 @@
+;; -*- scheme -*-
+
+;; An example from the Harlan manual. We want to make sure these all
+;; run.
+
+(module
+  (extern print_2x2_int_vec ((vec (vec int 2) 2)) -> void)
+  
+  (define (main)
+    (let ((x (vector
+              (vector 1 2)
+              (vector 3 4))))
+      (print_2x2_int_vec x)
+      (return 0))))
+
