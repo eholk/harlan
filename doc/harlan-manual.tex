@@ -22,7 +22,8 @@
 
 \chapter{Getting Started}
 
-Harlan is known to build and run on the following operating systems, but others will probably work as well.
+Harlan is known to build and run on the following operating systems,
+but others will probably work as well.
 
 \begin{itemize}
 \item Mac OS X 10.6 (Snow Leopard)
@@ -269,10 +270,22 @@ previous example can be written like this:
 \end{lstlisting}
 
 Here, \lstinline{(iota 4)} expands into a vector containing 0, 1, 2
-and 3. The kernel expression evaluates to the same thing, but the
-vector references are now explicit.
+and 3. The kernel expression evaluates to the same thing as the
+previous example, but the vector references are now explicit.
 
-Kernels can also be nested.
+Multiple arguments can be given to a single kernel expression. The
+kernel will run over all arguments together. For example, the
+following kernel adds two vectors.
+
+\begin{lstlisting}
+(let ((xs (vector 1 2 3 4))
+      (ys (vector 5 6 7 8)))
+  (kernel ((x xs)
+           (y ys))
+    (+ x y)))
+\end{lstlisting}
+
+Kernels can be nested as well:
 
 \begin{lstlisting}
 (kernel ((a (vector 2 3)))
@@ -309,10 +322,11 @@ Reduce can also be used to calculate a dot product.
 
 \section{Example: The Mandelbrot Set}
 
-Below is a program that calculates the Mandelbrot set and writes it to
-a file.  Running this program produces the image in Figure
-\ref{fig:mandelbrot}.
+Figure \ref{fig:mandelbrot-code} shows a program that calculates the
+Mandelbrot set and writes it to a file.  Running this program produces
+the image in Figure \ref{fig:mandelbrot}.
 
+\begin{figure}
 \begin{lstlisting}
 (module
   (extern write_pgm (str (vec (vec int 1024) 1024)) -> void)
@@ -344,6 +358,10 @@ a file.  Running this program produces the image in Figure
     (print (/ (- stop start) 1000000))
     (return 0)))  
 \end{lstlisting}
+  
+  \caption{A program that generates the Mandelbrot Set.}
+  \label{fig:mandelbrot-code}
+\end{figure}
 
 \begin{figure}
   \centering
