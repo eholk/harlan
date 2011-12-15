@@ -77,8 +77,7 @@
    `(,op ,lhs ,rhs))
   ((if ,[test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
-  ;; sizeof might need some more work, since (sizeof (vector int 4))
-  ;; != (sizeof (ptr int))
+  ((sizeof (vec ,[convert-type -> t] ,n)) `(* (int ,n) (sizeof ,t)))
   ((sizeof ,[convert-type -> t]) `(sizeof ,t))
   ((vector-ref ,[v] ,[i]) `(vector-ref ,v ,i))
   ((cast ,[convert-type -> t] ,[e]) `(cast ,t ,e))
@@ -99,14 +98,16 @@
   ((ptr ,scalar)
    (guard (scalar-type? scalar))
    `(ptr ,scalar))
+  ((ptr (vec ,[find-leaf-type -> t] ,size)) `(ptr ,t))
   ((vec ,[find-leaf-type -> t] ,size)
-   `(ptr ,(convert-type t)))
+   `(ptr ,t))
   (((,[t*] ...) -> ,[t])
    `(,t* -> ,t)))
 
 (define-match find-leaf-type
   ((vec ,[t] ,size) t)
-  (,t (guard (scalar-type? t)) t))
+  (,t (guard (scalar-type? t))
+    (convert-type t)))
 
 ;; end library
 )
