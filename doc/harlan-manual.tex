@@ -242,7 +242,10 @@ Harlan supports data parallelism through two forms: \lstinline{kernel}
 and \lstinline{reduce}. Kernels most naturally correspond to GPU
 kernel functions from CUDA or OpenCL. The reduce operator, on the
 other hand, is used to combine multiple values into a single
-one. Kernels are written as follows:
+one. 
+
+The kernel block takes a list of bindings followed by an
+expression.
 
 \begin{lstlisting}
 (let ((xs (vector 1 2 3 4)))
@@ -250,12 +253,11 @@ one. Kernels are written as follows:
     (+ x 1)))
 \end{lstlisting}
 
-The kernel block takes a list of bindings followed by an
-expression. In this example, the binding \lstinline{(x xs)} states
-that \lstinline{x} ranges over the values in the vector
-\lstinline{xs}. For each value of \lstinline{x}, the kernel returns
-the value of \lstinline{x} plus one. The result of the kernel
-expression is a vector containing 2, 3, 4 and 5.
+In this example, the binding \lstinline{(x xs)} states that
+\lstinline{x} ranges over the values in the vector \lstinline{xs}. For
+each value of \lstinline{x}, the kernel returns the value of
+\lstinline{x} plus one. The result of the kernel expression is a
+vector containing 2, 3, 4 and 5.
 
 Kernels are allowed to refer to free variables. For example, the
 previous example can be written like this:
@@ -266,7 +268,7 @@ previous example can be written like this:
     (+ (vector-ref xs i) 1)))
 \end{lstlisting}
 
-Here, \lstinline{(iota 4)} expands into the vector containing 0, 1, 2
+Here, \lstinline{(iota 4)} expands into a vector containing 0, 1, 2
 and 3. The kernel expression evaluates to the same thing, but the
 vector references are now explicit.
 
@@ -298,7 +300,7 @@ value. Below is a simple example.
 This expression combines all the values in its vector using the
 addition operator. The expression evaluates to 4.
 
-Reduce can be used to calculate a dot product as follows.
+Reduce can also be used to calculate a dot product.
 
 \begin{lstlisting}
 (reduce + (kernel ((x xs) (y ys))
