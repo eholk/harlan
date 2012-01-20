@@ -80,7 +80,7 @@
          (== expr `(var ,x))
          (== expro `(var ,type ,x))
          (lookup env x type)))
-      ((fresh (test test^ conseq conseq^ alt alt^ type)
+      ((fresh (test test^ conseq conseq^ alt alt^)
          (== expr `(if ,test ,conseq ,alt))
          (== expro `(if ,test^ ,conseq^ ,alt^))
          (infer-expr test env 'bool test^)
