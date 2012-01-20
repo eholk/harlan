@@ -1,7 +1,5 @@
 ;; -*- scheme -*-
 
-(%testspec xfail)
-
 (module
   (define (main)
     (let ((x (vector 1 2 3 4 1 2 3 4))
