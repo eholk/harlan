@@ -1,0 +1,14 @@
+;; -*- scheme -*-
+
+(%testspec xfail)
+
+(module
+  (define (main)
+    (let ((x (vector 1 2 3 4 1 2 3 4))
+          (y (vector 1 2 1 1 1 2 3 4)))
+      (let ((result (kernel ((xVals x)
+                             (yVals y))
+                            (= xVals yVals))))
+        (for (i 0 (length result))
+             (print (vector-ref result i)))))
+    (return 0)))
