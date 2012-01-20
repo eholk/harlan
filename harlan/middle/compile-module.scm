@@ -78,10 +78,12 @@
   ;; we won't need pointers.
   ((ptr ,[t]) t)
   ((vec ,[t] ,n) t)
+  (bool 'bool)
   (int 'int))
 
 (define-match byte-size
   (int `(sizeof int))
+  (bool `(sizeof int))
   ((vec ,[t] ,n) `(* (int ,n) ,t)))
 
 (define-match compile-expr

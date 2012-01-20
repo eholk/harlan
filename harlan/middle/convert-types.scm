@@ -88,6 +88,7 @@
 
 (define-match convert-type
   (int 'int)
+  (bool 'bool)
   (u64 'uint64_t)
   (float 'float)
   (void 'void)
