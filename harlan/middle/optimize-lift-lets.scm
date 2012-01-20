@@ -120,6 +120,8 @@
     ((reduce ,t ,op ,[e]) e)
     ((let ((,x* ,[e*]) ...) ,[e])
      (apply union (cons (difference e x*) e*)))
+    ((if ,[t] ,[c] ,[a])
+     (union t c a))
     ((begin ,[free-vars-Stmt -> s*] ... ,[e])
      (union e (apply union s*))))
 
