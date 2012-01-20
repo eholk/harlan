@@ -43,10 +43,7 @@
      `(do ,e)))
 
   (define-match Expr
-    ((int ,n) `(int ,n))
-    ((u64 ,n) `(u64 ,n))
-    ((float ,f) `(float ,f))
-    ((str ,s) `(str ,s))
+    ((,t ,v) (guard (scalar-type? t)) `(,t ,v))
     ((var ,t ,x) `(var ,t ,x))
     ((int->float ,[e]) `(int->float ,e))
     ((iota ,[e]) `(iota ,e))

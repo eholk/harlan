@@ -104,10 +104,7 @@
   ((vector-ref ,t ,v ,i) t))
 
 (define-match uglify-expr
-  ((int ,n) `(int ,n))
-  ((u64 ,n) `(u64 ,n))
-  ((float ,f) `(float ,f))
-  ((str ,s) `(str ,s))
+  ((,t ,n) (guard (scalar-type? t)) `(,t ,n))
   ((var ,tx ,x) `(var ,tx ,x))
   ((int->float ,[e]) `(cast float ,e))
   ((call ,[name] ,[args] ...)

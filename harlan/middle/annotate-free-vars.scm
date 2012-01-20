@@ -67,10 +67,7 @@
 
 (define-match annotate-expr
   ((void) (values `(void) '()))
-  ((int ,n) (values `(int ,n) '()))
-  ((u64 ,n) (values `(u64 ,n) '()))
-  ((float ,f) (values `(float ,f) '()))
-  ((str ,s) (values `(str ,s) '()))
+  ((,t ,n) (guard (scalar-type? t)) (values `(,t ,n) '()))
   ((var ,t ,x) (values `(var ,t ,x) `(,x)))
   ((c-expr ,t ,x) (values `(c-expr ,t ,x) `()))
   ((cast ,t ,[e fv*]) (values `(cast ,t ,e) fv*))

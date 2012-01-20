@@ -7,10 +7,7 @@
   (lambda (expr finish)
     (match expr
       ((void) (finish `(void)))
-      ((int ,n) (guard (integer? n)) (finish `(int ,n)))
-      ((u64 ,n) (guard (integer? n)) (finish `(u64 ,n)))
-      ((float ,f) (finish `(float ,f)))
-      ((str ,str) (guard (string? str)) (finish `(str ,str)))
+      ((,t ,n) (guard (scalar-type? t)) (finish `(,t ,n)))
       ((var ,t ,x) (finish `(var ,t ,x)))
       ((int->float ,e)
        (lift-expr e (lambda (e) (finish `(int->float ,e)))))

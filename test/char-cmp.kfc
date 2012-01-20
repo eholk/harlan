@@ -1,0 +1,12 @@
+;; -*- scheme -*-
+
+(module
+  (define (main)
+    (let ((x (vector #\A #\C #\G #\T #\A #\C #\G #\T))
+          (y (vector #\A #\C #\A #\A #\A #\C #\G #\T)))
+      (let ((result (kernel ((xVals x)
+                             (yVals y))
+                            (= xVals yVals))))
+        (for (i 0 (length result))
+             (print (vector-ref result i)))))
+    (return 0)))

@@ -99,8 +99,7 @@
     (,e (values e '())))
 
   (define-match free-vars
-    ((int ,n) '())
-    ((float ,f) '())
+    ((,t ,x) (guard (scalar-type? t)) '())
     ((var ,t ,x) (list x))
     ((,op ,[e1] ,[e2])
      (guard (or (binop? op) (relop? op)))

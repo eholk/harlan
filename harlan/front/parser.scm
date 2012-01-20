@@ -85,6 +85,7 @@
   (,[(parse-expr env) -> e] `(do ,e)))
 
 (define-match (parse-expr env)
+  (,c (guard (char? c)) `(char ,c))
   (,f (guard (float? f)) `(float ,f))
   (,n (guard (integer? n)) `(num ,n))
   (,b (guard (boolean? b)) (if b `(num 1) `(num 0)))

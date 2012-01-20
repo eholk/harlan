@@ -65,11 +65,8 @@
    `(return ,expr)))
 
 (define-match convert-expr
-  ((int ,n) `(int ,n))
-  ((u64 ,n) `(u64 ,n))
-  ((str ,s) `(str ,s))
+  ((,t ,n) (guard (scalar-type? t)) `(,t ,n))
   ((var ,x) `(var ,x))
-  ((float ,f) `(float ,f))
   ((c-expr ,[convert-type -> t] ,x) `(c-expr ,t ,x))
   ((field ,obj ,arg* ...) `(field ,obj . ,arg*))
   ((,op ,[lhs] ,[rhs])
@@ -89,6 +86,7 @@
 (define-match convert-type
   (int 'int)
   (bool 'bool)
+  (char 'char)
   (u64 'uint64_t)
   (float 'float)
   (void 'void)

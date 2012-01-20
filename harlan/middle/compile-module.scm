@@ -79,19 +79,18 @@
   ((ptr ,[t]) t)
   ((vec ,[t] ,n) t)
   (bool 'bool)
+  (char 'char)
   (int 'int))
 
 (define-match byte-size
   (int `(sizeof int))
-  (bool `(sizeof int))
+  (bool `(sizeof bool))
+  (char `(sizeof char))
   ((vec ,[t] ,n) `(* (int ,n) ,t)))
 
 (define-match compile-expr
-  [(int ,n) `(int ,n)]
-  [(u64 ,n) `(u64 ,n)]
-  [(float ,f) `(float ,f)]
+  [(,t ,n) (guard (scalar-type? t)) `(,t ,n)]
   [(var ,t ,x) `(var ,x)]
-  [(str ,s) `(str ,s)]
   [(c-expr ,t ,x) `(c-expr ,t ,x)]
   [(vector-ref ,t ,[v] ,[i]) `(vector-ref ,v ,i)]
   ((if ,[test] ,[conseq] ,[alt])

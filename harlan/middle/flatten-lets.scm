@@ -64,10 +64,7 @@
    `(set! ,e1 ,e2)))
 
 (define-match Expr
-  ((int ,n) (values `(int ,n) 'int))
-  ((u64 ,n) (values `(u64 ,n) 'u64))
-  ((float ,n) (values `(float ,n) 'float))
-  ((str ,s) (values `(str ,s) 'str))
+  ((,t ,n) (guard (scalar-type? t)) (values `(,t ,n) t))
   ((var ,type ,x) (values `(var ,type ,x) type))
   ((c-expr ,type ,x) (values `(c-expr ,type ,x) type))
   ((if ,[test tt] ,[conseq tc] ,[alt ta])

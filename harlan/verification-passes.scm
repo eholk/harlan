@@ -42,6 +42,7 @@
     (Relop relop)
     (Float float)
     (String string)
+    (Char char)
     (Number number))
   
   (harlan
@@ -52,6 +53,7 @@
       (fn Var (Var *) Value +)
       (define (Var Var *) Value +))
     (Value
+      char
       integer
       boolean
       float
@@ -85,6 +87,7 @@
   (nest-lets (%inherits Module Decl)
     (Start Module)
     (Value
+      char
       integer
       boolean
       float
@@ -133,6 +136,7 @@
       (return)
       (return Expr))
     (Expr
+      (char Char)
       (num Integer)
       (float Float)
       (str String)
@@ -177,6 +181,7 @@
       (while Expr Stmt)
       Ret-Stmt)
     (Expr
+      (char Char)
       (num Integer)
       (float Float)
       (str String)
@@ -221,6 +226,7 @@
       (while Expr Stmt)
       (return Expr))
     (Expr
+      (char Char)
       (int Integer)
       (u64 Number)
       (float Float)
@@ -245,6 +251,7 @@
    (%inherits Module Decl Body Stmt)
    (Start Module)
    (Expr
+      (char Char)
       (int Integer)
       (u64 Number)
       (float Float)
@@ -296,6 +303,7 @@
       (iota (int Integer))
       Expr)
     (Expr
+      (char Char)
       (int Integer)
       (u64 Number)
       (float Float)
@@ -359,6 +367,7 @@
       (make-vector Type (int Integer))
       Expr)
     (Expr
+      (char Char)
       (int Integer)
       (u64 Number)
       (float Float)
@@ -395,6 +404,7 @@
       (begin Stmt +)
       Ret-Stmt)
     (Expr
+      (char Char)
       (int Integer)
       (u64 Number)
       (str String)
@@ -453,6 +463,7 @@
       (begin Stmt +)
       Ret-Stmt)
     (Expr
+      (char Char)
       (int Integer)
       (u64 Number)
       (str String)
@@ -491,6 +502,7 @@
       (do Expr)
       Ret-Stmt)
     (Expr
+      (char Char)
       (int Integer)
       (u64 Number)
       (str String)
@@ -568,6 +580,7 @@
       (do Expr)
       Ret-Stmt)
     (Expr
+      (char Char)
       (int Integer)
       (u64 Number)
       (str String)
@@ -601,6 +614,7 @@
     (Kernel
       (kernel Var ((Var C-Type) +) Stmt))
     (Expr
+      (char Char)
       (int Integer)
       (u64 Number)
       (str String)
