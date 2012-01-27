@@ -150,7 +150,9 @@
     ((make-vector ,t ,e) #f)
     ((vector-ref ,t ,[x] ,[i])
      (and x i))
-    ((iota ,[e]) e))
+    ((iota ,[e]) e)
+    ;; TODO: Kernels might actually be pure in some cases.
+    ((kernel . ,_) #f))
   
   ;; end library
   )
