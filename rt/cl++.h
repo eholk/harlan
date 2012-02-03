@@ -250,6 +250,16 @@ namespace cl {
                                         NULL);
             return buffer<T>(mem, count, *this, flags);
         }
+
+        template<typename T>
+        buffer<T> createBuffer(size_t count, T* ptr, cl_mem_flags flags) {
+            cl_mem mem = clCreateBuffer(ctx,
+                                        flags | CL_MEM_USE_HOST_PTR,
+                                        sizeof(T) * count, 
+                                        ptr,
+                                        NULL);
+            return buffer<T>(mem, count, *this, flags);
+        }        
     };
 
     template<typename T>
