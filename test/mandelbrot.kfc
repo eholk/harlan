@@ -4,7 +4,7 @@
   (extern write_pgm (str (vec (vec int 1024) 1024)) -> void)
   (extern nanotime () -> u64)
   
-  (fn main ()
+  (define (main)
     (let start (nanotime))
     (let img (kernel ((i (iota 1024)))
                (kernel ((j (iota 1024)))
