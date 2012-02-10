@@ -26,7 +26,9 @@
                  (call
                   (field g_ctx createAndBuildProgramFromSource)
                   (str
-                   ,(join "\n" (map compile-kernel kernel*))))))))
+                   ,(string-append
+                     "#include \"rt/gpu_common.h\"\n\n"
+                     (join "\n" (map compile-kernel kernel*)))))))))
   ((func ,type main ,args ,stmt)
    `((func ,type main ,args
            (begin

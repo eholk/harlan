@@ -10,6 +10,7 @@ SRC = \
 	builtin.cpp \
 	cl++.h \
 	cl++.cpp \
+	gpu_common.h \
 
 CXXFLAGS = -I../gc/include
 

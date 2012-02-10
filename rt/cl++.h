@@ -213,6 +213,10 @@ namespace cl {
                                 NULL,
                                 NULL);
         }
+
+        operator cl_command_queue() const {
+            return queue;
+        }
     };
     
     

@@ -12,6 +12,8 @@
 
 #include "gc.h"
 
+#include "gpu_common.h"
+
 enum error {
     HARLAN_ERR_OUT_OF_BOUNDS,
     HARLAN_ERR_MISPLACED_VECTOR
@@ -31,10 +33,11 @@ extern cl::context g_ctx;
 extern cl::command_queue g_queue;
 #endif
 
-
 template<typename T>
 void print(T n) {
     std::cout << n << std::endl;
 }
+
+void *alloc_buffer(unsigned int size);
 
 #define __global

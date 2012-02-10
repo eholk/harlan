@@ -24,3 +24,46 @@ cl_device_type get_device_type()
           CL_DEVICE_TYPE_ACCELERATOR |
           0);
 }
+
+void finalize_buffer(void *buffer, void *data)
+{
+    alloc_header *header = (alloc_header *)buffer;
+
+    CL_CHECK(clReleaseMemObject((cl_mem)header->cl_buffer));
+}
+
+void *alloc_buffer(unsigned int size)
+{
+    unsigned int new_size = size + sizeof(alloc_header);
+
+    void *ptr = GC_MALLOC(new_size);
+
+    alloc_header *header = (alloc_header *)ptr;
+
+    header->size = new_size;
+
+    cl_int status = 0;
+    header->cl_buffer = clCreateBuffer(g_ctx,
+                                    CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
+                                    new_size,
+                                    ptr,
+                                    &status);
+    CL_CHECK(status);
+
+    GC_register_finalizer(ptr, finalize_buffer, NULL, NULL, NULL);
+
+    // Make the buffer accessible to the CPU
+    clEnqueueMapBuffer(g_queue,
+                       (cl_mem)header->cl_buffer,
+                       CL_TRUE, // blocking
+                       CL_MAP_READ | CL_MAP_WRITE,
+                       0,
+                       new_size,
+                       0,
+                       NULL,
+                       NULL,
+                       &status);
+    CL_CHECK(status);
+
+    return ((char *)ptr) + sizeof(alloc_header);
+}
