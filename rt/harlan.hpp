@@ -39,5 +39,8 @@ void print(T n) {
 }
 
 void *alloc_buffer(unsigned int size);
+void map_buffer(void *ptr);
+void unmap_buffer(void *ptr);
+cl_mem get_mem_object(void *ptr);
 
 #define __global

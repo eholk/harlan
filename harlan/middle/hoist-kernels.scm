@@ -47,6 +47,10 @@
    (values `(if ,test ,conseq ,alt) (append ckernel* akernel*)))
   (,else (values else '())))
 
+(define-match adjust-ptr
+  ((var ,t ,x)
+   `(cast ,t (call (c-expr ((,t) -> ,t) adjust_header) (var ,t ,x)))))
+
 (define generate-kernel
   (lambda (name x* t* xs* ts* dim fv* ft* stmt*)
     ;; Plan of attack: replace all vectors with renamed char *'s,
@@ -66,7 +70,7 @@
                      `((let ,x (ptr ,t)
                             (addressof
                              (vector-ref
-                              ,t (var ,ts ,xs)
+                              ,t ,(adjust-ptr `(var ,ts ,xs))
                               (call
                                (c-expr ((int) -> int) get_global_id)
                                (int ,d)))))))

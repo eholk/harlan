@@ -67,3 +67,38 @@ void *alloc_buffer(unsigned int size)
 
     return ((char *)ptr) + sizeof(alloc_header);
 }
+
+void map_buffer(void *ptr)
+{
+    cl_int status = 0;
+    alloc_header *header = (alloc_header *)((char *)ptr - sizeof(alloc_header));
+    clEnqueueMapBuffer(g_queue,
+                       (cl_mem)header->cl_buffer,
+                       CL_TRUE, // blocking
+                       CL_MAP_READ | CL_MAP_WRITE,
+                       0,
+                       header->size,
+                       0,
+                       NULL,
+                       NULL,
+                       &status);
+    CL_CHECK(status);
+    
+}
+
+void unmap_buffer(void *ptr)
+{
+    alloc_header *header = (alloc_header *)((char *)ptr - sizeof(alloc_header));
+    clEnqueueUnmapMemObject(g_queue,
+                            (cl_mem)header->cl_buffer,
+                            header,
+                            0,
+                            NULL,
+                            NULL);
+}
+
+cl_mem get_mem_object(void *ptr)
+{
+    alloc_header *header = (alloc_header *)((char *)ptr - sizeof(alloc_header));
+    return (cl_mem)header->cl_buffer;
+}

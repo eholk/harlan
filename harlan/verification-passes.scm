@@ -530,7 +530,7 @@
       (print Expr)
       (assert Expr)
       (set! Expr Expr)
-      (apply-kernel Var (var Type Var) +)
+      (apply-kernel Var Expr +)
       (let-gpu Var Type)
       (map-gpu ((Var Expr)) Stmt)
       (let Var C-Type Expr)

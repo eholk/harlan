@@ -60,18 +60,13 @@
   ((var ,t ,x)
    (match t
      ((vec ,t^ ,n)
-      (let ((gpu-var (gensym 'gpu))
-            (gpu-ptr (gensym 'ptr)))
-        (values
-          `((let-gpu ,gpu-var ,t)
-            (map-gpu ((,gpu-ptr (var ,t ,gpu-var)))
-              (set! (var ,t ,gpu-ptr) (var ,t ,x))))
-          `(var ,t ,gpu-var)
-          `((map-gpu ((,gpu-ptr (var ,t ,gpu-var)))
-              (set! (var ,t ,x) (var ,t ,gpu-ptr)))))))
+      (values
+       `((do (call (c-expr (((ptr void)) -> void) unmap_buffer) (var ,t ,x))))
+       `(call (c-expr (((ptr void)) -> ,t) get_mem_object) (var ,t ,x))
+       `((do (call (c-expr (((ptr void)) -> void) map_buffer) (var ,t ,x))))))
      (,scalar
-       (guard (symbol? scalar))
-       (values '() `(var ,t ,x) '())))))
+      (guard (symbol? scalar))
+      (values '() `(var ,t ,x) '())))))
 
 ;; end library
 )

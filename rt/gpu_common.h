@@ -14,5 +14,10 @@ struct alloc_header {
     unsigned int size;
 };
 
+#define adjust_header(p) ((char *)p + sizeof(struct alloc_header))
+
 // TODO: Make sure the CL version and the CPU version have the same
 // sizes.
+//
+// Actually, we'll probably be okay as long as the CPU version is
+// bigger.

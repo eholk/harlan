@@ -1,7 +1,7 @@
 (library
   (harlan middle generate-kernel-calls)
   (export generate-kernel-calls)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (except (elegant-weapons helpers) type-of))
   
 (define-match generate-kernel-calls
   ((module ,[Decl -> decl*] ...)
@@ -11,6 +11,16 @@
   ((fn ,name ,args ,type ,[Stmt -> stmt*] ...)
    `(fn ,name ,args ,type . ,stmt*))
   (,else else))
+
+(define-match type-of
+  ((deref ,[e]) e)
+  ((vector-ref ,t ,v ,i) t)
+  ((var ,t ,x) t)
+  ((c-expr ,t ,e) t)
+  ((call ,[f] ,_ ...)
+   (match f
+     ((,_ -> ,t) t)
+     (,else (error 'type-of "Invalid function type" else)))))
 
 (define (get-arg-length a)
   (match (type-of a)
