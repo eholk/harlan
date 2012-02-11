@@ -59,18 +59,7 @@
       ,stmt* ...)])
 
 (define (compile-set! x e)
-  (let ((lhs-t (type-of x)))
-    (match lhs-t
-      ((vec ,t ,n)
-       `(do (call
-              (c-expr (() -> void) memcpy)
-              ,(compile-expr x)
-              ,(compile-expr e)
-              ,(byte-size lhs-t))))
-      (,scalar
-        (guard (symbol? scalar))
-        `(set! ,(compile-expr x) ,(compile-expr e)))
-      (,e (error 'compile-set! "Unknown target type" e)))))
+  `(set! ,(compile-expr x) ,(compile-expr e)))
 
 (define-match scalar-type
   ;; TODO:

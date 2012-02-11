@@ -85,19 +85,7 @@
 
 (define uglify-vector-set!
   (lambda (t x i v)
-    (match t
-      ((vec ,t ,n)
-       (let-values (((dim t sz)
-                     (decode-vector-type `(vec ,t ,n))))
-         `(do (call
-                (c-expr (() -> void) memcpy)
-                ,(uglify-vector-ref `(vec ,t ,n) x i)
-                ,v
-                ,sz))))
-      (,scalar (guard (symbol? scalar))
-        `(set! ,(uglify-vector-ref scalar x i) ,v))
-      (,else (error 'uglify-vector-set!
-               "unsupported vector type" else)))))
+    `(set! ,(uglify-vector-ref t x i) ,v)))
 
 (define-match expr-type
   ((var ,t ,x) t)
@@ -125,11 +113,5 @@
 
 (define uglify-vector-ref
   (lambda (t e i)
-    (match t
-      ((vec ,t ,n)
-       `(addressof (vector-ref ,t ,e (* ,i (int ,n)))))
-      (,scalar
-        (guard (symbol? scalar))
-        `(vector-ref ,t ,e ,i))
-      (,else (error 'uglify-vector-ref "unsupported type" else)))))
+    `(vector-ref ,t ,e ,i)))
 )

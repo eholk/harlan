@@ -35,10 +35,10 @@ uint64_t nanotime() {
 }
 
 // ((vector (vector int 2) 2)) -> void
-void print_2x2_int_vec(int *v) {
+void print_2x2_int_vec(int **v) {
     printf("[ %d %d ]\n"
            "[ %d %d ]\n",
-           v[0], v[1], v[2], v[3]);
+           v[0][0], v[0][1], v[1][0], v[1][1]);
 }
 
 // ((vector int 4) int) -> (vector int 4)

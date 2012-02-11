@@ -242,7 +242,7 @@
       (kernel Type (((Var Type) (Expr Type)) +) Expr)
       (reduce Type Reduceop Expr)
       (iota (int Integer))
-      (length Expr)
+      (length Type Expr)
       (int->float Expr)
       (make-vector Type (int Integer))
       (Binop Expr Expr)

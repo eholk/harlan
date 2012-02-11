@@ -97,16 +97,11 @@
   ((ptr ,scalar)
    (guard (scalar-type? scalar))
    `(ptr ,scalar))
-  ((ptr (vec ,[find-leaf-type -> t] ,size)) `(ptr ,t))
-  ((vec ,[find-leaf-type -> t] ,size)
+  ((ptr (vec ,[t] ,size)) `(ptr ,t))
+  ((vec ,[t] ,size)
    `(ptr ,t))
   (((,[t*] ...) -> ,[t])
    `(,t* -> ,t)))
-
-(define-match find-leaf-type
-  ((vec ,[t] ,size) t)
-  (,t (guard (scalar-type? t))
-    (convert-type t)))
 
 ;; end library
 )
