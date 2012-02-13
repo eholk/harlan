@@ -11,6 +11,8 @@
 #include <cassert>
 #include <stdlib.h>
 
+extern cl::device_list g_devices;
+
 using namespace std;
 using namespace cl;
 
@@ -185,7 +187,19 @@ void program::build()
 	opts += " -I/Users/eric/class/osl/dpp/svn/user/webyrd/harlan";
 	opts += " -Werror";
     free(cwd);
-	CL_CHECK(clBuildProgram(prog, 0, NULL, opts.c_str(), NULL, NULL));
+	cl_int status = clBuildProgram(prog, 0, NULL, opts.c_str(), NULL, NULL);
+    if(status != CL_SUCCESS) {
+        char log[8192];
+        
+        CL_CHECK(clGetProgramBuildInfo(prog,
+                                    g_devices[0],
+                                    CL_PROGRAM_BUILD_LOG,
+                                    sizeof(log),
+                                    log,
+                                    NULL));
+        std::cerr << log << std::endl;
+    }
+    CL_CHECK(status);
 }
 
 kernel program::createKernel(string name)

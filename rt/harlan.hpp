@@ -12,6 +12,12 @@
 
 #include "gc.h"
 
+#ifdef __APPLE__
+#include <OpenCL/opencl.h>
+#else
+#include <CL/opencl.h>
+#endif
+
 #include "gpu_common.h"
 
 enum error {

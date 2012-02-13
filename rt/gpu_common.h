@@ -5,15 +5,20 @@
 
 #pragma once
 
+#ifndef cl_uint
+#define cl_uint  uint
+#define cl_ulong ulong
+#endif
+
 // This is mostly opaque to the GPU.
 struct alloc_header {
-    unsigned int magic;
-
-    // This is actually a cl_mem
-    void *cl_buffer;
+    cl_uint magic;
 
     // Size of this header + the stuff
-    unsigned int size;
+    cl_uint size;
+
+    // This is actually a cl_mem
+    cl_ulong cl_buffer;
 };
 
 #define adjust_header(p) ((char *)p + sizeof(struct alloc_header))
