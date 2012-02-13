@@ -12,7 +12,7 @@ SRC = \
 	cl++.cpp \
 	gpu_common.h \
 
-CXXFLAGS = -I../gc/include
+CXXFLAGS = -I../gc/include -g
 
 libharlanrt.a : $(OBJS) $(SRC)
 	rm -f libharlanrt.a

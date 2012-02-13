@@ -75,6 +75,15 @@
                                (c-expr ((int) -> int) get_global_id)
                                (int ,d)))))))
                    x* t* xs* ts* dim))
+               ,@(apply
+                  append
+                  (map (lambda (fv ft)
+                         (match ft
+                           ((vec ,t ,n)
+                            `((set! (var ,ft ,fv)
+                                    ,(adjust-ptr `(var ,ft ,fv)))))
+                           (,else '())))
+                       fv* ft*))
                . ,(replace-vec-refs stmt* x* xs* ts*)))))
 
 (define replace-vec-refs
