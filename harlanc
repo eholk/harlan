@@ -26,11 +26,7 @@
 ;;  'remove-nested-kernels
 ;;  'optimize-lift-lets)
 
-(let* ((fverbose (equal? (cadr (command-line)) "-v"))
-       (args (if fverbose
-                 (cddr (command-line))
-                 (cdr  (command-line)))))
-  (verbose fverbose)
+(let ((args (parse-args (cdr (command-line)))))
   (unless (null? args)
     (let ((filename (car args)))
       (print-compile-harlan filename))))

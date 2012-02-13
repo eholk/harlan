@@ -5,8 +5,10 @@
     verbose
     benchmark
     verify
+    generate-debug
     trace-pass
-    untrace-pass)
+    untrace-pass
+    parse-args)
   (import
     (rnrs)
     (util color)
@@ -15,6 +17,7 @@
 (define verbose (make-parameter #f))
 (define verify (make-parameter #t))
 (define benchmark (make-parameter #f))
+(define generate-debug (make-parameter #f))
 
 (define trace-passes '())
 
@@ -31,6 +34,27 @@
   (map (lambda (pass)
          (set! trace-passes (remove pass trace-passes)))
        passes))
+
+(define-syntax match-args
+  (syntax-rules ()
+    ;; pat-args is not yet used, but it's supposed to be for things
+    ;; like "-o file.out"
+    ((_ args
+        (((long short) pat-args ...) body ...) ...)
+     (let loop ((x args))
+       (cond
+         ((null? x) '())
+         ((or (string=? long  (car x))
+              (string=? short (car x)))
+          body ...
+          (loop (cdr x)))
+         ...
+         (else (cons (car x) (loop (cdr x)))))))))
+          
+(define (parse-args command-line)
+  (match-args command-line
+    ((("--verbose" "-v")) (verbose #t))
+    ((("--debug" "-g"))   (generate-debug #t))))
 
 (define do-trace-pass
   (lambda (pass-name pass expr)
