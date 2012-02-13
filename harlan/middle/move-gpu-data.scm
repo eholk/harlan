@@ -56,14 +56,40 @@
      (cons arg arg*)
      (append epilogue epilogue*))))
 
+(define (unmap e t) 
+  (match t
+    ((vec (vec ,t^ ,inner) ,outer)
+     (let ((i (gensym 'i)))
+       ;; TODO: use length here once vectors are dynamic
+       `((for (,i (int 0) (int ,outer))
+              (begin
+                ,@(unmap `(vector-ref (vec ,t^ ,inner) ,e (var int ,i))
+                         `(vec ,t^ ,inner))))
+         (do (call (c-expr (((ptr void)) -> void) unmap_buffer) ,e)))))
+    ((vec ,t ,n)
+     `((do (call (c-expr (((ptr void)) -> void) unmap_buffer) ,e))))))
+
+(define (remap e t) 
+  (match t
+    ((vec (vec ,t^ ,inner) ,outer)
+     (let ((i (gensym 'i)))
+       ;; TODO: use length here once vectors are dynamic
+       `((do (call (c-expr (((ptr void)) -> void) map_buffer) ,e))
+         (for (,i (int 0) (int ,outer))
+              (begin
+                ,@(remap `(vector-ref (vec ,t^ ,inner) ,e (var int ,i))
+                         `(vec ,t^ ,inner)))))))
+    ((vec ,t ,n)
+     `((do (call (c-expr (((ptr void)) -> void) map_buffer) ,e))))))
+
 (define-match make-gpu-decl
   ((var ,t ,x)
    (match t
      ((vec ,t^ ,n)
       (values
-       `((do (call (c-expr (((ptr void)) -> void) unmap_buffer) (var ,t ,x))))
+       (unmap `(var ,t ,x) t)
        `(call (c-expr (((ptr void)) -> ,t) get_mem_object) (var ,t ,x))
-       `((do (call (c-expr (((ptr void)) -> void) map_buffer) (var ,t ,x))))))
+       (remap `(var ,t ,x) t)))
      (,scalar
       (guard (symbol? scalar))
       (values '() `(var ,t ,x) '())))))

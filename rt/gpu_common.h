@@ -7,6 +7,8 @@
 
 // This is mostly opaque to the GPU.
 struct alloc_header {
+    unsigned int magic;
+
     // This is actually a cl_mem
     void *cl_buffer;
 

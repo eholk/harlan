@@ -4,6 +4,7 @@
   (import
    (chezscheme)
    (only (elegant-weapons helpers) join)
+   (harlan compile-opts)
    (elegant-weapons match)
    (util system))
 
@@ -15,6 +16,7 @@
   (define (g++-compile-stdin src outfile . args)
     (let ((command
            (join " " (append `("g++"
+                               "-g"
                                "-x c++ - -x none"
                                "rt/libharlanrt.a"
                                "gc/lib/libgc.a"
@@ -23,6 +25,8 @@
                                "-o" ,outfile)
                              (get-cflags)
                              args))))
+      (if (verbose)
+          (begin (display command) (newline)))
       (let-values (((to-stdin from-stdout from-stderr proccess-id)
                     (open-process-ports command 'block (native-transcoder))))
         (display src to-stdin)

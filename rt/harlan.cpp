@@ -6,6 +6,10 @@
 
 using namespace std;
 
+#define ALLOC_MAGIC 0xa110ca7e
+
+#define CHECK_MAGIC(hdr) assert((hdr)->magic == ALLOC_MAGIC)
+
 cl_device_type get_device_type()
 {
   const char *cfg = getenv("HARLAN_DEVICE");
@@ -28,7 +32,7 @@ cl_device_type get_device_type()
 void finalize_buffer(void *buffer, void *data)
 {
     alloc_header *header = (alloc_header *)buffer;
-
+    CHECK_MAGIC(header);
     CL_CHECK(clReleaseMemObject((cl_mem)header->cl_buffer));
 }
 
@@ -39,7 +43,7 @@ void *alloc_buffer(unsigned int size)
     void *ptr = GC_MALLOC(new_size);
 
     alloc_header *header = (alloc_header *)ptr;
-
+    header->magic = ALLOC_MAGIC;
     header->size = new_size;
 
     cl_int status = 0;
@@ -72,6 +76,7 @@ void map_buffer(void *ptr)
 {
     cl_int status = 0;
     alloc_header *header = (alloc_header *)((char *)ptr - sizeof(alloc_header));
+    CHECK_MAGIC(header);
     clEnqueueMapBuffer(g_queue,
                        (cl_mem)header->cl_buffer,
                        CL_TRUE, // blocking
@@ -89,6 +94,7 @@ void map_buffer(void *ptr)
 void unmap_buffer(void *ptr)
 {
     alloc_header *header = (alloc_header *)((char *)ptr - sizeof(alloc_header));
+    CHECK_MAGIC(header);
     clEnqueueUnmapMemObject(g_queue,
                             (cl_mem)header->cl_buffer,
                             header,
@@ -100,5 +106,6 @@ void unmap_buffer(void *ptr)
 cl_mem get_mem_object(void *ptr)
 {
     alloc_header *header = (alloc_header *)((char *)ptr - sizeof(alloc_header));
+    CHECK_MAGIC(header);
     return (cl_mem)header->cl_buffer;
 }
