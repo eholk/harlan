@@ -26,12 +26,6 @@
    `(if ,test ,conseq))
   ((if ,[compile-expr -> test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
-  [(let-gpu ,x ,t)
-   `(let ,x (cl::buffer ,(scalar-type t))
-         (call
-           (field g_ctx createBuffer ,(scalar-type t))
-           ,(byte-size t)
-           (c-expr void CL_MEM_READ_WRITE)))]
   [(print ,[compile-expr -> expr]) `(print ,expr)]
   ((return) `(return))
   [(return ,[compile-expr -> expr]) `(return ,expr)]
@@ -45,18 +39,7 @@
   [(for (,i ,[compile-expr -> start] ,[compile-expr -> end])
      ,[stmt*] ...)
    `(for (,i ,start ,end) . ,stmt*)]
-  [(do ,[compile-expr -> e]) `(do ,e)]
-  [(map-gpu ((,x* ,e*) ...) ,[stmt*] ...)
-   `(begin
-      ,@(map
-          (lambda (x e)
-            `(let ,x (cl::buffer_map ,(scalar-type (type-of e)))
-                  (call
-                    (field g_queue mapBuffer
-                      ,(scalar-type (type-of e)))
-                    ,(compile-expr e))))
-          x* e*)
-      ,stmt* ...)])
+  [(do ,[compile-expr -> e]) `(do ,e)])
 
 (define (compile-set! x e)
   `(set! ,(compile-expr x) ,(compile-expr e)))
@@ -98,7 +81,6 @@
 (define-match compile-module
   [(module ,[compile-decl -> decl*] ...)
    `((include "harlan.hpp") . ,decl*)])
-
 
 ;; end library
 )
