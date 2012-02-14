@@ -47,11 +47,11 @@ void *alloc_buffer(unsigned int size)
     header->size = new_size;
 
     cl_int status = 0;
-    header->cl_buffer = (cl_ulong)clCreateBuffer(g_ctx,
-                                    CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
-                                    new_size,
-                                    ptr,
-                                    &status);
+    header->cl_buffer = clCreateBuffer(g_ctx,
+                                       CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
+                                       new_size,
+                                       ptr,
+                                       &status);
     CL_CHECK(status);
 
     GC_register_finalizer(ptr, finalize_buffer, NULL, NULL, NULL);
