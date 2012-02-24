@@ -13,14 +13,14 @@
 (define-match annotate-decl*
   (((,tag* ,name* . ,rest*) ...)
    (map (annotate-decl name*)
-     `((,tag* ,name* . ,rest*) ...))))
+        `((,tag* ,name* . ,rest*) ...))))
 
 (define-match (annotate-decl globals)
   ((fn ,name ,args ,type ,[annotate-stmt -> stmt fv*])
    (let ((fv* (fold-right remove fv* (append globals args))))
-     (if (null? fv*)
-         `(fn ,name ,args ,type ,stmt)
-         (error 'annotate-free-vars "unbound varaible(s)" fv*))))
+     ;; I removed the unbound variable check, because it doesn't work
+     ;; with our new global declaration.
+     `(fn ,name ,args ,type ,stmt)))
   ((extern ,name ,arg-types -> ,type)
    `(extern ,name ,arg-types -> ,type))
   ((global ,type ,name ,[annotate-expr -> e _])

@@ -13,7 +13,8 @@
   ((module ,[uglify-decl -> fn*] ...)
    `(module (global (ptr region) g_region
                     (call (c-expr ((int) -> (ptr region)) create_region)
-                          (int 17179869184))) . ,fn*)))
+                          ;; 16MB
+                          (int 16777216))) . ,fn*)))
 
 (define-match uglify-decl
   ((fn ,name ,args ,t ,[uglify-stmt -> stmt])
@@ -31,13 +32,15 @@
       ((int ,y)
        (let-values (((dim t^ sz)
                      (decode-vector-type `(vec ,t ,n))))
-         `(cast (vec ,t ,n)
-                (call (c-expr ((int) -> (ptr void)) alloc_buffer) ,sz))))
+         `(call (c-expr (((ptr region) int) -> region_ptr)
+                        alloc_in_region)
+                (var (ptr region) g_region) ,sz)))
       ((var int ,y)
        (let-values (((dim t sz)
                      (decode-vector-type `(vec ,t ,y))))
-         `(cast (vec ,t ,n)
-            (call (ptr void) (c-expr alloc_buffer) ,sz))))
+         `(call (c-expr (((ptr region) int) -> region_ptr)
+                        alloc_in_region)
+                (var (ptr region) g_region) ,sz)))
       ((var ,tv ,y)
        ;; TODO: this probably needs a copy instead.
        `(var ,tv ,y))
@@ -115,5 +118,11 @@
 
 (define uglify-vector-ref
   (lambda (t e i)
-    `(vector-ref ,t ,e ,i)))
+    `(vector-ref
+      ,t
+      (cast (ptr ,t)
+            (call
+             (c-expr (((ptr region) region_ptr) -> (ptr void))
+                     get_region_ptr) (var (ptr region) g_region) ,e))
+      ,i)))
 )
