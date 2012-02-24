@@ -18,7 +18,10 @@
   ((fn ,name ,args ,type ,[hoist-stmt -> stmt kernel*])
    (values `(fn ,name ,args ,type ,stmt) kernel*))
   ((extern ,name ,arg-types -> ,t)
-   (values `(extern ,name ,arg-types -> ,t) '())))
+   (values `(extern ,name ,arg-types -> ,t) '()))
+  ;; We might get in trouble later for not walking into the e.
+  ((global ,type ,name ,e)
+   (values `(global ,type ,name ,e) '())))
 
 (define-match hoist-stmt
   ((kernel ,dims (((,x* ,t*) (,xs* ,ts*) ,dim) ...)

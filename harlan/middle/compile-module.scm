@@ -1,7 +1,8 @@
 (library
   (harlan middle compile-module)
   (export compile-module)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs)
+          (elegant-weapons helpers))
 
 ;; This compile kernel is used in the compile-module pass.
 (define-match compile-kernel^
@@ -14,6 +15,8 @@
    `(func ,ret-type ,name ,(map list args arg-types) . ,stmt*)]
   [(extern ,name ,arg-types -> ,rtype)
    `(extern ,rtype ,name ,arg-types)]
+  [(global ,type ,name ,[compile-expr -> e])
+   `(global ,type ,name ,e)]
   [(gpu-module ,[compile-kernel^ -> kernel*] ...)
    `(gpu-module . ,kernel*)])
 

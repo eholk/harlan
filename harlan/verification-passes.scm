@@ -384,8 +384,12 @@
       (Relop Expr Expr)
       (Binop Expr Expr)))
 
-  (uglify-vectors (%inherits Module Decl)
+  (uglify-vectors (%inherits Module)
     (Start Module)
+    (Decl
+     (extern Var (Type *) -> Type)
+     (global Type Var Expr)
+     (fn Var (Var *) Type Body))
     (Body
       (begin Stmt * Body)
       (let ((Var Expr) *) Body)
@@ -487,6 +491,7 @@
     (Decl
       (gpu-module Kernel *)
       (fn Var (Var *) ((Type *) -> Type) Body)
+      (global Type Var Expr)
       (extern Var (Type *) -> Type))
     (Kernel
       (kernel Var ((Var Type) +) Stmt))
@@ -564,6 +569,7 @@
       (include String)
       (gpu-module Kernel *)
       (func Type Var ((Var Type) *) Body)
+      (global Type Var Expr)
       (extern Type Var (Type *)))
     (Stmt
       (print Expr)
@@ -607,6 +613,7 @@
       (include String)
       (gpu-module Kernel *)
       (func C-Type Var ((Var C-Type) *) Body)
+      (global C-Type Var Expr)
       (extern C-Type Var (C-Type *))) 
     (Kernel
       (kernel Var ((Var C-Type) +) Stmt))
@@ -646,8 +653,8 @@
     (Start Module)
     (Decl
       (include String)
-      (global C-Type Var Expr)
       (func C-Type Var ((Var C-Type) *) Body)
+      (global C-Type Var Expr)
       (extern C-Type Var (C-Type *))))
 
   (print-c

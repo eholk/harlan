@@ -12,6 +12,8 @@
    `(gpu-module . ,kernel*))
   ((extern ,name ,args -> ,type)
    `(extern ,name ,args -> ,type))
+  ((global ,type ,name ,e)
+   `(global ,type ,name ,e))
   ((fn ,name ,args ,type ,[Stmt -> stmt])
    `(fn ,name ,args ,type ,stmt)))
 

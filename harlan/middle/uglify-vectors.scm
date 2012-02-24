@@ -11,7 +11,9 @@
 
 (define-match uglify-vectors
   ((module ,[uglify-decl -> fn*] ...)
-   `(module . ,fn*)))
+   `(module (global (ptr region) g_region
+                    (call (c-expr ((int) -> (ptr region)) create_region)
+                          (int 17179869184))) . ,fn*)))
 
 (define-match uglify-decl
   ((fn ,name ,args ,t ,[uglify-stmt -> stmt])

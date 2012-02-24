@@ -31,25 +31,26 @@ cl_device_type get_device_type()
 
 void finalize_buffer(void *buffer, void *data)
 {
-    alloc_header *header = (alloc_header *)buffer;
+    region *header = (region *)buffer;
     CHECK_MAGIC(header);
     CL_CHECK(clReleaseMemObject((cl_mem)header->cl_buffer));
 }
 
-void *alloc_buffer(unsigned int size)
+region *create_region(unsigned int size)
 {
-    unsigned int new_size = size + sizeof(alloc_header);
+    assert(size > sizeof(region));
 
-    void *ptr = GC_MALLOC(new_size);
+    void *ptr = GC_MALLOC(size);
 
-    alloc_header *header = (alloc_header *)ptr;
+    region *header = (region *)ptr;
     header->magic = ALLOC_MAGIC;
-    header->size = new_size;
+    header->size = size;
+    header->alloc_ptr = sizeof(region);
 
     cl_int status = 0;
     header->cl_buffer = clCreateBuffer(g_ctx,
                                        CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
-                                       new_size,
+                                       size,
                                        ptr,
                                        &status);
     CL_CHECK(status);
@@ -62,20 +63,19 @@ void *alloc_buffer(unsigned int size)
                        CL_TRUE, // blocking
                        CL_MAP_READ | CL_MAP_WRITE,
                        0,
-                       new_size,
+                       size,
                        0,
                        NULL,
                        NULL,
                        &status);
     CL_CHECK(status);
 
-    return ((char *)ptr) + sizeof(alloc_header);
+    return header;
 }
 
-void map_buffer(void *ptr)
+void map_region(region *header)
 {
     cl_int status = 0;
-    alloc_header *header = (alloc_header *)((char *)ptr - sizeof(alloc_header));
     CHECK_MAGIC(header);
     clEnqueueMapBuffer(g_queue,
                        (cl_mem)header->cl_buffer,
@@ -88,12 +88,10 @@ void map_buffer(void *ptr)
                        NULL,
                        &status);
     CL_CHECK(status);
-    
 }
 
-void unmap_buffer(void *ptr)
+void unmap_region(region *header)
 {
-    alloc_header *header = (alloc_header *)((char *)ptr - sizeof(alloc_header));
     CHECK_MAGIC(header);
     clEnqueueUnmapMemObject(g_queue,
                             (cl_mem)header->cl_buffer,
@@ -103,9 +101,14 @@ void unmap_buffer(void *ptr)
                             NULL);
 }
 
-cl_mem get_mem_object(void *ptr)
+region_ptr alloc_in_region(region *r, unsigned int size)
 {
-    alloc_header *header = (alloc_header *)((char *)ptr - sizeof(alloc_header));
-    CHECK_MAGIC(header);
-    return (cl_mem)header->cl_buffer;
+    region_ptr p = r->alloc_ptr;
+    r->alloc_ptr += size;
+    
+    // If this fails, we allocated too much memory and need to resize
+    // the region.
+    assert(r->alloc_ptr < r->size);
+
+    return p;
 }

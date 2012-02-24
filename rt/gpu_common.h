@@ -5,15 +5,21 @@
 
 #pragma once
 
+typedef unsigned int region_ptr;
+
 // This is mostly opaque to the GPU.
-struct alloc_header {
+struct region {
     unsigned int magic;
 
     // Size of this header + the stuff
     unsigned int size;
 
+    // This is the next thing to allocate
+    region_ptr alloc_ptr;
+
     // This is actually a cl_mem
     void *cl_buffer;
 };
 
-#define adjust_header(p) ((char *)p + sizeof(struct alloc_header))
+// This gives us a pointer to something in a region.
+#define get_region_ptr(r, i) (((char *)r) + i)

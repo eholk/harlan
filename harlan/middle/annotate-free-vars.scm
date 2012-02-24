@@ -22,7 +22,9 @@
          `(fn ,name ,args ,type ,stmt)
          (error 'annotate-free-vars "unbound varaible(s)" fv*))))
   ((extern ,name ,arg-types -> ,type)
-   `(extern ,name ,arg-types -> ,type)))
+   `(extern ,name ,arg-types -> ,type))
+  ((global ,type ,name ,[annotate-expr -> e _])
+   `(global ,type ,name ,e)))
 
 (define-match annotate-stmt
   ((begin ,[stmt* fv**] ...)

@@ -44,9 +44,9 @@ void print(T n) {
     std::cout << n << std::endl;
 }
 
-void *alloc_buffer(unsigned int size);
-void map_buffer(void *ptr);
-void unmap_buffer(void *ptr);
-cl_mem get_mem_object(void *ptr);
+region *create_region(unsigned int size);
+void map_region(region *ptr);
+void unmap_region(region *ptr);
+region_ptr alloc_in_region(region *r, unsigned int size);
 
 #define __global
