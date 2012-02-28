@@ -1,11 +1,36 @@
 ;; verify-grammar.ss
 ;; see eof for an example
 
-;; ideas:
-;; use a FOLD and MAP to do grammar-transforms? duh
-;; figure out wtf is wrong with pattern-match
-;; move (verify) check to passes macro instead
-;; filter out which static nonterms are actually necessary
+(library
+  (util verify-helpers)
+  (export verify-name pred-name nonterminal? terminal?)
+  (import (rnrs))
+
+;; nonterminal ->  verify-nonterminal
+;; terminal    ->  terminal?
+(define (create-name completion)
+  (lambda (syn)
+    (syntax-case syn ()
+      (_ (datum->syntax syn
+           (string->symbol
+             (completion (symbol->string (syntax->datum syn)))))))))
+(define pred-name
+  (create-name (lambda (str) (string-append str "?"))))
+(define verify-name
+  (create-name (lambda (str) (string-append "verify-" str))))
+
+;; terminals have a lowercase first char,
+;; nonterminals are capitalized
+(define (form-pred proc)
+  (lambda (syn)
+    (syntax-case syn ()
+      (_ (let ((sym (syntax->datum syn)))
+           (and (symbol? sym)
+                (proc (string-ref (symbol->string sym) 0))))))))
+(define nonterminal? (form-pred char-upper-case?))
+(define terminal? (form-pred char-lower-case?))
+  
+)
 
 (library
   (util verify-grammar)
@@ -20,7 +45,8 @@
   (import
     (rnrs)
     (util verify-helpers)
-    (harlan compile-opts))
+    (harlan compile-opts)
+    (only (chezscheme) pretty-print errorf with-output-to-string))
   
 (define wildcard? (lambda (x) #t))
 
@@ -87,13 +113,14 @@
   
   ;; outputs the body of a pass verify-nonterm
   ;; catches errors, throws one if no options match
-  (define (create-body left right* inp)
+  (define (create-body left right* problems inp)
     (with-syntax (((clauses ...)
                    (map
                      (lambda (rout) (create-clause rout inp))
                      right*)))
-      #`(or (guard (x ((error? x) #f)) clauses) ...
-            #,(meaningful-error left inp))))
+      #`(or (and (or (guard (x ((error? x) #f)) clauses) ...)
+                 (set! #,problems (remq #,inp #,problems)))
+            (begin (set! #,problems (cons #,inp #,problems)) #f))))
 
   (define (check-nonterms pass left* right**)
     (let ((left* (map syntax->datum left*)))
@@ -112,23 +139,38 @@
      (check-nonterms #'pass
        #'(left left* ...)
        #'((right* ...) (right** ...) ...))
-     (with-syntax
-         (((name start nonterminals ...)
-           (map verify-name #'(pass left left* ...)))
-          ((body body* ...)
-           (map
-             (lambda (l r) (create-body #`'#,l r l))
-             #'(left left* ...)
-             #'((right* ...) (right** ...) ...))))
-       #'(define name
-           (lambda (prg)
-             (if (verify)
-                 (letrec
-                     ((start (lambda (left) body))
-                      (nonterminals (lambda (left*) body*))
-                      ...)
-                   (and (start prg) prg))
-                 prg)))))))
+     (with-syntax (((problems) (generate-temporaries `(problems))))
+       (with-syntax
+           (((name start nonterminals ...)
+             (map verify-name #'(pass left left* ...)))
+            ((body body* ...)
+             (map
+               (lambda (l r) (create-body #`'#,l r #'problems l))
+               #'(left left* ...)
+               #'((right* ...) (right** ...) ...))))
+         #'(define name
+             (lambda (prg)
+               (let ((problems `()))
+                 (if (verify)
+                     (letrec
+                         ((start (lambda (left) body))
+                          (nonterminals (lambda (left*) body*))
+                          ...)
+                       (unless (start prg)
+                         (errorf 'name
+                           (string-append
+                             "grammar verification failed"
+                             "\nGrammar: ~a\nProblems:\n ~a\n")
+                           (with-output-to-string
+                             (lambda () (pretty-print
+                                     (list
+                                       '(left right* ...)
+                                       '(left* right** ...)
+                                       ...))))
+                           (with-output-to-string
+                             (lambda () (pretty-print problems)))))
+                       prg)
+                     prg)))))))))
 
 (define-syntax (grammar-transforms x)
 
