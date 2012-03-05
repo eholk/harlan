@@ -11,7 +11,7 @@
 
 (define-match uglify-vectors
   ((module ,[uglify-decl -> fn*] ...)
-   `(module (global (ptr region) g_region
+   `(module (global g_region (ptr region)
                     (call (c-expr ((int) -> (ptr region)) create_region)
                           ;; 16MB
                           (int 16777216))) . ,fn*)))

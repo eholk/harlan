@@ -388,7 +388,7 @@
     (Start Module)
     (Decl
      (extern Var (Type *) -> Type)
-     (global Type Var Expr)
+     (global Var Type Expr)
      (fn Var (Var *) Type Body))
     (Body
       (begin Stmt * Body)
@@ -491,7 +491,7 @@
     (Decl
       (gpu-module Kernel *)
       (fn Var (Var *) ((Type *) -> Type) Body)
-      (global Type Var Expr)
+      (global Var Type Expr)
       (extern Var (Type *) -> Type))
     (Kernel
       (kernel Var ((Var Type) +) Stmt))
@@ -569,7 +569,7 @@
       (include String)
       (gpu-module Kernel *)
       (func Type Var ((Var Type) *) Body)
-      (global Type Var Expr)
+      (global Var Type Expr)
       (extern Type Var (Type *)))
     (Stmt
       (print Expr)

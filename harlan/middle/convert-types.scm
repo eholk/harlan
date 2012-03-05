@@ -15,7 +15,7 @@
      ((,x* ,[convert-type -> t*]) ...)
      ,[convert-stmt -> stmt])
    `(func ,rtype ,name ,(map list x* t*) ,stmt))
-  ((global ,[convert-type -> t] ,name ,[convert-expr -> e])
+  ((global ,name ,[convert-type -> t] ,[convert-expr -> e])
    `(global ,t ,name ,e))
   ((extern ,[convert-type -> t] ,name (,[convert-type -> t*] ...))
    `(extern ,t ,name ,t*)))
