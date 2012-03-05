@@ -112,3 +112,8 @@ region_ptr alloc_in_region(region *r, unsigned int size)
 
     return p;
 }
+
+cl_mem get_cl_buffer(region *r) 
+{
+    return (cl_mem)r->cl_buffer;
+}

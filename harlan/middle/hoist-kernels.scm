@@ -51,8 +51,13 @@
   (,else (values else '())))
 
 (define-match adjust-ptr
-  ((var ,t ,x)
-   `(cast ,t (call (c-expr ((,t) -> ,t) adjust_header) (var ,t ,x)))))
+  ;; This only handles vectors of scalars. We need another clause for
+  ;; nested vectors.
+  ((var (vec ,t ,n) ,x)
+   (guard (scalar-type? t))
+   `(cast (ptr ,t) (call (c-expr (((ptr region) ,t) -> (ptr ,t)) get_region_ptr)
+                         (var (ptr region) g_region)
+                         (var ,t ,x)))))
 
 (define generate-kernel
   (lambda (name x* t* xs* ts* dim fv* ft* stmt*)
@@ -63,8 +68,9 @@
     ;;
     ;; We can also let-bind vars to the cell we care about, then
     ;; replace everything with a deref. That'll be cleaner.
-    `(kernel ,name ,(append (map list xs* ts*)
-                            (map list fv* ft*))
+    `(kernel ,name ,(cons `(g_region (ptr region))
+                          (append (map list xs* ts*)
+                                  (map list fv* ft*)))
              (begin
                ,@(apply
                   append

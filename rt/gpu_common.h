@@ -8,7 +8,7 @@
 typedef unsigned int region_ptr;
 
 // This is mostly opaque to the GPU.
-struct region {
+typedef struct region_ {
     unsigned int magic;
 
     // Size of this header + the stuff
@@ -19,7 +19,7 @@ struct region {
 
     // This is actually a cl_mem
     void *cl_buffer;
-};
+} region;
 
 // This gives us a pointer to something in a region.
 #define get_region_ptr(r, i) (((char *)r) + i)

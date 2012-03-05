@@ -91,6 +91,7 @@
   (region 'region)
   (region_ptr 'region_ptr)
   (cl::kernel 'cl::kernel)
+  (cl_mem 'cl_mem)
   ((cl::buffer ,[t]) `(cl::buffer ,t))
   ((cl::buffer_map ,[t]) `(cl::buffer_map ,t))
   ((ptr ,scalar)

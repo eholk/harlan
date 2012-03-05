@@ -33,19 +33,28 @@
      `(begin
         (let ,kernel cl::kernel
              (call
-               (field (var cl::program g_prog)
-                 createKernel)
-               (str ,(symbol->string k))))
+              (field (var cl::program g_prog)
+                     createKernel)
+              (str ,(symbol->string k))))
+        (do (call (c-expr (((ptr region)) -> void) unmap_region)
+                  (var (ptr region) g_region)))
+        (do (call
+             (field (var cl::kernel ,kernel) setArg)
+             (int 0)
+             (call (c-expr (((ptr region)) -> cl_mem) get_cl_buffer)
+                   (var (ptr region) g_region))))
         ,@(map (lambda (arg i)
                  `(do (call
-                        (field (var cl::kernel ,kernel) setArg)
-                        (int ,i)
-                        ,arg)))
+                       (field (var cl::kernel ,kernel) setArg)
+                       (int ,(+ 1 i))
+                       ,arg)))
             arg* (iota (length arg*)))
         (do (call (field (var cl::queue g_queue) execute)
               (var cl::kernel ,kernel)
               (int ,(get-arg-length (car arg*))) ;; global size
-              (int 1)))))) ;; local size
+              (int 1)))
+        (do (call (c-expr (((ptr region)) -> void) map_region)
+                  (var (ptr region) g_region)))))) ;; local size
   ((begin ,[stmt*] ...)
    `(begin . ,stmt*))
   ((for (,i ,start ,end) ,[stmt*] ...)

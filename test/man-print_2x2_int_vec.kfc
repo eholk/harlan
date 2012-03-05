@@ -3,6 +3,10 @@
 ;; An example from the Harlan manual. We want to make sure these all
 ;; run.
 
+;; xfail, because print_2x2_int_vec is stupid. Instead, we should have
+;; a general printer that handles all data types.
+(%testspec xfail)
+
 (module
   (extern print_2x2_int_vec ((vec (vec int 2) 2)) -> void)
   

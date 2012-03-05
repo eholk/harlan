@@ -46,8 +46,8 @@
     verify-flatten-lets
     hoist-kernels
     verify-hoist-kernels
-    move-gpu-data
-    verify-move-gpu-data
+    ;;move-gpu-data
+    ;;verify-move-gpu-data
     generate-kernel-calls
     verify-generate-kernel-calls
     compile-module
