@@ -98,7 +98,7 @@
    `(ptr ,scalar))
   ((ptr (vec ,[t] ,size)) `(ptr ,t))
   ((vec ,[t] ,size)
-   `(ptr ,t))
+   'region_ptr)
   (((,[t*] ...) -> ,[t])
    `(,t* -> ,t)))
 

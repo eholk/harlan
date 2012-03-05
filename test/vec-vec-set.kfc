@@ -1,0 +1,8 @@
+;; -*- scheme -*-
+
+(module
+  (define (main)
+     (let ((X (vector (vector 1))))
+       (let ((y (vector-ref X 0)))
+         (vector-set! y 0 120)
+         (return 0)))))

@@ -32,7 +32,7 @@
       ((int ,y)
        (let-values (((dim t^ sz)
                      (decode-vector-type `(vec ,t ,n))))
-         `(call (c-expr (((ptr region) int) -> region_ptr)
+         `(call (c-expr (((ptr region) int) -> (vec ,t ,n))
                         alloc_in_region)
                 (var (ptr region) g_region) ,sz)))
       ((var int ,y)
