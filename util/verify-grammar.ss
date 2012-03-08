@@ -255,16 +255,17 @@
     (lambda (pass)
       (syntax-case pass ()
         ((pass (nt* t* ...) ...)
-         #`(generate-verify pass (nt* t* ...) ... .
+         #`(pass (nt* t* ...) ... .
              #,(add-used-statics #'(t* ... ...) sclause*))))))
-
+  
   (syntax-case x (%static)
     ((_ (%static sclause* ...) passes ...)
-     (with-syntax (((passes ...) (add-inherits #'(passes ...))))
-       (with-syntax (((passes ...)
+     (with-syntax (((passes ...)
+                    (add-inherits #'(passes ...))))
+       (with-syntax ((((pass (nt t* ...) ...) ...)
                       (map (add-static #'(sclause* ...))
                         #'(passes ...))))
-         #'(begin passes ...))))
+         #'(begin (generate-verify pass (nt t* ...) ...) ...))))
     ((_ passes ...)
      (with-syntax ((((pass (nt t* ...) ...) ...)
                     (add-inherits #'(passes ...))))
@@ -275,69 +276,69 @@
 (import (util verify-grammar))
 
 (let ()
-  ;; (grammar-transforms
-  ;;   (%static (Var symbol))
-
-  ;;   (first-grammar
-  ;;     (Expr
-  ;;       (let ((Var Expr)) Expr)
-  ;;       (lambda (Var) Expr)
-  ;;       (Expr Expr)
-  ;;       Var))
-
-  ;;   (second-grammar
-  ;;     (Expr
-  ;;       (lambda (Var) Expr)
-  ;;       (Expr Expr)
-  ;;       Var))
-
-  ;;   (third-grammar
-  ;;     (%inherits Expr)
-  ;;     (Start Expr)
-  ;;     (Integer integer))
-
-  ;;   (fourth-grammar
-  ;;     (%inherits Integer)
-  ;;     (Expr
-  ;;       Integer
-  ;;       Var
-  ;;       (lambda (Var *) Expr)
-  ;;       (Expr Expr)))
-  ;;   )
-
-  ;; (verify-first-grammar 'x)
-  ;; (verify-first-grammar '(lambda (x) x))
-  ;; (verify-first-grammar '(x y))
-  ;; (verify-first-grammar '(let ((x y)) ((lambda (x) x) y)))
-
-  ;; (verify-second-grammar 'x)
-  ;; (verify-second-grammar '(lambda (x) x))
-  ;; (verify-second-grammar '(x y))
-  ;; (verify-second-grammar '((x y) (x y)))
-
   (grammar-transforms
-    (fifth-grammar
+    (%static (Var symbol))
+
+    (first-grammar
+      (Expr
+        (let ((Var Expr)) Expr)
+        (lambda (Var) Expr)
+        (Expr Expr)
+        Var))
+
+    (second-grammar
       (Expr
         (lambda (Var) Expr)
         (Expr Expr)
-        Var)
-      (Var symbol))
+        Var))
 
-    (sixth-grammar
-      (%inherits Var)
-      (Expr
-        (lambda (Var *) Expr)
-        (Expr Expr)
-        Var
-        Integer)
+    (third-grammar
+      (%inherits Expr)
+      (Start Expr)
       (Integer integer))
+
+    (fourth-grammar
+      (%inherits Integer)
+      (Expr
+        Integer
+        Var
+        (lambda (Var *) Expr)
+        (Expr Expr)))
     )
 
-  (verify-fifth-grammar '(lambda (x) x))
+  (verify-first-grammar 'x)
+  (verify-first-grammar '(lambda (x) x))
+  (verify-first-grammar '(x y))
+  (verify-first-grammar '(let ((x y)) ((lambda (x) x) y)))
 
-  (verify-sixth-grammar 5)
-  (verify-sixth-grammar '(lambda (x y) 5))
-  (verify-sixth-grammar '(lambda (x y) ((x 5) (y 6))))
+  (verify-second-grammar 'x)
+  (verify-second-grammar '(lambda (x) x))
+  (verify-second-grammar '(x y))
+  (verify-second-grammar '((x y) (x y)))
+
+  ;; (grammar-transforms
+  ;;   (fifth-grammar
+  ;;     (Expr
+  ;;       (lambda (Var) Expr)
+  ;;       (Expr Expr)
+  ;;       Var)
+  ;;     (Var symbol))
+
+  ;;   (sixth-grammar
+  ;;     (%inherits Var)
+  ;;     (Expr
+  ;;       (lambda (Var *) Expr)
+  ;;       (Expr Expr)
+  ;;       Var
+  ;;       Integer)
+  ;;     (Integer integer))
+  ;;   )
+
+  ;; (verify-fifth-grammar '(lambda (x) x))
+
+  ;; (verify-sixth-grammar 5)
+  ;; (verify-sixth-grammar '(lambda (x y) 5))
+  ;; (verify-sixth-grammar '(lambda (x y) ((x 5) (y 6))))
 
   (printf "All expressions verified\n")
 
