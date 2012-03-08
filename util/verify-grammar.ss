@@ -273,73 +273,73 @@
 
 )
 
-(import (util verify-grammar))
+;; (import (util verify-grammar))
 
-(let ()
-  (grammar-transforms
-    (%static (Var symbol))
+;; (let ()
+;;   (grammar-transforms
+;;     (%static (Var symbol))
 
-    (first-grammar
-      (Expr
-        (let ((Var Expr)) Expr)
-        (lambda (Var) Expr)
-        (Expr Expr)
-        Var))
+;;     (first-grammar
+;;       (Expr
+;;         (let ((Var Expr)) Expr)
+;;         (lambda (Var) Expr)
+;;         (Expr Expr)
+;;         Var))
 
-    (second-grammar
-      (Expr
-        (lambda (Var) Expr)
-        (Expr Expr)
-        Var))
+;;     (second-grammar
+;;       (Expr
+;;         (lambda (Var) Expr)
+;;         (Expr Expr)
+;;         Var))
 
-    (third-grammar
-      (%inherits Expr)
-      (Start Expr)
-      (Integer integer))
+;;     (third-grammar
+;;       (%inherits Expr)
+;;       (Start Expr)
+;;       (Integer integer))
 
-    (fourth-grammar
-      (%inherits Integer)
-      (Expr
-        Integer
-        Var
-        (lambda (Var *) Expr)
-        (Expr Expr)))
-    )
+;;     (fourth-grammar
+;;       (%inherits Integer)
+;;       (Expr
+;;         Integer
+;;         Var
+;;         (lambda (Var *) Expr)
+;;         (Expr Expr)))
+;;     )
 
-  (verify-first-grammar 'x)
-  (verify-first-grammar '(lambda (x) x))
-  (verify-first-grammar '(x y))
-  (verify-first-grammar '(let ((x y)) ((lambda (x) x) y)))
+;;   (verify-first-grammar 'x)
+;;   (verify-first-grammar '(lambda (x) x))
+;;   (verify-first-grammar '(x y))
+;;   (verify-first-grammar '(let ((x y)) ((lambda (x) x) y)))
 
-  (verify-second-grammar 'x)
-  (verify-second-grammar '(lambda (x) x))
-  (verify-second-grammar '(x y))
-  (verify-second-grammar '((x y) (x y)))
+;;   (verify-second-grammar 'x)
+;;   (verify-second-grammar '(lambda (x) x))
+;;   (verify-second-grammar '(x y))
+;;   (verify-second-grammar '((x y) (x y)))
 
-  ;; (grammar-transforms
-  ;;   (fifth-grammar
-  ;;     (Expr
-  ;;       (lambda (Var) Expr)
-  ;;       (Expr Expr)
-  ;;       Var)
-  ;;     (Var symbol))
+;;   ;; (grammar-transforms
+;;   ;;   (fifth-grammar
+;;   ;;     (Expr
+;;   ;;       (lambda (Var) Expr)
+;;   ;;       (Expr Expr)
+;;   ;;       Var)
+;;   ;;     (Var symbol))
 
-  ;;   (sixth-grammar
-  ;;     (%inherits Var)
-  ;;     (Expr
-  ;;       (lambda (Var *) Expr)
-  ;;       (Expr Expr)
-  ;;       Var
-  ;;       Integer)
-  ;;     (Integer integer))
-  ;;   )
+;;   ;;   (sixth-grammar
+;;   ;;     (%inherits Var)
+;;   ;;     (Expr
+;;   ;;       (lambda (Var *) Expr)
+;;   ;;       (Expr Expr)
+;;   ;;       Var
+;;   ;;       Integer)
+;;   ;;     (Integer integer))
+;;   ;;   )
 
-  ;; (verify-fifth-grammar '(lambda (x) x))
+;;   ;; (verify-fifth-grammar '(lambda (x) x))
 
-  ;; (verify-sixth-grammar 5)
-  ;; (verify-sixth-grammar '(lambda (x y) 5))
-  ;; (verify-sixth-grammar '(lambda (x y) ((x 5) (y 6))))
+;;   ;; (verify-sixth-grammar 5)
+;;   ;; (verify-sixth-grammar '(lambda (x y) 5))
+;;   ;; (verify-sixth-grammar '(lambda (x y) ((x 5) (y 6))))
 
-  (printf "All expressions verified\n")
+;;   (printf "All expressions verified\n")
 
-)
+;; )
