@@ -266,54 +266,78 @@
                         #'(passes ...))))
          #'(begin passes ...))))
     ((_ passes ...)
-     (with-syntax (((passes ...)
+     (with-syntax ((((pass (nt t* ...) ...) ...)
                     (add-inherits #'(passes ...))))
-       #'(begin (generate-verify passes) ...)))))
+       #'(begin (generate-verify pass (nt t* ...) ...) ...)))))
 
 )
 
 (import (util verify-grammar))
 
 (let ()
+  ;; (grammar-transforms
+  ;;   (%static (Var symbol))
+
+  ;;   (first-grammar
+  ;;     (Expr
+  ;;       (let ((Var Expr)) Expr)
+  ;;       (lambda (Var) Expr)
+  ;;       (Expr Expr)
+  ;;       Var))
+
+  ;;   (second-grammar
+  ;;     (Expr
+  ;;       (lambda (Var) Expr)
+  ;;       (Expr Expr)
+  ;;       Var))
+
+  ;;   (third-grammar
+  ;;     (%inherits Expr)
+  ;;     (Start Expr)
+  ;;     (Integer integer))
+
+  ;;   (fourth-grammar
+  ;;     (%inherits Integer)
+  ;;     (Expr
+  ;;       Integer
+  ;;       Var
+  ;;       (lambda (Var *) Expr)
+  ;;       (Expr Expr)))
+  ;;   )
+
+  ;; (verify-first-grammar 'x)
+  ;; (verify-first-grammar '(lambda (x) x))
+  ;; (verify-first-grammar '(x y))
+  ;; (verify-first-grammar '(let ((x y)) ((lambda (x) x) y)))
+
+  ;; (verify-second-grammar 'x)
+  ;; (verify-second-grammar '(lambda (x) x))
+  ;; (verify-second-grammar '(x y))
+  ;; (verify-second-grammar '((x y) (x y)))
+
   (grammar-transforms
-    (%static (Var symbol))
-
-    (first-grammar
-      (Expr
-        (let ((Var Expr)) Expr)
-        (lambda (Var) Expr)
-        (Expr Expr)
-        Var))
-
-    (second-grammar
+    (fifth-grammar
       (Expr
         (lambda (Var) Expr)
         (Expr Expr)
-        Var))
+        Var)
+      (Var symbol))
 
-    (third-grammar
-      (%inherits Expr)
-      (Start Expr)
-      (Integer integer))
-
-    (fourth-grammar
-      (%inherits Integer)
+    (sixth-grammar
+      (%inherits Var)
       (Expr
-        Integer
-        Var
         (lambda (Var *) Expr)
-        (Expr Expr)))
+        (Expr Expr)
+        Var
+        Integer)
+      (Integer integer))
     )
 
-  (verify-first-grammar 'x)
-  (verify-first-grammar '(lambda (x) x))
-  (verify-first-grammar '(x y))
-  (verify-first-grammar '(let ((x y)) ((lambda (x) x) y)))
+  (verify-fifth-grammar '(lambda (x) x))
 
-  (verify-second-grammar 'x)
-  (verify-second-grammar '(lambda (x) x))
-  (verify-second-grammar '(x y))
-  (verify-second-grammar '((x y) (x y)))
+  (verify-sixth-grammar 5)
+  (verify-sixth-grammar '(lambda (x y) 5))
+  (verify-sixth-grammar '(lambda (x y) ((x 5) (y 6))))
 
   (printf "All expressions verified\n")
 
