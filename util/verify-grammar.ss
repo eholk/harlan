@@ -264,7 +264,11 @@
        (with-syntax (((passes ...)
                       (map (add-static #'(sclause* ...))
                         #'(passes ...))))
-         #'(begin passes ...))))))
+         #'(begin passes ...))))
+    ((_ passes ...)
+     (with-syntax (((passes ...)
+                    (add-inherits #'(passes ...))))
+       #'(begin (generate-verify passes) ...)))))
 
 )
 
