@@ -20,6 +20,7 @@
            (command
             (join " " (append `("g++"
                                 ,(if (generate-debug) "-g" "")
+                                ,(if (make-shared-object) "-shared" "")
                                 "-x c++"
                                 ,src-tmp "-x none"
                                 "rt/libharlanrt.a"

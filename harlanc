@@ -9,7 +9,10 @@
 
 ;; Converts foo/bar.kfc to bar
 (define (output-filename input)
-  (path-last (path-root input)))
+  (let ((base (path-last (path-root input))))
+    (if (make-shared-object)
+        (string-append base ".so")
+        base)))
 
 (define print-compile-harlan
   (lambda (filename)
