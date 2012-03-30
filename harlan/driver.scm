@@ -5,7 +5,8 @@
    (chezscheme)
    (only (elegant-weapons helpers) join)
    (elegant-weapons match)
-   (util system))
+   (util system)
+   (harlan compile-opts))
 
   (define (get-cflags)
     (case (get-os)
@@ -13,20 +14,33 @@
       ('linux  '("-I/opt/cuda/include" "-lOpenCL" "-lrt"))))
 
   (define (g++-compile-stdin src outfile . args)
-    (let ((command
-           (join " " (append `("g++"
-                               "-x c++ - -x none"
-                               "rt/libharlanrt.a"
-                               "gc/lib/libgc.a"
-                               "-Irt"
-                               "-Igc/include"
-                               "-o" ,outfile)
-                             (get-cflags)
-                             args))))
+    (let* ((src-tmp (if (generate-debug)
+                         (string-append outfile ".cpp")
+                         "-"))
+           (command
+            (join " " (append `("g++"
+                                ,(if (generate-debug) "-g" "")
+                                "-x c++"
+                                ,src-tmp "-x none"
+                                "rt/libharlanrt.a"
+                                "gc/lib/libgc.a"
+                                "-Irt"
+                                "-Igc/include"
+                                "-o" ,outfile)
+                              (get-cflags)
+                              args))))
+      (if (verbose)
+          (begin (display command) (newline)))
+      (if (generate-debug)
+          (let ((out (open-output-file src-tmp '(truncate))))
+            (display src out)
+            (close-output-port out)))
       (let-values (((to-stdin from-stdout from-stderr proccess-id)
                     (open-process-ports command 'block (native-transcoder))))
-        (display src to-stdin)
-        (close-output-port to-stdin)
+        (unless (generate-debug)
+          (begin
+            (display src to-stdin)
+            (close-output-port to-stdin)))
         (let ((errors (read-all from-stderr)))
           (if (string=? "" errors)
               #t ;; Assume that if we get no stderr data then g++ succeeded.
