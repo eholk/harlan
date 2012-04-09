@@ -14,7 +14,7 @@
 
 (define (get-arg-length a)
   (match (type-of a)
-    ((vec ,t ,n) n)
+    ((vec ,n ,t) n)
     (,else (error 'get-arg-length "Invalid kernel argument" a))))
 
 (define-match Stmt

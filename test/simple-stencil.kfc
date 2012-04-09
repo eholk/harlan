@@ -2,7 +2,7 @@
 (%testspec xfail)
 
 (module
-  (extern rotate_4_int_vec ((vector int 4) int) -> (vector int 4))
+  (extern rotate_4_int_vec ((vec 4 int) int) -> (vector 4 int))
   (define (main)
       (let X (vector 1 2 3 4))
       ;; TODO: we should be able to inline this in kernel args.

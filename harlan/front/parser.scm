@@ -35,9 +35,9 @@
   (u64 'u64)
   (str 'str)
   (float 'float)
-  ((vec ,[t] ,n)
+  ((vec ,n ,[t])
    (guard (integer? n))
-   `(vec ,t ,n))
+   `(vec ,n ,t))
   (((,[t*] ...) -> ,[t])
    `(,t* -> ,t)))
 

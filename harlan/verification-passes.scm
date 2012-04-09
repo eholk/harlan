@@ -32,7 +32,7 @@
     (Ret-Stmt (return Expr) (return))
     (Type
       scalar-type
-      (vec Type Integer)
+      (vec Integer Type)
       (ptr Type)
       ((Type *) -> Type))
     (Var ident)

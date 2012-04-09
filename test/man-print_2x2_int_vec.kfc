@@ -4,7 +4,7 @@
 ;; run.
 
 (module
-  (extern print_2x2_int_vec ((vec (vec int 2) 2)) -> void)
+  (extern print_2x2_int_vec ((vec 2 (vec 2 int))) -> void)
   
   (define (main)
     (let ((x (vector
