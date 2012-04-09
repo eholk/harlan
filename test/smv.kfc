@@ -3,7 +3,7 @@
 ;; Sparse matrix-vector
 
 (module
-  (fn main ()
+  (define (main)
       (let Ai (vector
                (vector 0)
                (vector 1)

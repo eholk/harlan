@@ -1,7 +1,7 @@
 ;; -*- scheme -*-
 
 (module
-  (fn main ()
+  (define (main)
       (print (vector (vector 1 8 9)
                      (vector 2 3 7)
                      (vector 4 5 6)))

@@ -5,7 +5,7 @@
 
 ;;(module
 ;; (extern nanotime () -> u64)
-;;  (fn main () 
+;;  (define (main) 
 ;;       (print (nanotime))
 ;;            (return 0)))
 
@@ -14,7 +14,7 @@
 (module
   (extern nanotime () -> u64)
   (extern rand () -> int)
-  (fn main ()
+  (define (main)
       (let X (vector 1 2 3 4))
       (let Y (vector 5 1 1 7))
       (print (rand))

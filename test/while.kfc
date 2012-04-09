@@ -1,7 +1,7 @@
 ;; -*- scheme -*-
 
 (module
-  (fn main ()
+  (define (main)
       (let y 0)
       (let x 0)
       (while (< (var x) 10)

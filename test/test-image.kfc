@@ -3,7 +3,7 @@
 (module
   (extern write_pgm (str (vec (vec int 1024) 1024)) -> void)
 
-  (fn main ()
+  (define (main)
       (let img (kernel ((i (iota 1024)))
                        (kernel ((j (iota 1024)))
                                (mod (* i j) 256))))

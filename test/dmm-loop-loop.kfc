@@ -8,7 +8,7 @@
 (module
   (extern print_2x2_int_vec ((vec (vec int 2) 2)) -> void)
   
-  (fn main ()
+  (define (main)
       (let B (vector
               (vector 1 0)
               (vector 0 1)))

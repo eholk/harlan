@@ -1,7 +1,7 @@
 ;; -*- scheme -*-
 
 (module
-  (fn main ()
+  (define (main)
       (let X (vector 1 2 3 4))
       (let Z (kernel ((x (var X)))
                (var x)))

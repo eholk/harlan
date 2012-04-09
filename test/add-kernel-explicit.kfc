@@ -6,7 +6,7 @@
 ;; Harlan, so we might have to make it fail later.
 
 (module
-  (fn main ()
+  (define (main)
       (let X (vector 1 2 3 4))
       (let Y (vector 5 1 1 7))
       (let Z (vector 0 0 0 0))

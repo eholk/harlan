@@ -4,7 +4,7 @@
 (%testspec xfail)
 
 (module
-  (fn main ()
+  (define (main)
     (let Fx (vector 0 0 0 0 0 0 0 0 0 0 ))
     (let Fy (vector 0 0 0 0 0 0 0 0 0 0 ))
     (let Fz (vector 0 0 0 0 0 0 0 0 0 0 ))

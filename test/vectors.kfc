@@ -3,7 +3,7 @@
 ;; A test case making sure vectors are somewhat working.
 
 (module
-  (fn main ()
+  (define (main)
       (let v (vector 1 2 3 4))
       (let len (length (var v)))
       (print (var len))

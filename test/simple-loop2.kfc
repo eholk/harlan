@@ -1,7 +1,7 @@
 ;; -*- scheme -*-
 
 (module
-  (fn main ()
+  (define (main)
       (let X (vector 1 2 3))
       (for (i 0 3)
         (vector-set! (var X) (var i) (+ (vector-ref (var X) (var i)) 1)))

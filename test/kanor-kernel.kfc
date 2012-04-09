@@ -10,7 +10,7 @@
 ;; kernel(x : X, y : Y, z : Z) { z = x * y; }
 
 (module
-  (fn main ()
+  (define (main)
       (let X (vector 1 2 3 4))
       (let Z (vector 2 3 4 5))
       (let Z (kernel ((x X) (y Y))

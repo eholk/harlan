@@ -3,7 +3,7 @@
 ;; This is like simple-kernel.kfc, but it uses a free variable instead.
 
 (module
-  (fn main ()
+  (define (main)
       (let Y (vector 1 2 3 4))
       (let y 1)
       (let X (kernel ((x (var Y)))

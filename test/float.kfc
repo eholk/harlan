@@ -1,7 +1,7 @@
 ;; -*- scheme -*-
 
 (module
-  (fn main ()
+  (define (main)
       (print (+ 0.125 0.125))
       (print (int->float 42))
       (return 0)))

@@ -3,7 +3,7 @@
 ;; Dense matrix-vector product
 
 (module
-  (fn main ()
+  (define (main)
       (let M (vector
               (vector 1 0 0 0)
               (vector 0 1 0 0)

@@ -1,7 +1,7 @@
 ;; -*- scheme -*-
 
 (module
-  (fn main ()
+  (define (main)
      (let ((x (if (< 4 5) 5 6)))
        (assert (= x 5))
        (if (< 5 4) (return 1) (return 0)))))
