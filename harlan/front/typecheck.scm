@@ -10,12 +10,6 @@
     (harlan compile-opts)
     (util color))
 
-;;; ********************************* FIX ME !!!! ****
-
-;;; need to add examples with multiple fn's which call each other.
-
-;;; add tests with recursive and mutually recursive calls
-
 (define-syntax (define-mk x)
   (define trace-mk #f)
   (syntax-case x ()
@@ -39,9 +33,6 @@
 (define-mk lookup
   (lambda (env x type)
     (fresh (env^)
-      ;; use conda instead of conde
-      ;; to handle shadowing
-      ;; there is no shadowing...?
       (conde
         ((== `((,x . ,type) . ,env^) env))
         ((fresh (y t)
@@ -49,7 +40,6 @@
            (== `((,y . ,t) . ,env^) env)
            (lookup env^ x type)))))))
 
-;; ensures that all expressions have the same type
 (define-mk infer-exprs
   (lambda (exprs env type exprso)
     (fresh (expr expro expr* expro*)
@@ -108,7 +98,7 @@
          (conde
            ((== op '+))
            ((== op '*)))
-         (== 'int type)
+         (prefo type '(int float u64))
          (== `(vec ,type ,n) t)
          (infer-expr e env t e^)))
       ((fresh (e e^ t n)
@@ -399,8 +389,8 @@
         (else
          (display result)
          (error 'typecheck
-                "Could not infer a unique type for program"
-                result))))))
+           "Could not infer a unique type for program"
+           result))))))
 
 )
 
