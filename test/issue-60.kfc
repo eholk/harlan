@@ -1,0 +1,10 @@
+(module
+  (define (main)
+    (print
+      (reduce +
+        (let ((a (let ((v (make-vector 10)))
+                   (for (i 0 10)
+                     (vector-set! v i 33))
+                   v)))
+          a)))
+    (return 0)))
