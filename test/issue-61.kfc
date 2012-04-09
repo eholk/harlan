@@ -1,3 +1,5 @@
+;; -*- scheme -*-
+
 (module
   (define (main)
     (print (reduce + (vector 3.3 4.4)))
