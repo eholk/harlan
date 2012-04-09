@@ -3,75 +3,78 @@
   (export nest-lets)
   (import (rnrs) (elegant-weapons helpers))
 
-;; parse-harlan takes a syntax tree that a user might actually want
-;; to write and converts it into something that's more easily
-;; analyzed by the type inferencer and the rest of the compiler.
-;; This subsumes the functionality of the previous
-;; simplify-literals mini-pass.
-
-;; unnests lets, checks that all variables are in scope, and
-;; renames variables to unique identifiers
-  
 (define-match nest-lets
   ((module ,[Decl -> decl*] ...)
    `(module . ,decl*)))
 
 (define-match Decl
-  ((fn ,name ,args . ,[(Expr* '()) -> expr*])
-   `(fn ,name ,args . ,expr*))
+  ((fn ,name ,args . ,[(Value* '()) -> value*])
+   `(fn ,name ,args . ,value*))
+  ((define (,name ,args ...) . ,[(Value* '()) -> value*])
+   `(define (,name ,args ...) . ,value*))
   (,else else))
 
-(define (unroll-lets def* expr*)
+(define (unroll-lets def* value*)
   (cond
-    ((null? def*) expr*)
+    ((null? def*) value*)
     (else
       `((let (,(car def*)) .
-          ,(unroll-lets (cdr def*) expr*))))))
+          ,(unroll-lets (cdr def*) value*))))))
 
-(define-match (Expr* def*)
-  (((let ,x ,[Expr -> e]))
+(define-match (Value* def*)
+  (((let ,x ,[Value -> e]))
    (guard (symbol? x))
    (unroll-lets def* `(,e)))
-  (((let ,x ,[Expr -> e]) . ,expr*)
+  (((let ,x ,[Value -> e]) . ,value*)
    (guard (symbol? x))
-   ((Expr* (append def* `((,x ,e)))) expr*))
-  ((,expr) (unroll-lets def* `(,(Expr expr))))
-  ((,[Expr -> expr] . ,expr*)
+   ((Value* (append def* `((,x ,e)))) value*))
+  ((,value) (unroll-lets def* `(,(Value value))))
+  ((,[Value -> value] . ,value*)
    (unroll-lets def*
-     (cons expr ((Expr* '()) expr*)))))
+     (cons value ((Value* '()) value*)))))
 
-(define-match Expr
-  ((for (,x ,start ,end) . ,[(Expr* '()) -> expr*])
-   `(for (,x ,start ,end) . ,expr*))
-  ((while ,[Expr -> test] . ,[(Expr* '()) -> expr*])
-   `(while ,test . ,expr*))
-  ((kernel ((,x ,[Expr -> e]) ...) . ,[(Expr* '()) -> expr*])
-   `(kernel ((,x ,e) ...) . ,expr*))
-  ((let ((,x ,[Expr -> e]) ...) . ,[(Expr* '()) -> expr*])
-   `(let ((,x ,e) ...) . ,expr*))
-  ((print ,[Expr -> e]) `(print ,e))
-  ((assert ,[Expr -> e]) `(assert ,e))
-  ((set! ,[Expr -> x] ,[Expr -> v]) `(set! ,x ,v))
-  ((vector-set! ,[Expr -> v] ,[Expr -> i] ,[Expr -> e])
+(define-match Value
+  (,c (guard (char? c)) c)
+  (,i (guard (integer? i)) i)
+  (,b (guard (boolean? b)) b)
+  (,f (guard (float? f)) f)
+  (,str (guard (string? str)) str)
+  (,id (guard (ident? id)) id)
+  ((let ((,x ,[Value -> e]) ...) . ,[(Value* '()) -> value*])
+   `(let ((,x ,e) ...) . ,value*))
+  ((begin . ,value*)
+   (make-begin ((Value* '()) value*)))
+  ((print ,[Value -> e]) `(print ,e))
+  ((assert ,[Value -> e]) `(assert ,e))
+  ((set! ,[Value -> x] ,[Value -> v]) `(set! ,x ,v))
+  ((vector-set! ,[Value -> v] ,[Value -> i] ,[Value -> e])
    `(vector-set! ,v ,i ,e))
-  ((begin . ,expr*)
-   (make-begin ((Expr* '()) expr*)))
-  ((if ,[Expr -> t] ,[Expr -> c])
+  ((for (,x ,start ,end) . ,[(Value* '()) -> value*])
+   `(for (,x ,start ,end) . ,value*))
+  ((while ,[Value -> test] . ,[(Value* '()) -> value*])
+   `(while ,test . ,value*))
+  ((if ,[Value -> t] ,[Value -> c])
    `(if ,t ,c))
-  ((if ,[Expr -> t] ,[Expr -> c] ,[Expr -> a])
+  ((if ,[Value -> t] ,[Value -> c] ,[Value -> a])
    `(if ,t ,c ,a))
-  ((return ,[Expr -> e]) `(return ,e))
-  ((vector ,[Expr -> e*] ...) `(vector . ,e*))
-  ((vector-ref ,[Expr -> v] ,[Expr -> i])
+  ((return) `(return))
+  ((return ,[Value -> e]) `(return ,e))
+  ((var ,id) `(var ,id))
+  ((vector ,[Value -> e*] ...) `(vector . ,e*))
+  ((vector-ref ,[Value -> v] ,[Value -> i])
    `(vector-ref ,v ,i))
-  ((reduce ,op ,[Expr -> e]) `(reduce ,op ,e))
-  ((length ,[Expr -> e]) `(length ,e))
-  ((,op ,[Expr -> e1] ,[Expr -> e2])
+  ((kernel ((,x ,[Value -> e]) ...) . ,[(Value* '()) -> value*])
+   `(kernel ((,x ,e) ...) . ,value*))
+  ((reduce ,op ,[Value -> e]) `(reduce ,op ,e))
+  ((iota ,[Value -> e]) `(iota ,e))
+  ((length ,[Value -> e]) `(length ,e))
+  ((make-vector ,[Value -> i] ,[Value -> e])
+   `(make-vector ,i ,e))
+  ((,op ,[Value -> e1] ,[Value -> e2])
    (guard (or (binop? op) (relop? op)))
    `(,op ,e1 ,e2))
-  ((,v ,[Expr -> e*] ...) (guard (symbol? v))
-   `(,v . ,e*))
-  (,else else))
+  ((,v ,[Value -> e*] ...) (guard (ident? v))
+   `(,v . ,e*)))
 
 ;; end library
 )

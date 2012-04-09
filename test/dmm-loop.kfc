@@ -4,30 +4,26 @@
 ;; use loops instead of nested kernels
 
 (module
-  (fn main ()
-      (let A (vector
-              (vector 1 0 0 0)
-              (vector 0 1 0 0)
-              (vector 0 0 1 0)
-              (vector 0 0 0 1)))
-      (let B (vector
-              (vector 1 0 0 0)
-              (vector 0 1 0 0)
-              (vector 0 0 1 0)
-              (vector 0 0 0 1)))
+  (define (main)
+    (let ((A (vector
+               (vector 1 0 0 0)
+               (vector 0 1 0 0)
+               (vector 0 0 1 0)
+               (vector 0 0 0 1)))
+          (B (vector
+               (vector 1 0 0 0)
+               (vector 0 1 0 0)
+               (vector 0 0 1 0)
+               (vector 0 0 0 1)))
+          (Bt (make-vector 4 (make-vector 4 0)))
+          (C (make-vector 4 (make-vector 4 0))))
 
-      (let Bt (make-vector 4))
       (for (j 0 (length (vector-ref B 0)))
-        (let io (iota 4))
-        (let row (kernel ((i (var io)))
-                   (vector-ref (vector-ref B (var j)) (var i))))
-        (vector-set! (var Bt) (var j) (var row)))
+        (let ((io (iota 4)))
+          (let ((row (kernel ((i (var io)))
+                       (vector-ref (vector-ref B (var j)) (var i)))))
+            (vector-set! (var Bt) (var j) (var row)))))
 
-      (let C (make-vector 4))
-      (for (i 0 (length (var A)))
-        (let C_row (make-vector 4))
-        (vector-set! (var C) (var i) (var C_row)))
-      
       (for (row_index 0 (length (var A)))
         (let row (vector-ref A (var row_index)))
         (for (col_index 0 (length (var Bt)))
@@ -41,8 +37,8 @@
       ;;(assert (= (var C) (var A)))
       ;; so instead we'll use loops.
       (for (i 0 (length C))
-           (for (j 0 (length (vector-ref C 0)))
-                (assert (= (vector-ref (vector-ref C i) j)
-                           (vector-ref (vector-ref A i) j)))))
+        (for (j 0 (length (vector-ref C 0)))
+          (assert (= (vector-ref (vector-ref C i) j)
+                    (vector-ref (vector-ref A i) j))))))
       
       (return 0)))

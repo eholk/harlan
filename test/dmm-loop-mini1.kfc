@@ -4,39 +4,15 @@
 ;; use loops instead of nested kernels
 
 (module
-  (fn main ()
-      (let A (vector
+  (define (main)
+    (let ((A (vector
+               (vector 1 0 0 0)
+               (vector 0 1 0 0)
+               (vector 0 0 1 0)
+               (vector 0 0 0 1)))
+          (B (vector
               (vector 1 0 0 0)
               (vector 0 1 0 0)
               (vector 0 0 1 0)
-              (vector 0 0 0 1)))
-      (let B (vector
-              (vector 1 0 0 0)
-              (vector 0 1 0 0)
-              (vector 0 0 1 0)
-              (vector 0 0 0 1)))
-#|      
-      (let Bt (make-vector 4))
-      (for (j 0 (length (vector-ref B 0)))
-        (let io (iota 4))
-        (let row (kernel ((i (var io)))
-                   (vector-ref (vector-ref B (var j)) (var i))))
-        (vector-set! (var Bt) (var j) (var row)))
-
-      (let C (make-vector 4))
-      (for (i 0 (length (var A)))
-        (let C_row (make-vector 4))
-        (vector-set! (var C) (var i) (var C_row)))
-      
-      (for (row_index 0 (length (var A)))
-        (let row (vector-ref A (var row_index)))
-        (for (col_index 0 (length (var Bt)))
-          (let col (vector-ref Bt (var col_index)))
-          (let c (reduce +
-                   (kernel ((x (var row)) (y (var col)))
-                     (* (var x) (var y)))))
-          (vector-set! (vector-ref C (var row_index)) (var col_index) (var c))))
-      
-      (assert (= (var C) (var A)))
-|#
-      (return 0)))
+              (vector 0 0 0 1))))
+      (return 0))))
