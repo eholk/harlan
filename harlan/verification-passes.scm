@@ -50,7 +50,7 @@
     (Module (module Decl +))
     (Decl
       (extern Var (Type *) -> Type)
-      (fn Var (Var *) Value +)
+      (fn Var (Var *) Value +) ;; depricated, use define instead
       (define (Var Var *) Value +))
     (Value
       char
@@ -72,7 +72,7 @@
       (if Value Value Value)
       (return)
       (return Value)
-      (var Var)
+      (var Var) ;; depricated, vars do not need tags
       (vector Value +)
       (vector-ref Value Value)
       (kernel ((Var Value) +) Value * Value)
