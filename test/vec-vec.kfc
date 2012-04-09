@@ -3,6 +3,6 @@
 (module
  (define (main)
      (let X (vector (vector 1)))
-     (print (vector-ref (vector-ref (var X) 0) 0))
-     (assert (= 1 (vector-ref (vector-ref (var X) 0) 0)))
+     (print (vector-ref (vector-ref X 0) 0))
+     (assert (= 1 (vector-ref (vector-ref X 0) 0)))
      (return 0)))

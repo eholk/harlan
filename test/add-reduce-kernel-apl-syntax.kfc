@@ -8,6 +8,6 @@
       (let X (vector 2 2 3 4))
       (let Y (vector 5 3 4 7))
       (let z (reduce + (kernel ((x X) (y Y))
-               (* (var x) (var y)))))
+               (* x y))))
       (assert (= z 56))
       (return 0)))

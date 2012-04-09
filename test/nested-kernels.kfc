@@ -11,6 +11,6 @@
 			(vector 10 11 12)))
       (let total (reduce + (kernel ((row Rows))
       	           (reduce + (kernel ((x row))
-		               (var x))))))
+		               x)))))
       (assert (= total 78))
       (return 0)))

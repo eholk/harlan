@@ -3,5 +3,5 @@
 (module
   (define (main)
       (let x 42)
-      (print (var x))
+      (print x)
       (return 0)))

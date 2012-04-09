@@ -6,5 +6,5 @@
               (vector 17)))
 
       (let row (vector-ref (vector-ref B 0) 0))
-      (print (var row))
+      (print row)
       (return 0)))

@@ -20,21 +20,21 @@
 
       (for (j 0 (length (vector-ref B 0)))
         (let ((io (iota 4)))
-          (let ((row (kernel ((i (var io)))
-                       (vector-ref (vector-ref B (var j)) (var i)))))
-            (vector-set! (var Bt) (var j) (var row)))))
+          (let ((row (kernel ((i io))
+                       (vector-ref (vector-ref B j) i))))
+            (vector-set! Bt j row))))
 
-      (for (row_index 0 (length (var A)))
-        (let row (vector-ref A (var row_index)))
-        (for (col_index 0 (length (var Bt)))
-          (let col (vector-ref Bt (var col_index)))
+      (for (row_index 0 (length A))
+        (let row (vector-ref A row_index))
+        (for (col_index 0 (length Bt))
+          (let col (vector-ref Bt col_index))
           (let c (reduce +
-                   (kernel ((x (var row)) (y (var col)))
-                     (* (var x) (var y)))))
-          (vector-set! (vector-ref C (var row_index)) (var col_index) (var c))))
+                   (kernel ((x row) (y col))
+                     (* x y))))
+          (vector-set! (vector-ref C row_index) col_index c)))
 
       ;; TODO: we don't generate correct code for vector comparison
-      ;;(assert (= (var C) (var A)))
+      ;;(assert (= C A))
       ;; so instead we'll use loops.
       (for (i 0 (length C))
         (for (j 0 (length (vector-ref C 0)))
