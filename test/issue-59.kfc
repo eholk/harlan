@@ -1,4 +1,9 @@
-(module 
+;; -*- scheme -*-
+
+(%testspec xfail)
+
+(module
   (define (main)
     (let ((v (make-vector 10)))
       (return 0))))
+>>>>>>> Added a test case for issue #59.
