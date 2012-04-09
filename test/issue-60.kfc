@@ -1,7 +1,5 @@
 ;; -*- scheme -*-
 
-(%testspec xfail)
-
 (module
   (define (main)
     (print

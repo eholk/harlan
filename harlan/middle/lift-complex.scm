@@ -13,17 +13,14 @@
        (lift-expr e (lambda (e) (finish `(int->float ,e)))))
       ((begin ,[lift-stmt -> stmt*] ... ,e)
        (lift-expr e
-         (lambda (e) (finish `(begin ,@stmt* ,e)))))
-      ((let ((,x* ,e*) ...) ,expr)
-       (let loop ((e* e*) (e*^ '()))
-         (if (null? e*)
-             (lift-expr
-               expr
-               (lambda (expr)
-                 `(let (,@(map list x* (reverse e*^))) ,(finish expr))))
-             (Expr
-               (car e*)
-               (lambda (e^) (loop (cdr e*) (cons e^ e*^)))))))
+         (lambda (e) `(begin ,@stmt* ,(finish e)))))
+      ((let () ,expr)
+       (lift-expr expr (lambda (expr) (finish expr))))
+      ((let ((,x ,e) . ,rest) ,expr)
+       (Expr e
+         (lambda (e)
+           `(let ((,x ,e))
+              ,(lift-expr `(let ,rest ,expr) finish)))))
       ((if ,test ,conseq ,alt)
        (lift-expr
          test
@@ -147,13 +144,12 @@
    (lift-expr expr (lambda (e^) `(assert ,e^))))
   ((set! ,x ,e)
    (lift-expr e (lambda (e^) `(set! ,x ,e^))))
-  ((let ((,x* ,e*) ...) ,[stmt])
-   (let loop ((e* e*) (e*^ '()))
-     (if (null? e*)
-         `(let (,@(map list x* (reverse e*^))) ,stmt)
-         (Expr
-           (car e*)
-           (lambda (e^) (loop (cdr e*) (cons e^ e*^)))))))
+  ((let () ,[stmt]) stmt)
+  ((let ((,x ,e) . ,rest) ,stmt)
+   (Expr e
+     (lambda (e)
+       `(let ((,x ,e))
+          ,(lift-stmt `(let ,rest ,stmt))))))
   ((if ,test ,conseq)
    (lift-expr test (lambda (t) `(if ,t ,conseq))))
   ((if ,test ,conseq ,alt)
