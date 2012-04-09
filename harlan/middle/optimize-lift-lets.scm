@@ -49,7 +49,7 @@
     (() (values '() '()))
     (((,x ,e) . ,[liftable pinned])
      ;; TODO: get a more correct test for whether this can be lifted
-     (if (let ((fv (free-vars e)))
+     (if (let ((fv (free-vars-Expr e)))
            (and (not (member x fv))
                 (null? (intersection vars fv))
                 (pure? e)))
@@ -98,7 +98,7 @@
   (define-match Expr
     (,e (values e '())))
 
-  (define-match free-vars
+  (define-match free-vars-Expr
     ((,t ,x) (guard (scalar-type? t)) '())
     ((var ,t ,x) (list x))
     ((,op ,[e1] ,[e2])
@@ -125,15 +125,24 @@
      (union e (apply union s*))))
 
   (define-match free-vars-Stmt
-    ((set! ,[free-vars -> x] ,[free-vars -> v])
+    ((print ,[free-vars-Expr -> fv*]) fv*)
+    ((assert ,[free-vars-Expr -> fv*]) fv*)
+    ((return) `())
+    ((return ,[free-vars-Expr -> fv*]) fv*)
+    ((for (,x ,[free-vars-Expr -> sfv*] ,[free-vars-Expr -> efv*]) ,[fv*])
+     (union sfv* efv* (difference fv* `(,x))))
+    ((set! ,[free-vars-Expr -> x] ,[free-vars-Expr -> v])
      (union x v))
-    ((if ,[free-vars -> test] ,[conseq])
+    ((vector-set! ,t ,[free-vars-Expr -> x]
+       ,[free-vars-Expr -> fv1*] ,[free-vars-Expr -> fv2*])
+     (union x fv1* fv2*))
+    ((if ,[free-vars-Expr -> test] ,[conseq])
      (union test conseq))
-    ((if ,[free-vars -> test] ,[conseq] ,[altern])
+    ((if ,[free-vars-Expr -> test] ,[conseq] ,[altern])
      (union test conseq altern))
-    ((while ,[free-vars -> test] ,[body])
+    ((while ,[free-vars-Expr -> test] ,[body])
      (union test body))
-    ((let ((,x* ,[free-vars -> e*]) ...) ,[e])
+    ((let ((,x* ,[free-vars-Expr -> e*]) ...) ,[e])
      (apply union (cons (difference e x*) e*)))
     ((begin ,[s*] ...)
      (apply union s*)))
