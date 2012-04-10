@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# This gets the machine type in the format used by Chez Scheme.
+# It echoes that machine type to stdout.
+
+#MT=`echo '(display (machine-type))' | $REGIMENTD/depends/petite -q`
+
+# It's a little tricky to do using uname...
+MACHINE=`uname -s -m`
+if   [ "$MACHINE" == "Linux i686" ];             then MT=i3le;
+elif [ "$MACHINE" == "Linux i586" ];             then MT=i3le;
+elif [ "$MACHINE" == "Linux x86_64" ];           then MT=a6le;
+elif [ "$MACHINE" == "Darwin Power Macintosh" ]; then MT=ppcosx;
+#elif [ "$MACHINE" == "Darwin i386" ];            then MT=i3osx;
+# All macs are going to be 64 bit nowadays [2010.06.25]:
+elif [ "$MACHINE" == "Darwin i386" ];            then MT=a6osx;
+elif [ "$MACHINE" == "Darwin x86_64" ];          then MT=a6osx;
+elif [ "$MACHINE" == "CYGWIN_NT-5.1 i686" ];     then MT=i3nt;
+else echo Unknown platform for scheme system: $MACHINE;
+     exit -1;
+fi
+
+
+
+if [ "$1" == "--threaded" ]; then
+#if [ "$*" ~= "--threaded" ]; then
+ # This is a hack that isn't valid for all machine types:
+ echo t"$MT"
+else
+ echo "$MT"
+fi

@@ -88,3 +88,34 @@ rt/libharlanrt.a : rt/*.h rt/*.cpp
 .phony: docs
 docs: update-submodules
 	make -C doc
+
+#============================================================
+# For JIT support we embed Chez Scheme in a static library:
+
+# MACHINE = $(shell $(REGIMENTD)/apps/reuters/runtime/chez_machine_type_threaded)
+MACHINE = $(shell ./util/chez_machine_type)
+CHEZP = $(CHEZD)/boot/$(MACHINE)
+STATICLIBS =
+UNAME = $(shell uname -s)
+
+LIBS = -lm -ldl -lncurses -lpthread 
+ifeq ($(UNAME), Linux)
+  LIBS+= -lrt
+endif
+ifeq ($(UNAME), Darwin)
+  LIBS+= -liconv
+endif
+
+
+libharlanjit.a: harlan_jit.c harlan_jit.h
+	@if [ -d "$(CHEZD)" ]; then echo; else echo "ERROR: CHEZD ($(CHEZD)) does not exist."; exit 1; fi
+	gcc -c -fPIC -I $(CHEZP) harlan_jit.c -o harlan_jit.o
+	ar rcs libharlanjit.a harlan_jit.o $(CHEZP)/kernel.o $(STATICLIBS)
+	@echo;echo MADE SHARED LIBRARY; echo; echo
+
+example_jit.exe: example_jit.c libharlanjit.a
+	gcc -c -I $(CHEZP) example_jit.c
+	gcc $(LIBS) libharlanjit.a example_jit.o -o example_jit.exe
+
+#	$(CC) $(FLAGS) -c -I $(CHEZP) example_main.c 
+#	$(CC) $(FLAGS) $(LIBS) example_main.o libwsq_runtime.a -o example_main.exe
