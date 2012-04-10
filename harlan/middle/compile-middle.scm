@@ -12,6 +12,7 @@
     (harlan middle remove-nested-kernels)
     (harlan middle optimize-lift-lets)
     (harlan middle returnify-kernels)
+    (harlan middle make-vector-refs-explicit)
     (harlan middle uglify-vectors)
     (harlan middle annotate-free-vars)
     (harlan middle hoist-kernels)
@@ -36,6 +37,8 @@
     verify-optimize-lift-lets
     returnify-kernels
     verify-returnify-kernels
+    make-vector-refs-explicit
+    verify-make-vector-refs-explicit
     lower-vectors
     verify-lower-vectors
     uglify-vectors

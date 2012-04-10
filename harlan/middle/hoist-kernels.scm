@@ -68,22 +68,21 @@
     ;;
     ;; We can also let-bind vars to the cell we care about, then
     ;; replace everything with a deref. That'll be cleaner.
-    `(kernel ,name ,(cons `(g_region (ptr region))
-                          (append (map list xs* ts*)
-                                  (map list fv* ft*)))
+    `(kernel ,name ,(append (map list xs* ts*)
+                            (map list fv* ft*))
              (begin
-               ,@(apply
-                  append
-                  (map
-                   (lambda (x t xs ts d)
-                     `((let ,x (ptr ,t)
-                            (addressof
-                             (vector-ref
-                              ,t ,(adjust-ptr `(var ,ts ,xs))
-                              (call
-                               (c-expr ((int) -> int) get_global_id)
-                               (int ,d)))))))
-                   x* t* xs* ts* dim))
+               ;; ,@(apply
+               ;;    append
+               ;;    (map
+               ;;     (lambda (x t xs ts d)
+               ;;       `((let ,x (ptr ,t)
+               ;;              (addressof
+               ;;               (vector-ref
+               ;;                ,t ,(adjust-ptr `(var ,ts ,xs))
+               ;;                (call
+               ;;                 (c-expr ((int) -> int) get_global_id)
+               ;;                 (int ,d)))))))
+               ;;     x* t* xs* ts* dim))
                ,@(apply
                   append
                   (map (lambda (fv ft)
@@ -93,26 +92,26 @@
                                     ,(adjust-ptr `(var ,ft ,fv)))))
                            (,else '())))
                        fv* ft*))
-               . ,(replace-vec-refs stmt* x* xs* ts*)))))
+               . ,stmt*))))
 
-(define replace-vec-refs
-  (lambda (stmt* x* xs* ts*)
-    (map
-      (lambda (stmt)
-        (fold-left 
-          (lambda (stmt x xs ts)
-            (let ((t (match ts
-                       ((vec ,t ,n) t)
-                       (,else (error 'replace-vec-refs
-                                "Unknown type"
-                                else)))))
-                 (match stmt
-                   ((var ,t ,y) (guard (eq? x y))
-                    `(deref (var ,t ,x)))
-                   ((,[x*] ...) x*)
-                   (,x x))))
-             stmt x* xs* ts*))
-      stmt*)))
+;; (define replace-vec-refs
+;;   (lambda (stmt* x* xs* ts*)
+;;     (map
+;;       (lambda (stmt)
+;;         (fold-left 
+;;           (lambda (stmt x xs ts)
+;;             (let ((t (match ts
+;;                        ((vec ,t ,n) t)
+;;                        (,else (error 'replace-vec-refs
+;;                                 "Unknown type"
+;;                                 else)))))
+;;                  (match stmt
+;;                    ((var ,t ,y) (guard (eq? x y))
+;;                     `(deref (var ,t ,x)))
+;;                    ((,[x*] ...) x*)
+;;                    (,x x))))
+;;              stmt x* xs* ts*))
+;;       stmt*)))
 
 ;; end library
 )

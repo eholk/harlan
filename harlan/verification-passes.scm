@@ -11,6 +11,7 @@
     verify-typecheck
     verify-lower-vectors
     verify-returnify-kernels
+    verify-make-vector-refs-explicit
     verify-remove-nested-kernels
     verify-uglify-vectors
     verify-annotate-free-vars
@@ -348,7 +349,29 @@
       (iota (int Integer))
       Expr))
 
-  (lower-vectors (%inherits Module Decl Body)
+  (make-vector-refs-explicit (%inherits Module Decl Body Stmt Let-Expr)
+    (Start Module)
+    (Expr
+      (char Char)
+      (int Integer)
+      (u64 Number)
+      (float Float)
+      (str String)
+      (var Type Var)
+      (int->float Expr)
+      (length Expr)
+      (addressof Expr)
+      (cast Type Expr)
+      (c-expr C-Type Var)
+      (if Expr Expr Expr)
+      (let ((Var Let-Expr) *) Expr)
+      (call Expr Expr *)
+      (vector-ref Type Expr Expr)
+      (Binop Expr Expr)
+      (Relop Expr Expr))
+    (C-Type c-type cl-type Type))
+
+  (lower-vectors (%inherits Module Decl Body C-Type)
     (Start Module)
     (Stmt 
       (print Expr)
@@ -381,10 +404,13 @@
       (call Expr Expr *)
       (vector-ref Type Expr Expr)
       (length Expr)
+      (addressof Expr)
+      (cast Type Expr)
+      (c-expr C-Type Var)
       (Relop Expr Expr)
       (Binop Expr Expr)))
 
-  (uglify-vectors (%inherits Module)
+  (uglify-vectors (%inherits Module C-Type)
     (Start Module)
     (Decl
      (extern Var (Type *) -> Type)
@@ -429,7 +455,7 @@
       (Binop Expr Expr)))
 
   (annotate-free-vars
-    (%inherits Module Decl Expr Body)
+    (%inherits Module Decl Expr Body C-Type)
     (Start Module)
     (Stmt 
       (print Expr)
@@ -447,7 +473,7 @@
       (do Expr)
       Ret-Stmt))
 
-  (flatten-lets (%inherits Module Decl)
+  (flatten-lets (%inherits Module Decl C-Type)
     (Start Module)
     (Body
       (begin Stmt * Body)
@@ -486,7 +512,7 @@
       (Relop Expr Expr)
       (Binop Expr Expr)))
 
-  (hoist-kernels (%inherits Module Body)
+  (hoist-kernels (%inherits Module Body C-Type)
     (Start Module)
     (Decl
       (gpu-module Kernel *)
@@ -525,8 +551,7 @@
       (addressof Expr)
       (vector-ref Type Expr Expr)
       (Relop Expr Expr)
-      (Binop Expr Expr))
-    (C-Type c-type cl-type Type))
+      (Binop Expr Expr)))
 
   (move-gpu-data
     (%inherits Module Kernel Decl Expr Body C-Type)

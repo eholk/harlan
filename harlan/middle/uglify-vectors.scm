@@ -114,7 +114,13 @@
      ((vec ,t ,n)
       `(int ,n))
      (,else (error 'uglify-expr "Took length of non-vector"
-              else (expr-type e))))))
+              else (expr-type e)))))
+  ((addressof ,[expr])
+   `(addressof ,expr))
+  ((cast ,t ,[expr])
+   `(cast ,t ,expr))
+  ((c-expr ,c-type ,var)
+   `(c-expr ,c-type ,var)))
 
 (define uglify-vector-ref
   (lambda (t e i)
