@@ -31,6 +31,8 @@
 
 (vprintf 1 " <Harlan> Loading compiler, machine type ~a...\n" (machine-type))(flush-output-port)
 
+(library-directories (cons (getenv "HARLAND") (library-directories)))
+
 (import
   (chezscheme)
   (harlan compile-opts)
