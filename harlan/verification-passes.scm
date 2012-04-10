@@ -23,6 +23,7 @@
     verify-print-c)
   (import
     (rnrs)
+    (harlan helpers)
     (elegant-weapons helpers)
     (util verify-grammar))
 

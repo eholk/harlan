@@ -1,7 +1,8 @@
 (library
   (harlan middle compile-module)
   (export compile-module)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
 
 ;; This compile kernel is used in the compile-module pass.
 (define-match compile-kernel^

@@ -1,7 +1,8 @@
 (library
   (harlan middle hoist-kernels)
   (export hoist-kernels)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
 
 ;; This pass is probably too big. It finds all the kernel
 ;; expressions, hoists them into a GPU module, replaces the old

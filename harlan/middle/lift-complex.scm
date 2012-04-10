@@ -1,7 +1,8 @@
 (library
   (harlan middle lift-complex)
   (export lift-complex)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
   
 (define lift-expr
   (lambda (expr finish)

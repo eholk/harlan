@@ -1,7 +1,8 @@
 (library
   (harlan front returnify)
   (export returnify)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
   
 (define-match returnify
   ((module ,[returnify-decl -> decl*] ...)

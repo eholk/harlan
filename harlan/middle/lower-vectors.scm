@@ -1,7 +1,8 @@
 (library
   (harlan middle lower-vectors)
   (export lower-vectors)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
 
 (define-match lower-vectors
   ((module ,[lower-decl -> fn*] ...)

@@ -1,7 +1,8 @@
 (library
   (harlan middle returnify-kernels)
   (export returnify-kernels)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
   
 (define-match returnify-kernels
   ((module ,[returnify-kernel-decl -> fn*] ...)

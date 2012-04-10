@@ -1,7 +1,8 @@
 (library
   (harlan middle move-gpu-data)
   (export move-gpu-data)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
   
 (define-match move-gpu-data
   ((module ,[Decl -> decl*] ...)

@@ -3,6 +3,7 @@
   (export make-kernel-dimensions-explicit)
   (import
    (rnrs)
+   (harlan helpers)
    (elegant-weapons helpers))
 
   (define-match make-kernel-dimensions-explicit

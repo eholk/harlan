@@ -1,7 +1,8 @@
 (library
   (harlan front nest-lets)
   (export nest-lets)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
 
 (define-match nest-lets
   ((module ,[Decl -> decl*] ...)

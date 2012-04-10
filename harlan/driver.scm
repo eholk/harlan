@@ -1,12 +1,12 @@
 (library
-    (harlan driver)
+  (harlan driver)
   (export get-cflags g++-compile-stdin read-source)
   (import
-   (chezscheme)
-   (only (elegant-weapons helpers) join)
-   (elegant-weapons match)
-   (util system)
-   (harlan compile-opts))
+    (chezscheme)
+    (only (elegant-weapons helpers) join)
+    (elegant-weapons match)
+    (util system)
+    (harlan compile-opts))
 
   (define (get-cflags)
     (case (get-os)

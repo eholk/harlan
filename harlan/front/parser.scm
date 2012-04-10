@@ -1,7 +1,10 @@
 (library
   (harlan front parser)
   (export parse-harlan)
-  (import (rnrs) (elegant-weapons helpers))
+  (import
+    (rnrs)
+    (harlan helpers)
+    (elegant-weapons helpers))
 
 ;; parse-harlan takes a syntax tree that a user might actually want
 ;; to write and converts it into something that's more easily

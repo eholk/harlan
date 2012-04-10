@@ -3,6 +3,7 @@
   (export annotate-free-vars)
   (import
    (rnrs)
+   (harlan helpers)
    (elegant-weapons helpers)
    (elegant-weapons sets))
 
