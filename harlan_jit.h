@@ -12,8 +12,8 @@ void HarlanInit();
 void HarlanShutdown();
 
 // Compile individual function definitions and invoke them:
-void HarlanJit(const char* inputsig, const char* outputsig, const char* name, const char* definition);
-void HarlanRun(const char* inputsig, const char* outputsig, void** inputs, void** outputs);
+harlan_handle_t HarlanJit(const char* inputsig, const char* outputsig, const char* name, const char* definition);
+void HarlanRun(harlan_handle_t fn, const char* inputsig, const char* outputsig, void* inputs, void* outputs);
 
 #ifdef __cplusplus 
 } // End extern C

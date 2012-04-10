@@ -10,12 +10,12 @@ int main(int argc, char* argv[]) {
   HarlanInit();
 
   printf("[client] Compiling a simple kernel:\n");
-  // HarlanJit("1F", "1F", "foo", "(define (foo arr) (print arr))");
+  harlan_handle_t hndl = HarlanJit("1F", "1F", "foo", "(define (foo arr) (print arr))");
 
   printf("[client] Next invoking the kernel with a small array...\n");
-  //  HarlanRun
+  HarlanRun(hndl, "1F", "1F", NULL, NULL);
 
-  printf("[client] Finally calling shutdown\n");
+  printf("[client] Finally, calling shutdown...\n");
   HarlanShutdown();
   printf("[client] Shutdown finished\n");
 }

@@ -9,6 +9,26 @@
       [else (error "invalid setting for HARLAN_VERBOSE: ~a" mode)])))
 (define (vprintf lvl . args) (when (>= verbose-mode lvl) (apply printf args)))
 
+(define (HarlanJit insig outsig name def)
+  (printf "  *** JITing: ~a ~a ~a ~a (FINISH ME)\n" insig outsig name def)
+  999
+  )
+
+(define HarlanJit-entry 
+  (let ([x (foreign-callable HarlanJit (string string string string) int)])
+    (lock-object x)
+    (foreign-callable-entry-point x)))
+
+(define (HarlanRun hndl insig outsig arrin arrout)
+  (printf "  *** Running: ~a ~a (FINISH ME)\n" insig outsig)
+  )
+
+(define HarlanRun-entry 
+  (let ([x (foreign-callable HarlanRun (int string string void* void*) void)])
+    (lock-object x)
+    (foreign-callable-entry-point x)))
+
+
 (vprintf 1 " <Harlan> Loading compiler, machine type ~a...\n" (machine-type))(flush-output-port)
 
 (import

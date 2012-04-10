@@ -40,9 +40,9 @@
 // First, function pointers to all of the relevant calls.  These point
 // to scheme functions.
 
-void (*Scheme_HarlanJit)(const char* inputsig, const char* outputsig, const char* name, const char* definition);
+int (*Scheme_HarlanJit)(const char* inputsig, const char* outputsig, const char* name, const char* definition);
 
-void (*Scheme_HarlanRun)(const char* inputsig, const char* outputsig, void** inputs, void** outputs);
+void (*Scheme_HarlanRun)(int fn, const char* inputsig, const char* outputsig, void* inputs, void* outputs);
 
 
 //==============================================================================
@@ -52,14 +52,14 @@ void (*Scheme_HarlanRun)(const char* inputsig, const char* outputsig, void** inp
    want to expose the fact that we are using function pointers.
 */
 
-void HarlanJit(const char* inputsig, const char* outputsig, const char* name, const char* definition) {
+int HarlanJit(const char* inputsig, const char* outputsig, const char* name, const char* definition) {
   if (verbose>=3) printf(" <Harlan> Calling scheme function for HarlanJit...\n");
-  Scheme_HarlanJit(inputsig, outputsig, name, definition);
+  return Scheme_HarlanJit(inputsig, outputsig, name, definition);
 }
 
-void HarlanRun(const char* inputsig, const char* outputsig, void** inputs, void** outputs) {
+void HarlanRun(harlan_handle_t fn, const char* inputsig, const char* outputsig, void* inputs, void* outputs) {
   if (verbose>=3) printf(" <Harlan> Calling scheme function for HarlanJit...\n");
-  Scheme_HarlanRun(inputsig, outputsig, inputs, outputs);
+  Scheme_HarlanRun(fn, inputsig, outputsig, inputs, outputs);
 }
 
 
@@ -134,8 +134,15 @@ void HarlanInit(const char* outfile) {
       abort(); 
   }
 
-  if (verbose>=1) printf(" <Harlan> Scheme is up!\n");
+  if (verbose>=2) printf(" <Harlan> Scheme is up!\n");
+  
+  ptr jitptr =  Stop_level_value( Sstring_to_symbol("HarlanJit-entry"));
+  ptr runptr =  Stop_level_value( Sstring_to_symbol("HarlanRun-entry"));
 
+  Scheme_HarlanJit = (int(*)(const char*,const char*,const char*, const char*))Sinteger_value(jitptr);
+  Scheme_HarlanRun = (void(*)(int,const char*,const char*,void*,void*))        Sinteger_value(runptr);
+
+  if (verbose>=2) printf(" <Harlan> Scheme entrypoint handles acquired, initialization complete.\n");   
 }
 
 
