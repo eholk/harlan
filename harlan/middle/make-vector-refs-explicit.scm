@@ -54,6 +54,9 @@
     ((vec ,t ,n)
      (guard (scalar-type? t))
      `(cast (ptr ,t)
+            ;; This is generating  already uglified vector code. Since
+            ;;  this is  now happening  before uglify-vectors,  we can
+            ;; generate non-ugly code. We need to FIX THIS!!!!!!!!
             (call (c-expr (((ptr region) ,t) -> (ptr ,t))
                           get_region_ptr)
                   (var (ptr region) g_region)
