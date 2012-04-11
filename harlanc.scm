@@ -1,0 +1,41 @@
+#! /usr/bin/env scheme-script
+;; -*- scheme -*-
+(import
+  (chezscheme)
+  (harlan compile-opts)
+  (harlan driver)
+  (elegant-weapons print-c)
+  (harlan compiler)
+  (util system) ;; HARLAND
+  )
+
+;; This could be set from the env var HARLAND, or based on the
+;; directory in which this script resides.  Using the latter:
+(HARLAND (path-parent (car (command-line))))
+
+;; Converts foo/bar.kfc to bar
+(define (output-filename input)
+  (let ((base (path-last (path-root input))))
+    (if (make-shared-object)
+        (string-append base ".so")
+        base)))
+
+(define print-compile-harlan
+  (lambda (filename)
+    (let-values (((input testspec) (read-source filename)))
+      (if (assq 'iterate testspec)
+          (error 'harlanc
+                 "Test iteration is not supported. Use run-tests.scm instead.")
+          (let* ((c-expr (compile-harlan input))
+                 (c-code (format-c c-expr)))
+            (if (verbose) (printf c-code))
+            (g++-compile-stdin c-code (output-filename filename)))))))
+
+;; (trace-pass
+;;  'remove-nested-kernels
+;;  'optimize-lift-lets)
+
+(let ((args (parse-args (cdr (command-line)))))
+  (unless (null? args)
+    (let ((filename (car args)))
+      (print-compile-harlan filename))))

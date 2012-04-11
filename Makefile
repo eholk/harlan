@@ -47,6 +47,14 @@ check : test.bin gc/lib/libgc.a rt/libharlanrt.a update-submodules
 	@./run-tests.scm
 	@echo $(ECHO_ESCAPE) "\033[32mAll tests succeeded.\033[39m"
 
+# Shorthands:
+.phony: gc
+gc: gc/lib/libgc.a
+
+.phony: rt
+rt: rt/libharlanrt.a
+
+
 .phony: update-submodules
 update-submodules: .gitmodules
 	git submodule init
