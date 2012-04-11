@@ -86,6 +86,7 @@
      (union tfv* cfv* afv*)))
   ((sizeof ,t) (values `(sizeof ,t) '()))
   ((addressof ,[e fv*]) (values `(addressof ,e) fv*))
+  ((deref ,[e fv*]) (values `(deref ,e) fv*))
   ((,op ,[lhs lfv*] ,[rhs rfv*])
    (guard (or (binop? op) (relop? op)))
    (values `(,op ,lhs ,rhs) (union lfv* rfv*)))

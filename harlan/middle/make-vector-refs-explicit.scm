@@ -19,7 +19,7 @@
    (make-begin stmt*))
   ((kernel ,t ,dims (((,x* ,t*) (,xs* ,ts*) ,d*) ...) ,[stmt])
    `(kernel ,t ,dims (((,x* ,t*) (,xs* ,ts*) ,d*) ...)
-            ,(generate-kernel x* t* xs* ts* d* stmt)))
+            ,(generate-kernel x* t* xs* d* stmt)))
   ((print ,[explicify-expr -> expr])
    `(print ,expr))      
   ((assert ,[explicify-expr -> expr])
@@ -54,56 +54,58 @@
     ((vec ,t ,n)
      (guard (scalar-type? t))
      `(cast (ptr ,t)
-            ;; This is generating  already uglified vector code. Since
-            ;;  this is  now happening  before uglify-vectors,  we can
-            ;; generate non-ugly code. We need to FIX THIS!!!!!!!!
-            (call (c-expr (((ptr region) ,t) -> (ptr ,t))
-                          get_region_ptr)
-                  (var (ptr region) g_region)
-                  ,xs)))))
+        ;; This is generating already uglified vector code. Since this
+        ;; is now happening before uglify-vectors, we can generate
+        ;; non-ugly code. We need to FIX THIS!!!!!!!!
+        (call (c-expr (((ptr region) ,t) -> (ptr ,t))
+                get_region_ptr)
+          (var (ptr region) g_region)
+          ,xs)))))
 
 (define generate-kernel
-  (lambda (x* t* xs* ts* d* stmt)
-    (let ((stmt (replace-vec-refs stmt x*)))
-      `(let ,(map
-              (lambda (x t xs ts d)
-                `(,x 
-                  (addressof
-                   (vector-ref
-                    ,t ,(adjust-ptr ts xs)
-                    (call
-                     (c-expr ((int) -> int) get_global_id)
-                     (int ,d))))))
-              x* t* xs* ts* d*)
-         ,stmt))))
+  (lambda (x* t* xs* d* stmt)
+    `(let ,(map
+             (lambda (x t xs d)
+               `(,x (addressof (vector-ref ,t ,xs (int ,d)))))
+             x* t* xs* d*)
+       ,((replace-vec-refs-stmt x*) stmt))))
 
 (define-match (replace-vec-refs-stmt x*)
-  ((let ((,x ,[(replace-vec-refs-expr x*) -> e]) ...) ,[stmt])
+  ((let ((,x ,[(replace-vec-refs-expr x*) -> e]) ...)
+     ,[(replace-vec-refs-stmt x*) -> stmt])
    `(let ((,x ,e) ...) ,stmt))
-  ((begin ,[stmt*] ...)
+  ((begin ,[(replace-vec-refs-stmt x*) -> stmt*] ...)
    (make-begin stmt*))
   ;; Will this break with nested kernels?
-  ((kernel ,t ,dims (((,x* ,t*) (,xs* ,ts*) ,d*) ...) ,[stmt])
+  ((kernel ,t ,dims (((,x* ,t*) (,xs* ,ts*) ,d*) ...)
+     ,[(replace-vec-refs-stmt x*) -> stmt])
    `(kernel ,t ,dims (((,x* ,t*) (,xs* ,ts*) ,d*) ...)
-            ,(generate-kernel x* t* xs* ts* d* stmt)))
+            ,(generate-kernel x* t* xs* d* stmt)))
   ((print ,[(replace-vec-refs-expr x*) -> expr])
    `(print ,expr))      
   ((assert ,[(replace-vec-refs-expr x*) -> expr])
    `(assert ,expr))
-  ((set! ,x ,i) `(set! ,x ,i))
-  ((if ,[(replace-vec-refs-expr x*) -> test] ,[conseq])
+  ((set! ,[(replace-vec-refs-expr x*) -> x]
+     ,[(replace-vec-refs-expr x*) -> expr])
+   `(set! ,x ,expr))
+  ((if ,[(replace-vec-refs-expr x*) -> test]
+       ,[(replace-vec-refs-stmt x*) -> conseq])
    `(if ,test ,conseq))
-  ((if ,[(replace-vec-refs-expr x*) -> test] ,[conseq] ,[alt])
+  ((if ,[(replace-vec-refs-expr x*) -> test]
+       ,[(replace-vec-refs-stmt x*) -> conseq]
+       ,[(replace-vec-refs-stmt x*) -> alt])
    `(if ,test ,conseq ,alt))
   ((vector-set! ,t
                 ,[(replace-vec-refs-expr x*) -> e1]
                 ,[(replace-vec-refs-expr x*) -> i]
                 ,[(replace-vec-refs-expr x*) -> e2])
    `(vector-set! ,t ,e1 ,i ,e2))
-  ((while ,[(replace-vec-refs-expr x*) -> expr] ,[body])
+  ((while ,[(replace-vec-refs-expr x*) -> expr]
+     ,[(replace-vec-refs-stmt x*) -> body])
    `(while ,expr ,body))
   ((for (,x ,[(replace-vec-refs-expr x*) -> start]
-            ,[(replace-vec-refs-expr x*) -> end]) ,[body])
+            ,[(replace-vec-refs-expr x*) -> end])
+     ,[(replace-vec-refs-stmt x*) -> body])
    `(for (,x ,start ,end) ,body))
   ((return) `(return))
   ((return ,[(replace-vec-refs-expr x*) -> expr])
@@ -119,10 +121,13 @@
    `(int->float ,e))
   ((str ,s) `(str ,s))
   ((var ,t ,x)
+   (display "Here\n")
    (if (memq x x*) `(deref (var ,t ,x)) `(var ,t ,x)))
-  ((let ((,x ,[e]) ...) ,[expr])
+  ((let ((,x ,[(replace-vec-refs-expr x*) -> e]) ...)
+     ,[(replace-vec-refs-expr x*) -> expr])
    `(let ((,x ,e) ...) ,expr))
-  ((begin ,[(replace-vec-refs-stmt x*) -> stmt*] ... ,[expr])
+  ((begin ,[(replace-vec-refs-stmt x*) -> stmt*] ...
+          ,[(replace-vec-refs-expr x*) -> expr])
    `(begin ,@stmt* ,expr))
   ((if ,[(replace-vec-refs-expr x*) -> t]
        ,[(replace-vec-refs-expr x*) -> c]
@@ -138,7 +143,7 @@
    `(length ,e))
   ((,op ,[(replace-vec-refs-expr x*) -> e1]
         ,[(replace-vec-refs-expr x*) -> e2])
-   `(op ,e1 ,e2)))
+   `(,op ,e1 ,e2)))
 
 (define replace-vec-refs
   (lambda (stmt x*)

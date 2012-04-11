@@ -117,10 +117,8 @@
               else (expr-type e)))))
   ((addressof ,[expr])
    `(addressof ,expr))
-  ((cast ,t ,[expr])
-   `(cast ,t ,expr))
-  ((c-expr ,c-type ,var)
-   `(c-expr ,c-type ,var)))
+  ((deref ,[expr])
+   `(deref ,expr)))
 
 (define uglify-vector-ref
   (lambda (t e i)

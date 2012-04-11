@@ -75,6 +75,8 @@
    (values `(sizeof ,t) 'int))
   ((addressof ,[expr t])
    (values `(addressof ,expr) `(ptr int)))
+  ((deref ,[expr t])
+   (values `(deref ,expr) `(ptr int)))
   ((let ((,x* ,[e* t*]) ...) ,[expr t])
    (values
      `(begin
