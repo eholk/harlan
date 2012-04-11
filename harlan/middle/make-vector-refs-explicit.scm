@@ -121,7 +121,6 @@
    `(int->float ,e))
   ((str ,s) `(str ,s))
   ((var ,t ,x)
-   (display "Here\n")
    (if (memq x x*) `(deref (var ,t ,x)) `(var ,t ,x)))
   ((let ((,x ,[(replace-vec-refs-expr x*) -> e]) ...)
      ,[(replace-vec-refs-expr x*) -> expr])
