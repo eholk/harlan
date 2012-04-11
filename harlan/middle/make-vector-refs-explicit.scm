@@ -54,9 +54,6 @@
     ((vec ,t ,n)
      (guard (scalar-type? t))
      `(cast (ptr ,t)
-        ;; This is generating already uglified vector code. Since this
-        ;; is now happening before uglify-vectors, we can generate
-        ;; non-ugly code. We need to FIX THIS!!!!!!!!
         (call (c-expr (((ptr region) ,t) -> (ptr ,t))
                 get_region_ptr)
           (var (ptr region) g_region)
@@ -66,7 +63,11 @@
   (lambda (x* t* xs* d* stmt)
     `(let ,(map
              (lambda (x t xs d)
-               `(,x (addressof (vector-ref ,t ,xs (int ,d)))))
+               `(,x (addressof
+                      (vector-ref ,t ,xs
+                        (call
+                          (c-expr ((int) -> int) get_global_id)
+                          (int ,d))))))
              x* t* xs* d*)
        ,((replace-vec-refs-stmt x*) stmt))))
 
@@ -143,9 +144,5 @@
   ((,op ,[(replace-vec-refs-expr x*) -> e1]
         ,[(replace-vec-refs-expr x*) -> e2])
    `(,op ,e1 ,e2)))
-
-(define replace-vec-refs
-  (lambda (stmt x*)
-    ((replace-vec-refs-stmt x*) stmt)))
 
 )
