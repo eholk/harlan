@@ -81,12 +81,15 @@
   ((vec ,n ,[t]) t)
   (bool 'bool)
   (char 'char)
-  (int 'int))
+  (int 'int)
+  (float 'float)
+  )
 
 (define-match byte-size
   (int `(sizeof int))
   (bool `(sizeof bool))
   (char `(sizeof char))
+  (float `(sizeof float))
   ((vec ,n ,[t]) `(* (int ,n) ,t)))
 
 (define-match compile-expr
