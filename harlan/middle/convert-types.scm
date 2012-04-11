@@ -1,7 +1,8 @@
 (library
   (harlan middle convert-types)
   (export convert-types convert-type)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
   
 ;; This pass converts Harlan types into C types.
 (define-match convert-types
@@ -74,7 +75,7 @@
    `(,op ,lhs ,rhs))
   ((if ,[test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
-  ((sizeof (vec ,[convert-type -> t] ,n)) `(* (int ,n) (sizeof ,t)))
+  ((sizeof (vec ,n ,[convert-type -> t])) `(* (int ,n) (sizeof ,t)))
   ((sizeof ,[convert-type -> t]) `(sizeof ,t))
   ((vector-ref ,[v] ,[i]) `(vector-ref ,v ,i))
   ((cast ,[convert-type -> t] ,[e]) `(cast ,t ,e))
@@ -97,14 +98,14 @@
   ((ptr ,scalar)
    (guard (scalar-type? scalar))
    `(ptr ,scalar))
-  ((ptr (vec ,[find-leaf-type -> t] ,size)) `(ptr ,t))
-  ((vec ,[find-leaf-type -> t] ,size)
+  ((ptr (vec ,size ,[find-leaf-type -> t])) `(ptr ,t))
+  ((vec ,size ,[find-leaf-type -> t])
    `(ptr ,t))
   (((,[t*] ...) -> ,[t])
    `(,t* -> ,t)))
 
 (define-match find-leaf-type
-  ((vec ,[t] ,size) t)
+  ((vec ,size ,[t]) t)
   (,t (guard (scalar-type? t))
     (convert-type t)))
 

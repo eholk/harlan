@@ -1,0 +1,13 @@
+;; -*- scheme -*-
+
+(%testspec xfail)
+
+(module
+  (define (main)
+    (let ((X (vector 1 2 3))
+          (Y (vector 2 3 4))
+          (Z (vector 2 3 4)))
+      (assert (= Y Z))
+      (assert (= (= X Y) #f))
+      (return 0))))
+

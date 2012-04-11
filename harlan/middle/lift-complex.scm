@@ -1,7 +1,8 @@
 (library
   (harlan middle lift-complex)
   (export lift-complex)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
   
 (define lift-expr
   (lambda (expr finish)
@@ -74,7 +75,7 @@
       ((iota (int ,c))
        (let ((v (gensym 'iota)))
          `(let ((,v (iota (int ,c))))
-            ,(finish `(var (vec int ,c) ,v)))))
+            ,(finish `(var (vec ,c int) ,v)))))
       ((reduce ,t ,op ,e)
        (lift-expr
          e

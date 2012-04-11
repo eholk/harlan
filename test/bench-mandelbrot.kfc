@@ -5,7 +5,7 @@
     (max_iter (range 1 5000 100))))
 
 (module
-  (extern write_pgm (str (vec (vec int 1024) 1024)) -> void)
+  (extern write_pgm (str (vec 1024 (vec 1024 int))) -> void)
   (extern nanotime () -> u64)
   (extern print_int_u64 (int u64) -> void)
   

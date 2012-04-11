@@ -3,6 +3,7 @@
   (export optimize-lift-lets verify-optimize-lift-lets)
   (import
    (rnrs)
+   (harlan helpers)
    (elegant-weapons helpers)
    (elegant-weapons sets)
    (harlan verification-passes))

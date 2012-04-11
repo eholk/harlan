@@ -1,7 +1,8 @@
 (library
   (harlan middle lower-vectors)
   (export lower-vectors)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
 
 (define-match lower-vectors
   ((module ,[lower-decl -> fn*] ...)
@@ -14,7 +15,7 @@
 
 (define-match (lower-let finish)
   (() finish)
-  (((,x (vector (vec ,t ,n) . ,e*))
+  (((,x (vector (vec ,n ,t) . ,e*))
     . ,[(lower-let finish) -> rest])
    `(let ((,x (make-vector ,t (int ,n))))
       ,(make-begin
@@ -22,7 +23,7 @@
            (if (null? e*)
                `(,rest)
                `((vector-set!
-                   ,t (var (vec ,t ,n) ,x) (int ,i) ,(car e*))
+                   ,t (var (vec ,n ,t) ,x) (int ,i) ,(car e*))
                  . ,(loop (cdr e*) (+ 1 i))))))))
   
   (((,x (iota (int ,n))) . ,[(lower-let finish) -> rest])
@@ -31,7 +32,7 @@
         (begin
           (for (,i (int 0) (int ,n))
             (vector-set! int
-              (var (vec int ,n) ,x) (var int ,i) (var int ,i)))
+              (var (vec ,n int) ,x) (var int ,i) (var int ,i)))
           ,rest))))
   
   (((,x (reduce ,t2 ,op (var ,tv ,v))) . ,[(lower-let finish) -> rest])

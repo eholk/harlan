@@ -1,7 +1,8 @@
 (library
   (harlan middle remove-nested-kernels)
   (export remove-nested-kernels)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
 
 ;; This pass takes a nest of kernels and turns all but the innermost
 ;; one into for loops. This isn't the best way to do this, but it's
@@ -25,7 +26,7 @@
 
 (define-match (Let finish k?)
   (() (values finish k?))
-  (((,x (kernel (vec ,t ,n) ,dims (((,x* ,t*) (,xs* ,ts*) ,d*) ...)
+  (((,x (kernel (vec ,n ,t) ,dims (((,x* ,t*) (,xs* ,ts*) ,d*) ...)
                 ,[Expr -> e kernel?]))
     . ,[rest _])
    (values
@@ -40,10 +41,10 @@
                                   x* t* xs*))
                        ,((set-kernel-return
                           (lambda (e) `(vector-set!
-                                   ,t (var (vec ,t ,n) ,x) (var int ,i) ,e)))
+                                   ,t (var (vec ,n ,t) ,x) (var int ,i) ,e)))
                          e)))
                 ,rest)))
-         `(let ((,x (kernel (vec ,t ,n) ,dims
+         `(let ((,x (kernel (vec ,n ,t) ,dims
                             (((,x* ,t*) (,xs* ,ts*) ,d*) ...)
                             ,e)))
             ,rest))

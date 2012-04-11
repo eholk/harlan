@@ -1,7 +1,8 @@
 (library
   (harlan middle uglify-vectors)
   (export uglify-vectors)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
 
 ;; Uglify vectors takes our nice surface-level vector syntax and
 ;; converts it into an abomination of C function calls to the generic
@@ -28,13 +29,13 @@
     (match e
       ((int ,y)
        (let-values (((dim t^ sz)
-                     (decode-vector-type `(vec ,t ,n))))
-         `(cast (vec ,t ,n)
+                     (decode-vector-type `(vec ,n ,t))))
+         `(cast (vec ,n ,t)
             (call (c-expr ((int) -> (ptr void)) GC_MALLOC) ,sz))))
       ((var int ,y)
        (let-values (((dim t sz)
-                     (decode-vector-type `(vec ,t ,y))))
-         `(cast (vec ,t ,n)
+                     (decode-vector-type `(vec ,y ,t))))
+         `(cast (vec ,n ,t)
             (call (ptr void) (c-expr GC_MALLOC) ,sz))))
       ((var ,tv ,y)
        ;; TODO: this probably needs a copy instead.
@@ -86,12 +87,12 @@
 (define uglify-vector-set!
   (lambda (t x i v)
     (match t
-      ((vec ,t ,n)
+      ((vec ,n ,t)
        (let-values (((dim t sz)
-                     (decode-vector-type `(vec ,t ,n))))
+                     (decode-vector-type `(vec ,n ,t))))
          `(do (call
                 (c-expr (() -> void) memcpy)
-                ,(uglify-vector-ref `(vec ,t ,n) x i)
+                ,(uglify-vector-ref `(vec ,n ,t) x i)
                 ,v
                 ,sz))))
       (,scalar (guard (symbol? scalar))
@@ -118,7 +119,7 @@
    (uglify-vector-ref t e i))
   ((length ,e)
    (match (expr-type e)
-     ((vec ,t ,n)
+     ((vec ,n ,t)
       `(int ,n))
      (,else (error 'uglify-expr "Took length of non-vector"
               else (expr-type e))))))
@@ -126,7 +127,7 @@
 (define uglify-vector-ref
   (lambda (t e i)
     (match t
-      ((vec ,t ,n)
+      ((vec ,n ,t)
        `(addressof (vector-ref ,t ,e (* ,i (int ,n)))))
       (,scalar
         (guard (symbol? scalar))

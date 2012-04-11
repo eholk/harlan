@@ -3,6 +3,7 @@
   (export make-kernel-dimensions-explicit)
   (import
    (rnrs)
+   (harlan helpers)
    (elegant-weapons helpers))
 
   (define-match make-kernel-dimensions-explicit
@@ -63,8 +64,8 @@
      `(if ,test ,conseq))
     ((reduce ,t ,op ,[e])
      `(reduce ,t ,op ,e))
-    ((kernel (vec ,inner-type ,n) (((,x ,t) (,[xs] ,ts)) ...) ,[body])
-     `(kernel (vec ,inner-type ,n) (,n) (((,x ,t) (,xs ,ts) 0) ...) ,body))
+    ((kernel (vec ,n ,inner-type) (((,x ,t) (,[xs] ,ts)) ...) ,[body])
+     `(kernel (vec ,n ,inner-type) (,n) (((,x ,t) (,xs ,ts) 0) ...) ,body))
     ((let ((,x* ,[e*]) ...) ,[e])
      `(let ((,x* ,e*) ...) ,e))
     ((begin ,[Stmt -> s*] ... ,[e])
