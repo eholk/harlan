@@ -3,18 +3,15 @@
   (export uglify-vectors)
   (import (rnrs) (elegant-weapons helpers))
 
-;; Uglify vectors takes our nice surface-level vector syntax and
-;; converts it into an abomination of C function calls to the generic
-;; vector representation library thing.
-;;
-;; It runs after lower-vectors but before compile-module.
-
 (define-match uglify-vectors
   ((module ,[uglify-decl -> fn*] ...)
-   `(module (global g_region (ptr region)
-                    (call (c-expr ((int) -> (ptr region)) create_region)
-                          ;; 16MB
-                          (int 16777216))) . ,fn*)))
+   `(module
+      (global g_region (ptr region)
+        (call
+         (c-expr ((int) -> (ptr region))
+           create_region)
+         ;; 16MB
+         (int 16777216))) . ,fn*)))
 
 (define-match uglify-decl
   ((fn ,name ,args ,t ,[uglify-stmt -> stmt])
@@ -32,15 +29,17 @@
       ((int ,y)
        (let-values (((dim t^ sz)
                      (decode-vector-type `(vec ,t ,n))))
-         `(call (c-expr (((ptr region) int) -> (vec ,t ,n))
-                        alloc_in_region)
-                (var (ptr region) g_region) ,sz)))
+         `(call
+           (c-expr (((ptr region) int) -> (vec ,t ,n))
+            alloc_in_region)
+           (var (ptr region) g_region) ,sz)))
       ((var int ,y)
        (let-values (((dim t sz)
                      (decode-vector-type `(vec ,t ,y))))
-         `(call (c-expr (((ptr region) int) -> region_ptr)
-                        alloc_in_region)
-                (var (ptr region) g_region) ,sz)))
+         `(call
+           (c-expr (((ptr region) int) -> region_ptr)
+            alloc_in_region)
+           (var (ptr region) g_region) ,sz)))
       ((var ,tv ,y)
        ;; TODO: this probably needs a copy instead.
        `(var ,tv ,y))
@@ -54,7 +53,8 @@
     ,[(uglify-let finish) -> rest])
    (let ((vv (uglify-let-vec t `(int ,n) n)))
      `(let ((,x ,vv)) ,rest)))
-  (((,x ,[uglify-expr -> e]) . ,[(uglify-let finish) -> rest])
+  (((,x ,[uglify-expr -> e])
+    . ,[(uglify-let finish) -> rest])
    `(let ((,x ,e)) ,rest)))
 
 (define-match uglify-stmt
@@ -102,6 +102,8 @@
   ((int->float ,[e]) `(cast float ,e))
   ((call ,[name] ,[args] ...)
    `(call ,name . ,args))
+  ((c-expr ,t ,name)
+   `(c-expr ,t ,name))
   ((if ,[test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
   ((,op ,[lhs] ,[rhs])
@@ -113,8 +115,9 @@
    (match (expr-type e)
      ((vec ,t ,n)
       `(int ,n))
-     (,else (error 'uglify-expr "Took length of non-vector"
-              else (expr-type e)))))
+     (,else
+      (error 'uglify-expr "Took length of non-vector"
+        else (expr-type e)))))
   ((addressof ,[expr])
    `(addressof ,expr))
   ((deref ,[expr])
@@ -125,8 +128,8 @@
     `(vector-ref
       ,t
       (cast (ptr ,t)
-            (call
-             (c-expr (((ptr region) region_ptr) -> (ptr void))
-                     get_region_ptr) (var (ptr region) g_region) ,e))
+       (call
+        (c-expr (((ptr region) region_ptr) -> (ptr void))
+         get_region_ptr) (var (ptr region) g_region) ,e))
       ,i)))
 )
