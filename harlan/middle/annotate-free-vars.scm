@@ -18,13 +18,13 @@
 (define-match (annotate-decl globals)
   ((fn ,name ,args ,type ,[annotate-stmt -> stmt fv*])
    (let ((fv* (fold-right remove fv* (append globals args))))
-     ;; I removed the unbound variable check, because it doesn't work
-     ;; with our new global declaration.
-     `(fn ,name ,args ,type ,stmt)))
+     (if (null? fv*)
+         `(fn ,name ,args ,type ,stmt)
+         (error 'annotate-decl "unbound variables" fv*))))
   ((extern ,name ,arg-types -> ,type)
    `(extern ,name ,arg-types -> ,type))
-  ((global ,type ,name ,[annotate-expr -> e _])
-   `(global ,type ,name ,e)))
+  ((global ,name ,type ,[annotate-expr -> e _])
+   `(global ,name ,type ,e)))
 
 (define-match annotate-stmt
   ((begin ,[stmt* fv**] ...)
