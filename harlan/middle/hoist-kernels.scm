@@ -32,8 +32,14 @@
      ,[hoist-stmt -> stmt* kernel*] ...)
    (let ((k-name (gensym 'kernel)))
      (values
-      `(apply-kernel ,k-name ,xs* ...
-                     ,@(map (lambda (x t) `(var ,t ,x))
+      `(apply-kernel ,k-name 
+                     ,@(map (lambda (x t)
+                              (match t
+                                ((ptr region)
+                                 `(call
+                                   (c-expr (((ptr region)) -> cl_mem) get_cl_buffer)
+                                   (var ,t ,x)))
+                                (,else `(var ,t ,x))))
                             fv* ft*))
       (cons (generate-kernel k-name x* t*
                              (map (lambda (xs) (gensym 'k_arg)) xs*)
@@ -60,7 +66,7 @@
                          (var ,t ,x)))))
 
 (define generate-kernel
-  (lambda (name x* t* xs* ts* dim fv* ft* stmt*)
+  (lambda (name x* t* xs* ts* d* fv* ft* stmt*)
     ;; Plan of attack: replace all vectors with renamed char *'s,
     ;; then immediate use vec_deserialize. Also, for some reason
     ;; the vector refs don't seem to be being lowered like they
@@ -68,8 +74,7 @@
     ;;
     ;; We can also let-bind vars to the cell we care about, then
     ;; replace everything with a deref. That'll be cleaner.
-    `(kernel ,name ,(append (map list xs* ts*)
-                            (map list fv* ft*))
+    `(kernel ,name ,(map list fv* ft*)
              (begin
                ;; ,@(apply
                ;;    append
@@ -83,15 +88,15 @@
                ;;                 (c-expr ((int) -> int) get_global_id)
                ;;                 (int ,d)))))))
                ;;     x* t* xs* ts* dim))
-               ,@(apply
-                  append
-                  (map (lambda (fv ft)
-                         (match ft
-                           ((vec ,t ,n)
-                            `((set! (var ,ft ,fv)
-                                    ,(adjust-ptr `(var ,ft ,fv)))))
-                           (,else '())))
-                       fv* ft*))
+               ;; ,@(apply
+               ;;    append
+               ;;    (map (lambda (fv ft)
+               ;;           (match ft
+               ;;             ((vec ,t ,n)
+               ;;              `((set! (var ,ft ,fv)
+               ;;                      ,(adjust-ptr `(var ,ft ,fv)))))
+               ;;             (,else '())))
+               ;;         fv* ft*))
                . ,stmt*))))
 
 ;; (define replace-vec-refs
