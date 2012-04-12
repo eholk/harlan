@@ -19,6 +19,8 @@
 (define-match Decl
   ((fn ,name ,args . ,[(Expr* '()) -> expr*])
    `(fn ,name ,args . ,expr*))
+  ((define (,name . ,args) . ,[(Expr* '()) -> expr*])
+   `(define (,name . ,args) . ,expr*))
   (,else else))
 
 (define (unroll-lets def* expr*)

@@ -6,13 +6,12 @@
 ;; use loops instead of nested kernels
 
 (module
-  ;;(extern print_2x2_int_vec ((vec (vec int 2) 2)) -> void)
   
-  (fn main ()
+  (define (main)
       (let B (vector
               (vector 1 0)
               (vector 0 1)))
-      ;;(print_2x2_int_vec B)
+      (print B)
       (let Bt (make-vector 2))
       (for (j 0 (length (vector-ref B 0)))
         (let io (iota 2))
@@ -21,5 +20,5 @@
              (vector-set! row i (vector-ref (vector-ref B (var j)) (var i))))
         (vector-set! (var Bt) (var j) (var row)))
       (print "\n")
-      ;;(print_2x2_int_vec Bt)
+      (print Bt)
       (return 0)))
