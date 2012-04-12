@@ -17,7 +17,6 @@
     verify-uglify-vectors
     verify-annotate-free-vars
     verify-hoist-kernels
-    verify-move-gpu-data
     verify-generate-kernel-calls
     verify-compile-module
     verify-convert-types
@@ -34,10 +33,17 @@
   (%static
     (Ret-Stmt (return Expr) (return))
     (Type
-      scalar-type
+      harlan-type
       (vec Integer Type)
       (ptr Type)
       ((Type *) -> Type))
+    (C-Type
+      harlan-c-type
+      harlan-cl-type
+      (ptr C-Type)
+      (const-ptr C-Type)
+      ((C-Type *) -> C-Type)
+      Type)
     (Var ident)
     (Integer integer)
     (Reduceop reduceop)
@@ -261,7 +267,7 @@
    (%inherits Module Decl Body Expr)
    (Start Module)
    (Stmt
-     (let ((Var Expr) *) Stmt)
+     (let ((Var Type Expr) *) Stmt)
      (if Expr Stmt)
      (begin Stmt * Stmt)
      (if Expr Stmt Stmt)
@@ -392,10 +398,9 @@
       (c-expr C-Type Var)
       (vector-ref Type Expr Expr)
       (Binop Expr Expr)
-      (Relop Expr Expr))
-    (C-Type c-type cl-type Type))
+      (Relop Expr Expr)))
 
-  (lower-vectors (%inherits Module Decl Body C-Type)
+  (lower-vectors (%inherits Module Decl Body)
     (Start Module)
     (Stmt 
       (print Expr)
@@ -434,7 +439,7 @@
       (Relop Expr Expr)
       (Binop Expr Expr)))
 
-  (uglify-vectors (%inherits Module C-Type)
+  (uglify-vectors (%inherits Module)
     (Start Module)
     (Decl
      (extern Var (Type *) -> Type)
@@ -479,8 +484,7 @@
       (Relop Expr Expr)
       (Binop Expr Expr)))
 
-  (annotate-free-vars
-    (%inherits Module Decl Expr Body C-Type)
+  (annotate-free-vars (%inherits Module Decl Expr Body)
     (Start Module)
     (Stmt 
       (print Expr)
@@ -498,7 +502,7 @@
       (do Expr)
       Ret-Stmt))
 
-  (flatten-lets (%inherits Module Decl C-Type)
+  (flatten-lets (%inherits Module Decl)
     (Start Module)
     (Body
       (begin Stmt * Body)
@@ -539,7 +543,7 @@
       (Relop Expr Expr)
       (Binop Expr Expr)))
 
-  (hoist-kernels (%inherits Module Body C-Type)
+  (hoist-kernels (%inherits Module Body)
     (Start Module)
     (Decl
       (gpu-module Kernel *)
@@ -567,6 +571,7 @@
       (u64 Number)
       (str String)
       (float Float)
+      (var Type Var)
       (var C-Type Var)
       (c-expr C-Type Var)
       (if Expr Expr Expr)
@@ -580,25 +585,8 @@
       (Relop Expr Expr)
       (Binop Expr Expr)))
 
-  (move-gpu-data
-    (%inherits Module Kernel Decl Expr Body C-Type)
-    (Start Module)
-    (Stmt 
-      (print Expr)
-      (assert Expr)
-      (set! Expr Expr)
-      (apply-kernel Var Expr +)
-      (let Var C-Type Expr)
-      (begin Stmt * Stmt)
-      (if Expr Stmt)
-      (if Expr Stmt Stmt)
-      (for (Var Expr Expr) Stmt)
-      (while Expr Stmt)
-      (do Expr)
-      Ret-Stmt))
-
   (generate-kernel-calls
-    (%inherits Module Kernel Decl Expr Body C-Type)
+    (%inherits Module Kernel Decl Expr Body)
     (Start Module)
     (Stmt
       (print Expr)
@@ -614,7 +602,7 @@
       Ret-Stmt))
 
   (compile-module
-    (%inherits Kernel Body C-Type)
+    (%inherits Kernel Body)
     (Start Module)
     (Module (Decl *))
     (Decl
@@ -628,7 +616,7 @@
       (set! Expr Expr)
       (if Expr Stmt)
       (if Expr Stmt Stmt)
-      (let Var Let-Type Expr)
+      (let Var C-Type Expr)
       (begin Stmt * Stmt)
       (for (Var Expr Expr) Stmt)
       (while Expr Stmt)
@@ -641,7 +629,7 @@
       (str String)
       (float Float)
       (var Var)
-      (c-expr Type Var)
+      (c-expr C-Type Var)
       (deref Expr)
       (field Var +)
       (field Var + Type)
@@ -653,11 +641,7 @@
       (addressof Expr)
       (vector-ref Expr Expr)
       (Relop Expr Expr)
-      (Binop Expr Expr))
-    (Let-Type
-      (cl::buffer C-Type)
-      (cl::buffer_map C-Type)
-      C-Type))
+      (Binop Expr Expr)))
 
   (convert-types (%inherits Module Stmt Body)
     (Start Module)
@@ -688,20 +672,10 @@
       (addressof Expr)
       (vector-ref Expr Expr)
       (Relop Expr Expr)
-      (Binop Expr Expr))
-    (Let-Type
-      (cl::buffer C-Type)
-      (cl::buffer_map C-Type)
-      C-Type)
-    (C-Type
-      (const-ptr C-Type)
-      (ptr C-Type)
-      ((C-Type *) -> C-Type)
-      c-type
-      cl-type))
+      (Binop Expr Expr)))
 
   (compile-kernels
-    (%inherits Module Stmt Expr Let-Type C-Type Body)
+    (%inherits Module Body Stmt Expr)
     (Start Module)
     (Decl
       (include String)
@@ -724,7 +698,7 @@
       (if Expr Body Body))
     (Stmt
       (begin Stmt * Stmt)
-      (let Var Let-Type Expr)
+      (let Var C-Type Expr)
       (if Expr Stmt)
       (if Expr Stmt Stmt)
       (return Expr)
@@ -751,16 +725,7 @@
       (addressof Expr)
       (vector-ref Expr Expr)
       (Relop Expr Expr)
-      (Binop Expr Expr))
-    (Let-Type
-      (cl::buffer C-Type)
-      (cl::buffer_map C-Type)
-      C-Type)
-    (C-Type
-      (const-ptr C-Type)
-      (ptr C-Type)
-      c-type
-      cl-type))
+      (Binop Expr Expr)))
 
   )
 

@@ -1,6 +1,7 @@
 ;; -*- scheme -*-
 
 (module
+  (extern nanotime () -> u64)
   (define (main)
     (let ((start (nanotime)))
       (let ((img (kernel ((i (iota 1024)))

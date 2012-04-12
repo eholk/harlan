@@ -2,7 +2,7 @@
   (harlan middle generate-kernel-calls)
   (export generate-kernel-calls)
   (import (rnrs) (elegant-weapons helpers)
-    (harlan helpers))
+    (except (harlan helpers) type-of))
   
 (define-match generate-kernel-calls
   ((module ,[Decl -> decl*] ...)

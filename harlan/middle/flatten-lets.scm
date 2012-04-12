@@ -56,7 +56,7 @@
   ((addressof ,[expr])
    `(addressof ,expr))
   ((deref ,[expr])
-   `(deref ,[expr]))
+   `(deref ,expr))
   ((let ((,x* ,t* ,[e*]) ...) ,[expr])
    `(begin
       ,@(map (lambda (x t e) `(let ,x ,t ,e)) x* t* e*)

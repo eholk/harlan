@@ -291,7 +291,7 @@
          (== stmt `(write-pgm ,file ,data))
          (== stmto `(write-pgm ,fileo ,datao))
          (infer-expr file env 'str fileo)
-         (infer-expr data env '(vec (vec int 1024) 1024) datao)))
+         (infer-expr data env '(vec 1024 (vec 1024 int)) datao)))
       ((fresh (e e^)
          (== stmt `(assert ,e))
          (== stmto `(assert ,e^))

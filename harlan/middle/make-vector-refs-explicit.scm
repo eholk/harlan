@@ -13,8 +13,8 @@
   (,else else))
 
 (define-match explicify-stmt
-  ((let ((,x ,[explicify-expr -> e]) ...) ,[stmt])
-   `(let ((,x ,e) ...) ,stmt))
+  ((let ((,x ,t ,[explicify-expr -> e]) ...) ,[stmt])
+   `(let ((,x ,t ,e) ...) ,stmt))
   ((begin ,[stmt*] ...)
    (make-begin stmt*))
   ((kernel ,t ,dims (((,x* ,t*) (,xs* ,ts*) ,d*) ...) ,[stmt])
@@ -43,8 +43,8 @@
 (define-match explicify-expr
   ((begin ,[explicify-stmt -> stmt*] ... ,[expr])
    `(begin ,@stmt* ,expr))
-  ((let ((,x ,[e]) ...) ,[expr])
-   `(let ((,x ,e) ...) ,expr))
+  ((let ((,x ,t ,[e]) ...) ,[expr])
+   `(let ((,x ,t ,e) ...) ,expr))
   (,else else))
 
 (define (adjust-ptr ts xs)
@@ -60,11 +60,13 @@
           ,xs)))))
 
 (define (generate-kernel-args x t xs d)
-  `(,x (addressof
-         (vector-ref ,t ,xs
-           (call
-             (c-expr ((int) -> int) get_global_id)
-             (int ,d))))))
+  `(,x
+    (ptr ,t)
+    (addressof
+      (vector-ref ,t ,xs
+        (call
+          (c-expr ((int) -> int) get_global_id)
+          (int ,d))))))
 
 (define generate-kernel
   (lambda (x* t* xs* d* stmt)
@@ -74,9 +76,9 @@
        ,((replace-vec-refs-stmt x*) stmt))))
 
 (define-match (replace-vec-refs-stmt x*)
-  ((let ((,x ,[(replace-vec-refs-expr x*) -> e]) ...)
+  ((let ((,x ,t ,[(replace-vec-refs-expr x*) -> e]) ...)
      ,[(replace-vec-refs-stmt x*) -> stmt])
-   `(let ((,x ,e) ...) ,stmt))
+   `(let ((,x ,t ,e) ...) ,stmt))
   ((begin ,[(replace-vec-refs-stmt x*) -> stmt*] ...)
    (make-begin stmt*))
   ;; Will this break with nested kernels?
@@ -125,9 +127,9 @@
   ((str ,s) `(str ,s))
   ((var ,t ,x)
    (if (memq x x*) `(deref (var ,t ,x)) `(var ,t ,x)))
-  ((let ((,x ,[(replace-vec-refs-expr x*) -> e]) ...)
+  ((let ((,x ,t ,[(replace-vec-refs-expr x*) -> e]) ...)
      ,[(replace-vec-refs-expr x*) -> expr])
-   `(let ((,x ,e) ...) ,expr))
+   `(let ((,x ,t ,e) ...) ,expr))
   ((begin ,[(replace-vec-refs-stmt x*) -> stmt*] ...
           ,[(replace-vec-refs-expr x*) -> expr])
    `(begin ,@stmt* ,expr))

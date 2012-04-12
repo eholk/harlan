@@ -29,8 +29,8 @@
      `(extern ,name ,args -> ,rtype)))
 
   (define-match Stmt
-    ((let ((,x* ,[Expr -> e*]) ...) ,[body])
-     `(let ((,x* ,e*) ...) ,body))
+    ((let ((,x* ,t* ,[Expr -> e*]) ...) ,[body])
+     `(let ((,x* ,t* ,e*) ...) ,body))
     ((set! ,[Expr -> lhs] ,[Expr -> rhs])
      `(set! ,lhs ,rhs))
     ((vector-set! ,t ,[Expr -> v] ,[Expr -> i] ,[Expr -> e])
@@ -45,20 +45,22 @@
      `(for (,x ,start ,stop) ,body))
     ((begin ,[stmt*] ...)
      `(begin . ,stmt*))
-    ((print (vec (vec ,t ,n) ,m) ,[Expr -> e])
+    ((print (vec ,m (vec ,n ,t)) ,[Expr -> e])
      (let ((v (gensym 'v)) (v-row (gensym 'vrow))
            (i (gensym 'i)) (j (gensym 'j)))
-       `(let ((,v ,e))
-          (for (,i (int 0) (length (var (vec (vec ,t ,n) ,m) ,v)))
-            (let ((,v-row (vector-ref (vec ,t ,n)
-                            (var (vec (vec ,t ,n) ,m) ,v)
-                            (var int ,i))))
+       `(let ((,v (vec ,m (vec ,n ,t)) ,e))
+          (for (,i (int 0) (length (var (vec ,m (vec ,n ,t)) ,v)))
+            (let ((,v-row
+                   (vec ,n ,t)
+                   (vector-ref (vec ,n ,t)
+                     (var (vec ,m (vec ,n ,t)) ,v)
+                     (var int ,i))))
               (begin
                 (print (str "[ "))
-                (for (,j (int 0) (length (var (vec ,t ,n) ,v-row)))
+                (for (,j (int 0) (length (var (vec ,n ,t) ,v-row)))
                   (begin
                     (print (vector-ref
-                             ,t (var (vec ,t ,n) ,v-row) (var int ,j)))
+                             ,t (var (vec ,n ,t) ,v-row) (var int ,j)))
                     (print (str " "))))
                 (print (str "]\n"))))))))
     ((print ,t ,[Expr -> e])
@@ -76,19 +78,20 @@
            (p (gensym 'p)) (f (gensym 'file)) (i (gensym 'i))
            (stream (gensym 'stream)))
        (add-externs 'write-pgm)
-       `(let ((,f ,file))
-          (let ((,stream (call (var ((str) -> (ptr ofstream)) open_outfile)
-                           (var str ,f))))
+       `(let ((,f str ,file))
+          (let ((,stream (ptr ofstream)
+                 (call (var ((str) -> (ptr ofstream)) open_outfile)
+                   (var str ,f))))
             (begin
               (do (call ,write (str "P2\n") (var ofstream ,stream)))
               (do (call ,write (str "1024 1024\n") (var ofstream ,stream)))
               (do (call ,write (str "255\n") (var ofstream ,stream)))
               (for (,i (int 0) (* (int 1024) (int 1024)))
-                (let ((,p (vector-ref int
-                            (vector-ref (vec int 1024)
-                              ,data
-                              (/ (var int ,i) (int 1024)))
-                            (mod (var int ,i) (int 1024)))))
+                (let ((,p int (vector-ref int
+                                (vector-ref (vec 1024 int)
+                                  ,data
+                                  (/ (var int ,i) (int 1024)))
+                                (mod (var int ,i) (int 1024)))))
                   (begin
                     (if (< (var int ,p) (int 0))
                         (set! (var int ,p) (int 0))
@@ -120,8 +123,8 @@
      `(reduce ,t ,op ,e))
     ((kernel ,ktype (((,x ,t) (,[xs] ,ts)) ...) ,[body])
      `(kernel ,ktype (((,x ,t) (,xs ,ts)) ...) ,body))
-    ((let ((,x* ,[e*]) ...) ,[e])
-     `(let ((,x* ,e*) ...) ,e))
+    ((let ((,x* ,t* ,[e*]) ...) ,[e])
+     `(let ((,x* ,t* ,e*) ...) ,e))
     ((begin ,[Stmt -> s*] ... ,[e])
      `(begin ,s* ... ,e))
     ((,op ,[lhs] ,[rhs])

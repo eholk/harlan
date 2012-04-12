@@ -29,14 +29,14 @@
     (match e
       ((int ,y)
        (let-values (((dim t^ sz)
-                     (decode-vector-type `(vec ,t ,n))))
+                     (decode-vector-type `(vec ,n ,t))))
          `(call
-           (c-expr (((ptr region) int) -> (vec ,t ,n))
+           (c-expr (((ptr region) int) -> (vec ,n ,t))
             alloc_in_region)
            (var (ptr region) g_region) ,sz)))
-      ((var int ,y)
+      ((var ,y int)
        (let-values (((dim t sz)
-                     (decode-vector-type `(vec ,t ,y))))
+                     (decode-vector-type `(vec ,y ,t))))
          `(call
            (c-expr (((ptr region) int) -> region_ptr)
             alloc_in_region)
