@@ -25,17 +25,17 @@
     (lambda (t)
       (let-values (((dim t sz) (decode-vector-type t)))
         sz)))
-
+  
   (define-match type-of
     ((deref ,[e]) e)
     ((vector-ref ,t ,v ,i) t)
     ((var ,t ,x) t))
-
+  
   (define (reserved-word? x)
     (memq x
-      '(kernel for while print vector vector-ref reduce let
-         assert vector-set! set! iota make-vector length)))
-
+     '(kernel for while print vector vector-ref reduce let
+       assert vector-set! set! iota make-vector length)))
+  
   (define (ident? x)
     (and (symbol? x)
          (not (reserved-word? x))))
@@ -48,13 +48,13 @@
         (case t
           ((ofstream region_ptr region) #t)
           (else #f))))
-
+  
   (define (harlan-c-type? t)
     (or (c-type? t)
         (case t
           ((region_ptr region) #t)
           (else #f))))
-
+  
   (define (harlan-cl-type? t)
     (or (cl-type? t)
         (case t
