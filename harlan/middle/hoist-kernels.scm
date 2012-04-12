@@ -4,11 +4,6 @@
   (import (rnrs) (elegant-weapons helpers)
     (harlan helpers))
 
-;; This pass is probably too big. It finds all the kernel
-;; expressions, hoists them into a GPU module, replaces the old
-;; expression with an apply-kernel block, and rewrites all the
-;; iterator variables in the body.
-
 (define-match hoist-kernels
   ((module ,[hoist-decl -> decl* kernel*] ...)
    `(module
@@ -19,24 +14,28 @@
   ((fn ,name ,args ,type ,[hoist-stmt -> stmt kernel*])
    (values `(fn ,name ,args ,type ,stmt) kernel*))
   ((extern ,name ,arg-types -> ,t)
-   (values `(extern ,name ,arg-types -> ,t) '())))
+   (values `(extern ,name ,arg-types -> ,t) '()))
+  ((global ,type ,name ,e)
+   (values `(global ,type ,name ,e) '())))
+
+(define (hoist-kernel-arg x t)
+  (match t
+    ((ptr region)
+     `(call
+        (c-expr (((ptr region)) -> cl_mem) get_cl_buffer)
+        (var ,t ,x)))
+    (,else `(var ,t ,x))))
 
 (define-match hoist-stmt
   ((kernel ,dims (((,x* ,t*) (,xs* ,ts*) ,dim) ...)
-     ;; TODO: correctly handle free variables.
      (free-vars (,fv* ,ft*) ...)
-     ;; TODO: What if this introduces free variables? What
-     ;; about free variables in general?
-     ,[hoist-stmt -> stmt* kernel*] ...)
-   (let ((k-name (gensym 'kernel)))
+     ,[hoist-stmt -> stmt kernel*])
+   (let ((name (gensym 'kernel)))
      (values
-      `(apply-kernel ,k-name ,xs* ...
-                     ,@(map (lambda (x t) `(var ,t ,x))
-                            fv* ft*))
-      (cons (generate-kernel k-name x* t*
-                             (map (lambda (xs) (gensym 'k_arg)) xs*)
-                             ts* dim fv* ft* stmt*)
-            (apply append kernel*)))))
+      `(apply-kernel ,name 
+        ,@(map hoist-kernel-arg fv* ft*))
+      `((kernel ,name ,(map list fv* ft*) ,stmt)
+        . ,kernel*))))
   ((begin ,[hoist-stmt -> stmt* kernel*] ...)
    (values (make-begin stmt*) (apply append kernel*)))
   ((for (,i ,start ,end) ,[hoist-stmt -> stmt* kernel*] ...)
@@ -47,51 +46,6 @@
   ((if ,test ,[hoist-stmt -> conseq ckernel*] ,[hoist-stmt -> alt akernel*])
    (values `(if ,test ,conseq ,alt) (append ckernel* akernel*)))
   (,else (values else '())))
-
-(define generate-kernel
-  (lambda (name x* t* xs* ts* dim fv* ft* stmt*)
-    ;; Plan of attack: replace all vectors with renamed char *'s,
-    ;; then immediate use vec_deserialize. Also, for some reason
-    ;; the vector refs don't seem to be being lowered like they
-    ;; should be.
-    ;;
-    ;; We can also let-bind vars to the cell we care about, then
-    ;; replace everything with a deref. That'll be cleaner.
-    `(kernel ,name ,(append (map list xs* ts*)
-                            (map list fv* ft*))
-             (begin
-               ,@(apply
-                  append
-                  (map
-                   (lambda (x t xs ts d)
-                     `((let ,x (ptr ,t)
-                            (addressof
-                             (vector-ref
-                              ,t (var ,ts ,xs)
-                              (call
-                               (c-expr ((int) -> int) get_global_id)
-                               (int ,d)))))))
-                   x* t* xs* ts* dim))
-               . ,(replace-vec-refs stmt* x* xs* ts*)))))
-
-(define replace-vec-refs
-  (lambda (stmt* x* xs* ts*)
-    (map
-      (lambda (stmt)
-        (fold-left 
-          (lambda (stmt x xs ts)
-            (let ((t (match ts
-                       ((vec ,t ,n) t)
-                       (,else (error 'replace-vec-refs
-                                "Unknown type"
-                                else)))))
-                 (match stmt
-                   ((var ,t ,y) (guard (eq? x y))
-                    `(deref (var ,t ,x)))
-                   ((,[x*] ...) x*)
-                   (,x x))))
-             stmt x* xs* ts*))
-      stmt*)))
 
 ;; end library
 )

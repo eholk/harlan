@@ -46,7 +46,7 @@
   (define (harlan-type? t)
     (or (scalar-type? t)
         (case t
-          ((region_ptr region) #t)
+          ((ofstream region_ptr region) #t)
           (else #f))))
 
   (define (harlan-c-type? t)
@@ -56,8 +56,9 @@
           (else #f))))
 
   (define (harlan-cl-type? t)
-    (case t
-      ((cl::queue cl::kernel cl::program) #t)
-      (else #f)))
+    (or (cl-type? t)
+        (case t
+          ((cl::queue cl::kernel cl::program) #t)
+          (else #f))))
 
-  )
+)

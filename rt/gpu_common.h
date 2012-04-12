@@ -5,14 +5,21 @@
 
 #pragma once
 
+typedef unsigned int region_ptr;
+
 // This is mostly opaque to the GPU.
-struct alloc_header {
-    // This is actually a cl_mem
-    void *cl_buffer;
+typedef struct region_ {
+    unsigned int magic;
 
     // Size of this header + the stuff
     unsigned int size;
-};
 
-// TODO: Make sure the CL version and the CPU version have the same
-// sizes.
+    // This is the next thing to allocate
+    region_ptr alloc_ptr;
+
+    // This is actually a cl_mem
+    void *cl_buffer;
+} region;
+
+// This gives us a pointer to something in a region.
+#define get_region_ptr(r, i) (((char __global *)r) + i)

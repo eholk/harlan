@@ -4,10 +4,8 @@
 ;; run.
 
 (module
-  (extern print_2x2_int_vec ((vec 2 (vec 2 int))) -> void)
-  
   (define (main)
-    (print_2x2_int_vec
+    (print
      (kernel ((a (vector 2 3)))
        (kernel ((b (vector 5 7)))
          (* a b))))

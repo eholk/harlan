@@ -2,23 +2,20 @@
 
 (module
   (define (main)
-      (let A (vector
+    (let ((A (vector
               (vector 1 2 3 4)
               (vector 1 2 3 4)))
-      ;; Ideally we'd dynamically allocate a target with the right
-      ;; dimensions.
-      (let B (vector
+          (B (vector
               (vector 0 0)
               (vector 0 0)
               (vector 0 0)
-              (vector 0 0)))
+              (vector 0 0))))
       (for (i 0 (length A))
-           (let row (vector-ref A i))
-           ;; We could probably make this inner loop into a kernel.
-           (for (j 0 (length row))
-                (vector-set! (vector-ref B j)
-                             i
-                             (vector-ref row j))))
+           (let ((row (vector-ref A i)))
+             (for (j 0 (length row))
+                  (vector-set! (vector-ref B j)
+                               i
+                               (vector-ref row j)))))
       (print B)
       (assert (= 1 (vector-ref (vector-ref B 0) 0)))
       (assert (= 1 (vector-ref (vector-ref B 0) 1)))
@@ -28,4 +25,5 @@
       (assert (= 3 (vector-ref (vector-ref B 2) 1)))
       (assert (= 4 (vector-ref (vector-ref B 3) 0)))
       (assert (= 4 (vector-ref (vector-ref B 3) 1)))
-      (return 0)))
+      (return 0))))
+

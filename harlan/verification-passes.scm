@@ -9,13 +9,14 @@
     verify-make-kernel-dimensions-explicit
     verify-lift-complex
     verify-typecheck
+    verify-expand-primitives
     verify-lower-vectors
     verify-returnify-kernels
+    verify-make-vector-refs-explicit
     verify-remove-nested-kernels
     verify-uglify-vectors
     verify-annotate-free-vars
     verify-hoist-kernels
-    verify-move-gpu-data
     verify-generate-kernel-calls
     verify-compile-module
     verify-convert-types
@@ -32,10 +33,17 @@
   (%static
     (Ret-Stmt (return Expr) (return))
     (Type
-      scalar-type
+      harlan-type
       (vec Integer Type)
       (ptr Type)
       ((Type *) -> Type))
+    (C-Type
+      harlan-c-type
+      harlan-cl-type
+      (ptr C-Type)
+      (const-ptr C-Type)
+      ((C-Type *) -> C-Type)
+      Type)
     (Var ident)
     (Integer integer)
     (Reduceop reduceop)
@@ -64,6 +72,7 @@
       (let ((Var Value) *) Value +)
       (begin Value * Value)
       (print Value)
+      (write-pgm Value Value)
       (assert Value)
       (set! Value Value)
       (vector-set! Value Value Value)
@@ -97,6 +106,7 @@
       (let ((Var Value) *) Value +)
       (begin Value * Value)
       (print Value)
+      (write-pgm Value Value)
       (assert Value)
       (set! Value Value)
       (vector-set! Value Value Value)
@@ -128,6 +138,7 @@
       (if Expr Stmt Stmt)
       (begin Stmt * Stmt)
       (print Expr)
+      (write-pgm Expr Expr)
       (assert Expr)
       (set! Expr Expr)
       (vector-set! Expr Expr Expr)
@@ -175,6 +186,7 @@
       (if Expr Stmt Stmt)
       (begin Stmt * Stmt)
       (print Expr)
+      (write-pgm Expr Expr)
       (assert Expr)
       (set! Expr Expr)
       (vector-set! Expr Expr Expr)
@@ -220,7 +232,8 @@
       (if Expr Stmt)
       (begin Stmt * Stmt)
       (if Expr Stmt Stmt)
-      (print Expr)
+      (print Type Expr)
+      (write-pgm Expr Expr)
       (assert Expr)
       (set! Expr Expr)
       (vector-set! Type Expr Expr Expr)
@@ -250,6 +263,23 @@
       (Relop Expr Expr)
       (call Expr Expr *)))
 
+  (expand-primitives
+   (%inherits Module Decl Body Expr)
+   (Start Module)
+   (Stmt
+     (let ((Var Type Expr) *) Stmt)
+     (if Expr Stmt)
+     (begin Stmt * Stmt)
+     (if Expr Stmt Stmt)
+     (print Expr)
+     (assert Expr)
+     (set! Expr Expr)
+     (vector-set! Type Expr Expr Expr)
+     (do Expr)
+     (for (Var Expr Expr) Stmt)
+     (while Expr Stmt)
+     (return Expr)))
+  
   (make-kernel-dimensions-explicit
    (%inherits Module Decl Body Stmt)
    (Start Module)
@@ -330,7 +360,7 @@
     (Stmt
       (print Expr)
       (assert Expr)
-      (set! (var Type Var) Expr)
+      (set! Expr Expr)
       (vector-set! Type Expr Expr Expr)
       (kernel Type (Integer +) (((Var Type) (Expr Type) Integer) +) Stmt)
       (let ((Var Type Let-Expr) *) Stmt)
@@ -348,6 +378,27 @@
       (make-vector Type (int Integer))
       (iota (int Integer))
       Expr))
+
+  (make-vector-refs-explicit (%inherits Module Decl Body Stmt Let-Expr)
+    (Start Module)
+    (Expr
+      (char Char)
+      (int Integer)
+      (u64 Number)
+      (float Float)
+      (str String)
+      (var Type Var)
+      (int->float Expr)
+      (length Expr)
+      (addressof Expr)
+      (deref Expr)
+      (if Expr Expr Expr)
+      (let ((Var Let-Expr) *) Expr)
+      (call Expr Expr *)
+      (c-expr C-Type Var)
+      (vector-ref Type Expr Expr)
+      (Binop Expr Expr)
+      (Relop Expr Expr)))
 
   (lower-vectors (%inherits Module Decl Body)
     (Start Module)
@@ -380,13 +431,20 @@
       (let ((Var Type Let-Expr) *) Expr)
       (if Expr Expr Expr)
       (call Expr Expr *)
+      (c-expr C-Type Var)
       (vector-ref Type Expr Expr)
       (length Expr)
+      (addressof Expr)
+      (deref Expr)
       (Relop Expr Expr)
       (Binop Expr Expr)))
 
-  (uglify-vectors (%inherits Module Decl)
+  (uglify-vectors (%inherits Module)
     (Start Module)
+    (Decl
+     (extern Var (Type *) -> Type)
+     (global Var Type Expr)
+     (fn Var (Var *) Type Body))
     (Body
       (begin Stmt * Body)
       (let ((Var Type Expr) *) Body)
@@ -420,13 +478,13 @@
       (cast Type Expr)
       (sizeof Type)
       (addressof Expr)
+      (deref Expr)
       (vector-ref Type Expr Expr)
       (length Expr)
       (Relop Expr Expr)
       (Binop Expr Expr)))
 
-  (annotate-free-vars
-    (%inherits Module Decl Expr Body)
+  (annotate-free-vars (%inherits Module Decl Expr Body)
     (Start Module)
     (Stmt 
       (print Expr)
@@ -455,8 +513,9 @@
       (print Expr)
       (assert Expr)
       (set! Expr Expr)
-      (kernel (Integer +) (((Var Type) (Expr Type) Integer) +)
-        (free-vars (Var Type) *) Stmt)
+      (kernel (Integer +)
+       (((Var Type) (Expr Type) Integer) +)
+       (free-vars (Var Type) *) Stmt)
       (let Var Type Expr)
       (if Expr Stmt)
       (if Expr Stmt Stmt)
@@ -478,6 +537,7 @@
       (cast Type Expr)
       (sizeof Type)
       (addressof Expr)
+      (deref Expr)
       (vector-ref Type Expr Expr)
       (length Expr)
       (Relop Expr Expr)
@@ -488,6 +548,7 @@
     (Decl
       (gpu-module Kernel *)
       (fn Var (Var *) ((Type *) -> Type) Body)
+      (global Var Type Expr)
       (extern Var (Type *) -> Type))
     (Kernel
       (kernel Var ((Var Type) +) Stmt))
@@ -495,7 +556,7 @@
       (print Expr)
       (assert Expr)
       (set! Expr Expr)
-      (apply-kernel Var (var Type Var) +)
+      (apply-kernel Var Expr +)
       (let Var Type Expr)
       (begin Stmt * Stmt)
       (if Expr Stmt)
@@ -510,6 +571,7 @@
       (u64 Number)
       (str String)
       (float Float)
+      (var Type Var)
       (var C-Type Var)
       (c-expr C-Type Var)
       (if Expr Expr Expr)
@@ -521,37 +583,15 @@
       (addressof Expr)
       (vector-ref Type Expr Expr)
       (Relop Expr Expr)
-      (Binop Expr Expr))
-    (C-Type c-type cl-type Type))
-
-  (move-gpu-data
-    (%inherits Module Kernel Decl Expr Body C-Type)
-    (Start Module)
-    (Stmt 
-      (print Expr)
-      (assert Expr)
-      (set! Expr Expr)
-      (apply-kernel Var (var Type Var) +)
-      (let-gpu Var Type)
-      (map-gpu ((Var Expr)) Stmt)
-      (let Var C-Type Expr)
-      (begin Stmt * Stmt)
-      (if Expr Stmt)
-      (if Expr Stmt Stmt)
-      (for (Var Expr Expr) Stmt)
-      (while Expr Stmt)
-      (do Expr)
-      Ret-Stmt))
+      (Binop Expr Expr)))
 
   (generate-kernel-calls
-    (%inherits Module Kernel Decl Expr Body C-Type)
+    (%inherits Module Kernel Decl Expr Body)
     (Start Module)
     (Stmt
       (print Expr)
       (assert Expr)
       (set! Expr Expr)
-      (let-gpu Var Type)
-      (map-gpu ((Var Expr)) Stmt)
       (let Var C-Type Expr)
       (begin Stmt * Stmt)
       (if Expr Stmt)
@@ -562,21 +602,21 @@
       Ret-Stmt))
 
   (compile-module
-    (%inherits Kernel Body C-Type)
+    (%inherits Kernel Body)
     (Start Module)
     (Module (Decl *))
     (Decl
       (include String)
       (gpu-module Kernel *)
       (func Type Var ((Var Type) *) Body)
+      (global Var Type Expr)
       (extern Type Var (Type *)))
     (Stmt
       (print Expr)
       (set! Expr Expr)
-      (map-gpu ((Var Expr)) Stmt)
       (if Expr Stmt)
       (if Expr Stmt Stmt)
-      (let Var Let-Type Expr)
+      (let Var C-Type Expr)
       (begin Stmt * Stmt)
       (for (Var Expr Expr) Stmt)
       (while Expr Stmt)
@@ -589,7 +629,7 @@
       (str String)
       (float Float)
       (var Var)
-      (c-expr Type Var)
+      (c-expr C-Type Var)
       (deref Expr)
       (field Var +)
       (field Var + Type)
@@ -601,11 +641,7 @@
       (addressof Expr)
       (vector-ref Expr Expr)
       (Relop Expr Expr)
-      (Binop Expr Expr))
-    (Let-Type
-      (cl::buffer C-Type)
-      (cl::buffer_map C-Type)
-      C-Type))
+      (Binop Expr Expr)))
 
   (convert-types (%inherits Module Stmt Body)
     (Start Module)
@@ -613,6 +649,7 @@
       (include String)
       (gpu-module Kernel *)
       (func C-Type Var ((Var C-Type) *) Body)
+      (global C-Type Var Expr)
       (extern C-Type Var (C-Type *))) 
     (Kernel
       (kernel Var ((Var C-Type) +) Stmt))
@@ -635,25 +672,15 @@
       (addressof Expr)
       (vector-ref Expr Expr)
       (Relop Expr Expr)
-      (Binop Expr Expr))
-    (Let-Type
-      (cl::buffer C-Type)
-      (cl::buffer_map C-Type)
-      C-Type)
-    (C-Type
-      (const-ptr C-Type)
-      (ptr C-Type)
-      ((C-Type *) -> C-Type)
-      c-type
-      cl-type))
+      (Binop Expr Expr)))
 
   (compile-kernels
-    (%inherits Module Stmt Expr Let-Type C-Type Body)
+    (%inherits Module Body Stmt Expr)
     (Start Module)
     (Decl
       (include String)
-      (global C-Type Var Expr)
       (func C-Type Var ((Var C-Type) *) Body)
+      (global C-Type Var Expr)
       (extern C-Type Var (C-Type *))))
 
   (print-c
@@ -671,7 +698,7 @@
       (if Expr Body Body))
     (Stmt
       (begin Stmt * Stmt)
-      (let Var Let-Type Expr)
+      (let Var C-Type Expr)
       (if Expr Stmt)
       (if Expr Stmt Stmt)
       (return Expr)
@@ -698,16 +725,7 @@
       (addressof Expr)
       (vector-ref Expr Expr)
       (Relop Expr Expr)
-      (Binop Expr Expr))
-    (Let-Type
-      (cl::buffer C-Type)
-      (cl::buffer_map C-Type)
-      C-Type)
-    (C-Type
-      (const-ptr C-Type)
-      (ptr C-Type)
-      c-type
-      cl-type))
+      (Binop Expr Expr)))
 
   )
 

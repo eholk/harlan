@@ -11,8 +11,8 @@
 (define-match Decl
   ((fn ,name ,args . ,[(Value* '()) -> value*])
    `(fn ,name ,args . ,value*))
-  ((define (,name ,args ...) . ,[(Value* '()) -> value*])
-   `(define (,name ,args ...) . ,value*))
+  ((define (,name . ,args) . ,[(Value* '()) -> value*])
+   `(define (,name . ,args) . ,value*))
   (,else else))
 
 (define (unroll-lets def* value*)

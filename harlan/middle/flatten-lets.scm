@@ -4,15 +4,6 @@
   (import (rnrs) (elegant-weapons helpers)
     (harlan helpers))
 
-;; parse-harlan takes a syntax tree that a user might actually want
-;; to write and converts it into something that's more easily
-;; analyzed by the type inferencer and the rest of the compiler.
-;; This subsumes the functionality of the previous
-;; simplify-literals mini-pass.
-
-;; unnests lets, checks that all variables are in scope, and
-;; renames variables to unique identifiers
-  
 (define-match flatten-lets
   ((module ,[Decl -> decl*] ...)
    `(module . ,decl*)))
@@ -64,7 +55,9 @@
    `(sizeof ,t))
   ((addressof ,[expr])
    `(addressof ,expr))
-  ((let ((,x* ,t* ,[e*]) ...) ,[expr t])
+  ((deref ,[expr])
+   `(deref ,expr))
+  ((let ((,x* ,t* ,[e*]) ...) ,[expr])
    `(begin
       ,@(map (lambda (x t e) `(let ,x ,t ,e)) x* t* e*)
       ,expr))

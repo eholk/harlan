@@ -13,16 +13,18 @@
 (define-match annotate-decl*
   (((,tag* ,name* . ,rest*) ...)
    (map (annotate-decl name*)
-     `((,tag* ,name* . ,rest*) ...))))
+        `((,tag* ,name* . ,rest*) ...))))
 
 (define-match (annotate-decl globals)
   ((fn ,name ,args ,type ,[annotate-stmt -> stmt fv*])
    (let ((fv* (fold-right remove/var fv* (append globals args))))
      (if (null? fv*)
          `(fn ,name ,args ,type ,stmt)
-         (error 'annotate-free-vars "unbound varaible(s)" fv*))))
+         (error 'annotate-decl "unbound variables" fv*))))
   ((extern ,name ,arg-types -> ,type)
-   `(extern ,name ,arg-types -> ,type)))
+   `(extern ,name ,arg-types -> ,type))
+  ((global ,name ,type ,[annotate-expr -> e _])
+   `(global ,name ,type ,e)))
 
 (define-match annotate-stmt
   ((begin ,[stmt* fv**] ...)
@@ -84,6 +86,7 @@
      (union/var tfv* cfv* afv*)))
   ((sizeof ,t) (values `(sizeof ,t) '()))
   ((addressof ,[e fv*]) (values `(addressof ,e) fv*))
+  ((deref ,[e fv*]) (values `(deref ,e) fv*))
   ((,op ,[lhs lfv*] ,[rhs rfv*])
    (guard (or (binop? op) (relop? op)))
    (values `(,op ,lhs ,rhs) (union/var lfv* rfv*)))
