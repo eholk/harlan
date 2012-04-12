@@ -41,7 +41,7 @@ extern cl::command_queue g_queue;
 
 template<typename T>
 void print(T n) {
-    std::cout << n << std::endl;
+  std::cout << n;
 }
 
 region *create_region(unsigned int size);
