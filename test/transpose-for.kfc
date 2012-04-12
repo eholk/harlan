@@ -10,16 +10,13 @@
               (vector 0 0)
               (vector 0 0)
               (vector 0 0))))
-      ;; Ideally we'd dynamically allocate a target with the right
-      ;; dimensions.
       (for (i 0 (length A))
            (let ((row (vector-ref A i)))
-             ;; We could probably make this inner loop into a kernel.
              (for (j 0 (length row))
                   (vector-set! (vector-ref B j)
                                i
                                (vector-ref row j)))))
-      ;(print B)
+      (print B)
       (assert (= 1 (vector-ref (vector-ref B 0) 0)))
       (assert (= 1 (vector-ref (vector-ref B 0) 1)))
       (assert (= 2 (vector-ref (vector-ref B 1) 0)))
@@ -29,3 +26,4 @@
       (assert (= 4 (vector-ref (vector-ref B 3) 0)))
       (assert (= 4 (vector-ref (vector-ref B 3) 1)))
       (return 0))))
+

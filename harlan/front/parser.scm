@@ -1,7 +1,10 @@
 (library
   (harlan front parser)
   (export parse-harlan)
-  (import (rnrs) (elegant-weapons helpers))
+  (import
+    (rnrs)
+    (harlan helpers)
+    (elegant-weapons helpers))
 
 ;; parse-harlan takes a syntax tree that a user might actually want
 ;; to write and converts it into something that's more easily
@@ -35,9 +38,9 @@
   (u64 'u64)
   (str 'str)
   (float 'float)
-  ((vec ,[t] ,n)
+  ((vec ,n ,[t])
    (guard (integer? n))
-   `(vec ,t ,n))
+   `(vec ,n ,t))
   (((,[t*] ...) -> ,[t])
    `(,t* -> ,t)))
 
@@ -106,8 +109,15 @@
    `(vector . ,e*))
   ((begin ,[(parse-stmt env) -> stmt*] ... ,[(parse-expr env) -> expr])
    `(begin ,@stmt* ,expr))
-  ((make-vector ,[e])
-   `(make-vector ,e))
+  ((make-vector ,e ,[expr])
+   (let ((v (gensym 'v))
+         (i (gensym 'i))
+         (size ((parse-expr env) e)))
+     `(let ((,v (make-vector ,size)))
+        (begin
+          (for (,i (num 0) ,size)
+            (vector-set! (var ,v) (var ,i) ,expr))
+          (var ,v)))))
   ((if ,[test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
   ((iota ,[e])

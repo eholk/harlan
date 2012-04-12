@@ -1,7 +1,8 @@
 (library
   (harlan middle lift-complex)
   (export lift-complex)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
   
 (define lift-expr
   (lambda (expr finish)
@@ -13,17 +14,14 @@
        (lift-expr e (lambda (e) (finish `(int->float ,e)))))
       ((begin ,[lift-stmt -> stmt*] ... ,e)
        (lift-expr e
-         (lambda (e) (finish `(begin ,@stmt* ,e)))))
-      ((let ((,x* ,e*) ...) ,expr)
-       (let loop ((e* e*) (e*^ '()))
-         (if (null? e*)
-             (lift-expr
-               expr
-               (lambda (expr)
-                 `(let (,@(map list x* (reverse e*^))) ,(finish expr))))
-             (Expr
-               (car e*)
-               (lambda (e^) (loop (cdr e*) (cons e^ e*^)))))))
+         (lambda (e) `(begin ,@stmt* ,(finish e)))))
+      ((let () ,expr)
+       (lift-expr expr (lambda (expr) (finish expr))))
+      ((let ((,x ,t ,e) . ,rest) ,expr)
+       (Expr e
+         (lambda (e)
+           `(let ((,x ,t ,e))
+              ,(lift-expr `(let ,rest ,expr) finish)))))
       ((if ,test ,conseq ,alt)
        (lift-expr
          test
@@ -49,7 +47,7 @@
        (let ((finish
                (lambda (e*^)
                  (let ((v (gensym 'v)))
-                   `(let ((,v
+                   `(let ((,v ,t
                             (kernel ,t ,dims (((,x* ,t*) (,e*^ ,ts*) ,dim*) ...)
                               ,(lift-expr body (lambda (b) b)))))
                       ,(finish `(var ,t ,v)))))))
@@ -63,7 +61,7 @@
       ((vector ,t . ,e*)
        (let ((finish (lambda (e*^)
                        (let ((v (gensym 'v)))
-                         `(let ((,v (vector ,t . ,e*^)))
+                         `(let ((,v ,t (vector ,t . ,e*^)))
                             ,(finish `(var ,t ,v)))))))
          (let loop ((e* e*) (e*^ '()))
            (if (null? e*)
@@ -76,14 +74,14 @@
        (finish `(make-vector ,c)))
       ((iota (int ,c))
        (let ((v (gensym 'iota)))
-         `(let ((,v (iota (int ,c))))
-            ,(finish `(var (vec int ,c) ,v)))))
+         `(let ((,v (vec ,c int) (iota (int ,c))))
+            ,(finish `(var (vec ,c int) ,v)))))
       ((reduce ,t ,op ,e)
        (lift-expr
          e
          (lambda (e^)
            (let ((v (gensym 'v)))
-             `(let ((,v (reduce ,t ,op ,e^)))
+             `(let ((,v ,t (reduce ,t ,op ,e^)))
                 ,(finish `(var ,t ,v)))))))
       ((length ,e) 
        (lift-expr
@@ -120,8 +118,7 @@
                  (lambda (e^)
                    (loop (cdr e*) (cons e^ e*^))))))))
       ((vector ,t . ,e*)
-       (let ((finish (lambda (e*^)
-                       (finish `(vector ,t . ,e*^)))))
+       (let ((finish (lambda (e*^) (finish `(vector ,t . ,e*^)))))
          (let loop ((e* e*) (e*^ '()))
            (if (null? e*)
                (finish (reverse e*^))
@@ -147,13 +144,12 @@
    (lift-expr expr (lambda (e^) `(assert ,e^))))
   ((set! ,x ,e)
    (lift-expr e (lambda (e^) `(set! ,x ,e^))))
-  ((let ((,x* ,e*) ...) ,[stmt])
-   (let loop ((e* e*) (e*^ '()))
-     (if (null? e*)
-         `(let (,@(map list x* (reverse e*^))) ,stmt)
-         (Expr
-           (car e*)
-           (lambda (e^) (loop (cdr e*) (cons e^ e*^)))))))
+  ((let () ,[stmt]) stmt)
+  ((let ((,x ,t ,e) . ,rest) ,stmt)
+   (Expr e
+     (lambda (e)
+       `(let ((,x ,t ,e))
+          ,(lift-stmt `(let ,rest ,stmt))))))
   ((if ,test ,conseq)
    (lift-expr test (lambda (t) `(if ,t ,conseq))))
   ((if ,test ,conseq ,alt)

@@ -1,0 +1,1 @@
+(module (define (main) (print (reduce + (let ((a3 (vector 3 4))) a3))) (return 0)))

@@ -4,13 +4,13 @@
 ;; total = +/kernel(row : Rows) { +/kernel(x : row) { x }; };
 
 (module
-  (fn main ()
+  (define (main)
       (let Rows (vector (vector 1 2 3)
                         (vector 4 5 6)
 			(vector 7 8 9)
 			(vector 10 11 12)))
       (let total (reduce + (kernel ((row Rows))
       	           (reduce + (kernel ((x row))
-		               (var x))))))
+		               x)))))
       (assert (= total 78))
       (return 0)))

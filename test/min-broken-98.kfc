@@ -1,13 +1,13 @@
 ;; -*- scheme -*-
 
 (module
-  (fn main ()
+  (define (main)
       (let B (vector
               (vector 17)))
 
       ;;; without the loop, the program doesn't always segfault
       (for (i 0 1000)
         (let row (vector-ref (vector-ref B 0) 0))
-        (print (var row)))
+        (print row))
       
       (return 0)))

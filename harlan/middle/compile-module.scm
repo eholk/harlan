@@ -1,10 +1,9 @@
 (library
   (harlan middle compile-module)
   (export compile-module)
-  (import (rnrs)
-          (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
 
-;; This compile kernel is used in the compile-module pass.
 (define-match compile-kernel^
   ((kernel ,name ,args ,[compile-stmt -> stmt*] ...)
    `(kernel ,name ,args . ,stmt*)))
@@ -52,16 +51,19 @@
   ;; converting the types should happen after this, so hopefully
   ;; we won't need pointers.
   ((ptr ,[t]) t)
-  ((vec ,[t] ,n) t)
+  ((vec ,n ,[t]) t)
   (bool 'bool)
   (char 'char)
-  (int 'int))
+  (int 'int)
+  (float 'float)
+  )
 
 (define-match byte-size
   (int `(sizeof int))
   (bool `(sizeof bool))
   (char `(sizeof char))
-  ((vec ,[t] ,n) `(* (int ,n) ,t)))
+  (float `(sizeof float))
+  ((vec ,n ,[t]) `(* (int ,n) ,t)))
 
 (define-match compile-expr
   [(,t ,n) (guard (scalar-type? t)) `(,t ,n)]

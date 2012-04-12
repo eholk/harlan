@@ -1,12 +1,12 @@
 (library
-    (harlan driver)
+  (harlan driver)
   (export get-cflags g++-compile-stdin read-source)
   (import
-   (chezscheme)
-   (only (elegant-weapons helpers) join)
-   (harlan compile-opts)
-   (elegant-weapons match)
-   (util system))
+    (chezscheme)
+    (only (elegant-weapons helpers) join)
+    (elegant-weapons match)
+    (util system)
+    (harlan compile-opts))
 
   (define (get-cflags)
     (case (get-os)
@@ -20,6 +20,7 @@
            (command
             (join " " (append `("g++"
                                 ,(if (generate-debug) "-g" "")
+                                ,(if (make-shared-object) "-shared" "")
                                 "-x c++"
                                 ,src-tmp "-x none"
                                 "rt/libharlanrt.a"

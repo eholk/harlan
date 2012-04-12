@@ -1,7 +1,8 @@
 (library
   (harlan middle returnify-kernels)
   (export returnify-kernels)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
   
 (define-match returnify-kernels
   ((module ,[returnify-kernel-decl -> fn*] ...)
@@ -30,42 +31,42 @@
    `(while ,expr ,body))
   ((for (,x ,e1 ,e2) ,[body])
    `(for (,x ,e1 ,e2) ,body))
-  ((let ((,id ,e) ...) ,[stmt])
-   ((returnify-kernel-let stmt) `((,id ,e) ...)))
+  ((let ((,id ,t ,e) ...) ,[stmt])
+   ((returnify-kernel-let stmt) `((,id ,t ,e) ...)))
   ((do ,expr) `(do ,expr)))
 
 (define-match returnify-kernel-expr
   ((begin ,[returnify-kernel-stmt -> stmt*] ,[expr])
    `(begin ,@stmt* ,expr))
-  ((let ((,id ,e) ...) ,[expr])
-   ((returnify-kernel-let expr) `((,id ,e) ...)))
+  ((let ((,id ,t ,e) ...) ,[expr])
+   ((returnify-kernel-let expr) `((,id ,t ,e) ...)))
   (,else else))
 
 (define-match type-dim
-  ((vec ,[t] ,n) (+ 1 t))
+  ((vec ,n ,[t]) (+ 1 t))
   (,x 0))
 
 (define-match (returnify-kernel-let finish)
   (() finish)
-  (((,id (kernel void ,arg* ,body))
+  (((,id ,xt (kernel void ,arg* ,body))
     . ,[(returnify-kernel-let finish) -> rest])
    ;; TODO: we still need to traverse the body
-   `(let ((,id (kernel void ,arg* ,body))) ,rest))
-  (((,id (kernel (vec ,t ,n) ,dims ,arg* ,body))
+   `(let ((,id ,xt (kernel void ,arg* ,body))) ,rest))
+  (((,id ,xt (kernel (vec ,n ,t) ,dims ,arg* ,body))
     . ,[(returnify-kernel-let finish) -> rest])
    (match arg*
      ((((,x* ,tx*) (,xe* ,xet*) ,dim) ...)
       (let ((retvar (gensym 'retval)))
-        `(let ((,id (make-vector ,t (int ,n))))
+        `(let ((,id ,xt (make-vector ,t (int ,n))))
            (begin
-             (kernel (vec ,t ,n) ,dims
+             (kernel (vec ,n ,t) ,dims
                (((,retvar ,t)
-                 ((var (vec ,t ,n) ,id) (vec ,t ,n)) 0)
+                 ((var (vec ,n ,t) ,id) (vec ,n ,t)) 0)
                 . ,arg*)
                ,((set-retval t retvar) body))
              ,rest))))))
-  (((,id ,expr) . ,[(returnify-kernel-let finish) -> rest])
-   `(let ((,id ,expr)) ,rest)))
+  (((,id ,t ,expr) . ,[(returnify-kernel-let finish) -> rest])
+   `(let ((,id ,t ,expr)) ,rest)))
 
 (define-match (set-retval t retvar)
   ((begin ,stmt* ... ,[(set-retval t retvar) -> expr])

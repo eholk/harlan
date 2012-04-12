@@ -2,7 +2,7 @@
   (harlan compiler)
   (export compile-harlan harlan->c++)
   (import
-   (chezscheme)
+   (rnrs)
    (only (elegant-weapons helpers) join)
    (only (harlan verification-passes)
      verify-print-c)

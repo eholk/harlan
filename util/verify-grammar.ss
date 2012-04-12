@@ -3,8 +3,18 @@
 
 (library
   (util verify-helpers)
-  (export verify-name pred-name nonterminal? terminal?)
+  (export verify-name pred-name nonterminal? terminal? filter*)
   (import (rnrs))
+
+(define filter*
+  (lambda (pred expr)
+    (cond
+      ((pair? expr)
+       (append
+         (filter* pred (car expr))
+         (filter* pred (cdr expr))))
+      ((pred expr) `(,expr))
+      (else '()))))
 
 ;; nonterminal ->  verify-nonterminal
 ;; terminal    ->  terminal?
@@ -46,7 +56,8 @@
     (rnrs)
     (util verify-helpers)
     (harlan compile-opts)
-    (only (chezscheme) pretty-print errorf with-output-to-string))
+    (only (chezscheme) pretty-print errorf with-output-to-string
+      trace-define-syntax trace-define))
   
 (define wildcard? (lambda (x) #t))
 
@@ -176,12 +187,14 @@
 
   (define (lookup-nt inp parent)
     (syntax-case parent ()
-      (() (error 'lookup-nt
-            "Missing nonterminal for inheritance" inp))
+      (()
+       (error 'lookup-nt
+         "Missing nonterminal for inheritance" inp))
       (((nt . t*) . rest)
        (if (eq? (syntax->datum #'nt) (syntax->datum inp))
            #'(nt . t*)
            (lookup-nt inp #'rest)))))
+  
   (define (add-nts parent child)
     (syntax-case child ()
       (() #'())
@@ -189,16 +202,6 @@
        #`(#,(lookup-nt #'nt parent) .
           #,(add-nts parent #'rest)))))
   
-  (define filter*
-    (lambda (pred expr)
-      (cond
-        ((pair? expr)
-         (append
-           (filter* pred (car expr))
-           (filter* pred (cdr expr))))
-        ((pred expr) `(,expr))
-        (else '()))))
-
   (define syntax->datum*
     (lambda (expr)
       (let ((expr (syntax->datum expr)))
@@ -237,55 +240,106 @@
 
   (define (add-inherits passes)
     (syntax-case passes (%inherits)
-      (((pass (nt* t* ...) ...)) #'((pass (nt* t* ...) ...)))
-      (((parent (nt* t* ...) ...)
-        (child (%inherits i-nt* ...) clause* ...) . rest)
-       (with-syntax
-           ((inherited
-              (add-nts #'((nt* t* ...) ...) #'(i-nt* ...))))
-         #`((parent (nt* t* ...) ... ) .
+      (((pass . grammar))
+       #'((pass . grammar)))
+      (((parent . grammar)
+        (child (%inherits . i-nt*) clause* ...) . rest)
+       (with-syntax ((inherited (add-nts #'grammar #'i-nt*)))
+         #`((parent . grammar) .
             #,(add-inherits
                 #'((child clause* ... . inherited) . rest)))))
-      (((pass (nt* t* ...) ...) . rest)
-       #`((pass (nt* t* ...) ...) . #,(add-inherits #'rest)))))
+      (((pass . grammar) . rest)
+       #`((pass . grammar) . #,(add-inherits #'rest)))))
   
   (define (add-static sclause*)
     (lambda (pass)
       (syntax-case pass ()
         ((pass (nt* t* ...) ...)
-         #`(generate-verify pass (nt* t* ...) ... .
+         #`(pass (nt* t* ...) ... .
              #,(add-used-statics #'(t* ... ...) sclause*))))))
-
+  
   (syntax-case x (%static)
     ((_ (%static sclause* ...) passes ...)
-     (with-syntax (((passes ...) (add-inherits #'(passes ...))))
-       (with-syntax (((passes ...)
+     (with-syntax (((passes ...)
+                    (add-inherits #'(passes ...))))
+       (with-syntax ((((pass (nt t* ...) ...) ...)
                       (map (add-static #'(sclause* ...))
                         #'(passes ...))))
-         #'(begin passes ...))))))
+         #'(begin (generate-verify pass (nt t* ...) ...) ...))))
+    ((_ passes ...)
+     (with-syntax ((((pass (nt t* ...) ...) ...)
+                    (add-inherits #'(passes ...))))
+       #'(begin (generate-verify pass (nt t* ...) ...) ...)))))
 
 )
 
-#|
+;; (import (util verify-grammar))
 
+;; (let ()
+;;   (grammar-transforms
+;;     (%static (Var symbol))
 
-Here's an example:
+;;     (first-grammar
+;;       (Expr
+;;         (let ((Var Expr)) Expr)
+;;         (lambda (Var) Expr)
+;;         (Expr Expr)
+;;         Var))
 
-;; lambda-calc
-;; Term -> (lambda (Var) Term) | (Term Term) | Var
-;; Var -> symbol
+;;     (second-grammar
+;;       (Expr
+;;         (lambda (Var) Expr)
+;;         (Expr Expr)
+;;         Var))
 
-;; lambda-calc
-;; Term -> (lambda (Var) Term)
-;;       | (Term Term)
-;;       | Var
-;; Var -> symbol
+;;     (third-grammar
+;;       (%inherits Expr)
+;;       (Start Expr)
+;;       (Integer integer))
 
-(generate-verify lambda-calc
-  (Term
-    (lambda (Var) Term)
-    (Term Term)
-    Var)
-  (Var symbol))
+;;     (fourth-grammar
+;;       (%inherits Integer)
+;;       (Expr
+;;         Integer
+;;         Var
+;;         (lambda (Var *) Expr)
+;;         (Expr Expr)))
+;;     )
 
-|#
+;;   (verify-first-grammar 'x)
+;;   (verify-first-grammar '(lambda (x) x))
+;;   (verify-first-grammar '(x y))
+;;   (verify-first-grammar '(let ((x y)) ((lambda (x) x) y)))
+
+;;   (verify-second-grammar 'x)
+;;   (verify-second-grammar '(lambda (x) x))
+;;   (verify-second-grammar '(x y))
+;;   (verify-second-grammar '((x y) (x y)))
+
+;;   ;; (grammar-transforms
+;;   ;;   (fifth-grammar
+;;   ;;     (Expr
+;;   ;;       (lambda (Var) Expr)
+;;   ;;       (Expr Expr)
+;;   ;;       Var)
+;;   ;;     (Var symbol))
+
+;;   ;;   (sixth-grammar
+;;   ;;     (%inherits Var)
+;;   ;;     (Expr
+;;   ;;       (lambda (Var *) Expr)
+;;   ;;       (Expr Expr)
+;;   ;;       Var
+;;   ;;       Integer)
+;;   ;;     (Integer integer))
+;;   ;;   )
+
+;;   ;; (verify-fifth-grammar '(lambda (x) x))
+
+;;   ;; (verify-sixth-grammar 5)
+;;   ;; (verify-sixth-grammar '(lambda (x y) 5))
+;;   ;; (verify-sixth-grammar '(lambda (x y) ((x 5) (y 6))))
+
+;;   (printf "All expressions verified\n")
+
+;; )

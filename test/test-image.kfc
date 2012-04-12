@@ -1,7 +1,7 @@
 ;; -*- scheme -*-
 
 (module
-  (fn main ()
+  (define (main)
       (let img (kernel ((i (iota 1024)))
                        (kernel ((j (iota 1024)))
                                (mod (* i j) 256))))

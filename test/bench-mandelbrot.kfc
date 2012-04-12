@@ -8,7 +8,7 @@
   (extern nanotime () -> u64)
   (extern print_int_u64 (int u64) -> void)
   
-  (fn main ()
+  (define (main)
     (let start (nanotime))
     (let img (kernel ((i (iota 1024)))
                (kernel ((j (iota 1024)))
@@ -40,3 +40,4 @@
     (write-pgm "test.bin/mandelbrot.pgm" img)
     (print_int_u64 max_iter (/ (- stop start) 1000000))
     (return 0)))
+

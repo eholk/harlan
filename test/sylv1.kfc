@@ -4,7 +4,7 @@
 (%testspec xfail)
 
 (module
-  (fn main ()
+  (define (main)
       (let A  (vector
                 (vector 1 0 0 0)
                 (vector 0 1 0 0)
@@ -28,27 +28,27 @@
       ;;This is transpose of matrix Q
       (let tmp1 (kernel ((j (iota 4)))
                         (kernel ((i (iota 4)))
-                                (vector-ref (vector-ref Q( var j)) (var i)))))
+                          (vector-ref (vector-ref Q j) i))))
       
       ;; Multiply- tmp3 = D*Q
       (let tmp2 (kernel ((j (iota 4)))
                         (kernel ((i (iota 4)))
-                                (vector-ref (vector-ref Q( var j)) (var i)))))
-      (let tmp3 (kernel ((row (var D)))
-                (kernel ((col (var tmp2)))
+                          (vector-ref (vector-ref Q j) i))))
+      (let tmp3 (kernel ((row D))
+                (kernel ((col tmp2))
                   (reduce + 
-                    (kernel ((x (var row)) (y (var col)))
-                      (* (var x) (var y)))))))
+                    (kernel ((x row) (y col))
+                      (* x y))))))
       
       ;; Multiply- D = tmp1*tmp3
       (let tmp4 (kernel ((j (iota 4)))
                         (kernel ((i (iota 4)))
-                                (vector-ref (vector-ref tmp3( var j)) (var i)))))
-      (let D (kernel ((row (var tmp1)))
-                (kernel ((col (var tmp4)))
+                          (vector-ref (vector-ref tmp3 j) i))))
+      (let D (kernel ((row tmp1))
+                (kernel ((col tmp4))
                   (reduce + 
-                    (kernel ((x (var row)) (y (var col)))
-                      (* (var x) (var y)))))))
+                    (kernel ((x row) (y col))
+                      (* x y))))))
       
       ;;[n,n] = size(A)
       (let n  4)
@@ -80,12 +80,12 @@
       ;; Multiply- Rsq = R*R
       (let tmp5 (kernel ((j (iota 4)))
                         (kernel ((i (iota 4)))
-                                (vector-ref (vector-ref R( var j)) (var i)))))
-      (let Rsq  (kernel ((row (var R)))
-                  (kernel ((col (var tmp5)))
+                          (vector-ref (vector-ref R j) i))))
+      (let Rsq  (kernel ((row R))
+                  (kernel ((col tmp5))
                     (reduce + 
-                      (kernel ((x (var row)) (y (var col)))
-                        (* (var x) (var y)))))))
+                      (kernel ((x row) (y col))
+                        (* x y))))))
       (let j 1)
       ;;while(j < n+1)
       ;;if(j < n)
@@ -98,7 +98,7 @@
       ;;b = D(:, j) + X(:, 1:j-1)*R(1:j-1, j);
       ;;b = -b
       ;;X(:, j) = (R+mu*I)\b;
-      (let mu (vector-ref(vector-ref R(var j))(var j)))
+      (let mu (vector-ref(vector-ref Rj)j))
       
 
       

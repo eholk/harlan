@@ -1,9 +1,9 @@
 ;; -*- scheme -*-
 
 (module
-  (fn main ()
+  (define (main)
       (let X (vector 1 2 3 4))
       (let Y (vector 0 0 0 0))
-      (set! Y (kernel ((x (var X)))
-                (var x)))
+      (set! Y (kernel ((x X))
+                x))
       (return 0)))

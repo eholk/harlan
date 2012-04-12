@@ -3,11 +3,11 @@
 ;; Dense dot product between two vectors.
 
 (module
-  (fn main ()
+  (define (main)
       (let X (vector 1 2 3 4))
       (let Y (vector 4 3 2 1))
-      (let dot (reduce + (kernel ((x (var X)) (y (var Y)))
-                                 (* (var x) (var y)))))
-      (print (var dot))
-      (assert (= (var dot) 20))
+      (let dot (reduce + (kernel ((x X) (y Y))
+                                 (* x y))))
+      (print dot)
+      (assert (= dot 20))
       (return 0)))

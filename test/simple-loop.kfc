@@ -1,10 +1,10 @@
 ;; -*- scheme -*-
 
 (module
-  (fn main ()
+  (define (main)
       (let X (vector 1 2 3))
       (for (i 0 3)
-        (let x (+ (vector-ref X (var i)) 1))
-        (vector-set! (var X) (var i) (var x)))
+        (let x (+ (vector-ref X i) 1))
+        (vector-set! X i x))
       (assert (= (vector-ref X 0) 2))
       (return 0)))

@@ -2,7 +2,7 @@
 
 (module
  (extern nanotime () -> u64)
- (fn main ()
+ (define (main)
      (let x (nanotime))
      (print x)
      (return 0)))

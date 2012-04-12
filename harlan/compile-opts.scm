@@ -6,6 +6,10 @@
     benchmark
     verify
     generate-debug
+<<<<<<< .merge_file_u2ElPj
+=======
+    make-shared-object
+>>>>>>> .merge_file_egR2Vj
     trace-pass
     untrace-pass
     parse-args)
@@ -18,6 +22,10 @@
 (define verify (make-parameter #t))
 (define benchmark (make-parameter #f))
 (define generate-debug (make-parameter #f))
+<<<<<<< .merge_file_u2ElPj
+=======
+(define make-shared-object (make-parameter #f))
+>>>>>>> .merge_file_egR2Vj
 
 (define trace-passes '())
 
@@ -54,7 +62,8 @@
 (define (parse-args command-line)
   (match-args command-line
     ((("--verbose" "-v")) (verbose #t))
-    ((("--debug" "-g"))   (generate-debug #t))))
+    ((("--debug" "-g"))   (generate-debug #t))
+    ((("--shared" "-s"))  (make-shared-object #t))))
 
 (define do-trace-pass
   (lambda (pass-name pass expr)

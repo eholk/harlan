@@ -1,7 +1,7 @@
 ;; -*- scheme -*-
 
 (module
-  (fn main ()
+  (define (main)
       (let i 0)
       (let j 0)
       (let cr (- (/ (int->float i) 512.0) 1.0))

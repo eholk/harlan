@@ -1,7 +1,8 @@
 (library
   (harlan middle uglify-vectors)
   (export uglify-vectors)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
 
 (define-match uglify-vectors
   ((module ,[uglify-decl -> fn*] ...)
@@ -49,17 +50,17 @@
 
 (define-match (uglify-let finish)
   (() finish)
-  (((,x (make-vector ,t (int ,n))) .
+  (((,x ,xt (make-vector ,t (int ,n))) .
     ,[(uglify-let finish) -> rest])
    (let ((vv (uglify-let-vec t `(int ,n) n)))
-     `(let ((,x ,vv)) ,rest)))
-  (((,x ,[uglify-expr -> e])
+     `(let ((,x ,xt ,vv)) ,rest)))
+  (((,x ,t ,[uglify-expr -> e])
     . ,[(uglify-let finish) -> rest])
-   `(let ((,x ,e)) ,rest)))
+   `(let ((,x ,t ,e)) ,rest)))
 
 (define-match uglify-stmt
-  ((let ((,x ,e) ...) ,[stmt])
-   ((uglify-let stmt) `((,x ,e) ...)))
+  ((let ((,x ,xt ,e) ...) ,[stmt])
+   ((uglify-let stmt) `((,x ,xt ,e) ...)))
   ((begin ,[uglify-stmt -> stmt*] ...)
    (make-begin stmt*))
   ((if ,[uglify-expr -> test] ,conseq)
@@ -113,7 +114,7 @@
    (uglify-vector-ref t e i))
   ((length ,e)
    (match (expr-type e)
-     ((vec ,t ,n)
+     ((vec ,n ,t)
       `(int ,n))
      (,else
       (error 'uglify-expr "Took length of non-vector"
@@ -132,4 +133,5 @@
         (c-expr (((ptr region) region_ptr) -> (ptr void))
          get_region_ptr) (var (ptr region) g_region) ,e))
       ,i)))
+
 )

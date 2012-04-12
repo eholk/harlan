@@ -1,5 +1,5 @@
 ;; -*- scheme -*-
 
 (module
-  (fn main ()
+  (define (main)
       (return 0)))

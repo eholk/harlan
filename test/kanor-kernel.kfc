@@ -10,11 +10,11 @@
 ;; kernel(x : X, y : Y, z : Z) { z = x * y; }
 
 (module
-  (fn main ()
+  (define (main)
       (let X (vector 1 2 3 4))
       (let Z (vector 2 3 4 5))
       (let Z (kernel ((x X) (y Y))
-               (* (var x) (var y))))
+               (* x y)))
       (assert (= (vector-ref Z 0) 2))
       (assert (= (vector-ref Z 1) 6))
       (assert (= (vector-ref Z 2) 12))
@@ -26,7 +26,7 @@
           (at (vector-ref Z i) (modulo (+ r 1) NUM_NODES))
           (at (vector-ref Y i) r)))      
       (let Z (kernel ((x X) (y Y))
-               (* (var x) (var y))))
+               (* x y)))
       (assert (= (vector-ref Z 0) (* (vector-ref X 0) (vector-ref Y 0))))
       (assert (= (vector-ref Z 1) (* (vector-ref X 1) (vector-ref Y 1))))
       (assert (= (vector-ref Z 2) (* (vector-ref X 2) (vector-ref Y 2))))

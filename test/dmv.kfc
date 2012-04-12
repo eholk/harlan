@@ -3,16 +3,16 @@
 ;; Dense matrix-vector product
 
 (module
-  (fn main ()
+  (define (main)
       (let M (vector
               (vector 1 0 0 0)
               (vector 0 1 0 0)
               (vector 0 0 1 0)
               (vector 0 0 0 1)))
       (let X (vector 1 2 3 4))
-      (let Y (kernel ((row (var M)))
-                     (reduce + (kernel ((x (var X)) (y (var row)))
-                                       (* (var x) (var y))))))
+      (let Y (kernel ((row M))
+                     (reduce + (kernel ((x X) (y row))
+                                       (* x y)))))
       (for (i 0 (length X))
            (assert (= (vector-ref X i) (vector-ref Y i))))
       (return 0)))

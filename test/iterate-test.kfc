@@ -6,7 +6,7 @@
   (M (range 1 2))))
 
 (module
-  (fn main ()
+  (define (main)
       (print N)
       (print M)
       (return 0)))

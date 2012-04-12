@@ -3,6 +3,7 @@
   (export compile-kernels)
   (import
     (rnrs)
+    (harlan helpers)
     (elegant-weapons helpers)
     (elegant-weapons print-c))
   

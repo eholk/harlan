@@ -1,7 +1,8 @@
 (library
   (harlan middle convert-types)
   (export convert-types convert-type)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
   
 ;; This pass converts Harlan types into C types.
 (define-match convert-types
@@ -71,7 +72,7 @@
    `(,op ,lhs ,rhs))
   ((if ,[test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
-  ((sizeof (vec ,[convert-type -> t] ,n)) `(* (int ,n) (sizeof ,t)))
+  ((sizeof (vec ,n ,[convert-type -> t])) `(* (int ,n) (sizeof ,t)))
   ((sizeof ,[convert-type -> t]) `(sizeof ,t))
   ((vector-ref ,[v] ,[i]) `(vector-ref ,v ,i))
   ((cast ,[convert-type -> t] ,[e]) `(cast ,t ,e))

@@ -10,12 +10,6 @@
     (harlan compile-opts)
     (util color))
 
-;;; ********************************* FIX ME !!!! ****
-
-;;; need to add examples with multiple fn's which call each other.
-
-;;; add tests with recursive and mutually recursive calls
-
 (define-syntax (define-mk x)
   (define trace-mk #f)
   (syntax-case x ()
@@ -39,9 +33,6 @@
 (define-mk lookup
   (lambda (env x type)
     (fresh (env^)
-      ;; use conda instead of conde
-      ;; to handle shadowing
-      ;; there is no shadowing...?
       (conde
         ((== `((,x . ,type) . ,env^) env))
         ((fresh (y t)
@@ -49,7 +40,6 @@
            (== `((,y . ,t) . ,env^) env)
            (lookup env^ x type)))))))
 
-;; ensures that all expressions have the same type
 (define-mk infer-exprs
   (lambda (exprs env type exprso)
     (fresh (expr expro expr* expro*)
@@ -94,13 +84,13 @@
          (== expr `(vector . ,e*))
          (== expro `(vector ,type . ,e^*))
          (report-backtrack `(vector . ,e*) env)
-         (== type `(vec ,t ,n))
+         (== type `(vec ,n ,t))
          (infer-exprs e* env t e^*)
          (project (e*) (== (length e*) n))))
       ((fresh (c t)
          (== expr `(make-vector (num ,c)))
          (== expro `(make-vector ,t (int ,c)))
-         (== type `(vec ,t ,c))))
+         (== type `(vec ,c ,t))))
       ((fresh (op e e^ t n)
          (== expr `(reduce ,op ,e))
          (== expro `(reduce ,type ,op ,e^))
@@ -108,15 +98,15 @@
          (conde
            ((== op '+))
            ((== op '*)))
-         (== 'int type)
-         (== `(vec ,type ,n) t)
+         (prefo type '(int float u64))
+         (== `(vec ,n ,type) t)
          (infer-expr e env t e^)))
       ((fresh (e e^ t n)
          (== expr `(length ,e))
          (report-backtrack `(length ,e) env)
          (== expro `(length ,e^))
          (== type 'int)
-         (infer-expr e env `(vec ,t ,n) e^)))
+         (infer-expr e env `(vec ,n ,t) e^)))
       ((fresh (c arg)
          (== expr `(iota ,arg))
          (== expro `(iota (int ,c)))
@@ -124,8 +114,8 @@
            ((== arg `(num ,c)))
            ((fresh (e e^ t)
               (== arg `(length ,e))
-              (infer-expr e env `(vec ,t ,c) e^))))
-         (== type `(vec int ,c))))
+              (infer-expr e env `(vec ,c ,t) e^))))
+         (== type `(vec ,c int))))
       ((fresh (op e1 e2 e1^ e2^ t)
          (== expr `(,op ,e1 ,e2))
          (== expro `(,op ,e1^ ,e2^))
@@ -171,7 +161,7 @@
          (== expro `(vector-ref ,type ,ve^ ,ie^))
          (report-backtrack `(vector-ref ,ve ,ie) env)
          (infer-expr ie env 'int ie^)
-         (infer-expr ve env `(vec ,type ,n) ve^)))
+         (infer-expr ve env `(vec ,n ,type) ve^)))
       ((fresh (fn fn-type args arg-types rtype argso)
          (== expr `(call ,fn . ,args))
          (report-backtrack `(call ,fn . ,args) env)
@@ -203,7 +193,7 @@
       ((fresh (b* body b^* body^ env^ t n)
          (== expr `(kernel ,b* ,body))
          (report-backtrack `(kernel ,b* ,body) env)
-         (== type `(vec ,t ,n))
+         (== type `(vec ,n ,t))
          (== expro `(kernel ,type ,b^* ,body^))
          (infer-kernel-bindings b* b^* env env^ n)
          (infer-expr body env^ t body^))))))
@@ -243,7 +233,7 @@
          (== `((,x ,e) . ,rest) b*)
          (report-backtrack e env)
          (== `(((,x ,tx) (,e^ ,te)) . ,rest^) b^*)
-         (== `(vec ,tx ,n) te)
+         (== `(vec ,n ,tx) te)
          (== envo `((,x . ,tx) . ,env^))
          (infer-expr e env te e^)
          (infer-kernel-bindings rest rest^ env env^ n))))))
@@ -254,7 +244,7 @@
       ((== b '()) (== b b^) (== env envo))
       ((fresh (x e e^ rest rest^ env^ type)
          (== b `((,x ,e) . ,rest))
-         (== b^ `((,x ,e^) . ,rest^))
+         (== b^ `((,x ,type ,e^) . ,rest^))
          (== envo `((,x . ,type) . ,env^))
          (infer-expr e env type e^)
          (infer-let-bindings rest rest^ env env^))))))
@@ -290,7 +280,7 @@
       ((fresh (e1 e2 e3 e1^ e2^ e3^ t n)
          (== stmt `(vector-set! ,e1 ,e2 ,e3))
          (== stmto `(vector-set! ,t ,e1^ ,e2^ ,e3^))
-         (infer-expr e1 env `(vec ,t ,n) e1^)
+         (infer-expr e1 env `(vec ,n ,t) e1^)
          (infer-expr e2 env 'int e2^)
          (infer-expr e3 env t e3^)))
       ((fresh (e e^ type)
@@ -404,8 +394,8 @@
         (else
          (display result)
          (error 'typecheck
-                "Could not infer a unique type for program"
-                result))))))
+           "Could not infer a unique type for program"
+           result))))))
 
 )
 

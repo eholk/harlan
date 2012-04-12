@@ -1,7 +1,8 @@
 (library
   (harlan middle generate-kernel-calls)
   (export generate-kernel-calls)
-  (import (rnrs) (except (elegant-weapons helpers) type-of))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
   
 (define-match generate-kernel-calls
   ((module ,[Decl -> decl*] ...)
@@ -24,7 +25,7 @@
 
 (define (get-arg-length a)
   (match (type-of a)
-    ((vec ,t ,n) n)
+    ((vec ,n ,t) n)
     (,else (error 'get-arg-length "Invalid kernel argument" a))))
 
 (define-match Stmt

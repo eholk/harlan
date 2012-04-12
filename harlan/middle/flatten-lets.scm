@@ -1,17 +1,9 @@
 (library
   (harlan middle flatten-lets)
   (export flatten-lets)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
 
-;; parse-harlan takes a syntax tree that a user might actually want
-;; to write and converts it into something that's more easily
-;; analyzed by the type inferencer and the rest of the compiler.
-;; This subsumes the functionality of the previous
-;; simplify-literals mini-pass.
-
-;; unnests lets, checks that all variables are in scope, and
-;; renames variables to unique identifiers
-  
 (define-match flatten-lets
   ((module ,[Decl -> decl*] ...)
    `(module . ,decl*)))
@@ -22,79 +14,63 @@
   (,else else))
 
 (define-match Stmt
-  ((let ((,x* ,[Expr -> e* t*]) ...) ,[stmt])
+  ((let ((,x* ,t* ,[Expr -> e*]) ...) ,[stmt])
    `(begin
       ,@(map (lambda (x t e) `(let ,x ,t ,e)) x* t* e*)
       ,stmt))
-  ((if ,[Expr -> test tt] ,[conseq])
+  ((if ,[Expr -> test] ,[conseq])
    `(if ,test ,conseq))
-  ((if ,[Expr -> test tt] ,[conseq] ,[alt])
+  ((if ,[Expr -> test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
   ((begin ,[stmt*] ...)
    (make-begin stmt*))
-  ((print ,[Expr -> expr _])
+  ((print ,[Expr -> expr])
    `(print ,expr))
-  ((assert ,[Expr -> expr _])
+  ((assert ,[Expr -> expr])
    `(assert ,expr))
   ((return) `(return))
-  ((return ,[Expr -> expr _])
+  ((return ,[Expr -> expr])
    `(return ,expr))
   ((for (,x ,start ,end) ,[stmt])
    `(for (,x ,start ,end) ,stmt))
   ((while ,test ,[stmt])
    `(while ,test ,stmt))
-  ((kernel ,dims (((,x ,tx) (,[Expr -> e* te^] ,te) ,dim) ...)
+  ((kernel ,dims (((,x ,tx) (,[Expr -> e*] ,te) ,dim) ...)
      (free-vars . ,fv*) ,[stmt])
-   ;; this is an amazing hack because we don't
-   ;; do any sort of typechecking later
-   (let ((fvt* (match stmt
-                 ((var ,t ,x) (guard (memq x fv*))
-                  `((,x . ,t)))
-                 ((,[x] ...)
-                  (apply append x))
-                 (,x '()))))
-     `(kernel ,dims (((,x ,tx) (,e* ,te) ,dim) ...)
-        (free-vars ,@(map (lambda (fv)
-                            `(,fv ,(cdr (assq fv fvt*))))
-                       fv*))
-        ,stmt)))
-  ((do ,[Expr -> expr _])
-   `(do ,expr))
-  ((set! ,[Expr -> e1 t1] ,[Expr -> e2 t2])
-   `(set! ,e1 ,e2)))
+   `(kernel ,dims (((,x ,tx) (,e* ,te) ,dim) ...)
+      (free-vars . ,fv*)
+      ,stmt))
+  ((do ,[Expr -> expr]) `(do ,expr))
+  ((set! ,[Expr -> e1] ,[Expr -> e2]) `(set! ,e1 ,e2)))
 
 (define-match Expr
-  ((,t ,n) (guard (scalar-type? t)) (values `(,t ,n) t))
-  ((var ,type ,x) (values `(var ,type ,x) type))
-  ((c-expr ,type ,x) (values `(c-expr ,type ,x) type))
-  ((if ,[test tt] ,[conseq tc] ,[alt ta])
-   (values `(if ,test ,conseq ,alt) tc))
-  ((cast ,t ,[expr t^])
-   (values `(cast ,t ,expr) t))
+  ((,t ,n) (guard (scalar-type? t)) `(,t ,n))
+  ((var ,type ,x) `(var ,type ,x))
+  ((c-expr ,type ,x) `(c-expr ,type ,x))
+  ((if ,[test] ,[conseq] ,[alt])
+   `(if ,test ,conseq ,alt))
+  ((cast ,t ,[expr])
+   `(cast ,t ,expr))
   ((sizeof ,t)
-   (values `(sizeof ,t) 'int))
-  ((addressof ,[expr t])
-   (values `(addressof ,expr) `(ptr ,t)))
-  ((deref ,[expr t])
-   (values `(deref ,expr) `(ptr int)))
-  ((let ((,x* ,[e* t*]) ...) ,[expr t])
-   (values
-     `(begin
-        ,@(map (lambda (x t e) `(let ,x ,t ,e)) x* t* e*)
-        ,expr)
-     t))
-  ((vector-ref ,type ,[e1 t1] ,[e2 t2])
-   (values `(vector-ref ,type ,e1 ,e2) type))
+   `(sizeof ,t))
+  ((addressof ,[expr])
+   `(addressof ,expr))
+  ((deref ,[expr])
+   `(deref ,[expr]))
+  ((let ((,x* ,t* ,[e*]) ...) ,[expr])
+   `(begin
+      ,@(map (lambda (x t e) `(let ,x ,t ,e)) x* t* e*)
+      ,expr))
+  ((vector-ref ,type ,[e1] ,[e2])
+   `(vector-ref ,type ,e1 ,e2))
   ((length ,n)
-   (values `(length ,n) 'int))
-  ((,op ,[e1 t1] ,[e2 t2]) (guard (binop? op))
-   (values `(,op ,e1 ,e2) t1))
-  ((,op ,[e1 t1] ,[e2 t2]) (guard (relop? op))
-   (values `(,op ,e1 ,e2) 'bool))
-  ((call ,[expr t] ,[expr* t*] ...)
-   (match t
-     ((,argtypes -> ,rtype)
-      (values `(call ,expr . ,expr*) rtype)))))
+   `(length ,n))
+  ((,op ,[e1] ,[e2]) (guard (binop? op))
+   `(,op ,e1 ,e2))
+  ((,op ,[e1] ,[e2]) (guard (relop? op))
+   `(,op ,e1 ,e2))
+  ((call ,[expr] ,[expr*] ...)
+   `(call ,expr . ,expr*)))
 
 ;; end library
 

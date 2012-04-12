@@ -1,7 +1,8 @@
 (library
   (harlan middle remove-nested-kernels)
   (export remove-nested-kernels)
-  (import (rnrs) (elegant-weapons helpers))
+  (import (rnrs) (elegant-weapons helpers)
+    (harlan helpers))
 
 ;; This pass takes a nest of kernels and turns all but the innermost
 ;; one into for loops. This isn't the best way to do this, but it's
@@ -25,35 +26,37 @@
 
 (define-match (Let finish k?)
   (() (values finish k?))
-  (((,x (kernel (vec ,t ,n) ,dims (((,x* ,t*) (,xs* ,ts*) ,d*) ...)
-                ,[Expr -> e kernel?]))
+  (((,x ,xt
+     (kernel (vec ,n ,t) ,dims (((,x* ,t*) (,xs* ,ts*) ,d*) ...)
+       ,[Expr -> e kernel?]))
     . ,[rest _])
    (values
      (if kernel?
          (let ((i (gensym 'i)))
            (assert (= (length dims) 1))
-           `(let ((,x (make-vector ,t (int ,n))))
+           `(let ((,x ,xt (make-vector ,t (int ,n))))
               (begin
                 (for (,i (int 0) (int ,(car dims)))
-                     (let (,@(map (lambda (x t xs)
-                                    `(,x (vector-ref ,t ,xs (var int ,i))))
-                                  x* t* xs*))
-                       ,((set-kernel-return
-                          (lambda (e) `(vector-set!
-                                   ,t (var (vec ,t ,n) ,x) (var int ,i) ,e)))
-                         e)))
+                  (let (,@(map (lambda (x t xs)
+                                 `(,x ,t (vector-ref ,t ,xs (var int ,i))))
+                            x* t* xs*))
+                    ,((set-kernel-return
+                        (lambda (e) `(vector-set!
+                                  ,t (var (vec ,n ,t) ,x) (var int ,i) ,e)))
+                      e)))
                 ,rest)))
-         `(let ((,x (kernel (vec ,t ,n) ,dims
-                            (((,x* ,t*) (,xs* ,ts*) ,d*) ...)
-                            ,e)))
+         `(let ((,x ,xt
+                  (kernel (vec ,n ,t) ,dims
+                    (((,x* ,t*) (,xs* ,ts*) ,d*) ...)
+                    ,e)))
             ,rest))
      #t))
-  (((,x ,e) . ,[rest k?])
-   (values `(let ((,x ,e)) ,rest) k?)))
+  (((,x ,t ,e) . ,[rest k?])
+   (values `(let ((,x ,t ,e)) ,rest) k?)))
 
 (define-match Stmt
-  ((let ((,x ,e) ...) ,[stmt k?])
-   ((Let stmt k?) `((,x ,e) ...)))
+  ((let ((,x ,t ,e) ...) ,[stmt k?])
+   ((Let stmt k?) `((,x ,t ,e) ...)))
   ((begin ,[stmt* has-kernel*] ...)
    (values (make-begin stmt*) (any? has-kernel*)))
   ((for (,i ,start ,end) ,[stmt has-kernel])
@@ -76,8 +79,8 @@
   ((return ,e) (values `(return ,e) #f)))
 
 (define-match Expr
-  ((let ((,x ,e) ...) ,[expr k?])
-   ((Let expr k?) `((,x ,e) ...)))
+  ((let ((,x ,t ,e) ...) ,[expr k?])
+   ((Let expr k?) `((,x ,t ,e) ...)))
   ((begin ,[Stmt -> stmt* kernel*] ... ,[e has-kernel])
    (values `(begin ,@stmt* ,e)
      (or has-kernel (any? kernel*))))

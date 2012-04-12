@@ -1,0 +1,6 @@
+;; -*- scheme -*-
+
+(module
+  (define (main)
+    (print (reduce + (make-vector 10 33)))
+    (return 0)))
