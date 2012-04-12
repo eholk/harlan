@@ -69,6 +69,20 @@ void write_pgm(const char *filename, int **data) {
     }
 }
 
+void write_str(const char *msg, std::ofstream *f) {
+  *f << msg;
+}
+
+void write_int(int num, std::ofstream *f) {
+  *f << num;
+}
+
+std::ofstream* open_outfile(const char *filename) {
+  std::ofstream f;
+  f.open(filename);
+  return &f;
+}
+
 // (int u64) -> void
 void print_int_u64(int x, uint64_t y) {
   cout << x << "\t" << y << endl;

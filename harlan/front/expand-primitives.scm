@@ -3,11 +3,24 @@
   (export expand-primitives)
   (import
    (rnrs)
-   (elegant-weapons helpers))
+   (elegant-weapons helpers)
+   (elegant-weapons compat))
+
+  (define externs (make-parameter '()))
+
+  (define (add-externs prim)
+    (case prim
+      ((write-pgm)
+       (externs
+         (append
+           `((extern open_outfile (str) -> (ptr ofstream))
+             (extern write_str (str (ptr ofstream)) -> void)
+             (extern write_int (int (ptr ofstream)) -> void))
+           (externs))))))
 
   (define-match expand-primitives
     ((module ,[Decl -> decl*] ...)
-     `(module ,decl* ...)))
+     `(module ,(externs) ... ,decl* ...)))
     
   (define-match Decl
     ((fn ,name ,args ,t ,[Stmt -> stmt])
@@ -56,8 +69,34 @@
     ((return ,[Expr -> e])
      `(return ,e))
     ((do ,[Expr -> e])
-     `(do ,e)))
-
+     `(do ,e))
+    ((write-pgm ,file ,data)
+     (let ((write `(var ((str (ptr ofstream)) -> void) write_str))
+           (write_int `(var ((str (ptr ofstream)) -> void) write_int))
+           (p (gensym 'p)) (f (gensym 'file)) (i (gensym 'i))
+           (stream (gensym 'stream)))
+       (add-externs 'write-pgm)
+       `(let ((,f ,file))
+          (let ((,stream (call (var ((str) -> (ptr ofstream)) open_outfile)
+                           (var str ,f))))
+            (begin
+              (do (call ,write (str "P2\n") (var ofstream ,stream)))
+              (do (call ,write (str "1024 1024\n") (var ofstream ,stream)))
+              (do (call ,write (str "255\n") (var ofstream ,stream)))
+              (for (,i (int 0) (* (int 1024) (int 1024)))
+                (let ((,p (vector-ref int
+                            (vector-ref (vec int 1024)
+                              ,data
+                              (/ (var int ,i) (int 1024)))
+                            (mod (var int ,i) (int 1024)))))
+                  (begin
+                    (if (< (var int ,p) (int 0))
+                        (set! (var int ,p) (int 0))
+                        (if (> (var int ,p) (int 255))
+                            (set! (var int ,p) (int 255))))
+                    (do (call ,write_int (var int ,p)
+                          (var ofstream ,stream))))))))))))
+  
   (define-match Expr
     ((,t ,v) (guard (scalar-type? t)) `(,t ,v))
     ((var ,t ,x) `(var ,t ,x))
