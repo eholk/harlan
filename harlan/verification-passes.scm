@@ -9,6 +9,7 @@
     verify-make-kernel-dimensions-explicit
     verify-lift-complex
     verify-typecheck
+    verify-expand-primitives
     verify-lower-vectors
     verify-returnify-kernels
     verify-make-vector-refs-explicit
@@ -220,7 +221,7 @@
       (if Expr Stmt)
       (begin Stmt * Stmt)
       (if Expr Stmt Stmt)
-      (print Expr)
+      (print Type Expr)
       (assert Expr)
       (set! Expr Expr)
       (vector-set! Type Expr Expr Expr)
@@ -250,6 +251,23 @@
       (Relop Expr Expr)
       (call Expr Expr *)))
 
+  (expand-primitives
+   (%inherits Module Decl Body Expr)
+   (Start Module)
+   (Stmt
+     (let ((Var Expr) *) Stmt)
+     (if Expr Stmt)
+     (begin Stmt * Stmt)
+     (if Expr Stmt Stmt)
+     (print Expr)
+     (assert Expr)
+     (set! Expr Expr)
+     (vector-set! Type Expr Expr Expr)
+     (do Expr)
+     (for (Var Expr Expr) Stmt)
+     (while Expr Stmt)
+     (return Expr)))
+  
   (make-kernel-dimensions-explicit
    (%inherits Module Decl Body Stmt)
    (Start Module)
