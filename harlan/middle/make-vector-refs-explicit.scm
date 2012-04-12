@@ -59,16 +59,18 @@
           (var (ptr region) g_region)
           ,xs)))))
 
+(define (generate-kernel-args x t xs d)
+  `(,x (addressof
+         (vector-ref ,t ,xs
+           (call
+             (c-expr ((int) -> int) get_global_id)
+             (int ,d))))))
+
 (define generate-kernel
   (lambda (x* t* xs* d* stmt)
     `(let ,(map
-             (lambda (x t xs d)
-               `(,x (addressof
-                      (vector-ref ,t ,xs
-                        (call
-                          (c-expr ((int) -> int) get_global_id)
-                          (int ,d))))))
-             x* t* xs* d*)
+            generate-kernel-args
+            x* t* xs* d*)
        ,((replace-vec-refs-stmt x*) stmt))))
 
 (define-match (replace-vec-refs-stmt x*)
