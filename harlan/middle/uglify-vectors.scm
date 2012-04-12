@@ -46,16 +46,16 @@
 
 (define-match (uglify-let finish)
   (() finish)
-  (((,x (make-vector ,t (int ,n))) .
+  (((,x ,xt (make-vector ,t (int ,n))) .
     ,[(uglify-let finish) -> rest])
    (let ((vv (uglify-let-vec t `(int ,n) n)))
-     `(let ((,x ,vv)) ,rest)))
-  (((,x ,[uglify-expr -> e]) . ,[(uglify-let finish) -> rest])
-   `(let ((,x ,e)) ,rest)))
+     `(let ((,x ,xt ,vv)) ,rest)))
+  (((,x ,xt ,[uglify-expr -> e]) . ,[(uglify-let finish) -> rest])
+   `(let ((,x ,xt ,e)) ,rest)))
 
 (define-match uglify-stmt
-  ((let ((,x ,e) ...) ,[stmt])
-   ((uglify-let stmt) `((,x ,e) ...)))
+  ((let ((,x ,xt ,e) ...) ,[stmt])
+   ((uglify-let stmt) `((,x ,xt ,e) ...)))
   ((begin ,[uglify-stmt -> stmt*] ...)
    (make-begin stmt*))
   ((if ,[uglify-expr -> test] ,conseq)

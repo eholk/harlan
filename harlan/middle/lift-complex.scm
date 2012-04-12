@@ -17,10 +17,10 @@
          (lambda (e) `(begin ,@stmt* ,(finish e)))))
       ((let () ,expr)
        (lift-expr expr (lambda (expr) (finish expr))))
-      ((let ((,x ,e) . ,rest) ,expr)
+      ((let ((,x ,t ,e) . ,rest) ,expr)
        (Expr e
          (lambda (e)
-           `(let ((,x ,e))
+           `(let ((,x ,t ,e))
               ,(lift-expr `(let ,rest ,expr) finish)))))
       ((if ,test ,conseq ,alt)
        (lift-expr
@@ -47,7 +47,7 @@
        (let ((finish
                (lambda (e*^)
                  (let ((v (gensym 'v)))
-                   `(let ((,v
+                   `(let ((,v ,t
                             (kernel ,t ,dims (((,x* ,t*) (,e*^ ,ts*) ,dim*) ...)
                               ,(lift-expr body (lambda (b) b)))))
                       ,(finish `(var ,t ,v)))))))
@@ -61,7 +61,7 @@
       ((vector ,t . ,e*)
        (let ((finish (lambda (e*^)
                        (let ((v (gensym 'v)))
-                         `(let ((,v (vector ,t . ,e*^)))
+                         `(let ((,v ,t (vector ,t . ,e*^)))
                             ,(finish `(var ,t ,v)))))))
          (let loop ((e* e*) (e*^ '()))
            (if (null? e*)
@@ -74,14 +74,14 @@
        (finish `(make-vector ,c)))
       ((iota (int ,c))
        (let ((v (gensym 'iota)))
-         `(let ((,v (iota (int ,c))))
+         `(let ((,v (vec ,c int) (iota (int ,c))))
             ,(finish `(var (vec ,c int) ,v)))))
       ((reduce ,t ,op ,e)
        (lift-expr
          e
          (lambda (e^)
            (let ((v (gensym 'v)))
-             `(let ((,v (reduce ,t ,op ,e^)))
+             `(let ((,v ,t (reduce ,t ,op ,e^)))
                 ,(finish `(var ,t ,v)))))))
       ((length ,e) 
        (lift-expr
@@ -118,8 +118,7 @@
                  (lambda (e^)
                    (loop (cdr e*) (cons e^ e*^))))))))
       ((vector ,t . ,e*)
-       (let ((finish (lambda (e*^)
-                       (finish `(vector ,t . ,e*^)))))
+       (let ((finish (lambda (e*^) (finish `(vector ,t . ,e*^)))))
          (let loop ((e* e*) (e*^ '()))
            (if (null? e*)
                (finish (reverse e*^))
@@ -146,10 +145,10 @@
   ((set! ,x ,e)
    (lift-expr e (lambda (e^) `(set! ,x ,e^))))
   ((let () ,[stmt]) stmt)
-  ((let ((,x ,e) . ,rest) ,stmt)
+  ((let ((,x ,t ,e) . ,rest) ,stmt)
    (Expr e
      (lambda (e)
-       `(let ((,x ,e))
+       `(let ((,x ,t ,e))
           ,(lift-stmt `(let ,rest ,stmt))))))
   ((if ,test ,conseq)
    (lift-expr test (lambda (t) `(if ,t ,conseq))))

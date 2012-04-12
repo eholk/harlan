@@ -48,20 +48,20 @@
   ;; variables in vars.
   (define-match (split-bindings vars)
     (() (values '() '()))
-    (((,x ,e) . ,[liftable pinned])
+    (((,x ,t ,e) . ,[liftable pinned])
      ;; TODO: get a more correct test for whether this can be lifted
      (if (let ((fv (free-vars-Expr e)))
            (and (not (member x fv))
                 (null? (intersection vars fv))
                 (pure? e)))
-         (values (cons `(,x ,e) liftable) pinned)
-         (values liftable (cons `(,x ,e) pinned)))))
+         (values (cons `(,x ,t ,e) liftable) pinned)
+         (values liftable (cons `(,x ,t ,e) pinned)))))
       
   (define-match Stmt
-    ((let ((,x* ,e*) ...)
+    ((let ((,x* ,t* ,e*) ...)
        ,[body bindings])
      (let-values (((liftable pinned) ((split-bindings x*) bindings)))
-       (values (make-let pinned body) (append (map list x* e*) liftable))))
+       (values (make-let pinned body) (append (map list x* t* e*) liftable))))
     ((begin ,[stmt* bindings*] ... ,[Expr -> e bindings])
      (values
       `(begin ,@(map make-let bindings* stmt*) ,(make-let bindings e))
@@ -118,7 +118,7 @@
     ((kernel ,t ,dims (((,x* ,t*) (,[xs*] ,ts*) ,d) ...) ,[e])
      (apply union (cons (difference e x*) xs*)))
     ((reduce ,t ,op ,[e]) e)
-    ((let ((,x* ,[e*]) ...) ,[e])
+    ((let ((,x* ,t* ,[e*]) ...) ,[e])
      (apply union (cons (difference e x*) e*)))
     ((if ,[t] ,[c] ,[a])
      (union t c a))
@@ -143,7 +143,7 @@
      (union test conseq altern))
     ((while ,[free-vars-Expr -> test] ,[body])
      (union test body))
-    ((let ((,x* ,[free-vars-Expr -> e*]) ...) ,[e])
+    ((let ((,x* ,t* ,[free-vars-Expr -> e*]) ...) ,[e])
      (apply union (cons (difference e x*) e*)))
     ((begin ,[s*] ...)
      (apply union s*)))

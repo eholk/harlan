@@ -31,15 +31,15 @@
    `(while ,expr ,body))
   ((for (,x ,e1 ,e2) ,[body])
    `(for (,x ,e1 ,e2) ,body))
-  ((let ((,id ,e) ...) ,[stmt])
-   ((returnify-kernel-let stmt) `((,id ,e) ...)))
+  ((let ((,id ,t ,e) ...) ,[stmt])
+   ((returnify-kernel-let stmt) `((,id ,t ,e) ...)))
   ((do ,expr) `(do ,expr)))
 
 (define-match returnify-kernel-expr
   ((begin ,[returnify-kernel-stmt -> stmt*] ,[expr])
    `(begin ,@stmt* ,expr))
-  ((let ((,id ,e) ...) ,[expr])
-   ((returnify-kernel-let expr) `((,id ,e) ...)))
+  ((let ((,id ,t ,e) ...) ,[expr])
+   ((returnify-kernel-let expr) `((,id ,t ,e) ...)))
   (,else else))
 
 (define-match type-dim
@@ -48,16 +48,16 @@
 
 (define-match (returnify-kernel-let finish)
   (() finish)
-  (((,id (kernel void ,arg* ,body))
+  (((,id ,xt (kernel void ,arg* ,body))
     . ,[(returnify-kernel-let finish) -> rest])
    ;; TODO: we still need to traverse the body
-   `(let ((,id (kernel void ,arg* ,body))) ,rest))
-  (((,id (kernel (vec ,n ,t) ,dims ,arg* ,body))
+   `(let ((,id ,xt (kernel void ,arg* ,body))) ,rest))
+  (((,id ,xt (kernel (vec ,n ,t) ,dims ,arg* ,body))
     . ,[(returnify-kernel-let finish) -> rest])
    (match arg*
      ((((,x* ,tx*) (,xe* ,xet*) ,dim) ...)
       (let ((retvar (gensym 'retval)))
-        `(let ((,id (make-vector ,t (int ,n))))
+        `(let ((,id ,xt (make-vector ,t (int ,n))))
            (begin
              (kernel (vec ,n ,t) ,dims
                (((,retvar ,t)
@@ -65,8 +65,8 @@
                 . ,arg*)
                ,((set-retval t retvar) body))
              ,rest))))))
-  (((,id ,expr) . ,[(returnify-kernel-let finish) -> rest])
-   `(let ((,id ,expr)) ,rest)))
+  (((,id ,t ,expr) . ,[(returnify-kernel-let finish) -> rest])
+   `(let ((,id ,t ,expr)) ,rest)))
 
 (define-match (set-retval t retvar)
   ((begin ,stmt* ... ,[(set-retval t retvar) -> expr])

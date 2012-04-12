@@ -244,7 +244,7 @@
       ((== b '()) (== b b^) (== env envo))
       ((fresh (x e e^ rest rest^ env^ type)
          (== b `((,x ,e) . ,rest))
-         (== b^ `((,x ,e^) . ,rest^))
+         (== b^ `((,x ,type ,e^) . ,rest^))
          (== envo `((,x . ,type) . ,env^))
          (infer-expr e env type e^)
          (infer-let-bindings rest rest^ env env^))))))
