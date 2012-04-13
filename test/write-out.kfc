@@ -1,0 +1,8 @@
+;; -*- scheme -*-
+
+(module
+  (extern open_outfile (str) -> (ptr ofstream))
+  (define (main)
+    (let ((f (open_outfile "outfile.txt")))
+      (print "Hello there!\n" f)
+      (return 0))))
