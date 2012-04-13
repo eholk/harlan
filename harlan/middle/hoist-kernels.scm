@@ -32,7 +32,7 @@
      ,[hoist-stmt -> stmt kernel*])
    (let ((name (gensym 'kernel)))
      (values
-      `(apply-kernel ,name 
+      `(apply-kernel ,name ,dims
         ,@(map hoist-kernel-arg fv* ft*))
       `((kernel ,name ,(map list fv* ft*) ,stmt)
         . ,kernel*))))

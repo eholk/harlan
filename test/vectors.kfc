@@ -10,6 +10,7 @@
         (print "\n")
         (assert (= 4 (var len)))
         (print v)
+        (print "\n")
         (assert (= 1 (vector-ref (var v) 0)))
         (assert (= 2 (vector-ref (var v) 1)))
         (assert (= 3 (vector-ref (var v) 2)))

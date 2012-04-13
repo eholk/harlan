@@ -70,10 +70,12 @@
                    (loop (cdr e*) (cons e^ e*^))))))))
       ((make-vector ,c)
        (finish `(make-vector ,c)))
-      ((iota (int ,c))
+      ((iota ,e)
        (let ((v (gensym 'iota)))
-         `(let ((,v (vec ,c int) (iota (int ,c))))
-            ,(finish `(var (vec ,c int) ,v)))))
+         (lift-expr e
+            (lambda (e)
+              `(let ((,v (vec ,c int) (iota (int ,c))))
+                 ,(finish `(var (vec ,c int) ,v)))))))
       ((reduce ,t ,op ,e)
        (lift-expr
          e

@@ -2,9 +2,6 @@
 
 (module
   (define (main)
-      ;; (let img (kernel ((i (iota 1024)))
-      ;;                  (kernel ((j (iota 1024)))
-      ;;                          (mod (* i j) 256))))
     (let ((img (make-vector 1024 (make-vector 1024 0))))
       (write-pgm "test.bin/test-image.pgm" img)
       (return 0))))

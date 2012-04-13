@@ -57,7 +57,7 @@
    (match arg*
      ((((,x* ,tx*) (,xe* ,xet*) ,dim) ...)
       (let ((retvar (gensym 'retval)))
-        `(let ((,id ,xt (make-vector ,t (int ,n))))
+        `(let ((,id ,xt (make-vector ,t ,(car dims))))
            (begin
              (kernel (vec ,n ,t) ,dims
                (((,retvar ,t)

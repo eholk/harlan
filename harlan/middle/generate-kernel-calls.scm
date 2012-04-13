@@ -29,7 +29,7 @@
     (,else (error 'get-arg-length "Invalid kernel argument" a))))
 
 (define-match Stmt
-  ((apply-kernel ,k ,arg* ...)
+  ((apply-kernel ,k ,dims ,arg* ...)
    (let ((kernel (gensym k)))
      `(begin
         (let ,kernel cl::kernel
@@ -47,7 +47,7 @@
             arg* (iota (length arg*)))
         (do (call (field (var cl::queue g_queue) execute)
               (var cl::kernel ,kernel)
-              (int ,(get-arg-length (car arg*))) ;; global size
+              ,(car dims) ;; global size
               (int 1)))
         (do (call (c-expr (((ptr region)) -> void) map_region)
                   (var (ptr region) g_region)))))) ;; local size

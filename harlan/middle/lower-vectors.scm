@@ -17,7 +17,7 @@
   (() finish)
   (((,x ,xt (vector (vec ,n ,t) . ,e*))
     . ,[(lower-let finish) -> rest])
-   `(let ((,x ,xt (make-vector ,t (int ,n))))
+   `(let ((,x ,xt (make-vector ,t (int ,(length e*)))))
       ,(make-begin
          (let loop ((e* e*) (i 0))
            (if (null? e*)

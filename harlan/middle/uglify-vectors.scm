@@ -13,8 +13,8 @@
         (call
          (c-expr ((int) -> (ptr region))
            create_region)
-         ;; 16MB
-         (int 16777216))) . ,fn*)))
+         ;; 128MB
+         (int ,(expt 2 27)))) . ,fn*)))
 
 (define-match uglify-decl
   ((fn ,name ,args ,t ,[uglify-stmt -> stmt])
@@ -28,21 +28,23 @@
 
 (define uglify-let-vec
   (lambda (t n)
-    `(call
-      (c-expr (((ptr region) int) -> region_ptr)
-              alloc_in_region)
-      (var (ptr region) g_region)
-      (+ (* (sizeof ,t) ,n)
-         ;; sizeof int for the length field.
-         ,length-offset))))
+    (let ((t (if (scalar-type? t) t 'region_ptr)))
+      `(call
+        (c-expr (((ptr region) int) -> region_ptr)
+                alloc_in_region)
+        (var (ptr region) g_region)
+        (+ (* (sizeof ,t) ,n)
+           ;; sizeof int for the length field.
+           ,length-offset)))))
 
 (define (vector-length-field e)
   `(deref 
     (cast (ptr int)
           (call
            (c-expr (((ptr region) region_ptr) -> (ptr void))
-                   get_region_ptr) (var (ptr region) g_region)
-                   ,e))))
+                   get_region_ptr)
+           (var (ptr region) g_region)
+           ,e))))
   
 (define-match (uglify-let finish)
   (() finish)
