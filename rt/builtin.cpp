@@ -78,9 +78,15 @@ void write_int(int num, std::ofstream *f) {
 }
 
 std::ofstream* open_outfile(const char *filename) {
-  std::ofstream f;
-  f.open(filename);
-  return &f;
+    // TODO: This is leaking files
+    std::ofstream *f = new std::ofstream;
+    f->open(filename);
+    return f;
+}
+
+void close_outfile(std::ofstream *f) {
+    f->close();
+    delete f;
 }
 
 // (int u64) -> void

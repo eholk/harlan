@@ -14,6 +14,7 @@
        (externs
          (append
            `((extern open_outfile (str) -> (ptr ofstream))
+             (extern close_outfile ((ptr ofstream)) -> void)
              (extern write_str (str (ptr ofstream)) -> void)
              (extern write_int (int (ptr ofstream)) -> void))
            (externs))))))
@@ -141,7 +142,10 @@
                        (if (> (var int ,p) (int 255))
                            (set! (var int ,p) (int 255))))
                    (do (call ,write_int (var int ,p)
-                         (var ofstream ,stream)))))))))))
+                         (var ofstream ,stream)))
+                   (do (call ,write (str " ") (var ofstream ,stream))))))
+             (do (call (var (((ptr ofstream)) -> void) close_outfile)
+                       (var (ptr ofstream) ,stream))))))))
 
   (define (expand-vec-addition n t lhs rhs)
     (let ((l (gensym 'lhs))
