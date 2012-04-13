@@ -61,11 +61,14 @@
   ((assert ,[lower-expr -> expr])
    `(assert ,expr))
   ((set! ,x ,i) `(set! ,x ,i))
-  ((if ,test ,[conseq])
+  ((if ,[lower-expr -> test] ,[conseq])
    `(if ,test ,conseq))
-  ((if ,test ,[conseq] ,[alt])
+  ((if ,[lower-expr -> test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
-  ((vector-set! ,t ,[lower-expr -> e1] ,i ,[lower-expr -> e2])
+  ((vector-set! ,t
+     ,[lower-expr -> e1]
+     ,[lower-expr -> i]
+     ,[lower-expr -> e2])
    `(vector-set! ,t ,e1 ,i ,e2))
   ((while ,[lower-expr -> expr] ,[body])
    `(while ,expr ,body))

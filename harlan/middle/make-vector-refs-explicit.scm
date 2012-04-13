@@ -133,6 +133,8 @@
   ((begin ,[(replace-vec-refs-stmt x*) -> stmt*] ...
           ,[(replace-vec-refs-expr x*) -> expr])
    `(begin ,@stmt* ,expr))
+  ((reduce ,t ,op ,[(replace-vec-refs-expr x*) -> e])
+   `(reduce ,t ,op ,e))
   ((if ,[(replace-vec-refs-expr x*) -> t]
        ,[(replace-vec-refs-expr x*) -> c]
        ,[(replace-vec-refs-expr x*) -> a])
