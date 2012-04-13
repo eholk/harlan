@@ -140,6 +140,12 @@
    (make-begin stmt*))
   ((print ,expr)
    (lift-expr expr (lambda (e^) `(print ,e^))))
+  ((print ,expr ,op)
+   (lift-expr expr
+     (lambda (e^)
+       (lift-expr op
+         (lambda (op^)
+           `(print ,e^ ,op^))))))
   ((assert ,expr)
    (lift-expr expr (lambda (e^) `(assert ,e^))))
   ((set! ,x ,e)

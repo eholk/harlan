@@ -6,15 +6,6 @@
     (harlan helpers)
     (elegant-weapons helpers))
 
-;; parse-harlan takes a syntax tree that a user might actually want
-;; to write and converts it into something that's more easily
-;; analyzed by the type inferencer and the rest of the compiler.
-;; This subsumes the functionality of the previous
-;; simplify-literals mini-pass.
-
-;; unnests lets, checks that all variables are in scope, and
-;; renames variables to unique identifiers, changes bools to ints
-
 (define-match parse-harlan
   ((module ,[parse-decl -> decl*] ...)
    `(module . ,decl*)))
@@ -38,6 +29,8 @@
   (u64 'u64)
   (str 'str)
   (float 'float)
+  (ofstream 'ofstream)
+  ((ptr ,[t]) `(ptr ,t))
   ((vec ,n ,[t])
    (guard (integer? n))
    `(vec ,n ,t))
@@ -47,8 +40,8 @@
 (define-match (parse-stmt env)
   ((assert ,[(parse-expr env) -> e])
    `(assert ,e))
-  ((print ,[(parse-expr env) -> e])
-   `(print ,e))
+  ((print ,[(parse-expr env) -> e] ...)
+   `(print . ,e))
   ((write-pgm ,[(parse-expr env) -> file]
      ,[(parse-expr env) -> data])
    `(write-pgm ,file ,data))

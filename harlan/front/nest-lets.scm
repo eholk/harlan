@@ -45,7 +45,7 @@
    `(let ((,x ,e) ...) . ,value*))
   ((begin . ,value*)
    (make-begin ((Value* '()) value*)))
-  ((print ,[Value -> e]) `(print ,e))
+  ((print ,[Value -> e] ...) `(print . ,e))
   ((assert ,[Value -> e]) `(assert ,e))
   ((set! ,[Value -> x] ,[Value -> v]) `(set! ,x ,v))
   ((vector-set! ,[Value -> v] ,[Value -> i] ,[Value -> e])

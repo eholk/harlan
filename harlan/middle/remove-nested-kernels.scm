@@ -73,7 +73,7 @@
   ((vector-set! ,t ,v ,i ,e)
    (values `(vector-set! ,t ,v ,i ,e) #f))
   ((do ,e) (values `(do ,e) #f))
-  ((print ,e) (values `(print ,e) #f))
+  ((print . ,e*) (values `(print . ,e*) #f))
   ((assert ,e) (values `(assert ,e) #f))
   ((return) (values `(return) #f))
   ((return ,e) (values `(return ,e) #f)))

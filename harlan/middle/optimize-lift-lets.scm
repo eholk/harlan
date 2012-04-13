@@ -88,7 +88,7 @@
              (append x-bindings e-bindings)))
     ((assert ,[Expr -> e bindings])
      (values `(assert ,e) bindings))
-    ((print ,e) (values `(print ,e) '()))
+    ((print . ,e*) (values `(print . ,e*) '()))
     ((return) (values `(return) '()))
     ((return ,e) (values `(return ,e) '()))
     ((do ,[Expr -> e bindings])

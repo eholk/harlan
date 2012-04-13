@@ -72,6 +72,7 @@
       (let ((Var Value) *) Value +)
       (begin Value * Value)
       (print Value)
+      (print Value Value)
       (write-pgm Value Value)
       (assert Value)
       (set! Value Value)
@@ -106,6 +107,7 @@
       (let ((Var Value) *) Value +)
       (begin Value * Value)
       (print Value)
+      (print Value Value)
       (write-pgm Value Value)
       (assert Value)
       (set! Value Value)
@@ -138,6 +140,7 @@
       (if Expr Stmt Stmt)
       (begin Stmt * Stmt)
       (print Expr)
+      (print Expr Expr)
       (write-pgm Expr Expr)
       (assert Expr)
       (set! Expr Expr)
@@ -186,6 +189,7 @@
       (if Expr Stmt Stmt)
       (begin Stmt * Stmt)
       (print Expr)
+      (print Expr Expr)
       (write-pgm Expr Expr)
       (assert Expr)
       (set! Expr Expr)
@@ -233,6 +237,7 @@
       (begin Stmt * Stmt)
       (if Expr Stmt Stmt)
       (print Type Expr)
+      (print Type Expr Expr)
       (write-pgm Expr Expr)
       (assert Expr)
       (set! Expr Expr)
@@ -272,6 +277,7 @@
      (begin Stmt * Stmt)
      (if Expr Stmt Stmt)
      (print Expr)
+     (print Expr Expr)
      (assert Expr)
      (set! Expr Expr)
      (vector-set! Type Expr Expr Expr)
@@ -319,6 +325,7 @@
       (if Expr Stmt Stmt)
       (begin Stmt * Stmt)
       (print Expr)
+      (print Expr Expr)
       (assert Expr)
       (set! Expr Expr)
       (vector-set! Type Expr Expr Expr)
@@ -359,6 +366,7 @@
     (Start Module)
     (Stmt
       (print Expr)
+      (print Expr Expr)
       (assert Expr)
       (set! Expr Expr)
       (vector-set! Type Expr Expr Expr)
@@ -404,6 +412,7 @@
     (Start Module)
     (Stmt 
       (print Expr)
+      (print Expr Expr)
       (assert Expr)
       (set! Expr Expr)
       (vector-set! Type Expr Expr Expr)
@@ -453,6 +462,7 @@
       Ret-Stmt)
     (Stmt
       (print Expr)
+      (print Expr Expr)
       (assert Expr)
       (set! Expr Expr)
       (kernel (Integer +) (((Var Type) (Expr Type) Integer) +) Stmt)
@@ -488,6 +498,7 @@
     (Start Module)
     (Stmt 
       (print Expr)
+      (print Expr Expr)
       (assert Expr)
       (set! Expr Expr)
       (kernel (Integer +) (((Var Type) (Expr Type) Integer) +)
@@ -511,6 +522,7 @@
       Ret-Stmt)
     (Stmt
       (print Expr)
+      (print Expr Expr)
       (assert Expr)
       (set! Expr Expr)
       (kernel (Integer +)
@@ -554,6 +566,7 @@
       (kernel Var ((Var Type) +) Stmt))
     (Stmt 
       (print Expr)
+      (print Expr Expr)
       (assert Expr)
       (set! Expr Expr)
       (apply-kernel Var Expr +)
@@ -590,6 +603,7 @@
     (Start Module)
     (Stmt
       (print Expr)
+      (print Expr Expr)
       (assert Expr)
       (set! Expr Expr)
       (let Var C-Type Expr)
@@ -613,6 +627,7 @@
       (extern Type Var (Type *)))
     (Stmt
       (print Expr)
+      (print Expr Expr)
       (set! Expr Expr)
       (if Expr Stmt)
       (if Expr Stmt Stmt)
@@ -703,6 +718,7 @@
       (if Expr Stmt Stmt)
       (return Expr)
       (print Expr)
+      (print Expr Expr)
       (set! Expr Expr)
       (while Expr Stmt)
       (for (Var Expr Expr) Stmt)
@@ -728,5 +744,4 @@
       (Binop Expr Expr)))
 
   )
-
 )

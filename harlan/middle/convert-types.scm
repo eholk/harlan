@@ -37,7 +37,7 @@
    `(if ,test ,conseq ,alt))
   ((set! ,[convert-expr -> loc] ,[convert-expr -> val])
    `(set! ,loc ,val))
-  ((print ,[convert-expr -> e]) `(print ,e))
+  ((print ,[convert-expr -> e] ...) `(print . ,e))
   ((while ,[convert-expr -> e] ,[stmt])
    `(while ,e ,stmt))
   ((for (,x ,[convert-expr -> begin] ,[convert-expr -> end])

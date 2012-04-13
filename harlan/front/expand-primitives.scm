@@ -12,10 +12,8 @@
     (case prim
       ((write-pgm)
        (externs
-         (append
-           `((extern open_outfile (str) -> (ptr ofstream))
-             (extern write_str (str (ptr ofstream)) -> void)
-             (extern write_int (int (ptr ofstream)) -> void))
+         (cons
+           `(extern open_outfile (str) -> (ptr ofstream))
            (externs))))))
 
   (define-match expand-primitives
@@ -63,8 +61,8 @@
                              ,t (var (vec ,n ,t) ,v-row) (var int ,j)))
                     (print (str " "))))
                 (print (str "]\n"))))))))
-    ((print ,t ,[Expr -> e])
-     `(print ,e))
+    ((print ,t ,[Expr -> e] ...)
+     `(print . ,e))
     ((assert ,[Expr -> e])
      `(assert ,e))
     ((return) `(return))
@@ -73,32 +71,7 @@
     ((do ,[Expr -> e])
      `(do ,e))
     ((write-pgm ,file ,data)
-     (let ((write `(var ((str (ptr ofstream)) -> void) write_str))
-           (write_int `(var ((str (ptr ofstream)) -> void) write_int))
-           (p (gensym 'p)) (f (gensym 'file)) (i (gensym 'i))
-           (stream (gensym 'stream)))
-       (add-externs 'write-pgm)
-       `(let ((,f str ,file))
-          (let ((,stream (ptr ofstream)
-                 (call (var ((str) -> (ptr ofstream)) open_outfile)
-                   (var str ,f))))
-            (begin
-              (do (call ,write (str "P2\n") (var ofstream ,stream)))
-              (do (call ,write (str "1024 1024\n") (var ofstream ,stream)))
-              (do (call ,write (str "255\n") (var ofstream ,stream)))
-              (for (,i (int 0) (* (int 1024) (int 1024)))
-                (let ((,p int (vector-ref int
-                                (vector-ref (vec 1024 int)
-                                  ,data
-                                  (/ (var int ,i) (int 1024)))
-                                (mod (var int ,i) (int 1024)))))
-                  (begin
-                    (if (< (var int ,p) (int 0))
-                        (set! (var int ,p) (int 0))
-                        (if (> (var int ,p) (int 255))
-                            (set! (var int ,p) (int 255))))
-                    (do (call ,write_int (var int ,p)
-                          (var ofstream ,stream))))))))))))
+     (expand-write-pgm file data)))
   
   (define-match Expr
     ((,t ,v) (guard (scalar-type? t)) `(,t ,v))
@@ -131,5 +104,33 @@
      (guard (or (relop? op) (binop? op)))
      `(,op ,lhs ,rhs)))
 
+  (define (expand-write-pgm file data)
+    (let ((p (gensym 'p))
+          (f (gensym 'file))
+          (i (gensym 'i))
+          (stream (gensym 'stream)))
+      (add-externs 'write-pgm)
+      `(let ((,f str ,file))
+         (let ((,stream (ptr ofstream)
+                 (call (var ((str) -> (ptr ofstream)) open_outfile)
+                   (var str ,f))))
+           (begin
+             (print (str "P2\n") (var ofstream ,stream))
+             (print (str "1024 1024\n") (var ofstream ,stream))
+             (print (str "255\n") (var ofstream ,stream))
+             (for (,i (int 0) (* (int 1024) (int 1024)))
+               (let ((,p int (vector-ref int
+                               (vector-ref (vec 1024 int)
+                                 ,data
+                                 (/ (var int ,i) (int 1024)))
+                               (mod (var int ,i) (int 1024)))))
+                 (begin
+                   (if (< (var int ,p) (int 0))
+                       (set! (var int ,p) (int 0))
+                       (if (> (var int ,p) (int 255))
+                           (set! (var int ,p) (int 255))))
+                   (print (var int ,p)
+                     (var ofstream ,stream))))))))))
+  
   ;; end library
   )

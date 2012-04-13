@@ -42,8 +42,8 @@
         ,@prologue
         (apply-kernel ,k ,@args)
         ,@epilogue)))
-  ((print ,expr)
-   `(print ,expr))
+  ((print . ,expr*)
+   `(print . ,expr*))
   ((assert ,expr)
    `(assert ,expr))
   ((return) `(return))

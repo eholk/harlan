@@ -62,8 +62,8 @@
        (union/var bfv* sfv* efv*))))
   ((set! ,[annotate-expr -> x xfv*] ,[annotate-expr -> e efv*])
    (values `(set! ,x ,e) (union/var xfv* efv*)))
-  ((print ,[annotate-expr -> e fv*])
-   (values `(print ,e) fv*))
+  ((print ,[annotate-expr -> e fv*] ...)
+   (values `(print . ,e) (apply union/var fv*)))
   ((assert ,[annotate-expr -> e fv*])
    (values `(assert ,e) fv*)))
 

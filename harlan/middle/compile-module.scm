@@ -28,7 +28,7 @@
    `(if ,test ,conseq))
   ((if ,[compile-expr -> test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
-  [(print ,[compile-expr -> expr]) `(print ,expr)]
+  [(print ,[compile-expr -> expr] ...) `(print . ,expr)]
   ((return) `(return))
   [(return ,[compile-expr -> expr]) `(return ,expr)]
   [(assert ,[compile-expr -> expr]) `(do (assert ,expr))]

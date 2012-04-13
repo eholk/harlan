@@ -44,6 +44,11 @@ void print(T n) {
   std::cout << n;
 }
 
+template<typename T>
+void print(T n, std::ofstream *f) {
+  *f << n;
+}
+
 region *create_region(unsigned int size);
 void map_region(region *ptr);
 void unmap_region(region *ptr);
