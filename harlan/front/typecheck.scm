@@ -97,7 +97,7 @@
          (== type `(vec ,c ,t))))
       ((fresh (op e e^ t n)
          (== expr `(reduce ,op ,e))
-         (== expro `(reduce ,type ,op ,e^))
+         (== expro `(reduce ,t ,op ,e^))
          (report-backtrack `(reduce ,op ,e) env)
          (conde
            ((== op '+))
