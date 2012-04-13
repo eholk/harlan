@@ -373,7 +373,7 @@
       (int->float Expr)
       (length Expr)
       (if Expr Expr Expr)
-      (let ((Var Let-Expr) *) Expr)
+      (let ((Var Type Let-Expr) *) Expr)
       (call Expr Expr *)
       (vector-ref Type Expr Expr)
       (Binop Expr Expr)
