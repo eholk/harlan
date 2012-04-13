@@ -49,24 +49,22 @@
      `(for (,x ,start ,stop) ,body))
     ((begin ,[stmt*] ...)
      `(begin . ,stmt*))
-    ((print (vec ,m (vec ,n ,t)) ,[expand-prim-expr -> e])
-     (let ((v (gensym 'v)) (v-row (gensym 'vrow))
-           (i (gensym 'i)) (j (gensym 'j)))
-       `(let ((,v (vec ,m (vec ,n ,t)) ,e))
-          (for (,i (int 0) (length (var (vec ,m (vec ,n ,t)) ,v)))
-            (let ((,v-row
-                   (vec ,n ,t)
-                   (vector-ref (vec ,n ,t)
-                     (var (vec ,m (vec ,n ,t)) ,v)
-                     (var int ,i))))
+    ((print (vec ,n ,t) ,[expand-prim-expr -> e])
+     (let ((v (gensym 'v)) 
+           (i (gensym 'i)))
+       `(let ((,v (vec ,n ,t) ,e))
+          (begin
+            (print (str "["))
+            (for (,i (int 0) (length (var (vec ,n ,t) ,v)))
               (begin
-                (print (str "[ "))
-                (for (,j (int 0) (length (var (vec ,n ,t) ,v-row)))
-                  (begin
-                    (print (vector-ref
-                             ,t (var (vec ,n ,t) ,v-row) (var int ,j)))
-                    (print (str " "))))
-                (print (str "]\n"))))))))
+                ,(if (scalar-type? t)
+                     `(if (> (var int ,i) (int 0)) (print (str " ")))
+                     `(if (> (var int ,i) (int 0)) (print (str " \n "))))
+                ,(expand-prim-stmt
+                   `(print ,t
+                      (vector-ref ,t
+                        (var (vec ,n ,t) ,v) (var int ,i)))) ))
+            (print (str "]"))))))
     ((print ,t ,[expand-prim-expr -> e])
      `(print ,e))
     ((assert ,[expand-prim-expr -> e])
