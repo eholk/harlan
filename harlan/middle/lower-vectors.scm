@@ -38,7 +38,6 @@
   (((,x ,xt (reduce ,t ,op ,e)) . ,[(lower-let finish) -> rest])
    (let ((i (gensym 'i))
          (v (gensym 'v)))
-     ;; This is a hack
      `(let ((,v ,t ,e))
         (let ((,x ,xt (vector-ref ,t (var ,t ,v) (int 0))))
           (begin

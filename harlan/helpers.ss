@@ -1,8 +1,6 @@
 (library
   (harlan helpers)
   (export
-    decode-vector-type
-    vector-bytesize
     type-of
     ident?
     reduceop?
@@ -14,18 +12,6 @@
     (elegant-weapons helpers)
     (elegant-weapons match))
 
-  (define decode-vector-type
-    (lambda (t)
-      (match t
-        ((vec ,len ,[dim t sz])
-         (values (+ 1 dim) t `(* (int ,len) ,sz)))
-        (,t (values 0 t `(sizeof ,t))))))
-
-  (define vector-bytesize
-    (lambda (t)
-      (let-values (((dim t sz) (decode-vector-type t)))
-        sz)))
-  
   (define-match type-of
     ((deref ,[e]) e)
     ((vector-ref ,t ,v ,i) t)

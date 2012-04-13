@@ -4,6 +4,8 @@
   (import (rnrs) (elegant-weapons helpers)
     (harlan helpers))
 
+  (define length-offset '(sizeof int))
+  
 (define-match uglify-vectors
   ((module ,[uglify-decl -> fn*] ...)
    `(module
@@ -25,35 +27,34 @@
   ((var ,t ,x) t))
 
 (define uglify-let-vec
-  (lambda (t e n)
-    (match e
-      ((int ,y)
-       (let-values (((dim t^ sz)
-                     (decode-vector-type `(vec ,n ,t))))
-         `(call
-           (c-expr (((ptr region) int) -> (vec ,n ,t))
-            alloc_in_region)
-           (var (ptr region) g_region) ,sz)))
-      ((var ,y int)
-       (let-values (((dim t sz)
-                     (decode-vector-type `(vec ,y ,t))))
-         `(call
-           (c-expr (((ptr region) int) -> region_ptr)
-            alloc_in_region)
-           (var (ptr region) g_region) ,sz)))
-      ((var ,tv ,y)
-       ;; TODO: this probably needs a copy instead.
-       `(var ,tv ,y))
-      ;; Otherwise, just hope it works! We should use more type
-      ;; information here.
-      (,else else))))
+  (lambda (t n)
+    `(call
+      (c-expr (((ptr region) int) -> region_ptr)
+              alloc_in_region)
+      (var (ptr region) g_region)
+      (+ (* (sizeof ,t) ,n)
+         ;; sizeof int for the length field.
+         ,length-offset))))
 
+(define (vector-length-field e)
+  `(deref 
+    (cast (ptr int)
+          (call
+           (c-expr (((ptr region) region_ptr) -> (ptr void))
+                   get_region_ptr) (var (ptr region) g_region)
+                   ,e))))
+  
 (define-match (uglify-let finish)
   (() finish)
-  (((,x ,xt (make-vector ,t (int ,n))) .
+  (((,x ,xt (make-vector ,t ,[uglify-expr -> n])) .
     ,[(uglify-let finish) -> rest])
-   (let ((vv (uglify-let-vec t `(int ,n) n)))
-     `(let ((,x ,xt ,vv)) ,rest)))
+   (let* ((length (gensym (symbol-append x '_length)))
+          (vv (uglify-let-vec t `(var int ,length))))
+     `(let ((,length int ,n))
+        (let ((,x ,xt ,vv))
+          ,(make-begin
+            `((set! ,(vector-length-field `(var ,xt ,x)) (var int ,length))
+              ,rest))))))
   (((,x ,t ,[uglify-expr -> e])
     . ,[(uglify-let finish) -> rest])
    `(let ((,x ,t ,e)) ,rest)))
@@ -113,12 +114,7 @@
   ((vector-ref ,t ,[e] ,[i])
    (uglify-vector-ref t e i))
   ((length ,[e])
-   (match (expr-type e)
-     ((vec ,n ,t)
-      `(int ,n))
-     (,else
-      (error 'uglify-expr "Took length of non-vector"
-        else (expr-type e)))))
+   (vector-length-field e))
   ((addressof ,[expr])
    `(addressof ,expr))
   ((deref ,[expr])
@@ -131,7 +127,8 @@
       (cast (ptr ,t)
        (call
         (c-expr (((ptr region) region_ptr) -> (ptr void))
-         get_region_ptr) (var (ptr region) g_region) ,e))
+         get_region_ptr) (var (ptr region) g_region)
+         (+ ,e ,length-offset)))
       ,i)))
 
 )

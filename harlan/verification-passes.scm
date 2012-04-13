@@ -622,7 +622,7 @@
       (c-expr C-Type Var)
       (if Expr Expr Expr)
       (field (var C-Type Var) Var)
-      (deref (var Type Var))
+      (deref Expr)
       (call Expr Expr *)
       (cast Type Expr)
       (sizeof Type)
