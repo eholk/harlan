@@ -52,6 +52,7 @@
     (Float float)
     (String string)
     (Char char)
+    (Boolean boolean)
     (Number number))
   
   (harlan
@@ -152,6 +153,7 @@
       (num Integer)
       (float Float)
       (str String)
+      (bool Boolean)
       (var Var)
       (vector Expr +)
       (begin Stmt * Expr)
@@ -196,6 +198,7 @@
       Ret-Stmt)
     (Expr
       (char Char)
+      (bool Boolean)
       (num Integer)
       (float Float)
       (str String)
@@ -247,6 +250,46 @@
       (u64 Number)
       (float Float)
       (str String)
+      (bool Boolean)
+      (var Type Var)
+      (if Expr Expr Expr)
+      (let ((Var Type Expr) *) Expr)
+      (begin Stmt * Expr)
+      (vector Type Expr +)
+      (vector-ref Type Expr Expr)
+      (kernel Type (((Var Type) (Expr Type)) +) Expr)
+      (reduce Type Reduceop Expr)
+      (iota (int Integer))
+      (length Expr)
+      (int->float Expr)
+      (make-vector Type (int Integer))
+      (Binop Type Expr Expr)
+      (Relop Type Expr Expr)
+      (call Expr Expr *)))
+
+  (expand-primitives
+   (%inherits Module Decl Body)
+   (Start Module)
+   (Stmt
+     (let ((Var Type Expr) *) Stmt)
+     (if Expr Stmt)
+     (begin Stmt * Stmt)
+     (if Expr Stmt Stmt)
+     (print Expr)
+     (assert Expr)
+     (set! Expr Expr)
+     (vector-set! Type Expr Expr Expr)
+     (do Expr)
+     (for (Var Expr Expr) Stmt)
+     (while Expr Stmt)
+     (return Expr))
+    (Expr
+      (char Char)
+      (int Integer)
+      (u64 Number)
+      (float Float)
+      (str String)
+      (bool Boolean)
       (var Type Var)
       (if Expr Expr Expr)
       (let ((Var Type Expr) *) Expr)
@@ -262,23 +305,6 @@
       (Binop Expr Expr)
       (Relop Expr Expr)
       (call Expr Expr *)))
-
-  (expand-primitives
-   (%inherits Module Decl Body Expr)
-   (Start Module)
-   (Stmt
-     (let ((Var Type Expr) *) Stmt)
-     (if Expr Stmt)
-     (begin Stmt * Stmt)
-     (if Expr Stmt Stmt)
-     (print Expr)
-     (assert Expr)
-     (set! Expr Expr)
-     (vector-set! Type Expr Expr Expr)
-     (do Expr)
-     (for (Var Expr Expr) Stmt)
-     (while Expr Stmt)
-     (return Expr)))
   
   (make-kernel-dimensions-explicit
    (%inherits Module Decl Body Stmt)
@@ -289,6 +315,7 @@
       (u64 Number)
       (float Float)
       (str String)
+      (bool Boolean)
       (var Type Var)
       (if Expr Expr Expr)
       (let ((Var Type Expr) *) Expr)
@@ -341,6 +368,7 @@
       (u64 Number)
       (float Float)
       (str String)
+      (bool Boolean)
       (var Type Var)
       (int->float Expr)
       (length Expr)
@@ -382,6 +410,7 @@
   (make-vector-refs-explicit (%inherits Module Decl Body Stmt Let-Expr)
     (Start Module)
     (Expr
+      (bool Boolean)
       (char Char)
       (int Integer)
       (u64 Number)
@@ -426,6 +455,7 @@
       (u64 Number)
       (float Float)
       (int->float Expr)
+      (bool Boolean)
       (str String)
       (var Type Var)
       (let ((Var Type Let-Expr) *) Expr)
@@ -465,6 +495,7 @@
       (begin Stmt +)
       Ret-Stmt)
     (Expr
+      (bool Boolean)
       (char Char)
       (int Integer)
       (u64 Number)
@@ -525,6 +556,7 @@
       (begin Stmt +)
       Ret-Stmt)
     (Expr
+      (bool Boolean)
       (char Char)
       (int Integer)
       (u64 Number)
@@ -566,6 +598,7 @@
       (do Expr)
       Ret-Stmt)
     (Expr
+      (bool Boolean)
       (char Char)
       (int Integer)
       (u64 Number)
@@ -623,6 +656,7 @@
       (do Expr)
       Ret-Stmt)
     (Expr
+      (bool Boolean)
       (char Char)
       (int Integer)
       (u64 Number)
@@ -654,6 +688,7 @@
     (Kernel
       (kernel Var ((Var C-Type) +) Stmt))
     (Expr
+      (bool Boolean)
       (char Char)
       (int Integer)
       (u64 Number)
@@ -708,6 +743,7 @@
       (for (Var Expr Expr) Stmt)
       (do Expr))
     (Expr
+      (bool Boolean)
       (int Integer)
       (u64 Number)
       (str String)

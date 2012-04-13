@@ -19,33 +19,37 @@
            (externs))))))
 
   (define-match expand-primitives
-    ((module ,[Decl -> decl*] ...)
+    ((module ,[expand-prim-decl -> decl*] ...)
      `(module ,(externs) ... ,decl* ...)))
     
-  (define-match Decl
-    ((fn ,name ,args ,t ,[Stmt -> stmt])
+  (define-match expand-prim-decl
+    ((fn ,name ,args ,t ,[expand-prim-stmt -> stmt])
      `(fn ,name ,args ,t ,stmt))
     ((extern ,name ,args -> ,rtype)
      `(extern ,name ,args -> ,rtype)))
 
-  (define-match Stmt
-    ((let ((,x* ,t* ,[Expr -> e*]) ...) ,[body])
+  (define-match expand-prim-stmt
+    ((let ((,x* ,t* ,[expand-prim-expr -> e*]) ...) ,[body])
      `(let ((,x* ,t* ,e*) ...) ,body))
-    ((set! ,[Expr -> lhs] ,[Expr -> rhs])
+    ((set! ,[expand-prim-expr -> lhs] ,[expand-prim-expr -> rhs])
      `(set! ,lhs ,rhs))
-    ((vector-set! ,t ,[Expr -> v] ,[Expr -> i] ,[Expr -> e])
+    ((vector-set! ,t
+       ,[expand-prim-expr -> v]
+       ,[expand-prim-expr -> i]
+       ,[expand-prim-expr -> e])
      `(vector-set! ,t ,v ,i ,e))
-    ((if ,[Expr -> test] ,[conseq] ,[altern])
+    ((if ,[expand-prim-expr -> test] ,[conseq] ,[altern])
      `(if ,test ,conseq ,altern))
-    ((if ,[Expr -> test] ,[conseq])
+    ((if ,[expand-prim-expr -> test] ,[conseq])
      `(if ,test ,conseq))
-    ((while ,[Expr -> test] ,[body])
+    ((while ,[expand-prim-expr -> test] ,[body])
      `(while ,test ,body))
-    ((for (,x ,[Expr -> start] ,[Expr -> stop]) ,[body])
+    ((for (,x ,[expand-prim-expr -> start]
+            ,[expand-prim-expr -> stop]) ,[body])
      `(for (,x ,start ,stop) ,body))
     ((begin ,[stmt*] ...)
      `(begin . ,stmt*))
-    ((print (vec ,m (vec ,n ,t)) ,[Expr -> e])
+    ((print (vec ,m (vec ,n ,t)) ,[expand-prim-expr -> e])
      (let ((v (gensym 'v)) (v-row (gensym 'vrow))
            (i (gensym 'i)) (j (gensym 'j)))
        `(let ((,v (vec ,m (vec ,n ,t)) ,e))
@@ -63,14 +67,14 @@
                              ,t (var (vec ,n ,t) ,v-row) (var int ,j)))
                     (print (str " "))))
                 (print (str "]\n"))))))))
-    ((print ,t ,[Expr -> e])
+    ((print ,t ,[expand-prim-expr -> e])
      `(print ,e))
-    ((assert ,[Expr -> e])
+    ((assert ,[expand-prim-expr -> e])
      `(assert ,e))
     ((return) `(return))
-    ((return ,[Expr -> e])
+    ((return ,[expand-prim-expr -> e])
      `(return ,e))
-    ((do ,[Expr -> e])
+    ((do ,[expand-prim-expr -> e])
      `(do ,e))
     ((write-pgm ,file ,data)
      (let ((write `(var ((str (ptr ofstream)) -> void) write_str))
@@ -100,7 +104,7 @@
                     (do (call ,write_int (var int ,p)
                           (var ofstream ,stream))))))))))))
   
-  (define-match Expr
+  (define-match expand-prim-expr
     ((,t ,v) (guard (scalar-type? t)) `(,t ,v))
     ((var ,t ,x) `(var ,t ,x))
     ((int->float ,[e]) `(int->float ,e))
@@ -125,9 +129,38 @@
      `(kernel ,ktype (((,x ,t) (,xs ,ts)) ...) ,body))
     ((let ((,x* ,t* ,[e*]) ...) ,[e])
      `(let ((,x* ,t* ,e*) ...) ,e))
-    ((begin ,[Stmt -> s*] ... ,[e])
+    ((begin ,[expand-prim-stmt -> s*] ... ,[e])
      `(begin ,s* ... ,e))
-    ((,op ,[lhs] ,[rhs])
+    ((= (vec ,n ,t) ,[lhs] ,[rhs])
+     (guard (scalar-type? t))
+     (let ((l (gensym 'lhs))
+           (r (gensym 'rhs))
+           (len (gensym 'len))
+           (i (gensym 'i))
+           (res (gensym 'res))
+           (lhsi (gensym 'lhsi))
+           (rhsi (gensym 'rhsi)))
+       `(let ((,l (vec ,n ,t) ,lhs)
+              (,r (vec ,n ,t) ,rhs))
+          (let ((,len int (length (var (vec ,n ,t) ,l)))
+                (,res bool (bool #t)))
+            (begin
+              (if (= (var int ,len)
+                     (length (var (vec ,n ,t) ,r)))
+                  (for (,i (int 0) (var int ,len))
+                    (let ((,lhsi ,t
+                           (vector-ref ,t (var (vec ,n ,t) ,l)
+                             (var int ,i)))
+                          (,rhsi ,t
+                           (vector-ref ,t (var (vec ,n ,t) ,r)
+                             (var int ,i))))
+                      (if (= (= (var ,t ,lhsi) (var ,t ,rhsi))
+                             (bool #f))
+                          (begin (set! (var bool ,res) (bool #f))
+                                 (set! (var int ,i) (var int ,len))))))
+                  (set! (var bool ,res) (bool #f)))
+              (var bool ,res))))))
+    ((,op ,t ,[lhs] ,[rhs])
      (guard (or (relop? op) (binop? op)))
      `(,op ,lhs ,rhs)))
 
