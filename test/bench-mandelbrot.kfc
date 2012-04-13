@@ -38,6 +38,9 @@
                  (/ (* escape 256) max_iter))))
     (let stop (nanotime))
     (write-pgm "test.bin/mandelbrot.pgm" img)
-    (print_int_u64 max_iter (/ (- stop start) 1000000))
+;;    (print_int_u64 max_iter (/ (- stop start) 1000000))
+    (print max_iter)
+    (print "\t")
+    (print (/ (- stop start) 1000000))
     (return 0)))
 

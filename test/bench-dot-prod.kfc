@@ -21,6 +21,9 @@
               (let ((stop (nanotime)))
                 (set! ttime (+ ttime (- stop start)))
                 (assert (= dot len)))))))
-      (print_int_u64 len (/ (/ ttime 1000) iters)))
+;;      (print_int_u64 len (/ (/ ttime 1000) iters))
+      (print len)
+      (print "\t")
+      (print (/ (/ ttime 1000) iters)))
       (return 0)))
 

@@ -22,5 +22,8 @@
                   (assert (= (vector-ref Sum m) 2)))
                 
                 (set! ttime (+ ttime (- stop start)))
-                (print_int_u64 len (/ (/ ttime 1000) iters))))))))
+;;                (print_int_u64 len (/ (/ ttime 1000) iters))
+                (print len)
+                (print "\t")
+                (print (/ (/ ttime 1000) iters))))))))
       (return 0)))
