@@ -36,7 +36,7 @@
            (assert (= (length dims) 1))
            `(let ((,x ,xt (make-vector ,t (int ,n))))
               (begin
-                (for (,i (int 0) (int ,(car dims)))
+                (for (,i (int 0) ,(car dims))
                   (let (,@(map (lambda (x t xs)
                                  `(,x ,t (vector-ref ,t ,xs (var int ,i))))
                             x* t* xs*))
