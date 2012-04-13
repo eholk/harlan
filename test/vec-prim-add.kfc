@@ -1,0 +1,12 @@
+;; -*- scheme -*-
+
+(module
+  (define (main)
+    (let ((X (vector 1 2 3))
+          (Y (vector 2 3 4)))
+      (let ((Z (+ X Y)))
+        (begin
+          (print Z)
+          (print "\n")
+          (assert (= Z (vector 3 5 7))) 
+          (return 0))))))
