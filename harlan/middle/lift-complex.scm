@@ -33,8 +33,6 @@
                  alt
                  (lambda (a) (finish `(if ,t ,c ,a)))))))))
       ((vector-ref ,t ,e1 ,e2)
-       (if (symbol? e1)
-           (error 'lift-expr "This form is not legal" e1))
        (lift-expr
          e1
          (lambda (e1^)
@@ -156,9 +154,9 @@
      (lambda (e)
        `(let ((,x ,t ,e))
           ,(lift-stmt `(let ,rest ,stmt))))))
-  ((if ,test ,conseq)
+  ((if ,test ,[conseq])
    (lift-expr test (lambda (t) `(if ,t ,conseq))))
-  ((if ,test ,conseq ,alt)
+  ((if ,test ,[conseq] ,[alt])
    (lift-expr test (lambda (t) `(if ,t ,conseq ,alt))))
   ((vector-set! ,t ,x ,e1 ,e2)
    (lift-expr
@@ -182,7 +180,7 @@
            `(for (,x ,start ,end) ,stmt))))))
   ((do ,e)
    (lift-expr e (lambda (e) `(do ,e))))
-  ((while ,expr ,stmt)
+  ((while ,expr ,[stmt])
    (lift-expr expr (lambda (expr) `(while ,expr ,stmt)))))
 
 (define-match lift-decl

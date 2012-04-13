@@ -151,6 +151,7 @@
   (define-match pure?
     ((int ,n) #t)
     ((float ,x) #t)
+    ((bool ,b) #t)
     ((var ,t ,x) #t)
     ((int->float ,[e]) e)
     ((,op ,[lhs] ,[rhs])
@@ -158,6 +159,7 @@
      (and lhs rhs))
     ((vector ,t ,e* ...) #f)
     ((make-vector ,t ,e) #f)
+    ((length ,[e]) e)
     ((vector-ref ,t ,[x] ,[i])
      (and x i))
     ((iota ,[e]) e)

@@ -35,15 +35,18 @@
               (var (vec ,n int) ,x) (var int ,i) (var int ,i)))
           ,rest))))
   
-  (((,x ,xt (reduce ,t2 ,op (var ,tv ,v))) . ,[(lower-let finish) -> rest])
-   (let ((i (gensym 'i)) (t t2))
-     `(let ((,x ,xt (vector-ref ,t (var ,tv ,v) (int 0))))
-        (begin
-          (for (,i (int 1) (length (var ,tv ,v)))
-            (set! (var ,t ,x)
-              (,op (var ,t ,x)
-                (vector-ref ,t (var ,tv ,v) (var int ,i)))))
-          ,rest))))
+  (((,x ,xt (reduce ,t ,op ,e)) . ,[(lower-let finish) -> rest])
+   (let ((i (gensym 'i))
+         (v (gensym 'v)))
+     ;; This is a hack
+     `(let ((,v ,t ,e))
+        (let ((,x ,xt (vector-ref ,t (var ,t ,v) (int 0))))
+          (begin
+            (for (,i (int 1) (length (var ,t ,v)))
+              (set! (var ,xt ,x)
+                (,op (var ,xt ,x)
+                  (vector-ref ,t (var ,t ,v) (var int ,i)))))
+            ,rest)))))
   
   (((,x ,xt ,e) . ,[(lower-let finish) -> rest])
    `(let ((,x ,xt ,e)) ,rest)))
@@ -61,11 +64,14 @@
   ((assert ,[lower-expr -> expr])
    `(assert ,expr))
   ((set! ,x ,i) `(set! ,x ,i))
-  ((if ,test ,[conseq])
+  ((if ,[lower-expr -> test] ,[conseq])
    `(if ,test ,conseq))
-  ((if ,test ,[conseq] ,[alt])
+  ((if ,[lower-expr -> test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
-  ((vector-set! ,t ,[lower-expr -> e1] ,i ,[lower-expr -> e2])
+  ((vector-set! ,t
+     ,[lower-expr -> e1]
+     ,[lower-expr -> i]
+     ,[lower-expr -> e2])
    `(vector-set! ,t ,e1 ,i ,e2))
   ((while ,[lower-expr -> expr] ,[body])
    `(while ,expr ,body))

@@ -87,7 +87,7 @@
   (,c (guard (char? c)) `(char ,c))
   (,f (guard (float? f)) `(float ,f))
   (,n (guard (integer? n)) `(num ,n))
-  (,b (guard (boolean? b)) (if b `(num 1) `(num 0)))
+  (,b (guard (boolean? b)) `(bool ,b))
   (,x (guard (symbol? x))
     (let ((x^ (assq x env)))
       (unless x^ (error 'parse-expr "Free variable" x))
