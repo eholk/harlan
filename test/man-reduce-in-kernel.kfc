@@ -1,10 +1,5 @@
 ;; -*- scheme -*-
 
-(%testspec xfail)
-
-;; This should work, but we fail in convert-type. We'll have to debug
-;; more.
-
 ;; Reducing within a kernel.
 
 (module
@@ -15,5 +10,8 @@
       (let ((B (kernel ((a A))
                  (reduce + a))))
         (for (i 0 (length B))
-          (print (vector-ref B i)))))
+          (print (vector-ref B i))
+          (print "\n"))
+        (assert (= (vector-ref B 0) 6))
+        (assert (= (vector-ref B 1) 15))))
     (return 0)))
