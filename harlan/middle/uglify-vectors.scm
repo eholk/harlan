@@ -13,8 +13,8 @@
         (call
          (c-expr ((int) -> (ptr region))
            create_region)
-         ;; 128MB
-         (int ,(expt 2 27)))) . ,fn*)))
+         ;; 16MB
+         (int 16777216))) . ,fn*)))
 
 (define-match uglify-decl
   ((fn ,name ,args ,t ,[uglify-stmt -> stmt])
