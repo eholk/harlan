@@ -9,7 +9,7 @@
    (harlan compile-opts)
    (harlan front compile-front)
    (harlan middle compile-middle)
-   (elegant-weapons print-c))
+   (harlan backend print-c))
 
 (define compile-harlan
   (passes
@@ -17,6 +17,6 @@
     compile-harlan-middle))
 
 (define harlan->c++
-  (passes compile-harlan format-c))
+  (passes compile-harlan harlan-format-c))
 
 )

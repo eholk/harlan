@@ -5,19 +5,20 @@
     (rnrs)
     (harlan helpers)
     (elegant-weapons helpers)
-    (elegant-weapons print-c))
-  
-(define format-kernel-arg
-  (lambda (arg)
-    (format-arg arg)))
+    (only (harlan backend print-c)
+      harlan-format-arg
+      harlan-format-ident
+      harlan-format-stmt))
 
+(define harlan-format-kernel-arg harlan-format-arg)
+  
 (define-match compile-kernel
   ((kernel
-     ,[format-ident -> name]
-     (,[format-kernel-arg -> args*] ...)
-     ,[format-stmt -> stmt])
+     ,[harlan-format-ident -> name]
+     (,[harlan-format-kernel-arg -> arg*] ...)
+     ,[harlan-format-stmt -> stmt])
    (string-append
-     "__kernel void " name "(" (join ", " args*) ") " stmt)))
+     "__kernel void " name "(" (join ", " arg*) ") " stmt)))
 
 (define-match compile-decl
   ((gpu-module ,kernel* ...)
