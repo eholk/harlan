@@ -2,9 +2,9 @@
   (harlan front expand-primitives)
   (export expand-primitives)
   (import
-   (rnrs)
-   (elegant-weapons helpers)
-   (elegant-weapons compat))
+    (rnrs)
+    (elegant-weapons helpers)
+    (elegant-weapons compat))
 
   (define externs (make-parameter '()))
 
@@ -21,7 +21,7 @@
   (define-match expand-primitives
     ((module ,[expand-prim-decl -> decl*] ...)
      `(module ,(externs) ... ,decl* ...)))
-    
+  
   (define-match expand-prim-decl
     ((fn ,name ,args ,t ,[expand-prim-stmt -> stmt])
      `(fn ,name ,args ,t ,stmt))
@@ -50,21 +50,7 @@
     ((begin ,[stmt*] ...)
      `(begin . ,stmt*))
     ((print (vec ,n ,t) ,[expand-prim-expr -> e])
-     (let ((v (gensym 'v)) 
-           (i (gensym 'i)))
-       `(let ((,v (vec ,n ,t) ,e))
-          (begin
-            (print (str "["))
-            (for (,i (int 0) (length (var (vec ,n ,t) ,v)))
-              (begin
-                ,(if (scalar-type? t)
-                     `(if (> (var int ,i) (int 0)) (print (str " ")))
-                     `(if (> (var int ,i) (int 0)) (print (str " \n "))))
-                ,(expand-prim-stmt
-                   `(print ,t
-                      (vector-ref ,t
-                        (var (vec ,n ,t) ,v) (var int ,i)))) ))
-            (print (str "]"))))))
+     (expand-print n t e))
     ((print ,t ,[expand-prim-expr -> e])
      `(print ,e))
     ((assert ,[expand-prim-expr -> e])
@@ -75,32 +61,7 @@
     ((do ,[expand-prim-expr -> e])
      `(do ,e))
     ((write-pgm ,file ,data)
-     (let ((write `(var ((str (ptr ofstream)) -> void) write_str))
-           (write_int `(var ((str (ptr ofstream)) -> void) write_int))
-           (p (gensym 'p)) (f (gensym 'file)) (i (gensym 'i))
-           (stream (gensym 'stream)))
-       (add-externs 'write-pgm)
-       `(let ((,f str ,file))
-          (let ((,stream (ptr ofstream)
-                 (call (var ((str) -> (ptr ofstream)) open_outfile)
-                   (var str ,f))))
-            (begin
-              (do (call ,write (str "P2\n") (var ofstream ,stream)))
-              (do (call ,write (str "1024 1024\n") (var ofstream ,stream)))
-              (do (call ,write (str "255\n") (var ofstream ,stream)))
-              (for (,i (int 0) (* (int 1024) (int 1024)))
-                (let ((,p int (vector-ref int
-                                (vector-ref (vec 1024 int)
-                                  ,data
-                                  (/ (var int ,i) (int 1024)))
-                                (mod (var int ,i) (int 1024)))))
-                  (begin
-                    (if (< (var int ,p) (int 0))
-                        (set! (var int ,p) (int 0))
-                        (if (> (var int ,p) (int 255))
-                            (set! (var int ,p) (int 255))))
-                    (do (call ,write_int (var int ,p)
-                          (var ofstream ,stream))))))))))))
+     (expand-write-pgm file data)))
   
   (define-match expand-prim-expr
     ((,t ,v) (guard (scalar-type? t)) `(,t ,v))
@@ -130,62 +91,113 @@
     ((begin ,[expand-prim-stmt -> s*] ... ,[e])
      `(begin ,s* ... ,e))
     ((+ (vec ,n ,t) ,[lhs] ,[rhs])
-     (let ((l (gensym 'lhs))
-           (r (gensym 'rhs))
-           (len (gensym 'len))
-           (i (gensym 'i))
-           (res (gensym 'res))
-           (lhsi (gensym 'lhsi))
-           (rhsi (gensym 'rhsi)))
-       `(let ((,l (vec ,n ,t) ,lhs)
-              (,r (vec ,n ,t) ,rhs))
-          (let ((,len int (length (var (vec ,n ,t) ,l))))
-            (let ((,res (vec ,n ,t) (make-vector ,t (int ,n))))
-              (begin
-                (for (,i (int 0) (var int ,len))
-                  (let ((,lhsi ,t
-                          (vector-ref ,t (var (vec ,n ,t) ,l)
-                            (var int ,i)))
-                        (,rhsi ,t
-                          (vector-ref ,t (var (vec ,n ,t) ,r)
-                            (var int ,i))))
-                    (vector-set! ,t (var (vec ,n ,t) ,res)
-                      (var int ,i)
-                      ,(expand-prim-expr
-                         `(+ ,t (var ,t ,lhsi) (var ,t ,rhsi))))))
-                (var (vec ,n ,t) ,res)))))))
-     ((= (vec ,n ,t) ,[lhs] ,[rhs])
-      (let ((l (gensym 'lhs))
-            (r (gensym 'rhs))
-            (len (gensym 'len))
-            (i (gensym 'i))
-            (res (gensym 'res))
-            (lhsi (gensym 'lhsi))
-            (rhsi (gensym 'rhsi)))
-        `(let ((,l (vec ,n ,t) ,lhs)
-               (,r (vec ,n ,t) ,rhs))
-           (let ((,len int (length (var (vec ,n ,t) ,l)))
-                 (,res bool (bool #t)))
-             (begin
-               (if (= (var int ,len)
-                      (length (var (vec ,n ,t) ,r)))
-                   (for (,i (int 0) (var int ,len))
-                     (let ((,lhsi ,t
-                            (vector-ref ,t (var (vec ,n ,t) ,l)
-                              (var int ,i)))
-                           (,rhsi ,t
-                            (vector-ref ,t (var (vec ,n ,t) ,r)
-                              (var int ,i))))
-                       (if (= ,(expand-prim-expr
-                                `(= ,t (var ,t ,lhsi) (var ,t ,rhsi)))
-                              (bool #f))
-                           (begin (set! (var bool ,res) (bool #f))
-                                  (set! (var int ,i) (var int ,len))))))
-                   (set! (var bool ,res) (bool #f)))
-               (var bool ,res))))))
-     ((,op ,t ,[lhs] ,[rhs])
-      (guard (or (relop? op) (binop? op)))
+     (expand-vec-addition n t lhs rhs))
+    ((= (vec ,n ,t) ,[lhs] ,[rhs])
+     (expand-vec-comparison n t lhs rhs))
+    ((,op ,t ,[lhs] ,[rhs])
+     (guard (or (relop? op) (binop? op)))
      `(,op ,lhs ,rhs)))
+
+  (define (expand-print n t e)
+    (let ((v (gensym 'v)) 
+          (i (gensym 'i)))
+      `(let ((,v (vec ,n ,t) ,e))
+         (begin
+           (print (str "["))
+           (for (,i (int 0) (length (var (vec ,n ,t) ,v)))
+             (begin
+               ,(if (scalar-type? t)
+                    `(if (> (var int ,i) (int 0)) (print (str " ")))
+                    `(if (> (var int ,i) (int 0)) (print (str " \n "))))
+               ,(expand-prim-stmt
+                  `(print ,t
+                     (vector-ref ,t
+                       (var (vec ,n ,t) ,v) (var int ,i)))) ))
+           (print (str "]"))))))
+
+  (define (expand-write-pgm file data)
+    (let ((write `(var ((str (ptr ofstream)) -> void) write_str))
+          (write_int `(var ((str (ptr ofstream)) -> void) write_int))
+          (p (gensym 'p)) (f (gensym 'file)) (i (gensym 'i))
+          (stream (gensym 'stream)))
+      (add-externs 'write-pgm)
+      `(let ((,f str ,file))
+         (let ((,stream (ptr ofstream)
+                 (call (var ((str) -> (ptr ofstream)) open_outfile)
+                   (var str ,f))))
+           (begin
+             (do (call ,write (str "P2\n") (var ofstream ,stream)))
+             (do (call ,write (str "1024 1024\n") (var ofstream ,stream)))
+             (do (call ,write (str "255\n") (var ofstream ,stream)))
+             (for (,i (int 0) (* (int 1024) (int 1024)))
+               (let ((,p int (vector-ref int
+                               (vector-ref (vec 1024 int)
+                                 ,data
+                                 (/ (var int ,i) (int 1024)))
+                               (mod (var int ,i) (int 1024)))))
+                 (begin
+                   (if (< (var int ,p) (int 0))
+                       (set! (var int ,p) (int 0))
+                       (if (> (var int ,p) (int 255))
+                           (set! (var int ,p) (int 255))))
+                   (do (call ,write_int (var int ,p)
+                         (var ofstream ,stream)))))))))))
+
+  (define (expand-vec-addition n t lhs rhs)
+    (let ((l (gensym 'lhs))
+          (r (gensym 'rhs))
+          (len (gensym 'len))
+          (i (gensym 'i))
+          (res (gensym 'res))
+          (lhsi (gensym 'lhsi))
+          (rhsi (gensym 'rhsi)))
+      `(let ((,l (vec ,n ,t) ,lhs)
+             (,r (vec ,n ,t) ,rhs))
+         (let ((,len int (length (var (vec ,n ,t) ,l))))
+           (let ((,res (vec ,n ,t) (make-vector ,t (int ,n))))
+             (begin
+               (for (,i (int 0) (var int ,len))
+                 (let ((,lhsi ,t
+                         (vector-ref ,t (var (vec ,n ,t) ,l)
+                           (var int ,i)))
+                       (,rhsi ,t
+                         (vector-ref ,t (var (vec ,n ,t) ,r)
+                           (var int ,i))))
+                   (vector-set! ,t (var (vec ,n ,t) ,res)
+                     (var int ,i)
+                     ,(expand-prim-expr
+                        `(+ ,t (var ,t ,lhsi) (var ,t ,rhsi))))))
+               (var (vec ,n ,t) ,res)))))))
+
+  (define (expand-vec-comparison n t lhs rhs)
+    (let ((l (gensym 'lhs))
+          (r (gensym 'rhs))
+          (len (gensym 'len))
+          (i (gensym 'i))
+          (res (gensym 'res))
+          (lhsi (gensym 'lhsi))
+          (rhsi (gensym 'rhsi)))
+      `(let ((,l (vec ,n ,t) ,lhs)
+             (,r (vec ,n ,t) ,rhs))
+         (let ((,len int (length (var (vec ,n ,t) ,l)))
+               (,res bool (bool #t)))
+           (begin
+             (if (= (var int ,len)
+                   (length (var (vec ,n ,t) ,r)))
+                 (for (,i (int 0) (var int ,len))
+                   (let ((,lhsi ,t
+                           (vector-ref ,t (var (vec ,n ,t) ,l)
+                             (var int ,i)))
+                         (,rhsi ,t
+                           (vector-ref ,t (var (vec ,n ,t) ,r)
+                             (var int ,i))))
+                     (if (= ,(expand-prim-expr
+                               `(= ,t (var ,t ,lhsi) (var ,t ,rhsi)))
+                           (bool #f))
+                         (begin (set! (var bool ,res) (bool #f))
+                                (set! (var int ,i) (var int ,len))))))
+                 (set! (var bool ,res) (bool #f)))
+             (var bool ,res))))))
 
   ;; end library
   )
