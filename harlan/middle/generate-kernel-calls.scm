@@ -2,61 +2,66 @@
   (harlan middle generate-kernel-calls)
   (export generate-kernel-calls)
   (import (rnrs) (elegant-weapons helpers)
-    (except (harlan helpers) type-of))
+    (harlan helpers))
   
 (define-match generate-kernel-calls
-  ((module ,[Decl -> decl*] ...)
+  ((module ,[generate-decl -> decl*] ...)
    `(module . ,decl*)))
 
-(define-match Decl
-  ((fn ,name ,args ,type ,[Stmt -> stmt*] ...)
-   `(fn ,name ,args ,type . ,stmt*))
+(define-match generate-decl
+  ((fn ,name ,args ,type ,[generate-stmt -> stmt])
+   `(fn ,name ,args ,type ,stmt))
   (,else else))
 
-(define-match type-of
-  ((deref ,[e]) e)
-  ((vector-ref ,t ,v ,i) t)
-  ((var ,t ,x) t)
-  ((c-expr ,t ,e) t)
-  ((call ,[f] ,_ ...)
-   (match f
-     ((,_ -> ,t) t)
-     (,else (error 'type-of "Invalid function type" else)))))
+(define (region? arg)
+  (match arg
+    ((var (ptr region) ,name) #t)
+    (,else #f)))
 
-(define-match Stmt
+(define-match generate-stmt
   ((apply-kernel ,k ,dims ,arg* ...)
-   (let ((kernel (gensym k)))
+   (let ((kernel (gensym k))
+         (region* (filter region? arg*)))
      `(begin
         (let ,kernel cl::kernel
              (call
               (field (var cl::program g_prog)
                      createKernel)
               (str ,(symbol->string k))))
-        (do (call (c-expr (((ptr region)) -> void) unmap_region)
-                  (var (ptr region) g_region)))
+        ,@(map (lambda (region)
+                 `(do (call
+                        (c-expr (((ptr region)) -> void)
+                          unmap_region)
+                        ,region)))
+            region*)
         ,@(map (lambda (arg i)
                  `(do (call
                        (field (var cl::kernel ,kernel) setArg)
                        (int ,i)
-                       ,arg)))
+                       ,(match arg
+                          ((var (ptr region) ,x)
+                           `(call
+                              (c-expr (((ptr region)) -> cl_mem) get_cl_buffer)
+                              (var (ptr region) ,x)))
+                          (,else else)))))
             arg* (iota (length arg*)))
         (do (call (field (var cl::queue g_queue) execute)
               (var cl::kernel ,kernel)
               ,(car dims) ;; global size
               (int 1)))
-        (do (call (c-expr (((ptr region)) -> void) map_region)
-                  (var (ptr region) g_region)))))) ;; local size
+        ,@(map (lambda (region)
+                 `(do (call
+                        (c-expr (((ptr region)) -> void)
+                          map_region)
+                        ,region)))
+            region*)))) ;; local size
   ((begin ,[stmt*] ...)
    `(begin . ,stmt*))
-  ((for (,i ,start ,end) ,[stmt*] ...)
-   `(for (,i ,start ,end) . ,stmt*))
-  ((while ,expr ,[stmt*] ...)
-   `(while ,expr . ,stmt*))
+  ((for (,i ,start ,end) ,[stmt])
+   `(for (,i ,start ,end) ,stmt))
+  ((while ,expr ,[stmt])
+   `(while ,expr ,stmt))
   (,else else))
-
-(define-match unpack-arg
-  ((var ,t ,x^) x^)
-  (,x^ (guard (symbol? x^)) x^))
 
 ;; end library
 )

@@ -19,12 +19,7 @@
    (values `(global ,type ,name ,e) '())))
 
 (define (hoist-kernel-arg x t)
-  (match t
-    ((ptr region)
-     `(call
-        (c-expr (((ptr region)) -> cl_mem) get_cl_buffer)
-        (var ,t ,x)))
-    (,else `(var ,t ,x))))
+  `(var ,t ,x))
 
 (define-match hoist-stmt
   ((kernel ,dims (((,x* ,t*) (,xs* ,ts*) ,dim) ...)

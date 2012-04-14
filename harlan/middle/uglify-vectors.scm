@@ -7,15 +7,20 @@
 (define vector-length-offset '(sizeof int))
 (define region-size 16777216) ;; 16MB
   
+(define region 'dummy)
+
 (define-match uglify-vectors
-  ((module ,[uglify-decl -> fn*] ...)
-   `(module
-      (global g_region (ptr region)
-        (call
-         (c-expr ((int) -> (ptr region))
-           create_region)
-         ;; 16MB
-         (int 16777216))) . ,fn*)))
+  ((module ,fn* ...)
+   (let ((gregion (gensym 'g_region)))
+     (set! region gregion)
+     `(module
+        (global ,region (ptr region)
+          (call
+            (c-expr ((int) -> (ptr region))
+              create_region)
+            ;; 16MB
+            (int 16777216)))
+        . ,(map uglify-decl fn*)))))
 
 (define-match uglify-decl
   ((fn ,name ,args ,t ,[uglify-stmt -> stmt])
@@ -26,13 +31,13 @@
 (define (uglify-let-vec t n)
   (let ((t (if (scalar-type? t) t `region_ptr)))
     `(alloc
-       (var (ptr region) g_region)
+       (var (ptr region) ,region)
        (+ (* (sizeof ,t) ,n)
          ;; sizeof int for the length field.
          ,vector-length-offset))))
 
 (define (vector-length-field e)
-  `(deref (region-ref (ptr int) (var (ptr region) g_region) ,e)))
+  `(deref (region-ref (ptr int) (var (ptr region) ,region) ,e)))
   
 (define-match (uglify-let finish)
   (() finish)
@@ -116,7 +121,7 @@
       ,t
       (region-ref
         (ptr ,t)
-        (var (ptr region) g_region)
+        (var (ptr region) ,region)
         (+ ,e ,vector-length-offset))
       ,i)))
 
