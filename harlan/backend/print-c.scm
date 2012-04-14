@@ -57,9 +57,7 @@
        (if (null? kernel*) "" (ft (build-kernel-programs kernel*))))
       ((func ,type main ,args ,stmt)
        (ft `(func ,type main ,args
-              (begin
-                (do (call [c-expr (() -> void) GC_INIT]))
-                ,stmt))))
+              (begin (do (call [c-expr  GC_INIT])) ,stmt))))
       (,else (ft else))))
   
   (define-syntax format-as-harlan

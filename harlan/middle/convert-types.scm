@@ -65,7 +65,7 @@
 (define-match convert-expr
   ((,t ,n) (guard (scalar-type? t)) `(,t ,n))
   ((var ,x) `(var ,x))
-  ((c-expr ,[convert-type -> t] ,x) `(c-expr ,t ,x))
+  ((c-expr ,x) `(c-expr ,x))
   ((alloc ,[region] ,[expr])
    `(alloc ,region ,expr))
   ((region-ref ,[convert-type -> t] ,[region] ,[ptr])
