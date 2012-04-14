@@ -23,11 +23,6 @@
      ((,_ -> ,t) t)
      (,else (error 'type-of "Invalid function type" else)))))
 
-(define (get-arg-length a)
-  (match (type-of a)
-    ((vec ,n ,t) n)
-    (,else (error 'get-arg-length "Invalid kernel argument" a))))
-
 (define-match Stmt
   ((apply-kernel ,k ,dims ,arg* ...)
    (let ((kernel (gensym k)))

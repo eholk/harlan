@@ -74,8 +74,8 @@
        (let ((v (gensym 'iota)))
          (lift-expr e
             (lambda (e)
-              `(let ((,v (vec -1 int) (iota ,e)))
-                 ,(finish `(var (vec -1 int) ,v)))))))
+              `(let ((,v (vec int) (iota ,e)))
+                 ,(finish `(var (vec int) ,v)))))))
       ((reduce ,t ,op ,e)
        (lift-expr
          e

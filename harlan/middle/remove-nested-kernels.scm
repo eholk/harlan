@@ -27,7 +27,7 @@
 (define-match (Let finish k?)
   (() (values finish k?))
   (((,x ,xt
-     (kernel (vec ,n ,t) ,dims (((,x^ ,t^) (,xs ,ts) ,d)
+     (kernel (vec ,t) ,dims (((,x^ ,t^) (,xs ,ts) ,d)
                                 ((,x* ,t*) (,xs* ,ts*) ,d*) ...)
        ,[Expr -> e kernel?]))
     . ,[rest _])
@@ -45,11 +45,11 @@
                                x* t* xs*))
                       ,((set-kernel-return
                           (lambda (e) `(vector-set!
-                                    ,t (var (vec ,n ,t) ,x) (var int ,i) ,e)))
+                                    ,t (var (vec ,t) ,x) (var int ,i) ,e)))
                         e)))
                   ,rest))))
          `(let ((,x ,xt
-                  (kernel (vec ,n ,t) ,dims
+                  (kernel (vec ,t) ,dims
                     (((,x^ ,t^) (,xs ,ts) ,d)
                      ((,x* ,t*) (,xs* ,ts*) ,d*) ...)
                     ,e)))

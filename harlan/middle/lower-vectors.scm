@@ -15,7 +15,7 @@
 
 (define-match (lower-let finish)
   (() finish)
-  (((,x ,xt (vector (vec ,n ,t) . ,e*))
+  (((,x ,xt (vector (vec ,t) . ,e*))
     . ,[(lower-let finish) -> rest])
    `(let ((,x ,xt (make-vector ,t (int ,(length e*)))))
       ,(make-begin
@@ -23,7 +23,7 @@
            (if (null? e*)
                `(,rest)
                `((vector-set!
-                   ,t (var (vec ,n ,t) ,x) (int ,i) ,(car e*))
+                   ,t (var (vec ,t) ,x) (int ,i) ,(car e*))
                  . ,(loop (cdr e*) (+ 1 i))))))))
   
   (((,x ,xt (iota ,[lower-expr -> e])) . ,[(lower-let finish) -> rest])

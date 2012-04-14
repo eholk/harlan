@@ -43,7 +43,7 @@
   (,else else))
 
 (define-match type-dim
-  ((vec ,n ,[t]) (+ 1 t))
+  ((vec ,[t]) (+ 1 t))
   (,x 0))
 
 (define-match (returnify-kernel-let finish)
@@ -52,16 +52,16 @@
     . ,[(returnify-kernel-let finish) -> rest])
    ;; TODO: we still need to traverse the body
    `(let ((,id ,xt (kernel void ,arg* ,body))) ,rest))
-  (((,id ,xt (kernel (vec ,n ,t) ,dims ,arg* ,body))
+  (((,id ,xt (kernel (vec ,t) ,dims ,arg* ,body))
     . ,[(returnify-kernel-let finish) -> rest])
    (match arg*
      ((((,x* ,tx*) (,xe* ,xet*) ,dim) ...)
       (let ((retvar (gensym 'retval)))
         `(let ((,id ,xt (make-vector ,t ,(car dims))))
            (begin
-             (kernel (vec ,n ,t) ,dims
+             (kernel (vec ,t) ,dims
                (((,retvar ,t)
-                 ((var (vec ,n ,t) ,id) (vec ,n ,t)) 0)
+                 ((var (vec ,t) ,id) (vec ,t)) 0)
                 . ,arg*)
                ,((set-retval t retvar) body))
              ,rest))))))

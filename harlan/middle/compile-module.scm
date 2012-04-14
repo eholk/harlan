@@ -51,19 +51,12 @@
   ;; converting the types should happen after this, so hopefully
   ;; we won't need pointers.
   ((ptr ,[t]) t)
-  ((vec ,n ,[t]) t)
+  ((vec ,[t]) t)
   (bool 'bool)
   (char 'char)
   (int 'int)
   (float 'float)
   )
-
-(define-match byte-size
-  (int `(sizeof int))
-  (bool `(sizeof bool))
-  (char `(sizeof char))
-  (float `(sizeof float))
-  ((vec ,n ,[t]) `(* (int ,n) ,t)))
 
 (define-match compile-expr
   [(,t ,n) (guard (scalar-type? t)) `(,t ,n)]

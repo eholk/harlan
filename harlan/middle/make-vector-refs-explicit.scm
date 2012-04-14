@@ -47,18 +47,6 @@
    `(let ((,x ,t ,e) ...) ,expr))
   (,else else))
 
-(define (adjust-ptr ts xs)
-  ;; This only handles vectors of scalars. We need another clause for
-  ;; nested vectors.
-  (match ts
-    ((vec ,t ,n)
-     (guard (scalar-type? t))
-     `(cast (ptr ,t)
-        (call (c-expr (((ptr region) ,t) -> (ptr ,t))
-                get_region_ptr)
-          (var (ptr region) g_region)
-          ,xs)))))
-
 (define (generate-kernel-args x t xs d)
   `(,x
     (ptr ,t)

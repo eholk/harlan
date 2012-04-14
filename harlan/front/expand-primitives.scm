@@ -48,11 +48,11 @@
      `(for (,x ,start ,stop) ,body))
     ((begin ,[stmt*] ...)
      `(begin . ,stmt*))
-    ((print (vec ,n ,t) ,[expand-prim-expr -> e]
+    ((print (vec ,t) ,[expand-prim-expr -> e]
        ,[expand-prim-expr -> stream])
-     (expand-print n t e stream))
-    ((print (vec ,n ,t) ,[expand-prim-expr -> e])
-     (expand-print n t e))
+     (expand-print t e stream))
+    ((print (vec ,t) ,[expand-prim-expr -> e])
+     (expand-print t e))
     ((print ,t ,[expand-prim-expr -> e] ...)
      `(print . ,e))
     ((assert ,[expand-prim-expr -> e])
@@ -92,21 +92,21 @@
      `(let ((,x* ,t* ,e*) ...) ,e))
     ((begin ,[expand-prim-stmt -> s*] ... ,[e])
      `(begin ,s* ... ,e))
-    ((+ (vec ,n ,t) ,[lhs] ,[rhs])
-     (expand-vec-addition n t lhs rhs))
-    ((= (vec ,n ,t) ,[lhs] ,[rhs])
-     (expand-vec-comparison n t lhs rhs))
+    ((+ (vec ,t) ,[lhs] ,[rhs])
+     (expand-vec-addition t lhs rhs))
+    ((= (vec ,t) ,[lhs] ,[rhs])
+     (expand-vec-comparison t lhs rhs))
     ((,op ,t ,[lhs] ,[rhs])
      (guard (or (relop? op) (binop? op)))
      `(,op ,lhs ,rhs)))
 
-  (define (expand-print n t e . stream)
+  (define (expand-print t e . stream)
     (let ((v (gensym 'v)) 
           (i (gensym 'i)))
-      `(let ((,v (vec ,n ,t) ,e))
+      `(let ((,v (vec ,t) ,e))
          (begin
            (print (str "[") . ,stream)
-           (for (,i (int 0) (length (var (vec ,n ,t) ,v)))
+           (for (,i (int 0) (length (var (vec ,t) ,v)))
              (begin
                ,(if (scalar-type? t)
                     `(if (> (var int ,i) (int 0))
@@ -116,7 +116,7 @@
                ,(expand-prim-stmt
                   `(print ,t
                      (vector-ref ,t
-                       (var (vec ,n ,t) ,v) (var int ,i))
+                       (var (vec ,t) ,v) (var int ,i))
                      . ,stream))))
            (print (str "]") . ,stream)))))
 
@@ -136,7 +136,7 @@
              (print (str "255\n") (var ofstream ,stream))
              (for (,i (int 0) (* (int 1024) (int 1024)))
                (let ((,p int (vector-ref int
-                               (vector-ref (vec 1024 int)
+                               (vector-ref (vec int)
                                  ,data
                                  (/ (var int ,i) (int 1024)))
                                (mod (var int ,i) (int 1024)))))
@@ -151,7 +151,7 @@
              (do (call (var (((ptr ofstream)) -> void) close_outfile)
                        (var (ptr ofstream) ,stream))))))))
 
-  (define (expand-vec-addition n t lhs rhs)
+  (define (expand-vec-addition t lhs rhs)
     (let ((l (gensym 'lhs))
           (r (gensym 'rhs))
           (len (gensym 'len))
@@ -159,25 +159,25 @@
           (res (gensym 'res))
           (lhsi (gensym 'lhsi))
           (rhsi (gensym 'rhsi)))
-      `(let ((,l (vec ,n ,t) ,lhs)
-             (,r (vec ,n ,t) ,rhs))
-         (let ((,len int (length (var (vec ,n ,t) ,l))))
-           (let ((,res (vec ,n ,t) (make-vector ,t (var int ,len))))
+      `(let ((,l (vec ,t) ,lhs)
+             (,r (vec ,t) ,rhs))
+         (let ((,len int (length (var (vec ,t) ,l))))
+           (let ((,res (vec ,t) (make-vector ,t (var int ,len))))
              (begin
                (for (,i (int 0) (var int ,len))
                  (let ((,lhsi ,t
-                         (vector-ref ,t (var (vec ,n ,t) ,l)
+                         (vector-ref ,t (var (vec ,t) ,l)
                            (var int ,i)))
                        (,rhsi ,t
-                         (vector-ref ,t (var (vec ,n ,t) ,r)
+                         (vector-ref ,t (var (vec ,t) ,r)
                            (var int ,i))))
-                   (vector-set! ,t (var (vec ,n ,t) ,res)
+                   (vector-set! ,t (var (vec ,t) ,res)
                      (var int ,i)
                      ,(expand-prim-expr
                         `(+ ,t (var ,t ,lhsi) (var ,t ,rhsi))))))
-               (var (vec ,n ,t) ,res)))))))
+               (var (vec ,t) ,res)))))))
 
-  (define (expand-vec-comparison n t lhs rhs)
+  (define (expand-vec-comparison t lhs rhs)
     (let ((l (gensym 'lhs))
           (r (gensym 'rhs))
           (len (gensym 'len))
@@ -185,19 +185,19 @@
           (res (gensym 'res))
           (lhsi (gensym 'lhsi))
           (rhsi (gensym 'rhsi)))
-      `(let ((,l (vec ,n ,t) ,lhs)
-             (,r (vec ,n ,t) ,rhs))
-         (let ((,len int (length (var (vec ,n ,t) ,l)))
+      `(let ((,l (vec ,t) ,lhs)
+             (,r (vec ,t) ,rhs))
+         (let ((,len int (length (var (vec ,t) ,l)))
                (,res bool (bool #t)))
            (begin
              (if (= (var int ,len)
-                   (length (var (vec ,n ,t) ,r)))
+                   (length (var (vec ,t) ,r)))
                  (for (,i (int 0) (var int ,len))
                    (let ((,lhsi ,t
-                           (vector-ref ,t (var (vec ,n ,t) ,l)
+                           (vector-ref ,t (var (vec ,t) ,l)
                              (var int ,i)))
                          (,rhsi ,t
-                           (vector-ref ,t (var (vec ,n ,t) ,r)
+                           (vector-ref ,t (var (vec ,t) ,r)
                              (var int ,i))))
                      (if (= ,(expand-prim-expr
                                `(= ,t (var ,t ,lhsi) (var ,t ,rhsi)))

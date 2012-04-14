@@ -34,7 +34,7 @@
     (Ret-Stmt (return Expr) (return))
     (Type
       harlan-type
-      (vec Integer Type)
+      (vec Type)
       (ptr Type)
       ((Type *) -> Type))
     (C-Type
