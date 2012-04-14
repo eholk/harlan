@@ -4,7 +4,8 @@
   (import (rnrs) (elegant-weapons helpers)
     (harlan helpers))
 
-  (define length-offset '(sizeof int))
+(define vector-length-offset '(sizeof int))
+(define region-size 16777216) ;; 16MB
   
 (define-match uglify-vectors
   ((module ,[uglify-decl -> fn*] ...)
@@ -28,7 +29,7 @@
        (var (ptr region) g_region)
        (+ (* (sizeof ,t) ,n)
          ;; sizeof int for the length field.
-         ,length-offset))))
+         ,vector-length-offset))))
 
 (define (vector-length-field e)
   `(deref (region-ref (ptr int) (var (ptr region) g_region) ,e)))
@@ -116,7 +117,7 @@
       (region-ref
         (ptr ,t)
         (var (ptr region) g_region)
-        (+ ,e ,length-offset))
+        (+ ,e ,vector-length-offset))
       ,i)))
 
 )
