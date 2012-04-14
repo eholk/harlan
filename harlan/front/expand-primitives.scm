@@ -162,7 +162,7 @@
       `(let ((,l (vec ,n ,t) ,lhs)
              (,r (vec ,n ,t) ,rhs))
          (let ((,len int (length (var (vec ,n ,t) ,l))))
-           (let ((,res (vec ,n ,t) (make-vector ,t (int ,n))))
+           (let ((,res (vec ,n ,t) (make-vector ,t (var int ,len))))
              (begin
                (for (,i (int 0) (var int ,len))
                  (let ((,lhsi ,t

@@ -26,14 +26,14 @@
                    ,t (var (vec ,n ,t) ,x) (int ,i) ,(car e*))
                  . ,(loop (cdr e*) (+ 1 i))))))))
   
-  (((,x ,xt (iota (int ,n))) . ,[(lower-let finish) -> rest])
-   (let ((i (gensym 'i)))
-     `(let ((,x ,xt (make-vector int (int ,n))))
-        (begin
-          (for (,i (int 0) (int ,n))
-            (vector-set! int
-              (var (vec ,n int) ,x) (var int ,i) (var int ,i)))
-          ,rest))))
+  (((,x ,xt (iota ,[lower-expr -> e])) . ,[(lower-let finish) -> rest])
+   (let ((i (gensym 'i)) (vlen (gensym 'vlen)))
+     `(let ((,vlen int ,e))
+        (let ((,x ,xt (make-vector int (var int ,vlen))))
+          (begin
+            (for (,i (int 0) (var int ,vlen))
+              (vector-set! int (var ,xt ,x) (var int ,i) (var int ,i)))
+            ,rest)))))
   
   (((,x ,xt (reduce ,t ,op ,e)) . ,[(lower-let finish) -> rest])
    (let ((i (gensym 'i))
