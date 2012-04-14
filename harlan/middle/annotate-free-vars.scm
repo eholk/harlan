@@ -67,11 +67,15 @@
   ((assert ,[annotate-expr -> e fv*])
    (values `(assert ,e) fv*)))
 
+;; Do any of the exprs change? If not, why are we returning them
+;; unchanged...
 (define-match annotate-expr
   ((void) (values `(void) '()))
   ((,t ,n) (guard (scalar-type? t)) (values `(,t ,n) '()))
   ((var ,t ,x) (values `(var ,t ,x) `((var ,t ,x))))
   ((c-expr ,t ,x) (values `(c-expr ,t ,x) `()))
+  ((alloc ,[region rfv*] ,[size sfv*])
+   (values `(alloc ,region ,size) (union/var rfv* sfv*)))
   ((cast ,t ,[e fv*]) (values `(cast ,t ,e) fv*))
   ((call ,[rator fv*] ,[rand* fv**] ...)
    (values

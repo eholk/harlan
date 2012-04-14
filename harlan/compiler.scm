@@ -3,9 +3,6 @@
   (export compile-harlan harlan->c++)
   (import
    (rnrs)
-   (only (elegant-weapons helpers) join)
-   (only (harlan verification-passes)
-     verify-print-c)
    (harlan compile-opts)
    (harlan front compile-front)
    (harlan middle compile-middle)

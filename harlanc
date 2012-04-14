@@ -4,7 +4,7 @@
   (chezscheme)
   (harlan compile-opts)
   (harlan driver)
-  (elegant-weapons print-c)
+  (harlan backend print-c)
   (harlan compiler))
 
 ;; Converts foo/bar.kfc to bar
@@ -21,13 +21,9 @@
           (error 'harlanc
                  "Test iteration is not supported. Use run-tests.scm instead.")
           (let* ((c-expr (compile-harlan input))
-                 (c-code (format-c c-expr)))
+                 (c-code (harlan-format-c c-expr)))
             (if (verbose) (printf c-code))
             (g++-compile-stdin c-code (output-filename filename)))))))
-
-;; (trace-pass
-;;  'remove-nested-kernels
-;;  'optimize-lift-lets)
 
 (let ((args (parse-args (cdr (command-line)))))
   (unless (null? args)

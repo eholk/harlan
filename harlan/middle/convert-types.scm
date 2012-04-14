@@ -66,6 +66,8 @@
   ((,t ,n) (guard (scalar-type? t)) `(,t ,n))
   ((var ,x) `(var ,x))
   ((c-expr ,[convert-type -> t] ,x) `(c-expr ,t ,x))
+  ((alloc ,[region] ,[expr])
+   `(alloc ,region ,expr))
   ((field ,obj ,arg* ...) `(field ,obj . ,arg*))
   ((,op ,[lhs] ,[rhs])
    (guard (or (binop? op) (relop? op)))

@@ -5,50 +5,52 @@
     (harlan helpers))
 
 (define-match flatten-lets
-  ((module ,[Decl -> decl*] ...)
+  ((module ,[flatten-decl -> decl*] ...)
    `(module . ,decl*)))
 
-(define-match Decl
-  ((fn ,name ,args ,type ,[Stmt -> stmt])
+(define-match flatten-decl
+  ((fn ,name ,args ,type ,[flatten-stmt -> stmt])
    `(fn ,name ,args ,type ,(make-begin `(,stmt))))
   (,else else))
 
-(define-match Stmt
-  ((let ((,x* ,t* ,[Expr -> e*]) ...) ,[stmt])
+(define-match flatten-stmt
+  ((let ((,x* ,t* ,[flatten-expr -> e*]) ...) ,[stmt])
    `(begin
       ,@(map (lambda (x t e) `(let ,x ,t ,e)) x* t* e*)
       ,stmt))
-  ((if ,[Expr -> test] ,[conseq])
+  ((if ,[flatten-expr -> test] ,[conseq])
    `(if ,test ,conseq))
-  ((if ,[Expr -> test] ,[conseq] ,[alt])
+  ((if ,[flatten-expr -> test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
   ((begin ,[stmt*] ...)
    (make-begin stmt*))
-  ((print ,[Expr -> expr] ...)
+  ((print ,[flatten-expr -> expr] ...)
    `(print . ,expr))
-  ((assert ,[Expr -> expr])
+  ((assert ,[flatten-expr -> expr])
    `(assert ,expr))
   ((return) `(return))
-  ((return ,[Expr -> expr])
+  ((return ,[flatten-expr -> expr])
    `(return ,expr))
   ((for (,x ,start ,end) ,[stmt])
    `(for (,x ,start ,end) ,stmt))
   ((while ,test ,[stmt])
    `(while ,test ,stmt))
-  ((kernel ,dims (((,x ,tx) (,[Expr -> e*] ,te) ,dim) ...)
+  ((kernel ,dims (((,x ,tx) (,[flatten-expr -> e*] ,te) ,dim) ...)
      (free-vars . ,fv*) ,[stmt])
    `(kernel ,dims (((,x ,tx) (,e* ,te) ,dim) ...)
       (free-vars . ,fv*)
       ,stmt))
-  ((do ,[Expr -> expr]) `(do ,expr))
-  ((set! ,[Expr -> e1] ,[Expr -> e2]) `(set! ,e1 ,e2)))
+  ((do ,[flatten-expr -> expr]) `(do ,expr))
+  ((set! ,[flatten-expr -> e1] ,[flatten-expr -> e2]) `(set! ,e1 ,e2)))
 
-(define-match Expr
+(define-match flatten-expr
   ((,t ,n) (guard (scalar-type? t)) `(,t ,n))
   ((var ,type ,x) `(var ,type ,x))
   ((c-expr ,type ,x) `(c-expr ,type ,x))
   ((if ,[test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
+  ((alloc ,[region] ,[size])
+   `(alloc ,region ,size))
   ((cast ,t ,[expr])
    `(cast ,t ,expr))
   ((sizeof ,t)

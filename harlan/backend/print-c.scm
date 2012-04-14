@@ -1,6 +1,8 @@
 (library
   (harlan backend print-c)
   (export
+    format-as-harlan
+    define-with-harlan-fns
     harlan-print-c
     harlan-format-c
     harlan-format-decl
@@ -13,7 +15,6 @@
     harlan-format-relop)
   (import
     (rnrs)
-    (only (chezscheme) trace-define)
     (elegant-weapons print-c)
     (elegant-weapons match)
     (elegant-weapons compat)

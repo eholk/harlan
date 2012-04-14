@@ -24,9 +24,7 @@
 
 (define (uglify-let-vec t n)
   (let ((t (if (scalar-type? t) t `region_ptr)))
-    `(call
-       (c-expr (((ptr region) int) -> region_ptr)
-         alloc_in_region)
+    `(alloc
        (var (ptr region) g_region)
        (+ (* (sizeof ,t) ,n)
          ;; sizeof int for the length field.
