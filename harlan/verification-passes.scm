@@ -757,6 +757,8 @@
       (for (Var Expr Expr) Stmt)
       (do Expr))
     (Expr
+      (alloc Expr Expr)
+      (region-ref Type Expr Expr)
       (bool Boolean)
       (int Integer)
       (u64 Number)
