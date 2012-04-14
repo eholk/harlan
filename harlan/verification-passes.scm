@@ -4,23 +4,22 @@
     verify-harlan
     verify-nest-lets
     verify-parse-harlan
-    verify-flatten-lets
     verify-returnify
-    verify-make-kernel-dimensions-explicit
-    verify-lift-complex
     verify-typecheck
     verify-expand-primitives
-    verify-lower-vectors
-    verify-returnify-kernels
-    verify-make-vector-refs-explicit
+    verify-make-kernel-dimensions-explicit
+    verify-lift-complex
     verify-remove-nested-kernels
-    verify-uglify-vectors
+    verify-returnify-kernels
     verify-annotate-free-vars
+    verify-make-vector-refs-explicit
+    verify-lower-vectors
+    verify-uglify-vectors
+    verify-flatten-lets
     verify-hoist-kernels
     verify-generate-kernel-calls
     verify-compile-module
     verify-convert-types
-    verify-compile-kernels
     verify-print-c)
   (import
     (rnrs)
@@ -435,6 +434,28 @@
       (Binop Expr Expr)
       (Relop Expr Expr)))
 
+  (annotate-free-vars (%inherits Module Decl Expr Body Let-Expr)
+    (Start Module)
+    (Stmt
+      (print Expr)
+      (print Expr Expr)
+      (assert Expr)
+      (set! Expr Expr)
+      (vector-set! Type Expr Expr Expr)
+      (kernel Type
+        (Expr +)
+        (((Var Type) (Expr Type) Integer) +)
+        (free-vars (Var Type) *)
+        Stmt)
+      (let ((Var Type Let-Expr) *) Stmt)
+      (if Expr Stmt)
+      (if Expr Stmt Stmt)
+      (for (Var Expr Expr) Stmt)
+      (while Expr Stmt)
+      (do Expr)
+      (begin Stmt * Stmt)
+      Ret-Stmt))
+
   (lower-vectors (%inherits Module Decl Body)
     (Start Module)
     (Stmt 
@@ -443,7 +464,11 @@
       (assert Expr)
       (set! Expr Expr)
       (vector-set! Type Expr Expr Expr)
-      (kernel Type (Expr +) (((Var Type) (Expr Type) Integer) +) Stmt)
+      (kernel Type
+        (Expr +)
+        (((Var Type) (Expr Type) Integer) +)
+        (free-vars (Var Type) *)
+        Stmt)
       (let ((Var Type Let-Expr) *) Stmt)
       (begin Stmt * Stmt)
       (if Expr Stmt)
@@ -493,7 +518,9 @@
       (print Expr Expr)
       (assert Expr)
       (set! Expr Expr)
-      (kernel (Expr +) (((Var Type) (Expr Type) Integer) +) Stmt)
+      (kernel (Expr +) (((Var Type) (Expr Type) Integer) +)
+        (free-vars (Var Type) *)
+        Stmt)
       (let ((Var Type Expr) *) Stmt)
       (if Expr Stmt)
       (if Expr Stmt Stmt)
@@ -524,25 +551,6 @@
       (length Expr)
       (Relop Expr Expr)
       (Binop Expr Expr)))
-
-  (annotate-free-vars (%inherits Module Decl Expr Body)
-    (Start Module)
-    (Stmt 
-      (print Expr)
-      (print Expr Expr)
-      (assert Expr)
-      (set! Expr Expr)
-      (kernel (Expr +) (((Var Type) (Expr Type) Integer) +)
-        (free-vars (Var Type) *)
-        Stmt)
-      (let ((Var Type Expr) *) Stmt)
-      (begin Stmt * Stmt)
-      (if Expr Stmt)
-      (if Expr Stmt Stmt)
-      (for (Var Expr Expr) Stmt)
-      (while Expr Stmt)
-      (do Expr)
-      Ret-Stmt))
 
   (flatten-lets (%inherits Module Decl)
     (Start Module)
@@ -731,15 +739,6 @@
       (vector-ref Expr Expr)
       (Relop Expr Expr)
       (Binop Expr Expr)))
-
-  (compile-kernels
-    (%inherits Module Body Stmt Expr)
-    (Start Module)
-    (Decl
-      (include String)
-      (func C-Type Var ((Var C-Type) *) Body)
-      (global C-Type Var Expr)
-      (extern C-Type Var (C-Type *))))
 
   (print-c
     (Start Module)

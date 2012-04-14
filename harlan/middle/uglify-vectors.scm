@@ -80,8 +80,14 @@
    (uglify-vector-set! t x i v))
   ((print ,[uglify-expr -> e] ...)
    `(print . ,e))
-  ((kernel ,t (,[uglify-expr -> dims] ...) ,iters ,[stmt])
-   `(kernel ,dims ,iters ,stmt))
+  ((kernel ,t
+     (,[uglify-expr -> dims] ...)
+     ,iters
+     (free-vars . ,fv*)
+     ,[stmt])
+   `(kernel ,dims ,iters
+      (free-vars (,region (ptr region)) . ,fv*)
+      ,stmt))
   ((do ,[uglify-expr -> e])
    `(do ,e)))
 
