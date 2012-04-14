@@ -5,10 +5,7 @@
     (rnrs)
     (harlan helpers)
     (elegant-weapons helpers)
-    (only (harlan backend print-c)
-      harlan-format-arg
-      harlan-format-ident
-      harlan-format-stmt))
+    (harlan backend print-c))
 
 (define harlan-format-kernel-arg harlan-format-arg)
   
@@ -39,7 +36,9 @@
   (,else (list else)))
 
 (define-match compile-kernels
-  ((,[compile-decl -> decl*] ...) (apply append decl*)))
+  ((,decl* ...)
+   (format-as-harlan
+     (apply append (map compile-decl decl*)))))
 
 ;; end library
 )

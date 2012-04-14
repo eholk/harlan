@@ -64,6 +64,8 @@
   [(c-expr ,t ,x) `(c-expr ,t ,x)]
   ((alloc ,[region] ,[size])
    `(alloc ,region ,size))
+  ((region-ref ,t ,[region] ,[ptr])
+   `(region-ref ,t ,region ,ptr))
   [(vector-ref ,t ,[v] ,[i]) `(vector-ref ,v ,i)]
   ((if ,[test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))

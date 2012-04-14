@@ -31,13 +31,7 @@
          ,length-offset))))
 
 (define (vector-length-field e)
-  `(deref 
-    (cast (ptr int)
-          (call
-           (c-expr (((ptr region) region_ptr) -> (ptr void))
-                   get_region_ptr)
-           (var (ptr region) g_region)
-           ,e))))
+  `(deref (region-ref (ptr int) (var (ptr region) g_region) ,e)))
   
 (define-match (uglify-let finish)
   (() finish)
@@ -119,11 +113,10 @@
   (lambda (t e i)
     `(vector-ref
       ,t
-      (cast (ptr ,t)
-       (call
-        (c-expr (((ptr region) region_ptr) -> (ptr void))
-         get_region_ptr) (var (ptr region) g_region)
-         (+ ,e ,length-offset)))
+      (region-ref
+        (ptr ,t)
+        (var (ptr region) g_region)
+        (+ ,e ,length-offset))
       ,i)))
 
 )

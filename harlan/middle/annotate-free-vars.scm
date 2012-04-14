@@ -76,6 +76,9 @@
   ((c-expr ,t ,x) (values `(c-expr ,t ,x) `()))
   ((alloc ,[region rfv*] ,[size sfv*])
    (values `(alloc ,region ,size) (union/var rfv* sfv*)))
+  ((region-ref ,t ,[region rfv*] ,[ptr pfv*])
+   (values `(region-ref ,t ,region ,ptr)
+     (union/var rfv* pfv*)))
   ((cast ,t ,[e fv*]) (values `(cast ,t ,e) fv*))
   ((call ,[rator fv*] ,[rand* fv**] ...)
    (values

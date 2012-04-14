@@ -16,11 +16,9 @@
     (harlan middle uglify-vectors)
     (harlan middle annotate-free-vars)
     (harlan middle hoist-kernels)
-    (harlan middle move-gpu-data)
     (harlan middle generate-kernel-calls)
     (harlan middle compile-module)
     (harlan middle convert-types)
-    (harlan middle compile-kernels)
     (harlan middle make-kernel-dimensions-explicit))
 
 ;; The "middle end" of a compiler. No one ever knows what's supposed
@@ -54,7 +52,5 @@
     compile-module
     verify-compile-module
     convert-types
-    verify-convert-types
-    compile-kernels
-    verify-compile-kernels)))
+    verify-convert-types)))
 

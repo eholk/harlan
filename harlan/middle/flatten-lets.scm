@@ -51,6 +51,8 @@
    `(if ,test ,conseq ,alt))
   ((alloc ,[region] ,[size])
    `(alloc ,region ,size))
+  ((region-ref ,t ,[region] ,[ptr])
+   `(region-ref ,t ,region ,ptr))
   ((cast ,t ,[expr])
    `(cast ,t ,expr))
   ((sizeof ,t)

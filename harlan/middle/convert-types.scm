@@ -68,6 +68,8 @@
   ((c-expr ,[convert-type -> t] ,x) `(c-expr ,t ,x))
   ((alloc ,[region] ,[expr])
    `(alloc ,region ,expr))
+  ((region-ref ,[convert-type -> t] ,[region] ,[ptr])
+   `(region-ref ,t ,region ,ptr))
   ((field ,obj ,arg* ...) `(field ,obj . ,arg*))
   ((,op ,[lhs] ,[rhs])
    (guard (or (binop? op) (relop? op)))
