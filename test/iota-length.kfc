@@ -4,6 +4,8 @@
   (define (main)
     (let ((v (vector 5 7 9)))
       (let ((i (iota (length v))))
+        (print i)
+        (print "\n")
         (assert (= (length i) 3))
         (return 0)))))
 
