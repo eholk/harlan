@@ -25,6 +25,22 @@
                  body)))
          #`(define name (lambda (a* ...) body))))))
 
+(define-mk report-backtrack
+  (lambda (e env)
+    (conde
+      ((== #f #f))
+      ((lambda (a)
+         (let ((s (car a)))
+           (if (verbose)
+               (begin
+                 (printf "~aBacktracking in typecheck on ~s in environment:~a\n"
+                         (set-color-string 'blue)
+                         (walk* e s)
+                         (set-color-string 'default))
+                 (pretty-print (walk* env s))))
+           ((== #f #f) s)))
+         (== #f #t)))))
+
 (define-mk pairo
   (lambda (x)
     (fresh (a d)
@@ -39,6 +55,159 @@
            (=/= x y)
            (== `((,y . ,t) . ,env^) env)
            (lookup env^ x type)))))))
+
+(define typecheck
+  (lambda (mod)
+    (usetypecomp)
+    (let ((result (run 2 (q)
+                    (infer-module mod q))))
+      (case (length result)
+        ((0) (error 'typecheck
+               "Could not infer type for program."
+               mod))
+        ((1) (car result))
+        (else
+         (display result)
+         (error 'typecheck
+           "Could not infer a unique type for program"
+           result))))))
+
+(define-mk infer-module
+  (lambda (mod typed-mod)
+    (fresh (decl* decl*^ envo)
+      (== mod `(module . ,decl*))
+      (== typed-mod `(module . ,decl*^))
+      (infer-initial-env decl* envo)
+      (infer-decl* decl* decl*^ envo))))
+
+(define-mk infer-initial-env
+  (lambda (decl* envo)
+    (conde
+      ((== decl* '()) (== envo '()))
+      ((fresh (extern/fn name r rest type env^)
+         (== decl* `((,extern/fn ,name . ,r) . ,rest))
+         (== envo `((,name . ,type) . ,env^))
+         (infer-initial-env rest env^))))))
+
+(define-mk infer-decl*
+  (lambda (decl* declo* env)
+    (conde
+      ((== '() decl*) (== '() declo*))
+      ((fresh (decl declo rest resto name type)
+         (== decl* `(,decl . ,rest))
+         (conde
+           ((fresh (stmt stmto args arg-types rtype env^)
+              (== decl `(fn ,name ,args ,stmt))
+              (== declo `(fn ,name ,args ,type ,stmto))
+              (== type `(,arg-types -> ,rtype))
+              (lookup env name `(,arg-types -> ,rtype))
+              (infer-fn-args args arg-types env env^)
+              (conde
+                ((== 'main name) (== 'int rtype))
+                ((=/= 'main name)))
+              (infer-stmt stmt env^ rtype stmto)))
+           ((== decl `(extern ,name . ,type))
+            (lookup env name type)
+            (== declo decl)))
+         (infer-decl* rest resto env)
+         (== declo* `(,declo . ,resto)))))))
+
+(define-mk infer-fn-args
+  (lambda (args arg-types env envo)
+    (conde
+      ((== args '()) (== arg-types '()) (== env envo))
+      ((fresh (a at rest restt env^)
+         (== args `(,a . ,rest))
+         (== arg-types `(,at . ,restt))
+         (== envo `((,a . ,at) . ,env^))
+         (infer-fn-args rest restt env env^))))))
+
+(define-mk infer-stmts
+  (lambda (stmts env rtype stmtso)
+    (conde
+      ((== stmts '()) (== stmts stmtso))
+      ((fresh (stmt stmt* stmt^ stmt*^)
+         (== stmts `(,stmt . ,stmt*))
+         (== stmtso `(,stmt^ . ,stmt*^))
+         (report-backtrack `(,stmt . ,stmt*) env)
+         (infer-stmt stmt env rtype stmt^)
+         (infer-stmts stmt* env rtype stmt*^))))))
+
+(define-mk infer-stmt
+  (lambda (stmt env rtype stmto)
+    (conde
+      ((fresh (b b^ s s^ envo)
+         (== stmt `(let ,b ,s))
+         (== stmto `(let ,b^ ,s^))
+         (infer-let-bindings b b^ env envo)
+         (infer-stmt s envo rtype s^)))
+      ((fresh (stmt* stmt*^)
+         (== stmt `(begin . ,stmt*))
+         (== stmto `(begin . ,stmt*^))
+         (infer-stmts stmt* env rtype stmt*^)))
+      ((fresh (test test^ conseq conseq^ type)
+         (== stmt `(if ,test ,conseq))
+         (== stmto `(if ,test^ ,conseq^))
+         (infer-expr test env type test^)
+         (infer-stmt conseq env rtype conseq^)))
+      ((fresh (test test^ conseq conseq^ alt alt^ type)
+         (== stmt `(if ,test ,conseq ,alt))
+         (== stmto `(if ,test^ ,conseq^ ,alt^))
+         (infer-expr test env type test^)
+         (infer-stmt conseq env rtype conseq^)
+         (infer-stmt alt env rtype alt^)))
+      ((fresh (e1 e2 e1^ e2^ t)
+         (== stmt `(set! ,e1 ,e2))
+         (== stmto `(set! ,e1^ ,e2^))
+         (infer-expr e1 env t e1^)
+         (infer-expr e2 env t e2^)))
+      ((fresh (e1 e2 e3 e1^ e2^ e3^ t n)
+         (== stmt `(vector-set! ,e1 ,e2 ,e3))
+         (== stmto `(vector-set! ,t ,e1^ ,e2^ ,e3^))
+         (infer-expr e1 env `(vec ,t) e1^)
+         (infer-expr e2 env 'int e2^)
+         (infer-expr e3 env t e3^)))
+      ((fresh (e e^ type)
+         (== stmt `(print ,e))
+         (== stmto `(print ,type ,e^))
+         (infer-expr e env type e^)))
+      ((fresh (e e^ op op^ type)
+         (== stmt `(print ,e ,op))
+         (== stmto `(print ,type ,e^ ,op^))
+         (infer-expr e env type e^)
+         (infer-expr op env `(ptr ofstream) op^)))
+      ((fresh (file fileo data datao)
+         (== stmt `(write-pgm ,file ,data))
+         (== stmto `(write-pgm ,fileo ,datao))
+         (infer-expr file env 'str fileo)
+         (infer-expr data env '(vec (vec int)) datao)))
+      ((fresh (e e^)
+         (== stmt `(assert ,e))
+         (== stmto `(assert ,e^))
+         (infer-expr e env 'bool e^)))
+      ((fresh (e e^)
+         (conde
+           ((== stmt `(return ,e))
+            (== stmto `(return ,e^))
+            (infer-expr e env rtype e^))
+           ((== stmt `(return))
+            (== stmto `(return))
+            (== rtype 'void)))))
+      ((fresh (e e^ type)
+         (== stmt `(do ,e))
+         (== stmto `(do ,e^))
+         (infer-expr e env type e^)))
+      ((fresh (x start start^ end end^ s s^)
+         (== stmt `(for (,x ,start ,end) ,s))
+         (== stmto `(for (,x ,start^ ,end^) ,s^))
+         (infer-expr start env 'int start^)
+         (infer-expr end env 'int end^)
+         (infer-stmt s `((,x . int) . ,env) rtype s^)))
+      ((fresh (e e^ s s^)
+         (== stmt `(while ,e ,s))
+         (== stmto `(while ,e^ ,s^))
+         (infer-expr e env 'bool e^)
+         (infer-stmt s env rtype s^))))))
 
 (define-mk infer-exprs
   (lambda (exprs env type exprso)
@@ -210,22 +379,6 @@
          (infer-kernel-bindings b* b^* env env^ n)
          (infer-expr body env^ t body^))))))
 
-(define-mk report-backtrack
-  (lambda (e env)
-    (conde
-      ((== #f #f))
-      ((lambda (a)
-         (let ((s (car a)))
-           (if (verbose)
-               (begin
-                 (printf "~aBacktracking in typecheck on ~s in environment:~a\n"
-                         (set-color-string 'blue)
-                         (walk* e s)
-                         (set-color-string 'default))
-                 (pretty-print (walk* env s))))
-           ((== #f #f) s)))
-         (== #f #t)))))
-
 (define-mk infer-args
   (lambda (env args arg-types argso)
     (conde
@@ -260,159 +413,6 @@
          (== envo `((,x . ,type) . ,env^))
          (infer-expr e env type e^)
          (infer-let-bindings rest rest^ env env^))))))
-
-(define-mk infer-stmt
-  (lambda (stmt env rtype stmto)
-    (conde
-      ((fresh (b b^ s s^ envo)
-         (== stmt `(let ,b ,s))
-         (== stmto `(let ,b^ ,s^))
-         (infer-let-bindings b b^ env envo)
-         (infer-stmt s envo rtype s^)))
-      ((fresh (stmt* stmt*^)
-         (== stmt `(begin . ,stmt*))
-         (== stmto `(begin . ,stmt*^))
-         (infer-stmts stmt* env rtype stmt*^)))
-      ((fresh (test test^ conseq conseq^ type)
-         (== stmt `(if ,test ,conseq))
-         (== stmto `(if ,test^ ,conseq^))
-         (infer-expr test env type test^)
-         (infer-stmt conseq env rtype conseq^)))
-      ((fresh (test test^ conseq conseq^ alt alt^ type)
-         (== stmt `(if ,test ,conseq ,alt))
-         (== stmto `(if ,test^ ,conseq^ ,alt^))
-         (infer-expr test env type test^)
-         (infer-stmt conseq env rtype conseq^)
-         (infer-stmt alt env rtype alt^)))
-      ((fresh (e1 e2 e1^ e2^ t)
-         (== stmt `(set! ,e1 ,e2))
-         (== stmto `(set! ,e1^ ,e2^))
-         (infer-expr e1 env t e1^)
-         (infer-expr e2 env t e2^)))
-      ((fresh (e1 e2 e3 e1^ e2^ e3^ t n)
-         (== stmt `(vector-set! ,e1 ,e2 ,e3))
-         (== stmto `(vector-set! ,t ,e1^ ,e2^ ,e3^))
-         (infer-expr e1 env `(vec ,t) e1^)
-         (infer-expr e2 env 'int e2^)
-         (infer-expr e3 env t e3^)))
-      ((fresh (e e^ type)
-         (== stmt `(print ,e))
-         (== stmto `(print ,type ,e^))
-         (infer-expr e env type e^)))
-      ((fresh (e e^ op op^ type)
-         (== stmt `(print ,e ,op))
-         (== stmto `(print ,type ,e^ ,op^))
-         (infer-expr e env type e^)
-         (infer-expr op env `(ptr ofstream) op^)))
-      ((fresh (file fileo data datao)
-         (== stmt `(write-pgm ,file ,data))
-         (== stmto `(write-pgm ,fileo ,datao))
-         (infer-expr file env 'str fileo)
-         (infer-expr data env '(vec (vec int)) datao)))
-      ((fresh (e e^)
-         (== stmt `(assert ,e))
-         (== stmto `(assert ,e^))
-         (infer-expr e env 'bool e^)))
-      ((fresh (e e^)
-         (conde
-           ((== stmt `(return ,e))
-            (== stmto `(return ,e^))
-            (infer-expr e env rtype e^))
-           ((== stmt `(return))
-            (== stmto `(return))
-            (== rtype 'void)))))
-      ((fresh (e e^ type)
-         (== stmt `(do ,e))
-         (== stmto `(do ,e^))
-         (infer-expr e env type e^)))
-      ((fresh (x start start^ end end^ s s^)
-         (== stmt `(for (,x ,start ,end) ,s))
-         (== stmto `(for (,x ,start^ ,end^) ,s^))
-         (infer-expr start env 'int start^)
-         (infer-expr end env 'int end^)
-         (infer-stmt s `((,x . int) . ,env) rtype s^)))
-      ((fresh (e e^ s s^)
-         (== stmt `(while ,e ,s))
-         (== stmto `(while ,e^ ,s^))
-         (infer-expr e env 'bool e^)
-         (infer-stmt s env rtype s^))))))
-
-(define-mk infer-stmts
-  (lambda (stmts env rtype stmtso)
-    (conde
-      ((== stmts '()) (== stmts stmtso))
-      ((fresh (stmt stmt* stmt^ stmt*^)
-         (== stmts `(,stmt . ,stmt*))
-         (== stmtso `(,stmt^ . ,stmt*^))
-         (report-backtrack `(,stmt . ,stmt*) env)
-         (infer-stmt stmt env rtype stmt^)
-         (infer-stmts stmt* env rtype stmt*^))))))
-
-(define-mk infer-fn-args
-  (lambda (args arg-types env envo)
-    (conde
-      ((== args '()) (== arg-types '()) (== env envo))
-      ((fresh (a at rest restt env^)
-         (== args `(,a . ,rest))
-         (== arg-types `(,at . ,restt))
-         (== envo `((,a . ,at) . ,env^))
-         (infer-fn-args rest restt env env^))))))
-
-(define-mk infer-decl*
-  (lambda (decl* declo* env)
-    (conde
-      ((== '() decl*) (== '() declo*))
-      ((fresh (decl declo rest resto name type)
-         (== decl* `(,decl . ,rest))
-         (conde
-           ((fresh (stmt stmto args arg-types rtype env^)
-              (== decl `(fn ,name ,args ,stmt))
-              (== declo `(fn ,name ,args ,type ,stmto))
-              (== type `(,arg-types -> ,rtype))
-              (lookup env name `(,arg-types -> ,rtype))
-              (infer-fn-args args arg-types env env^)
-              (conde
-                ((== 'main name) (== 'int rtype))
-                ((=/= 'main name)))
-              (infer-stmt stmt env^ rtype stmto)))
-           ((== decl `(extern ,name . ,type))
-            (lookup env name type)
-            (== declo decl)))
-         (infer-decl* rest resto env)
-         (== declo* `(,declo . ,resto)))))))
-
-(define-mk infer-initial-env
-  (lambda (decl* envo)
-    (conde
-      ((== decl* '()) (== envo '()))
-      ((fresh (extern/fn name r rest type env^)
-         (== decl* `((,extern/fn ,name . ,r) . ,rest))
-         (== envo `((,name . ,type) . ,env^))
-         (infer-initial-env rest env^))))))
-
-(define-mk infer-module
-  (lambda (mod typed-mod)
-    (fresh (decl* decl*^ envo)
-      (== mod `(module . ,decl*))
-      (== typed-mod `(module . ,decl*^))
-      (infer-initial-env decl* envo)
-      (infer-decl* decl* decl*^ envo))))
-
-(define typecheck
-  (lambda (mod)
-    (usetypecomp)
-    (let ((result (run 2 (q)
-                    (infer-module mod q))))
-      (case (length result)
-        ((0) (error 'typecheck
-               "Could not infer type for program."
-               mod))
-        ((1) (car result))
-        (else
-         (display result)
-         (error 'typecheck
-           "Could not infer a unique type for program"
-           result))))))
 
 )
 
