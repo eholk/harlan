@@ -50,8 +50,15 @@
   ((set! ,[Value -> x] ,[Value -> v]) `(set! ,x ,v))
   ((vector-set! ,[Value -> v] ,[Value -> i] ,[Value -> e])
    `(vector-set! ,v ,i ,e))
-  ((for (,x ,start ,end) . ,[(Value* '()) -> value*])
-   `(for (,x ,start ,end) . ,value*))
+  ((for (,i ,[Value -> start]
+          ,[Value -> end])
+     . ,[(Value* '()) -> value*])
+   `(for (,i ,start ,end) . ,value*))
+  ((for (,i ,[Value -> start]
+          ,[Value -> end]
+          ,[Value -> step])
+     . ,[(Value* '()) -> value*])
+   `(for (,i ,start ,end ,step) . ,value*))
   ((while ,[Value -> test] . ,[(Value* '()) -> value*])
    `(while ,test . ,value*))
   ((if ,[Value -> t] ,[Value -> c])

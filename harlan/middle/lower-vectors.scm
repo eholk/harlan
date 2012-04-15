@@ -31,7 +31,7 @@
      `(let ((,vlen int ,e))
         (let ((,x ,xt (make-vector int (var int ,vlen))))
           (begin
-            (for (,i (int 0) (var int ,vlen))
+            (for (,i (int 0) (var int ,vlen) (int 1))
               (vector-set! int (var ,xt ,x) (var int ,i) (var int ,i)))
             ,rest)))))
   
@@ -41,7 +41,7 @@
      `(let ((,v ,t ,e))
         (let ((,x ,xt (vector-ref ,t (var ,t ,v) (int 0))))
           (begin
-            (for (,i (int 1) (length (var ,t ,v)))
+            (for (,i (int 1) (length (var ,t ,v)) (int 1))
               (set! (var ,xt ,x)
                 (,op (var ,xt ,x)
                   (vector-ref ,t (var ,t ,v) (var int ,i)))))
@@ -74,8 +74,9 @@
    `(vector-set! ,t ,e1 ,i ,e2))
   ((while ,[lower-expr -> expr] ,[body])
    `(while ,expr ,body))
-  ((for (,x ,[lower-expr -> start] ,[lower-expr -> end]) ,[body])
-   `(for (,x ,start ,end) ,body))
+  ((for (,x ,[lower-expr -> start] ,[lower-expr -> end]
+          ,[lower-expr -> step]) ,[body])
+   `(for (,x ,start ,end ,step) ,body))
   ((return) `(return))
   ((return ,[lower-expr -> expr])
    `(return ,expr))

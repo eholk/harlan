@@ -66,15 +66,16 @@
      (values
       `(begin ,@(map make-let bindings* stmt*) ,(make-let bindings e))
       '()))
-    ((for (,x ,[Expr -> start start-bindings] ,[Expr -> end end-bindings])
+    ((for (,x ,[Expr -> start start-bindings]
+            ,[Expr -> end end-bindings]
+            ,[Expr -> step step-bindings])
           ,[body bindings])
      (let-values (((liftable pinned)
                    ((split-bindings (list x)) bindings)))
        (values
-        `(for (,x ,start
-                  ,end)
+        `(for (,x ,start ,end ,step)
               ,(make-let pinned body))
-        (append start-bindings end-bindings liftable))))
+        (append start-bindings end-bindings step-bindings liftable))))
     ((while ,[Expr -> test test-bindings]
        ,[body bindings])
      (values `(while ,test ,(make-let bindings body))

@@ -42,9 +42,10 @@
    `(vector-set! ,v ,i ,expr))
   ((while ,[compile-expr -> expr] ,[stmt])
    `(while ,expr ,stmt))
-  ((for (,i ,[compile-expr -> start] ,[compile-expr -> end])
+  ((for (,i ,[compile-expr -> start] ,[compile-expr -> end]
+          ,[compile-expr -> step])
      ,[stmt*] ...)
-   `(for (,i ,start ,end) . ,stmt*))
+   `(for (,i ,start ,end ,step) . ,stmt*))
   ((do ,[compile-expr -> e]) `(do ,e)))
 
 (define-match compile-expr

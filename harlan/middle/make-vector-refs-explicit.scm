@@ -34,8 +34,9 @@
    `(vector-set! ,t ,e1 ,i ,e2))
   ((while ,[explicify-expr -> expr] ,[body])
    `(while ,expr ,body))
-  ((for (,x ,[explicify-expr -> start] ,[explicify-expr -> end]) ,[body])
-   `(for (,x ,start ,end) ,body))
+  ((for (,x ,[explicify-expr -> start] ,[explicify-expr -> end]
+          ,[explicify-expr -> step]) ,[body])
+   `(for (,x ,start ,end ,step) ,body))
   ((return) `(return))
   ((return ,[explicify-expr -> expr])
    `(return ,expr))
@@ -98,9 +99,10 @@
      ,[(replace-vec-refs-stmt x*) -> body])
    `(while ,expr ,body))
   ((for (,x ,[(replace-vec-refs-expr x*) -> start]
-            ,[(replace-vec-refs-expr x*) -> end])
+            ,[(replace-vec-refs-expr x*) -> end]
+            ,[(replace-vec-refs-expr x*) -> step])
      ,[(replace-vec-refs-stmt x*) -> body])
-   `(for (,x ,start ,end) ,body))
+   `(for (,x ,start ,end ,step) ,body))
   ((return) `(return))
   ((return ,[(replace-vec-refs-expr x*) -> expr])
    `(return ,expr))

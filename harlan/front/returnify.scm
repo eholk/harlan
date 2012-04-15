@@ -20,6 +20,8 @@
    `(let ((,x ,e) ...) ,stmt))
   ((print ,e ...) (make-begin `((print . ,e) (return))))
   ((assert ,e) (make-begin `((assert ,e) (return))))
+  ((for ,b ,[returnify-stmt -> s]) `(for ,b ,s))
+  ((while ,e ,[returnify-stmt -> s]) `(while ,e ,s))
   ((return) `(return))
   ((return ,expr) `(return ,expr))
   ((do ,expr) `(return ,expr))

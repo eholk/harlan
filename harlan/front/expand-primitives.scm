@@ -44,8 +44,9 @@
     ((while ,[expand-prim-expr -> test] ,[body])
      `(while ,test ,body))
     ((for (,x ,[expand-prim-expr -> start]
-            ,[expand-prim-expr -> stop]) ,[body])
-     `(for (,x ,start ,stop) ,body))
+            ,[expand-prim-expr -> stop]
+            ,[expand-prim-expr -> step]) ,[body])
+     `(for (,x ,start ,stop ,step) ,body))
     ((begin ,[stmt*] ...)
      `(begin . ,stmt*))
     ((print (vec ,t) ,[expand-prim-expr -> e]
@@ -106,7 +107,7 @@
       `(let ((,v (vec ,t) ,e))
          (begin
            (print (str "[") . ,stream)
-           (for (,i (int 0) (length (var (vec ,t) ,v)))
+           (for (,i (int 0) (length (var (vec ,t) ,v)) (int 1))
              (begin
                ,(if (scalar-type? t)
                     `(if (> (var int ,i) (int 0))
@@ -134,7 +135,7 @@
              (print (str "P2\n") (var ofstream ,stream))
              (print (str "1024 1024\n") (var ofstream ,stream))
              (print (str "255\n") (var ofstream ,stream))
-             (for (,i (int 0) (* (int 1024) (int 1024)))
+             (for (,i (int 0) (* (int 1024) (int 1024)) (int 1))
                (let ((,p int (vector-ref int
                                (vector-ref (vec int)
                                  ,data
@@ -164,7 +165,7 @@
          (let ((,len int (length (var (vec ,t) ,l))))
            (let ((,res (vec ,t) (make-vector ,t (var int ,len))))
              (begin
-               (for (,i (int 0) (var int ,len))
+               (for (,i (int 0) (var int ,len) (int 1))
                  (let ((,lhsi ,t
                          (vector-ref ,t (var (vec ,t) ,l)
                            (var int ,i)))
@@ -192,7 +193,7 @@
            (begin
              (if (= (var int ,len)
                    (length (var (vec ,t) ,r)))
-                 (for (,i (int 0) (var int ,len))
+                 (for (,i (int 0) (var int ,len) (int 1))
                    (let ((,lhsi ,t
                            (vector-ref ,t (var (vec ,t) ,l)
                              (var int ,i)))

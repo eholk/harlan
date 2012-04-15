@@ -65,9 +65,10 @@
    `(if ,test ,conseq ,alt))
   ((while ,[uglify-expr -> e] ,[uglify-stmt -> stmt])
    `(while ,e ,stmt))
-  ((for (,i ,[uglify-expr -> start] ,[uglify-expr -> end])
+  ((for (,i ,[uglify-expr -> start] ,[uglify-expr -> end]
+          ,[uglify-expr -> step])
      ,[uglify-stmt -> stmt])
-   `(for (,i ,start ,end) ,stmt))
+   `(for (,i ,start ,end ,step) ,stmt))
   ((set! ,[uglify-expr -> lhs] ,[uglify-expr -> rhs])
    `(set! ,lhs ,rhs))
   ((return) `(return))

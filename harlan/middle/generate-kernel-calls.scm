@@ -57,8 +57,8 @@
             region*)))) ;; local size
   ((begin ,[stmt*] ...)
    `(begin . ,stmt*))
-  ((for (,i ,start ,end) ,[stmt])
-   `(for (,i ,start ,end) ,stmt))
+  ((for (,i ,start ,end ,step) ,[stmt])
+   `(for (,i ,start ,end ,step) ,stmt))
   ((while ,expr ,[stmt])
    `(while ,expr ,stmt))
   (,else else))

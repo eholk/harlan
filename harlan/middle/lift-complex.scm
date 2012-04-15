@@ -172,14 +172,16 @@
   ((return) `(return))
   ((return ,expr)
    (lift-expr expr (lambda (e^) `(return ,e^))))
-  ((for (,x ,start ,end) ,[stmt])
+  ((for (,x ,start ,end ,step) ,[stmt])
    (lift-expr
      start
      (lambda (start)
        (lift-expr
          end
          (lambda (end)
-           `(for (,x ,start ,end) ,stmt))))))
+           (lift-expr step
+             (lambda (step)
+               `(for (,x ,start ,end ,step) ,stmt))))))))
   ((do ,e)
    (lift-expr e (lambda (e) `(do ,e))))
   ((while ,expr ,[stmt])
