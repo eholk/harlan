@@ -184,19 +184,19 @@ void program::build()
     char *cwd = getcwd(NULL, 0);
     string opts = "-I";
     opts += escape_path(cwd);
-	opts += " -I/Users/eric/class/osl/dpp/svn/user/webyrd/harlan";
-	opts += " -Werror";
+    opts += " -I/Users/eric/class/osl/dpp/svn/user/webyrd/harlan";
+    opts += " -Werror";
     free(cwd);
-	cl_int status = clBuildProgram(prog, 0, NULL, opts.c_str(), NULL, NULL);
+    cl_int status = clBuildProgram(prog, 0, NULL, opts.c_str(), NULL, NULL);
     if(status != CL_SUCCESS) {
         char log[8192];
         
         CL_CHECK(clGetProgramBuildInfo(prog,
-                                    g_devices[0],
-                                    CL_PROGRAM_BUILD_LOG,
-                                    sizeof(log),
-                                    log,
-                                    NULL));
+                                       g_devices[0],
+                                       CL_PROGRAM_BUILD_LOG,
+                                       sizeof(log),
+                                       log,
+                                       NULL));
         std::cerr << log << std::endl;
     }
     CL_CHECK(status);

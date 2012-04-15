@@ -20,40 +20,37 @@
    `(extern . ,rest)))
 
 (define (any? ls)
-  (if (null? ls)
-      #f
-      (or (car ls) (any? (cdr ls)))))
+  (and (not (null? ls))
+       (or (car ls) (any? (cdr ls)))))
+
+(define (kernel-arg->binding i)
+  (lambda (x t xs)
+    `(,x ,t (vector-ref ,t ,xs (var int ,i)))))
+
+(define (kernel->for x xt e rest body)
+  (match body
+    (((vec ,t)
+      ,dims
+      (((,x^ ,t^) (,xs ,ts) ,d)
+       ((,x* ,t*) (,xs* ,ts*) ,d*) ...))
+     (let ((i (gensym 'i)) (expr (gensym 'expr)))
+       (assert (= (length dims) 1))
+       `(let ((,expr ,ts ,xs))
+          (let ((,x ,xt (make-vector ,t (length (var ,ts ,expr)))))
+            (begin
+              (for (,i (int 0) ,(car dims))
+                (let (,((kernel-arg->binding i) x^ t^ `(var ,ts ,expr))
+                      . ,(map (kernel-arg->binding i) x* t* xs*))
+                  ,((set-kernel-return t x i) e)))
+              ,rest)))))))
 
 (define-match (Let finish k?)
   (() (values finish k?))
-  (((,x ,xt
-     (kernel (vec ,t) ,dims (((,x^ ,t^) (,xs ,ts) ,d)
-                                ((,x* ,t*) (,xs* ,ts*) ,d*) ...)
-       ,[Expr -> e kernel?]))
-    . ,[rest _])
+  (((,x ,xt (kernel ,body ... ,[Expr -> e kernel?])) . ,[rest _])
    (values
      (if kernel?
-         (let ((i (gensym 'i)) (expr (gensym 'expr)))
-           (assert (= (length dims) 1))
-           `(let ((,expr ,ts ,xs))
-              (let ((,x ,xt (make-vector ,t (length (var ,ts ,expr)))))
-                (begin
-                  (for (,i (int 0) ,(car dims))
-                    (let ((,x^ ,t^ (vector-ref ,t^ ,xs (var int ,i)))
-                          . ,(map (lambda (x t xs)
-                                    `(,x ,t (vector-ref ,t ,xs (var int ,i))))
-                               x* t* xs*))
-                      ,((set-kernel-return
-                          (lambda (e) `(vector-set!
-                                    ,t (var (vec ,t) ,x) (var int ,i) ,e)))
-                        e)))
-                  ,rest))))
-         `(let ((,x ,xt
-                  (kernel (vec ,t) ,dims
-                    (((,x^ ,t^) (,xs ,ts) ,d)
-                     ((,x* ,t*) (,xs* ,ts*) ,d*) ...)
-                    ,e)))
-            ,rest))
+         (kernel->for x xt e rest body)
+         `(let ((,x ,xt (kernel ,body ... ,e))) ,rest))
      #t))
   (((,x ,t ,e) . ,[rest k?])
    (values `(let ((,x ,t ,e)) ,rest) k?)))
@@ -90,12 +87,13 @@
      (or has-kernel (any? kernel*))))
   (,else (values else #f)))
 
-(define-match (set-kernel-return finish)
-  ((begin ,stmt* ... ,[(set-kernel-return finish) -> expr])
+(define-match (set-kernel-return t x i)
+  ((begin ,stmt* ... ,[expr])
    `(begin ,@stmt* ,expr))
-  ((let ,b ,[(set-kernel-return finish) -> expr])
+  ((let ,b ,[expr])
    `(let ,b ,expr))
-  (,else (finish else)))
+  (,else `(vector-set!
+            ,t (var (vec ,t) ,x) (var int ,i) ,else)))
 
 ;;end library
 )

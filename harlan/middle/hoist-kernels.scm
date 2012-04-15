@@ -18,9 +18,6 @@
   ((global ,type ,name ,e)
    (values `(global ,type ,name ,e) '())))
 
-(define (hoist-kernel-arg x t)
-  `(var ,t ,x))
-
 (define-match hoist-stmt
   ((kernel ,dims (((,x* ,t*) (,xs* ,ts*) ,dim) ...)
      (free-vars (,fv* ,ft*) ...)
@@ -28,7 +25,7 @@
    (let ((name (gensym 'kernel)))
      (values
       `(apply-kernel ,name ,dims
-        ,@(map hoist-kernel-arg fv* ft*))
+         ,@(map (lambda (t x) `(var ,t ,x)) ft* fv*))
       `((kernel ,name ,(map list fv* ft*) ,stmt)
         . ,kernel*))))
   ((begin ,[hoist-stmt -> stmt* kernel*] ...)

@@ -1,5 +1,5 @@
 (library
-    (harlan middle make-kernel-dimensions-explicit)
+  (harlan middle make-kernel-dimensions-explicit)
   (export make-kernel-dimensions-explicit)
   (import
    (rnrs)
@@ -64,14 +64,16 @@
      `(if ,test ,conseq))
     ((reduce ,t ,op ,[e])
      `(reduce ,t ,op ,e))
-    ((kernel (vec ,inner-type) (((,x ,t) (,[xs] ,ts))
-                                   ((,x* ,t*) (,[xs*] ,ts*)) ...) ,[body])
+    ((kernel
+       (vec ,inner-type)
+       (((,x ,t) (,[xs] ,ts))
+        ((,x* ,t*) (,[xs*] ,ts*)) ...) ,[body])
      (let ((xs^ (gensym 'xs)))
        `(let ((,xs^ ,ts ,xs))
           (kernel (vec ,inner-type)
-                  ((length (var ,ts ,xs^)))
-                  (((,x ,t) ((var ,ts ,xs^) ,ts) 0)
-                   ((,x* ,t*) (,xs* ,ts*) 0) ...) ,body))))
+            ((length (var ,ts ,xs^)))
+            (((,x ,t) ((var ,ts ,xs^) ,ts) 0)
+             ((,x* ,t*) (,xs* ,ts*) 0) ...) ,body))))
     ((let ((,x* ,t* ,[e*]) ...) ,[e])
      `(let ((,x* ,t* ,e*) ...) ,e))
     ((begin ,[Stmt -> s*] ... ,[e])

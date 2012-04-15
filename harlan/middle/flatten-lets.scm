@@ -10,7 +10,7 @@
 
 (define-match flatten-decl
   ((fn ,name ,args ,type ,[flatten-stmt -> stmt])
-   `(fn ,name ,args ,type ,(make-begin `(,stmt))))
+   `(fn ,name ,args ,type ,stmt))
   (,else else))
 
 (define-match flatten-stmt
