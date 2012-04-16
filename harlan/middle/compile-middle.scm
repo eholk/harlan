@@ -6,7 +6,7 @@
     (harlan compile-opts)
     (harlan verification-passes)
 
-    (harlan middle flatten-lets)
+    (harlan middle make-kernel-dimensions-explicit)
     (harlan middle lift-complex)
     (harlan middle remove-nested-kernels)
     (harlan middle optimize-lift-lets)
@@ -15,11 +15,11 @@
     (harlan middle annotate-free-vars)
     (harlan middle lower-vectors)
     (harlan middle uglify-vectors)
+    (harlan middle flatten-lets)
     (harlan middle hoist-kernels)
     (harlan middle generate-kernel-calls)
     (harlan middle compile-module)
-    (harlan middle convert-types)
-    (harlan middle make-kernel-dimensions-explicit))
+    (harlan middle convert-types))
 
 ;; The "middle end" of a compiler. No one ever knows what's supposed
 ;; to go here. This goes from TFC to something we can give to print-c.
@@ -52,5 +52,7 @@
     compile-module
     verify-compile-module
     convert-types
-    verify-convert-types)))
+    verify-convert-types))
+
+)
 
