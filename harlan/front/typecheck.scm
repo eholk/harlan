@@ -3,29 +3,16 @@
   (export typecheck)
   (import
     (rnrs)
-    (util cKanren mk)
-    (util cKanren ck)
-    (util cKanren typecomp)
+    (cKanren ck)
+    (cKanren tree-unify)
+    (cKanren neq)
+    (cKanren pref)
+    (cKanren tracing)
     (only (chezscheme) printf pretty-print)
     (harlan compile-opts)
     (util color))
 
-(define-syntax (define-mk x)
-  (define trace-mk #f)
-  (syntax-case x ()
-    ((_ name (lambda (a* ...) body))
-     (if trace-mk
-         #`(define name
-             (lambda (a* ...)
-               (fresh ()
-                 (project (a* ...)
-                   (begin
-                     (printf "~s\n" (list 'name a* ...))
-                     succeed))
-                 body)))
-         #`(define name (lambda (a* ...) body))))))
-
-(define-mk report-backtrack
+(define report-backtrack
   (lambda (e env)
     (conde
       ((== #f #f))
@@ -41,12 +28,12 @@
            ((== #f #f) s)))
          (== #f #t)))))
 
-(define-mk pairo
+(define pairo
   (lambda (x)
     (fresh (a d)
       (== `(,a . ,d) x))))
 
-(define-mk lookup
+(define lookup
   (lambda (env x type)
     (fresh (env^)
       (conde
@@ -58,9 +45,7 @@
 
 (define typecheck
   (lambda (mod)
-    (usetypecomp)
-    (let ((result (run 2 (q)
-                    (infer-module mod q))))
+    (let ((result (run 2 (q) (infer-module mod q))))
       (case (length result)
         ((0) (error 'typecheck
                "Could not infer type for program."
@@ -72,7 +57,7 @@
            "Could not infer a unique type for program"
            result))))))
 
-(define-mk infer-module
+(define infer-module
   (lambda (mod typed-mod)
     (fresh (decl* decl*^ envo)
       (== mod `(module . ,decl*))
@@ -80,7 +65,7 @@
       (infer-initial-env decl* envo)
       (infer-decl* decl* decl*^ envo))))
 
-(define-mk infer-initial-env
+(define infer-initial-env
   (lambda (decl* envo)
     (conde
       ((== decl* '()) (== envo '()))
@@ -89,7 +74,7 @@
          (== envo `((,name . ,type) . ,env^))
          (infer-initial-env rest env^))))))
 
-(define-mk infer-decl*
+(define infer-decl*
   (lambda (decl* declo* env)
     (conde
       ((== '() decl*) (== '() declo*))
@@ -112,7 +97,7 @@
          (infer-decl* rest resto env)
          (== declo* `(,declo . ,resto)))))))
 
-(define-mk infer-fn-args
+(define infer-fn-args
   (lambda (args arg-types env envo)
     (conde
       ((== args '()) (== arg-types '()) (== env envo))
@@ -122,7 +107,7 @@
          (== envo `((,a . ,at) . ,env^))
          (infer-fn-args rest restt env env^))))))
 
-(define-mk infer-stmts
+(define infer-stmts
   (lambda (stmts env rtype stmtso)
     (conde
       ((== stmts '()) (== stmts stmtso))
@@ -133,7 +118,7 @@
          (infer-stmt stmt env rtype stmt^)
          (infer-stmts stmt* env rtype stmt*^))))))
 
-(define-mk infer-stmt
+(define infer-stmt
   (lambda (stmt env rtype stmto)
     (conde
       ((fresh (b b^ s s^ envo)
@@ -210,7 +195,7 @@
          (infer-expr e env 'bool e^)
          (infer-stmt s env rtype s^))))))
 
-(define-mk infer-exprs
+(define infer-exprs
   (lambda (exprs env type exprso)
     (fresh (expr expro expr* expro*)
       (conde
@@ -221,7 +206,7 @@
          (infer-expr expr env type expro)
          (infer-exprs expr* env type expro*))))))
 
-(define-mk infer-expr
+(define infer-expr
   (lambda (expr env type expro)
     (conde
       ((fresh (c)
@@ -380,7 +365,7 @@
          (infer-kernel-bindings b* b^* env env^ n)
          (infer-expr body env^ t body^))))))
 
-(define-mk infer-args
+(define infer-args
   (lambda (env args arg-types argso)
     (conde
       ((== args '()) (== argso '()))
@@ -391,7 +376,7 @@
          (infer-expr e env t e^)
          (infer-args env e* t* e^*))))))
 
-(define-mk infer-kernel-bindings
+(define infer-kernel-bindings
   (lambda (b* b^* env envo n)
     (conde
       ((== '() b*) (== '() b^*) (== env envo))
@@ -404,7 +389,7 @@
          (infer-expr e env te e^)
          (infer-kernel-bindings rest rest^ env env^ n))))))
 
-(define-mk infer-let-bindings
+(define infer-let-bindings
   (lambda (b b^ env envo)
     (conde
       ((== b '()) (== b b^) (== env envo))
