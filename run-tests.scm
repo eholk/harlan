@@ -62,7 +62,7 @@
           (lambda (source)
             (printf "Generating C++...")
             (try (catch (x)
-                   (if (error? x)
+                   (if (or (error? x) (condition? x))
                        (begin
                          (failures (add1 (failures)))
                          (with-color 'red (printf "FAILED\n")))))
