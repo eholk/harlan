@@ -2,19 +2,16 @@
 
 ;; code for adding two vectors, from Harlan proposal
 
-#;
-(module
-  (define (main)
-    (let ((X (vector 1)))
-      (let ((Y (kernel ((x X)) (+ x 1))))
-        (assert (= (vector-ref Y 0) 2))
-        (return 0)))))
-
 (module
   (define (map_add1 X)
     (kernel ((x X)) (+ x 1)))
   (define (main)
     (let ((X (vector 1)))
-      (let ((Y (map_add1 X)))
-        (assert (= (vector-ref Y 0) 2))
-        (return 0)))))
+      (let ((Y (map_add1 X))
+            (Z (map_add1 X)))
+        (assert (= Y Z))))
+    (let ((M (vector 1 2 3 4)))
+      (let ((N (map_add1 M)))
+        (assert (= (vector-ref N 0)
+                   (+ (vector-ref M 0) 1)))))
+    (return 0)))
