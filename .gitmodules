@@ -10,3 +10,6 @@
 [submodule "external/scheme-listings"]
 	path = external/scheme-listings
 	url = https://github.com/stuhlmueller/scheme-listings.git
+[submodule "external/cKanren"]
+	path = external/cKanren
+	url = git@github.com:calvis/cKanren.git
