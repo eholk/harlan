@@ -118,12 +118,12 @@
   ((str ,s) `(str ,s))
   ((var ,t ,x)
    (if (memq x x*) `(deref (var ,t ,x)) `(var ,t ,x)))
-  ((let ((,x ,t ,[(replace-vec-refs-expr x*) -> e]) ...)
-     ,[(replace-vec-refs-expr x*) -> expr])
-   `(let ((,x ,t ,e) ...) ,expr))
-  ((begin ,[(replace-vec-refs-stmt x*) -> stmt*] ...
-          ,[(replace-vec-refs-expr x*) -> expr])
-   `(begin ,@stmt* ,expr))
+  ((vector ,t ,[(replace-vec-refs-expr x*) -> triv*] ...)
+   `(vector ,t . ,triv*))
+  ((make-vector ,t ,[(replace-vec-refs-expr x*) -> triv*] ...)
+   `(make-vector ,t . ,triv*))
+  ((iota ,[(replace-vec-refs-expr x*) -> triv])
+   `(iota ,triv))
   ((reduce ,t ,op ,[(replace-vec-refs-expr x*) -> e])
    `(reduce ,t ,op ,e))
   ((if ,[(replace-vec-refs-expr x*) -> t]
@@ -132,7 +132,7 @@
    `(if ,t ,c ,a))
   ((call ,[(replace-vec-refs-expr x*) -> v]
          ,[(replace-vec-refs-expr x*) -> arg*] ...)
-   `(call ,v ,arg* ...))
+   `(call ,v . ,arg*))
   ((vector-ref ,t ,[(replace-vec-refs-expr x*) -> v]
                ,[(replace-vec-refs-expr x*) -> i])
    `(vector-ref ,t ,v ,i))
