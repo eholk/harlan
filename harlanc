@@ -3,4 +3,4 @@
 schemeScript="$0".scm
 dir=`dirname $schemeScript`
 
-scheme --libdirs "$dir" --program "$schemeScript" $@
+petite --libdirs "$dir" --program "$schemeScript" $@
