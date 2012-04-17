@@ -23,10 +23,10 @@
                                 ,(if (make-shared-object) "-shared" "")
                                 "-x c++"
                                 ,src-tmp "-x none"
-                                "rt/libharlanrt.a"
-                                "gc/lib/libgc.a"
-                                "-Irt"
-                                "-Igc/include"
+                                ,(string-append (HARLAND) "/rt/libharlanrt.a")
+                                ,(string-append (HARLAND) "/gc/lib/libgc.a")
+                                ,(string-append "-I" (HARLAND) "/rt")
+                                ,(string-append "-I" (HARLAND) "/gc/include")
                                 "-o" ,outfile)
                               (get-cflags)
                               args))))

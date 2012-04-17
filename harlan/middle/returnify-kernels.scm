@@ -42,10 +42,6 @@
    ((returnify-kernel-let expr) `((,id ,t ,e) ...)))
   (,else else))
 
-(define-match type-dim
-  ((vec ,[t]) (+ 1 t))
-  (,x 0))
-
 (define-match (returnify-kernel-let finish)
   (() finish)
   (((,id ,xt (kernel void ,arg* ,body))

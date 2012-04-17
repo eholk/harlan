@@ -1,6 +1,6 @@
 (library
     (util system)
-  (export read-all shell get-os join-path)
+  (export read-all shell get-os join-path HARLAND)
   (import
    (chezscheme)
    (only (elegant-weapons helpers) join))
@@ -28,6 +28,8 @@
 
   (define (join-path . components)
     (join (string (directory-separator)) components))
+
+  (define HARLAND (make-parameter "."))
   
   ;; end library
   )
