@@ -109,14 +109,8 @@
   ((str ,s) `(str ,s))
   ((var ,t ,x)
    (if (memq x x*) `(deref (var ,t ,x)) `(var ,t ,x)))
-  ((vector ,t ,[(replace-vec-refs-expr x*) -> triv*] ...)
-   `(vector ,t . ,triv*))
   ((make-vector ,t ,[(replace-vec-refs-expr x*) -> triv*] ...)
    `(make-vector ,t . ,triv*))
-  ((iota ,[(replace-vec-refs-expr x*) -> triv])
-   `(iota ,triv))
-  ((reduce ,t ,op ,[(replace-vec-refs-expr x*) -> e])
-   `(reduce ,t ,op ,e))
   ((if ,[(replace-vec-refs-expr x*) -> t]
        ,[(replace-vec-refs-expr x*) -> c]
        ,[(replace-vec-refs-expr x*) -> a])

@@ -47,9 +47,6 @@
     ((,t ,v) (guard (scalar-type? t)) `(,t ,v))
     ((var ,t ,x) `(var ,t ,x))
     ((int->float ,[e]) `(int->float ,e))
-    ((iota ,[e]) `(iota ,e))
-    ((vector ,t ,[e*] ...)
-     `(vector ,t ,e* ...))
     ((make-vector ,t ,[e])
      `(make-vector ,t ,e))
     ((vector-ref ,t ,[v] ,[i])
@@ -62,8 +59,6 @@
      `(if ,test ,conseq ,altern))
     ((if ,[test] ,[conseq])
      `(if ,test ,conseq))
-    ((reduce ,t ,op ,[e])
-     `(reduce ,t ,op ,e))
     ((kernel
        (vec ,inner-type)
        (((,x ,t) (,[xs] ,ts))

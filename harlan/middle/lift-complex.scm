@@ -56,33 +56,8 @@
                  (car e*)
                  (lambda (e^)
                    (loop (cdr e*) (cons e^ e*^))))))))
-      ((vector ,t . ,e*)
-       (let ((finish (lambda (e*^)
-                       (let ((v (gensym 'v)))
-                         `(let ((,v ,t (vector ,t . ,e*^)))
-                            ,(finish `(var ,t ,v)))))))
-         (let loop ((e* e*) (e*^ '()))
-           (if (null? e*)
-               (finish (reverse e*^))
-               (lift-expr
-                 (car e*)
-                 (lambda (e^)
-                   (loop (cdr e*) (cons e^ e*^))))))))
       ((make-vector ,c)
        (finish `(make-vector ,c)))
-      ((iota ,e)
-       (let ((v (gensym 'iota)))
-         (lift-expr e
-            (lambda (e)
-              `(let ((,v (vec int) (iota ,e)))
-                 ,(finish `(var (vec int) ,v)))))))
-      ((reduce ,t ,op ,e)
-       (lift-expr
-         e
-         (lambda (e^)
-           (let ((v (gensym 'v)))
-             `(let ((,v ,t (reduce ,t ,op ,e^)))
-                ,(finish `(var ,t ,v)))))))
       ((length ,e) 
        (lift-expr
          e (lambda (e^)
@@ -117,22 +92,10 @@
                  (car e*)
                  (lambda (e^)
                    (loop (cdr e*) (cons e^ e*^))))))))
-      ((vector ,t . ,e*)
-       (let ((finish (lambda (e*^) (finish `(vector ,t . ,e*^)))))
-         (let loop ((e* e*) (e*^ '()))
-           (if (null? e*)
-               (finish (reverse e*^))
-               (lift-expr
-                 (car e*)
-                 (lambda (e^)
-                   (loop (cdr e*) (cons e^ e*^))))))))
-      ((iota (int ,c))
-       (finish `(iota (int ,c))))
-      ((reduce ,t ,op ,e)
-       (lift-expr
-         e
-         (lambda (e^)
-           (finish `(reduce ,t ,op ,e^)))))
+      ((make-vector ,t ,e)
+       (lift-expr e
+          (lambda (e)
+            (finish `(make-vector ,t ,e)))))
       (,else (lift-expr else finish)))))
 
 (define-match lift-stmt
