@@ -13,7 +13,6 @@
     verify-returnify-kernels
     verify-make-vector-refs-explicit
     verify-annotate-free-vars
-    verify-lower-vectors
     verify-uglify-vectors
     verify-flatten-lets
     verify-hoist-kernels
@@ -298,11 +297,8 @@
       (if Expr Expr Expr)
       (let ((Var Type Expr) *) Expr)
       (begin Stmt * Expr)
-      (vector Type Expr +)
       (vector-ref Type Expr Expr)
       (kernel Type (((Var Type) (Expr Type)) +) Expr)
-      (reduce Type Reduceop Expr)
-      (iota Expr)
       (length Expr)
       (int->float Expr)
       (make-vector Type Expr)
@@ -324,11 +320,8 @@
       (if Expr Expr Expr)
       (let ((Var Type Expr) *) Expr)
       (begin Stmt * Expr)
-      (vector Type Expr +)
       (vector-ref Type Expr Expr)
       (kernel Type (Expr +) (((Var Type) (Expr Type) Integer) +) Expr)
-      (reduce Type Reduceop Expr)
-      (iota Expr)
       (length Expr)
       (int->float Expr)
       (make-vector Type Expr)
@@ -361,10 +354,7 @@
       Ret-Stmt)
     (Lifted-Expr
       (kernel Type (Triv +) (((Var Type) (Triv Type) Integer) +) Expr)
-      (vector Type Triv +)
-      (reduce Type Reduceop Triv)
       (make-vector Type Triv)
-      (iota Triv)
       Triv)
     (Expr
       (let ((Var Type Lifted-Expr)) Expr)
@@ -409,10 +399,7 @@
       (begin Stmt * Stmt)
       Ret-Stmt)
     (Lifted-Expr
-      (vector Type Triv +)
-      (reduce Type Reduceop Triv)
       (make-vector Type Triv)
-      (iota Triv)
       Triv))
 
   (make-vector-refs-explicit
@@ -458,55 +445,6 @@
       (do Triv)
       (begin Stmt * Stmt)
       Ret-Stmt))
-
-  (lower-vectors (%inherits Module Decl Ret-Stmt)
-    (Start Module)
-    (Body
-      (begin Stmt * Body)
-      (let ((Var Type Lifted-Expr) *) Body)
-      (if Triv Body)
-      (if Triv Body Body)
-      Ret-Stmt)      
-    (Stmt 
-      (print Triv)
-      (print Triv Triv)
-      (assert Triv)
-      (set! Triv Triv)
-      (vector-set! Type Triv Triv Triv)
-      (kernel Type
-        (Triv +)
-        (((Var Type) (Triv Type) Integer) +)
-        (free-vars (Var Type) *)
-        Stmt)
-      (let ((Var Type Lifted-Expr) *) Stmt)
-      (begin Stmt * Stmt)
-      (if Triv Stmt)
-      (if Triv Stmt Stmt)
-      (for (Var Triv Triv Triv) Stmt)
-      (while Triv Stmt)
-      (do Triv)
-      Ret-Stmt)
-    (Lifted-Expr
-      (make-vector Type Triv)
-      Triv)
-    (Triv
-      (char Char)
-      (int Integer)
-      (u64 Number)
-      (float Float)
-      (int->float Triv)
-      (bool Boolean)
-      (str String)
-      (var Type Var)
-      (if Triv Triv Triv)
-      (call Triv Triv *)
-      (c-expr C-Type Var)
-      (vector-ref Type Triv Triv)
-      (length Triv)
-      (addressof Triv)
-      (deref Triv)
-      (Relop Triv Triv)
-      (Binop Triv Triv)))
 
   (uglify-vectors (%inherits Module)
     (Start Module)

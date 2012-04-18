@@ -13,7 +13,6 @@
     (harlan middle returnify-kernels)
     (harlan middle make-vector-refs-explicit)
     (harlan middle annotate-free-vars)
-    (harlan middle lower-vectors)
     (harlan middle uglify-vectors)
     (harlan middle flatten-lets)
     (harlan middle hoist-kernels)
@@ -39,8 +38,6 @@
     verify-make-vector-refs-explicit
     annotate-free-vars
     verify-annotate-free-vars
-    lower-vectors
-    verify-lower-vectors
     uglify-vectors
     verify-uglify-vectors
     flatten-lets
