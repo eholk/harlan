@@ -131,8 +131,9 @@
     ((assert ,[free-vars-Expr -> fv*]) fv*)
     ((return) `())
     ((return ,[free-vars-Expr -> fv*]) fv*)
-    ((for (,x ,[free-vars-Expr -> sfv*] ,[free-vars-Expr -> efv*]) ,[fv*])
-     (union sfv* efv* (difference fv* `(,x))))
+    ((for (,x ,[free-vars-Expr -> sfv*] ,[free-vars-Expr -> efv*]
+              ,[free-vars-Expr -> stepfv*]) ,[fv*])
+     (union sfv* efv* stepfv* (difference fv* `(,x))))
     ((set! ,[free-vars-Expr -> x] ,[free-vars-Expr -> v])
      (union x v))
     ((vector-set! ,t ,[free-vars-Expr -> x]
