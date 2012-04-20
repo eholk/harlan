@@ -4,7 +4,7 @@ XFAIL_TEST_SRC = $(shell grep -l xfail $(ALL_TEST_SRC))
 
 RUN_TEST_SRC = $(filter-out $(XFAIL_TEST_SRC), $(ALL_TEST_SRC))
 
-CXXFLAGS := -g -O2 gc/lib/libgc.a -Igc/include -Irt
+CXXFLAGS := -g -O2 -Irt
 
 # Set up the flags to handle OpenCL
 ifeq ($(shell uname), Darwin)
@@ -43,14 +43,11 @@ COMPILE_TEST = $(call HC, $(1), $(call TEST_EXE_NAME, $(1)))
 RUN_TEST = $(1)
 
 .phony: check
-check : test.bin gc/lib/libgc.a rt/libharlanrt.a update-submodules
+check : test.bin rt/libharlanrt.a update-submodules
 	@./run-tests.scm
 	@echo $(ECHO_ESCAPE) "\033[32mAll tests succeeded.\033[39m"
 
 # Shorthands:
-.phony: gc
-gc: gc/lib/libgc.a
-
 .phony: rt
 rt: rt/libharlanrt.a
 
@@ -81,14 +78,6 @@ test.bin/%.out : test.bin/%.bin
 test.bin/%.bin : test/% rt/libharlanrt.a $(HARLAN_SRC)
 	@echo Compiling $<
 	$(call COMPILE_TEST, $<)
-
-gc/lib/libgc.a : update-submodules
-	cd external/gc && \
-	rm -f libatomic_ops && \
-	ln -s ../libatomic_ops && \
-	./configure --prefix=`pwd`/../../gc && \
-	make -j4 && \
-	make install
 
 rt/libharlanrt.a : rt/*.h rt/*.cpp
 	make -C rt

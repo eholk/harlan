@@ -10,6 +10,13 @@ using namespace std;
 
 #define CHECK_MAGIC(hdr) assert((hdr)->magic == ALLOC_MAGIC)
 
+void print(bool b, std::ostream *f) {
+    if(b)
+        print("#t", f);
+    else
+        print("#f", f);
+}
+
 cl_device_type get_device_type()
 {
   const char *cfg = getenv("HARLAN_DEVICE");

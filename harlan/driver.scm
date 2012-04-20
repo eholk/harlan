@@ -24,9 +24,7 @@
                                 "-x c++"
                                 ,src-tmp "-x none"
                                 ,(string-append (HARLAND) "/rt/libharlanrt.a")
-                                ,(string-append (HARLAND) "/gc/lib/libgc.a")
                                 ,(string-append "-I" (HARLAND) "/rt")
-                                ,(string-append "-I" (HARLAND) "/gc/include")
                                 "-o" ,outfile)
                               (get-cflags)
                               args))))

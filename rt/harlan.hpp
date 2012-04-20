@@ -10,8 +10,6 @@
 #include <assert.h>
 #include <string.h>
 
-#include "gc.h"
-
 #ifdef __APPLE__
 #include <OpenCL/opencl.h>
 #else
@@ -44,13 +42,7 @@ void print(T n, std::ostream *f) {
   *f << n;
 }
 
-//template<>
-void print(bool b, std::ostream *f) {
-    if(b)
-        print("#t", f);
-    else
-        print("#f", f);
-}
+void print(bool b, std::ostream *f);
 
 template<typename T>
 void print(T n) {
