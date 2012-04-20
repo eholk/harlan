@@ -39,6 +39,7 @@
           (free-vars . ,(map (lambda (p) `(,(caddr p) ,(cadr p))) fv*))
           ,stmt)
        (apply union/var fv* (map expr-fv xs*)))))
+  ((error ,x) (values `(error ,x) `()))
   ((return) (values `(return) `()))
   ((return ,e)
    (values `(return ,e) (expr-fv e)))

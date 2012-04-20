@@ -42,6 +42,7 @@
      `(extern ,name ,args -> ,t)))
 
   (define-match insert-stmt
+    ((error ,x) `(error ,x))
     ((print ,t ...) `(print . ,t))
     ((assert ,t) `(assert ,t))
     ((set! ,x ,v) `(set! ,x ,v))

@@ -21,6 +21,7 @@
      ,[stmt])
    `(kernel ,t ,dims (((,x* ,t*) (,xs* ,ts*) ,d*) ...)
       ,(generate-kernel x* t* xs* d* stmt)))
+  ((error ,x) `(error ,x))
   ((print ,expr ...)
    `(print . ,expr))
   ((assert ,expr)

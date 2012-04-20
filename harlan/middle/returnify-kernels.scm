@@ -18,6 +18,7 @@
   ((print . ,expr*) `(print . ,expr*))
   ((assert ,expr) `(assert ,expr))
   ((set! ,x ,e) `(set! ,x ,e))
+  ((error ,x) `(error ,x))
   ((begin ,[stmt*] ...)
    `(begin . ,stmt*))
   ((if ,test ,[conseq])

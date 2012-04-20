@@ -7,6 +7,7 @@
     verify-returnify
     verify-typecheck
     verify-expand-primitives
+    verify-remove-danger
     verify-make-kernel-dimensions-explicit
     verify-lift-complex
     verify-remove-nested-kernels
@@ -317,6 +318,25 @@
       (Binop Expr Expr)
       (Relop Expr Expr)
       (call Expr Expr *)))
+
+  (remove-danger
+   (%inherits Module Decl Body Ret-Stmt Expr)
+   (Start Module)
+   (Stmt
+      (let ((Var Type Expr) *) Stmt)
+      (if Expr Stmt)
+      (begin Stmt * Stmt)
+      (if Expr Stmt Stmt)
+      (print Expr)
+      (print Expr Expr)
+      (assert Expr)
+      (set! Expr Expr)
+      (vector-set! Type Expr Expr Expr)
+      (do Expr)
+      (for (Var Expr Expr Expr) Stmt)
+      (while Expr Stmt)
+      (error Var)
+      (return Expr)))
   
   (make-kernel-dimensions-explicit
     (%inherits Module Decl Body Stmt Ret-Stmt)
@@ -363,6 +383,7 @@
       (do Triv)
       (for (Var Triv Triv Triv) Stmt)
       (while Triv Stmt)
+      (error Var)
       Ret-Stmt)
     (Lifted-Expr
       (kernel Type (Triv +) (((Var Type) (Triv Type) Integer) +) Expr)
@@ -409,6 +430,7 @@
       (while Triv Stmt)
       (do Triv)
       (begin Stmt * Stmt)
+      (error Var)
       Ret-Stmt)
     (Lifted-Expr
       (make-vector Type Triv)
@@ -439,6 +461,7 @@
   (annotate-free-vars (%inherits Module Decl Body Lifted-Expr Triv Ret-Stmt)
     (Start Module)
     (Stmt
+      (error Var)
       (print Triv)
       (print Triv Triv)
       (assert Triv)
@@ -467,6 +490,7 @@
           (output-regions (Var *))
           Stmt))
     (Stmt
+      (error Var)
       (print Triv)
       (print Triv Triv)
       (assert Triv)
@@ -521,6 +545,7 @@
       (while Triv Stmt)
       (do Triv)
       (begin Stmt * Stmt)
+      (error Var)
       Ret-Stmt)
     (Lifted-Expr
       (make-vector Rho-Type Triv)
@@ -579,6 +604,7 @@
       (while Expr Stmt)
       (do Expr)
       (begin Stmt +)
+      (error Var)
       Ret-Stmt)
     (Expr
       (bool Boolean)
@@ -611,6 +637,7 @@
       (if Expr Body Body)
       Ret-Stmt)
     (Stmt
+      (error Var)
       (print Expr)
       (print Expr Expr)
       (assert Expr)
@@ -650,6 +677,7 @@
       (while Expr Stmt)
       (do Expr)
       (begin Stmt +)
+      (error Var)
       Ret-Stmt)
     (Expr
       (bool Boolean)
@@ -695,6 +723,7 @@
       (for (Var Expr Expr Expr) Stmt)
       (while Expr Stmt)
       (do Expr)
+      (error Var)
       Ret-Stmt)
     (Expr
       (bool Boolean)
@@ -723,6 +752,7 @@
     (%inherits Module Kernel Decl Expr Body Ret-Stmt)
     (Start Module)
     (Stmt
+      (error Var)
       (print Expr)
       (print Expr Expr)
       (assert Expr)

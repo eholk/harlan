@@ -1,12 +1,12 @@
 (library
-  (harlan middle make-kernel-dimensions-explicit)
-  (export make-kernel-dimensions-explicit)
+  (harlan front remove-danger)
+  (export remove-danger)
   (import
    (rnrs)
    (harlan helpers)
    (elegant-weapons helpers))
 
-  (define-match make-kernel-dimensions-explicit
+  (define-match remove-danger
     ((module ,[Decl -> decl*] ...)
      `(module ,decl* ...)))
     
@@ -40,7 +40,6 @@
     ((return) `(return))
     ((return ,[Expr -> e])
      `(return ,e))
-    ((error ,x) `(error ,x))
     ((do ,[Expr -> e])
      `(do ,e)))
 
@@ -51,7 +50,14 @@
     ((make-vector ,t ,[e])
      `(make-vector ,t ,e))
     ((vector-ref ,t ,[v] ,[i])
-     `(vector-ref ,t ,v ,i))
+     (let ((v-var (gensym 'v))
+           (i-var (gensym 'i)))
+       `(let ((,v-var (vec ,t) ,v)
+              (,i-var int ,i))
+          (begin
+            (if (>= (var int ,i-var) (length (var (vec ,t) ,v-var)))
+                (error ,(gensym 'vector-length-error)))
+            (vector-ref ,t (var (vec ,t) ,v-var) (var int ,i-var))))))
     ((length ,[e])
      `(length ,e))
     ((call ,[f] ,[args] ...)
@@ -61,15 +67,17 @@
     ((if ,[test] ,[conseq])
      `(if ,test ,conseq))
     ((kernel
-       (vec ,inner-type)
+         (vec ,inner-type)
        (((,x ,t) (,[xs] ,ts))
-        ((,x* ,t*) (,[xs*] ,ts*)) ...) ,[body])
-     (let ((xs^ (gensym 'xs)))
-       `(let ((,xs^ ,ts ,xs))
-          (kernel (vec ,inner-type)
-            ((length (var ,ts ,xs^)))
-            (((,x ,t) ((var ,ts ,xs^) ,ts) 0)
-             ((,x* ,t*) (,xs* ,ts*) 0) ...) ,body))))
+        ((,x* ,t*) (,[xs*] ,ts*)) ...)
+       ;; TODO: put the cata form for body back, once we figure out
+       ;; how to do kernel error reporting.
+       ,body)
+     ;; TODO
+     `(kernel
+          (vec ,inner-type)
+        (((,x ,t) (,xs ,ts))
+         ((,x* ,t*) (,xs* ,ts*)) ...) ,body))
     ((let ((,x* ,t* ,[e*]) ...) ,[e])
      `(let ((,x* ,t* ,e*) ...) ,e))
     ((begin ,[Stmt -> s*] ... ,[e])

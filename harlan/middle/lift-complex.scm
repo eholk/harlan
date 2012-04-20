@@ -102,6 +102,7 @@
 (define-match lift-stmt
   ((begin ,[lift-stmt -> stmt*] ...)
    (make-begin stmt*))
+  ((error ,x) `(error ,x))
   ((print ,expr)
    (lift-expr expr (lambda (e^) `(print ,e^))))
   ((print ,expr ,op)

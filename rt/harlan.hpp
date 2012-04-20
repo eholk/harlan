@@ -56,4 +56,6 @@ void unmap_region(region *ptr);
 region_ptr alloc_in_region(region *r, unsigned int size);
 cl_mem get_cl_buffer(region *r);
 
+void harlan_error(const char *msg);
+
 #define __global

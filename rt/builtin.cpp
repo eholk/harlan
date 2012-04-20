@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <time.h>
-#include <gc/gc.h>
 
 #ifdef __APPLE__
 #include <mach/mach_time.h>

@@ -1,0 +1,10 @@
+(%testspec
+ xfail
+ ;; run-fail means correct behavior for this program is to compile and
+ ;; then fail at runtime.
+ run-fail)
+
+(module
+  (define (main)
+    (vector-ref (vector 1) 42)
+    (return 0)))

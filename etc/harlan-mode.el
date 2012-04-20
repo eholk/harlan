@@ -12,7 +12,10 @@
                             ("while" . font-lock-keyword-face)
                             ("return" . font-lock-keyword-face)
                             ("extern" . font-lock-keyword-face)
-                            ("reduce" . font-lock-keyword-face)))
+                            ("reduce" . font-lock-keyword-face)
+                            ("print" . font-lock-keyword-face)
+                            ("assert" . font-lock-keyword-face)
+                            ("%testspec" . font-lock-keyword-face)))
   )
 
 (provide 'harlan-mode)

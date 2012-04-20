@@ -105,6 +105,7 @@
            (append er* rr*))))
 
 (define-match uglify-stmt
+  ((error ,x) (values `(error ,x) '()))
   ((let ,b ,[s r*])
    (let-values (((ans ar*) ((uglify-let s) b)))
      (values ans (append r* ar*))))
@@ -179,6 +180,7 @@
    (values `(do ,e) r*)))
 
 (define-match uglify-expr
+  ((error ,x) (values `(error ,x) '()))
   ((,t ,n)
    (guard (scalar-type? t))
    (values `(,t ,n) `()))

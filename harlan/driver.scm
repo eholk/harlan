@@ -57,6 +57,7 @@
   (define (parse-testspec spec)
     (match spec
       (xfail `(xfail))
+      (run-fail `(run-fail))
       ((iterate ,iterspec* ...)
        `(iterate . ,iterspec*))
       (,else (error 'parse-testspec "Invalid test specification" else))))

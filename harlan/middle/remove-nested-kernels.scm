@@ -60,6 +60,8 @@
    ((Let stmt k?) `((,x ,t ,e) ...)))
   ((begin ,[stmt* has-kernel*] ...)
    (values (make-begin stmt*) (any? has-kernel*)))
+  ((error ,x)
+   (values `(error ,x) #f))
   ((for ,b ,[stmt has-kernel])
    (values `(for ,b ,stmt) has-kernel))
   ((while ,t ,[stmt has-kernel])

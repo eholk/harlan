@@ -20,6 +20,7 @@
    `(extern ,name ,args -> ,t)))
 
 (define-match remove-stmt
+  ((error ,x) `(error ,x))
   ((let ,b ,[stmt])
    `(let ,b ,stmt))
   ((let-region (,r) ,stmt)

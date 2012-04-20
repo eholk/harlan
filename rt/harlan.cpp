@@ -17,6 +17,11 @@ void print(bool b, std::ostream *f) {
         print("#f", f);
 }
 
+void harlan_error(const char *msg) {
+    std::cerr << "Harlan Runtime Error: " << msg << std::endl;
+    abort();
+}
+
 cl_device_type get_device_type()
 {
   const char *cfg = getenv("HARLAN_DEVICE");
