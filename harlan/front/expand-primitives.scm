@@ -57,10 +57,10 @@
      (expand-print t e))
     ((print ,t ,[expand-prim-expr -> e] ...)
      `(print . ,e))
-    ((println . ,expr)
+    ((println ,t . ,expr)
      `(begin
-        ,(expand-prim-expr `(print . ,expr))
-        (print "\n")))
+        ,(expand-prim-stmt `(print ,t . ,expr))
+        (print (str "\n"))))
     ((assert ,[expand-prim-expr -> e])
      `(assert ,e))
     ((return) `(return))

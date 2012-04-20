@@ -7,7 +7,6 @@
     (let ((X (vector 1 2 3 4))
           (Y (vector 5 1 1 7)))
       (let ((Z (kernel ((x X) (y Y)) (+ x y))))
-        (print Z)
-        (print "\n")
+        (println Z)
         (assert (= Z (vector 6 3 4 11))))
       (return 0))))
