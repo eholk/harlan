@@ -1,0 +1,13 @@
+;; -*- scheme -*-
+
+(module
+  (define (main)
+    (let ((A (kernel ((i (iota 10))) (* i i)))
+          (B (kernel ((j (iota 10)))
+                     (let ((r 1))
+                       (while (> j 0)
+                         (set! r (* r 2))
+                         (set! j (- j 1)))
+                       r))))
+      (print (kernel ((a A) (b B)) (= a b))))
+    (return 0)))
