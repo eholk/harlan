@@ -104,6 +104,7 @@
   ((int ,i) `(int ,i))
   ((u64 ,u) `(u64 ,u))
   ((float ,f) `(float ,f))
+  ((bool ,b) `(bool ,b))
   ((int->float ,[(replace-vec-refs-expr x*) -> e])
    `(int->float ,e))
   ((str ,s) `(str ,s))

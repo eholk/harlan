@@ -40,13 +40,21 @@ extern cl::command_queue g_queue;
 #endif
 
 template<typename T>
-void print(T n) {
-  std::cout << n;
+void print(T n, std::ostream *f) {
+  *f << n;
+}
+
+//template<>
+void print(bool b, std::ostream *f) {
+    if(b)
+        print("#t", f);
+    else
+        print("#f", f);
 }
 
 template<typename T>
-void print(T n, std::ofstream *f) {
-  *f << n;
+void print(T n) {
+    print(n, &std::cout);
 }
 
 region *create_region(unsigned int size);
