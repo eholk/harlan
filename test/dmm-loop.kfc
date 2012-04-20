@@ -1,20 +1,18 @@
-;; -*- scheme -*-
-
 ;; Dense matrix-matrix product
 ;; use loops instead of nested kernels
 
 (module
   (define (main)
     (let ((A (vector
-               (vector 1 0 0 0)
-               (vector 0 1 0 0)
-               (vector 0 0 1 0)
-               (vector 0 0 0 1)))
+              (vector 1 0 0 0)
+              (vector 0 1 0 0)
+              (vector 0 0 1 0)
+              (vector 0 0 0 1)))
           (B (vector
-               (vector 1 0 0 0)
-               (vector 0 1 0 0)
-               (vector 0 0 1 0)
-               (vector 0 0 0 1)))
+              (vector 1 0 0 0)
+              (vector 0 1 0 0)
+              (vector 0 0 1 0)
+              (vector 0 0 0 1)))
           (Bt (make-vector 4 (make-vector 4 0)))
           (C (make-vector 4 (make-vector 4 0))))
 
@@ -25,20 +23,12 @@
             (vector-set! Bt j row))))
 
       (for (row_index 0 (length A))
-        (let row (vector-ref A row_index))
-        (for (col_index 0 (length Bt))
-          (let col (vector-ref Bt col_index))
-          (let c (reduce +
-                   (kernel ((x row) (y col))
-                     (* x y))))
-          (vector-set! (vector-ref C row_index) col_index c)))
-
-      ;; TODO: we don't generate correct code for vector comparison
-      ;;(assert (= C A))
-      ;; so instead we'll use loops.
-      (for (i 0 (length C))
-        (for (j 0 (length (vector-ref C 0)))
-          (assert (= (vector-ref (vector-ref C i) j)
-                    (vector-ref (vector-ref A i) j))))))
-      
-      (return 0)))
+        (let ((row (vector-ref A row_index)))
+          (for (col_index 0 (length Bt))
+            (let ((col (vector-ref Bt col_index)))
+              (let ((c (reduce +
+                         (kernel ((x row) (y col))
+                           (* x y)))))
+                (vector-set! (vector-ref C row_index) col_index c))))))
+      (assert (= C A)))
+    (return 0)))
