@@ -13,7 +13,10 @@
     (harlan middle returnify-kernels)
     (harlan middle make-vector-refs-explicit)
     (harlan middle annotate-free-vars)
+    (harlan middle insert-let-regions)
+    (harlan middle infer-regions)
     (harlan middle uglify-vectors)
+    (harlan middle remove-let-regions)
     (harlan middle flatten-lets)
     (harlan middle hoist-kernels)
     (harlan middle generate-kernel-calls)
@@ -38,8 +41,14 @@
     verify-make-vector-refs-explicit
     annotate-free-vars
     verify-annotate-free-vars
+    insert-let-regions
+    verify-insert-let-regions
+    infer-regions
+    verify-infer-regions
     uglify-vectors
     verify-uglify-vectors
+    remove-let-regions
+    verify-remove-let-regions
     flatten-lets
     verify-flatten-lets
     hoist-kernels

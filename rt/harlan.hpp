@@ -58,6 +58,7 @@ void print(T n) {
 }
 
 region *create_region(unsigned int size);
+void free_region(region *r);
 void map_region(region *ptr);
 void unmap_region(region *ptr);
 region_ptr alloc_in_region(region *r, unsigned int size);

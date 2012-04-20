@@ -1,0 +1,9 @@
+;; -*- scheme -*-
+
+(module
+  (define (foo x)
+    (let ((y (make-vector x (iota 5))))
+      (return (vector-ref y 0))))
+  (define (main)
+    (let ((z (foo 5)))
+      (return 0))))

@@ -29,18 +29,19 @@ cl_device_type get_device_type()
           0);
 }
 
-void finalize_buffer(void *buffer, void *data)
+// void finalize_buffer(void *buffer, void *data)
+void finalize_buffer(region *r)
 {
-    region *header = (region *)buffer;
-    CHECK_MAGIC(header);
-    CL_CHECK(clReleaseMemObject((cl_mem)header->cl_buffer));
+    CHECK_MAGIC(r);
+    CL_CHECK(clReleaseMemObject((cl_mem)r->cl_buffer));
 }
 
 region *create_region(unsigned int size)
 {
     assert(size > sizeof(region));
 
-    void *ptr = GC_MALLOC(size);
+    // void *ptr = GC_MALLOC(size);
+    void *ptr = malloc(size);
 
     region *header = (region *)ptr;
     header->magic = ALLOC_MAGIC;
@@ -55,7 +56,7 @@ region *create_region(unsigned int size)
                                        &status);
     CL_CHECK(status);
 
-    GC_register_finalizer(ptr, finalize_buffer, NULL, NULL, NULL);
+    // GC_register_finalizer(ptr, finalize_buffer, NULL, NULL, NULL);
 
     // Make the buffer accessible to the CPU
     clEnqueueMapBuffer(g_queue,
@@ -71,6 +72,12 @@ region *create_region(unsigned int size)
     CL_CHECK(status);
 
     return header;
+}
+
+void free_region(region *r)
+{
+  finalize_buffer(r);
+  free(r);
 }
 
 void map_region(region *header)

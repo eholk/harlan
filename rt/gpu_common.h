@@ -19,6 +19,7 @@ typedef struct region_ {
 
     // This is actually a cl_mem
     void *cl_buffer;
+
 } region;
 
 // This gives us a pointer to something in a region.

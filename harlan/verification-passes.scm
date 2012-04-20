@@ -13,7 +13,10 @@
     verify-returnify-kernels
     verify-make-vector-refs-explicit
     verify-annotate-free-vars
+    verify-insert-let-regions
+    verify-infer-regions
     verify-uglify-vectors
+    verify-remove-let-regions
     verify-flatten-lets
     verify-hoist-kernels
     verify-generate-kernel-calls
@@ -88,7 +91,7 @@
       (reduce Reduceop Value)
       (iota Value)
       (length Value)
-      (make-vector Integer Value)
+      (make-vector Value Value)
       (Binop Value Value)
       (Relop Value Value)
       (Var Value *)))
@@ -123,7 +126,7 @@
       (reduce Reduceop Value)
       (iota Value)
       (length Value)
-      (make-vector Integer Value)
+      (make-vector Value Value)
       (Binop Value Value)
       (Relop Value Value)
       (Var Value *)))
@@ -446,6 +449,97 @@
       (begin Stmt * Stmt)
       Ret-Stmt))
 
+  (insert-let-regions (%inherits Module Body Lifted-Expr Triv Ret-Stmt)
+    (Start Module)
+    (Decl
+      (extern Var (Type *) -> Type)
+      (fn Var (Var *) Type
+          (input-regions ((Var *) *))
+          (output-regions (Var *))
+          Stmt))
+    (Stmt
+      (print Triv)
+      (print Triv Triv)
+      (assert Triv)
+      (set! Triv Triv)
+      (vector-set! Type Triv Triv Triv)
+      (kernel Type
+        (Triv +)
+        (((Var Type) (Triv Type) Integer) +)
+        (free-vars (Var Type) *)
+        Stmt)
+      (let ((Var Type Lifted-Expr) *) Stmt)
+      (let-region (Var *) Stmt)
+      (if Triv Stmt)
+      (if Triv Stmt Stmt)
+      (for (Var Triv Triv Triv) Stmt)
+      (while Triv Stmt)
+      (do Triv)
+      (begin Stmt * Stmt)
+      Ret-Stmt))
+
+  (infer-regions (%inherits Module Ret-Stmt)
+    (Start Module)
+    (Decl
+      (extern Var (Rho-Type *) -> Rho-Type)
+      (fn Var (Var *) Type
+          (input-regions ((Var *) *))
+          (output-regions (Var *))
+          Body))
+    (Body
+      (begin Stmt * Body)
+      (let ((Var Rho-Type Lifted-Expr) *) Body)
+      (let-region (Var) Body)
+      (if Triv Body)
+      (if Triv Body Body)
+      Ret-Stmt)
+    (Stmt
+      (print Triv)
+      (print Triv Triv)
+      (assert Triv)
+      (set! Triv Triv)
+      (vector-set! Rho-Type Triv Triv Triv)
+      (kernel
+        (Triv +)
+        (((Var Rho-Type) (Triv Rho-Type) Integer) +)
+        (free-vars (Var Rho-Type) *)
+        Stmt)
+      (let ((Var Rho-Type Lifted-Expr) *) Stmt)
+      (let-region (Var) Stmt)
+      (if Triv Stmt)
+      (if Triv Stmt Stmt)
+      (for (Var Triv Triv Triv) Stmt)
+      (while Triv Stmt)
+      (do Triv)
+      (begin Stmt * Stmt)
+      Ret-Stmt)
+    (Lifted-Expr
+      (make-vector Rho-Type Triv)
+      Triv)
+    (Triv
+      (bool Boolean)
+      (char Char)
+      (int Integer)
+      (u64 Number)
+      (float Float)
+      (str String)
+      (var Rho-Type Var)
+      (int->float Triv)
+      (length Triv)
+      (addressof Triv)
+      (deref Triv)
+      (if Triv Triv Triv)
+      (call Triv Triv *)
+      (c-expr C-Type Var)
+      (vector-ref Rho-Type Triv Triv)
+      (Binop Triv Triv)
+      (Relop Triv Triv))
+    (Rho-Type
+      harlan-type
+      (vec Var Rho-Type)
+      (ptr Rho-Type)
+      ((Rho-Type *) -> Rho-Type)))
+
   (uglify-vectors (%inherits Module)
     (Start Module)
     (Decl
@@ -455,6 +549,7 @@
     (Body
       (begin Stmt * Body)
       (let ((Var Type Expr) *) Body)
+      (let-region (Var *) Body)
       (if Expr Body)
       (if Expr Body Body)
       Ret-Stmt)
@@ -468,6 +563,7 @@
         (free-vars (Var Type) *)
         Stmt)
       (let ((Var Type Expr) *) Stmt)
+      (let-region (Var *) Stmt)
       (if Expr Stmt)
       (if Expr Stmt Stmt)
       (for (Var Expr Expr Expr) Stmt)
@@ -485,7 +581,7 @@
       (var Type Var)
       (alloc Expr Expr)
       (region-ref Type Expr Expr)
-      (c-expr Type Var)
+      (c-expr C-Type Var)
       (if Expr Expr Expr)
       (call Expr Expr *)
       (cast Type Expr)
@@ -496,6 +592,32 @@
       (length Expr)
       (Relop Expr Expr)
       (Binop Expr Expr)))
+
+  (remove-let-regions (%inherits Module Decl Ret-Stmt Expr)
+    (Start Module)
+    (Body
+      (begin Stmt * Body)
+      (let ((Var Type Expr) *) Body)
+      (if Expr Body)
+      (if Expr Body Body)
+      Ret-Stmt)
+    (Stmt
+      (print Expr)
+      (print Expr Expr)
+      (assert Expr)
+      (set! Expr Expr)
+      (kernel (Expr +) (((Var Type) (Expr Type) Integer) +)
+        (free-vars (Var Type) *)
+        Stmt)
+      (let ((Var Type Expr) *) Stmt)
+      (if Expr Stmt)
+      (if Expr Stmt Stmt)
+      (for (Var Expr Expr Expr) Stmt)
+      (while Expr Stmt)
+      (do Expr)
+      (begin Stmt +)
+      Ret-Stmt))
+
 
   (flatten-lets (%inherits Module Decl Ret-Stmt)
     (Start Module)
