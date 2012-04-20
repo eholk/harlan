@@ -57,6 +57,8 @@
    `(assert ,e))
   ((print ,[(parse-expr env) -> e] ...)
    `(print . ,e))
+  ((println ,[(parse-expr env) -> e] ...)
+   `(println . ,e))
   ((write-pgm ,[(parse-expr env) -> file]
      ,[(parse-expr env) -> data])
    `(write-pgm ,file ,data))

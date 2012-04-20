@@ -46,6 +46,7 @@
   ((begin . ,value*)
    (make-begin ((Value* '()) value*)))
   ((print ,[Value -> e] ...) `(print . ,e))
+  ((println ,[Value -> e] ...) `(println . ,e))
   ((assert ,[Value -> e]) `(assert ,e))
   ((set! ,[Value -> x] ,[Value -> v]) `(set! ,x ,v))
   ((vector-set! ,[Value -> v] ,[Value -> i] ,[Value -> e])
