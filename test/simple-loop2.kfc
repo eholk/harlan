@@ -1,9 +1,0 @@
-;; -*- scheme -*-
-
-(module
-  (define (main)
-      (let X (vector 1 2 3))
-      (for (i 0 3)
-        (vector-set! X i (+ (vector-ref X i) 1)))
-      (assert (= (vector-ref X 0) 2))
-      (return 0)))

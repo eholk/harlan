@@ -1,29 +1,22 @@
-;; -*- scheme -*-
+;; This isn't really transpose-for anymore. It's just transpose, since
+;; it uses kernels.
 
 (module
   (define (main)
     (let ((A (vector
               (vector 1 2 3 4)
-              (vector 1 2 3 4)))
-          (B (vector
-              (vector 0 0)
-              (vector 0 0)
-              (vector 0 0)
-              (vector 0 0))))
-      (for (i 0 (length A))
-           (let ((row (vector-ref A i)))
-             (for (j 0 (length row))
-                  (vector-set! (vector-ref B j)
-                               i
-                               (vector-ref row j)))))
-      (print B)
-      (assert (= 1 (vector-ref (vector-ref B 0) 0)))
-      (assert (= 1 (vector-ref (vector-ref B 0) 1)))
-      (assert (= 2 (vector-ref (vector-ref B 1) 0)))
-      (assert (= 2 (vector-ref (vector-ref B 1) 1)))
-      (assert (= 3 (vector-ref (vector-ref B 2) 0)))
-      (assert (= 3 (vector-ref (vector-ref B 2) 1)))
-      (assert (= 4 (vector-ref (vector-ref B 3) 0)))
-      (assert (= 4 (vector-ref (vector-ref B 3) 1)))
-      (return 0))))
+              (vector 1 2 3 4))))
+      (let ((B (kernel ((j (iota (length (vector-ref A 0)))))
+                 (kernel ((i (iota (length A))))
+                   (vector-ref (vector-ref A i) j)))))
+        (print B)
+        (assert (= 1 (vector-ref (vector-ref B 0) 0)))
+        (assert (= 1 (vector-ref (vector-ref B 0) 1)))
+        (assert (= 2 (vector-ref (vector-ref B 1) 0)))
+        (assert (= 2 (vector-ref (vector-ref B 1) 1)))
+        (assert (= 3 (vector-ref (vector-ref B 2) 0)))
+        (assert (= 3 (vector-ref (vector-ref B 2) 1)))
+        (assert (= 4 (vector-ref (vector-ref B 3) 0)))
+        (assert (= 4 (vector-ref (vector-ref B 3) 1)))))
+    (return 0)))
 
