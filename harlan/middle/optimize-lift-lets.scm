@@ -119,6 +119,7 @@
      (apply union (cons (difference e x*) e*)))
     ((if ,[t] ,[c] ,[a])
      (union t c a))
+    ((c-expr ,t ,v) `(c-expr ,t ,v))
     ((begin ,[free-vars-Stmt -> s*] ... ,[e])
      (union e (apply union s*))))
 

@@ -125,6 +125,7 @@
    `(vector-ref ,t ,v ,i))
   ((length ,[(replace-vec-refs-expr x*) -> e])
    `(length ,e))
+  ((c-expr ,t ,v) `(c-expr ,t ,v))
   ((,op ,[(replace-vec-refs-expr x*) -> e1]
         ,[(replace-vec-refs-expr x*) -> e2])
    `(,op ,e1 ,e2)))

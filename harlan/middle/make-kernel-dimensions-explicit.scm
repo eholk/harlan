@@ -70,6 +70,11 @@
             ((length (var ,ts ,xs^)))
             (((,x ,t) ((var ,ts ,xs^) ,ts) 0)
              ((,x* ,t*) (,xs* ,ts*) 0) ...) ,body))))
+    ((iota ,e)
+     `(kernel (vec int) (,e) ()
+        (call
+         (c-expr ((int) -> int) get_global_id)
+         (int 0))))
     ((let ((,x* ,t* ,[e*]) ...) ,[e])
      `(let ((,x* ,t* ,e*) ...) ,e))
     ((begin ,[Stmt -> s*] ... ,[e])

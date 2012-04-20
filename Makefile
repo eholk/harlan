@@ -79,7 +79,7 @@ test.bin/%.bin : test/% rt/libharlanrt.a $(HARLAN_SRC)
 	@echo Compiling $<
 	$(call COMPILE_TEST, $<)
 
-rt/libharlanrt.a : rt/*.h rt/*.cpp
+rt/libharlanrt.a : rt/*.h rt/*.cpp rt/*.hpp
 	make -C rt
 
 .phony: docs

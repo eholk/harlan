@@ -3,8 +3,7 @@
 (module
   (define (main)
     (let ((triangle
-           (vector (iota 0)
-                   (iota 1)
+           (vector (iota 1)
                    (iota 2)
                    (iota 3)
                    (iota 4)

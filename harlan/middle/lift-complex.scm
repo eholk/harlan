@@ -1,6 +1,7 @@
 (library
   (harlan middle lift-complex)
-  (export lift-complex)
+  (export lift-complex
+          lift-expr)
   (import (rnrs) (elegant-weapons helpers)
     (harlan helpers))
   
@@ -16,7 +17,7 @@
        (lift-expr e
          (lambda (e) `(begin ,@stmt* ,(finish e)))))
       ((let () ,expr)
-       (lift-expr expr (lambda (expr) (finish expr))))
+       (lift-expr expr finish))
       ((let ((,x ,t ,e) . ,rest) ,expr)
        (Expr e
          (lambda (e)
@@ -43,25 +44,34 @@
        (lift-expr e (lambda (e^) (finish `(make-vector ,t ,e^)))))
       ((kernel ,t ,dims (((,x* ,t*) (,e* ,ts*) ,dim*) ...) ,body)
        (let ((finish
-               (lambda (e*^)
+               (lambda (dims^ e*^)
                  (let ((v (gensym 'v)))
                    `(let ((,v ,t
-                            (kernel ,t ,dims (((,x* ,t*) (,e*^ ,ts*) ,dim*) ...)
+                            (kernel ,t ,dims^
+                               (((,x* ,t*) (,e*^ ,ts*) ,dim*) ...)
                               ,(lift-expr body (lambda (b) b)))))
                       ,(finish `(var ,t ,v)))))))
-         (let loop ((e* e*) (e*^ '()))
-           (if (null? e*)
-               (finish (reverse e*^))
-               (lift-expr
-                 (car e*)
-                 (lambda (e^)
-                   (loop (cdr e*) (cons e^ e*^))))))))
+         (let loop ((e* e*) (e*^ '()) (dims dims) (dims^ `()))
+           (cond
+             ((and (null? dims) (null? e*))
+              (finish (reverse dims^) (reverse e*^)))
+             ((and (null? dims) (not (null? e*)))
+              (lift-expr
+               (car e*)
+               (lambda (e^)
+                 (loop (cdr e*) (cons e^ e*^) dims dims^))))
+             (else
+              (lift-expr
+               (car dims)
+               (lambda (d)
+                 (loop e* e*^ (cdr dims) (cons d dims^)))))))))
       ((make-vector ,c)
        (finish `(make-vector ,c)))
       ((length ,e) 
        (lift-expr
          e (lambda (e^)
              (finish `(length ,e^)))))
+      ((c-expr ,t ,v) (finish `(c-expr ,t ,v)))
       ((,op ,e1 ,e2) (guard (or (binop? op) (relop? op)))
        (lift-expr
          e1 (lambda (e1^)
@@ -83,16 +93,24 @@
     (match expr
       ((kernel ,t ,dims (((,x* ,t*) (,e* ,ts*) ,dim*) ...) ,body)
        (let ((finish
-               (lambda (e*^)
-                 (finish `(kernel ,t ,dims (((,x* ,t*) (,e*^ ,ts*) ,dim*) ...)
-                            ,(lift-expr body (lambda (b) b)))))))
-         (let loop ((e* e*) (e*^ '()))
-           (if (null? e*)
-               (finish (reverse e*^))
-               (lift-expr
-                 (car e*)
-                 (lambda (e^)
-                   (loop (cdr e*) (cons e^ e*^))))))))
+              (lambda (dims^ e*^)
+                (finish `(kernel ,t ,dims^
+                                 (((,x* ,t*) (,e*^ ,ts*) ,dim*) ...)
+                                 ,(lift-expr body (lambda (b) b)))))))
+         (let loop ((e* e*) (e*^ '()) (dims dims) (dims^ `()))
+           (cond
+             ((and (null? dims) (null? e*))
+              (finish (reverse dims^) (reverse e*^)))
+             ((and (null? dims) (not (null? e*)))
+              (lift-expr
+               (car e*)
+               (lambda (e^)
+                 (loop (cdr e*) (cons e^ e*^) dims dims^))))
+             (else
+              (lift-expr
+               (car dims)
+               (lambda (d)
+                 (loop e* e*^ (cdr dims) (cons d dims^)))))))))
       ((make-vector ,t ,e)
        (lift-expr e
           (lambda (e)
