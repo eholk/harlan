@@ -75,7 +75,8 @@
              (lift-expr
                (car e*)
                (lambda (e^)
-                 (loop (cdr e*) (cons e^ e*^))))))))))
+                 (loop (cdr e*) (cons e^ e*^)))))))
+      (,else (error 'lift-expr "unmatched datum" else)))))
 
 (define Expr
   (lambda (expr finish)
