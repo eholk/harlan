@@ -160,7 +160,7 @@
     ((make-vector ,t ,e) #f)
     ((length ,[e]) e)
     ((call ,[fn] ,[arg*] ...)
-     (and fn (not (memq #f arg*))))
+     #f)
     ((vector-ref ,t ,[x] ,[i])
      (and x i))
     ((iota ,[e]) e)
