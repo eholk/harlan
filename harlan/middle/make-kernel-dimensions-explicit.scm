@@ -64,12 +64,14 @@
        (vec ,inner-type)
        (((,x ,t) (,[xs] ,ts))
         ((,x* ,t*) (,[xs*] ,ts*)) ...) ,[body])
-     (let ((xs^ (gensym 'xs)))
-       `(let ((,xs^ ,ts ,xs))
-          (kernel (vec ,inner-type)
-            ((length (var ,ts ,xs^)))
-            (((,x ,t) ((var ,ts ,xs^) ,ts) 0)
-             ((,x* ,t*) (,xs* ,ts*) 0) ...) ,body))))
+     ((arg-length
+       ts
+       (lambda (len xs^)
+         `(kernel (vec ,inner-type)
+                  ,len
+                  (((,x ,t) (,xs^ ,ts) 0)
+                   ((,x* ,t*) (,xs* ,ts*) 0) ...) ,body))) 
+      xs))
     ((iota ,e)
      `(kernel (vec int) (,e) ()
         (call
@@ -82,6 +84,24 @@
     ((,op ,[lhs] ,[rhs])
      (guard (or (relop? op) (binop? op)))
      `(,op ,lhs ,rhs)))
+
+  ;; This might be missing some opportunities.
+  (define-match (arg-length ts finish)
+    ((make-vector ,t (int ,n))
+     (finish `((int ,n)) `(make-vector ,t (int ,n))))
+    ((kernel ,t (,dim ...) ,arg ,body)
+     (let* ((len (map (lambda (_) (gensym 'len)) dim))
+            (varlens (map (lambda (l) `(var int ,l)) len)))
+       `(let ((,len int ,dim) ...)
+          ,(finish varlens
+            `(kernel ,t ,varlens ,arg ,body)))))
+    ((var ,t ,x)
+     (finish `((length (var ,t ,x))) `(var ,t ,x)))
+    (,else
+     (let ((xs^ (gensym 'xs)))
+       `(let ((,xs^ ,ts ,else))
+          ,(finish `((length (var ,ts ,xs^)))
+                   `(var ,ts ,xs^))))))
 
   ;; end library
   )
