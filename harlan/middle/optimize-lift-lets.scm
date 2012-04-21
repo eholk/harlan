@@ -93,9 +93,7 @@
     ((return) (values `(return) '()))
     ((return ,e) (values `(return ,e) '()))
     ((do ,[Expr -> e bindings])
-     (values `(do ,e) bindings))
-    ((vector-set! ,t ,x ,i ,v)
-     (values `(vector-set! ,t ,x ,i ,v) '())))
+     (values `(do ,e) bindings)))
 
   (define-match Expr
     (,e (values e '())))
@@ -133,9 +131,6 @@
      (union sfv* efv* stepfv* (difference fv* `(,x))))
     ((set! ,[free-vars-Expr -> x] ,[free-vars-Expr -> v])
      (union x v))
-    ((vector-set! ,t ,[free-vars-Expr -> x]
-       ,[free-vars-Expr -> fv1*] ,[free-vars-Expr -> fv2*])
-     (union x fv1* fv2*))
     ((if ,[free-vars-Expr -> test] ,[conseq])
      (union test conseq))
     ((if ,[free-vars-Expr -> test] ,[conseq] ,[altern])

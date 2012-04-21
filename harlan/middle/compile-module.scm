@@ -38,8 +38,6 @@
   ((assert ,[compile-expr -> expr]) `(do (assert ,expr)))
   ((set! ,[compile-expr -> x] ,[compile-expr -> e])
    `(set! ,x ,e))
-  ((vector-set! ,v ,i ,[compile-expr -> expr])
-   `(vector-set! ,v ,i ,expr))
   ((while ,[compile-expr -> expr] ,[stmt])
    `(while ,expr ,stmt))
   ((for (,i ,[compile-expr -> start] ,[compile-expr -> end]

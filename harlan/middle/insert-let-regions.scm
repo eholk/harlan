@@ -46,8 +46,6 @@
     ((print ,t ...) `(print . ,t))
     ((assert ,t) `(assert ,t))
     ((set! ,x ,v) `(set! ,x ,v))
-    ((vector-set! ,t ,x ,i ,v)
-     `(vector-set! ,t ,x ,i ,v))
     ((kernel ,args ... ,[s])
      `(kernel ,args ... ,s))
     ((let ,b ,[s]) `(let ,b ,s))

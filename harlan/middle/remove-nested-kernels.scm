@@ -72,8 +72,6 @@
      (or chas-kernel ahas-kernel)))
   ((set! ,lhs ,rhs)
    (values `(set! ,lhs ,rhs) #f))
-  ((vector-set! ,t ,v ,i ,e)
-   (values `(vector-set! ,t ,v ,i ,e) #f))
   ((do ,e) (values `(do ,e) #f))
   ((print . ,e*) (values `(print . ,e*) #f))
   ((assert ,e) (values `(assert ,e) #f))
@@ -93,8 +91,9 @@
    `(begin ,@stmt* ,expr))
   ((let ,b ,[expr])
    `(let ,b ,expr))
-  (,else `(vector-set!
-            ,t (var (vec ,t) ,x) (var int ,i) ,else)))
+  (,else
+   `(set! (vector-ref ,t (var (vec ,t) ,x) (var int ,i))
+          ,else)))
 
 (define-match (remove-global-id-stmt i)
   ((let ((,x ,t ,[(remove-global-id-expr i) -> e]) ...)
@@ -118,11 +117,6 @@
   ((set! ,[(remove-global-id-expr i) -> lhs]
          ,[(remove-global-id-expr i) -> rhs])
    `(set! ,lhs ,rhs))
-  ((vector-set! ,t
-                ,[(remove-global-id-expr i) -> v]
-                ,[(remove-global-id-expr i) -> i]
-                ,[(remove-global-id-expr i) -> e])
-   `(vector-set! ,t ,v ,i ,e))
   ((do ,[(remove-global-id-expr i) -> e])
    `(do ,e))
   ((print ,[(remove-global-id-expr i) -> e*])

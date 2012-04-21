@@ -33,11 +33,6 @@
      `(let ((,x* ,t* ,e*) ...) ,body))
     ((set! ,[expand-prim-expr -> lhs] ,[expand-prim-expr -> rhs])
      `(set! ,lhs ,rhs))
-    ((vector-set! ,t
-      ,[expand-prim-expr -> v]
-      ,[expand-prim-expr -> i]
-      ,[expand-prim-expr -> e])
-     `(vector-set! ,t ,v ,i ,e))
     ((if ,[expand-prim-expr -> test] ,[conseq] ,[altern])
      `(if ,test ,conseq ,altern))
     ((if ,[expand-prim-expr -> test] ,[conseq])
@@ -84,11 +79,24 @@
             (let loop ((e* e*) (i 0))
               (if (null? e*)
                   `((var (vec ,t) ,x))
-                  `((vector-set!
-                     ,t (var (vec ,t) ,x) (int ,i) ,(car e*))
+                  `((set! (vector-ref ,t
+                                      (var (vec ,t) ,x)
+                                      (int ,i))
+                          ,(car e*))
                     . ,(loop (cdr e*) (+ 1 i)))))))))
-    ((make-vector ,t ,[e])
-     `(make-vector ,t ,e))
+    ((make-vector ,t ,[size] ,[init])
+     (let ((i (gensym 'i))
+           (len (gensym 'len))
+           (v (gensym 'v)))
+       `(let ((,len int ,size))
+          (let ((,v (vec ,t) (make-vector ,t (var int ,len))))
+            (begin
+              (for (,i (int 0) (var int ,len) (int 1))
+                   (set! (vector-ref ,t
+                                     (var (vec ,t) ,v)
+                                     (var int ,i))
+                         ,init))
+              (var (vec ,t) ,v))))))
     ((vector-ref ,t ,[v] ,[i])
      `(vector-ref ,t ,v ,i))
     ((length ,[e])
@@ -200,10 +208,11 @@
                            ,t
                            (vector-ref ,t (var (vec ,t) ,r)
                                        (var int ,i))))
-                      (vector-set! ,t (var (vec ,t) ,res)
-                                   (var int ,i)
-                                   ,(expand-prim-expr
-                                     `(+ ,t (var ,t ,lhsi) (var ,t ,rhsi))))))
+                      (set! (vector-ref ,t
+                                        (var (vec ,t) ,res)
+                                        (var int ,i))
+                            ,(expand-prim-expr
+                              `(+ ,t (var ,t ,lhsi) (var ,t ,rhsi))))))
                (var (vec ,t) ,res)))))))
 
   (define (expand-vec-comparison t lhs rhs)

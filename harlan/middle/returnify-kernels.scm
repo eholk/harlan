@@ -25,7 +25,6 @@
    `(if ,test ,conseq))
   ((if ,test ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
-  ((vector-set! ,t ,x ,e1 ,e2) `(vector-set! ,t ,x ,e1 ,e2))
   ((return) `(return))
   ((return ,expr) `(return ,expr))
   ((while ,expr ,[body])

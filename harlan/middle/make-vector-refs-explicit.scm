@@ -31,8 +31,6 @@
    `(if ,test ,conseq))
   ((if ,test ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
-  ((vector-set! ,t ,x ,i ,v)
-   `(vector-set! ,t ,x ,i ,v))
   ((while ,expr ,[body])
    `(while ,expr ,body))
   ((for (,x ,start ,end ,step) ,[body])
@@ -82,11 +80,6 @@
        ,[(replace-vec-refs-stmt x*) -> conseq]
        ,[(replace-vec-refs-stmt x*) -> alt])
    `(if ,test ,conseq ,alt))
-  ((vector-set! ,t
-                ,[(replace-vec-refs-expr x*) -> e1]
-                ,[(replace-vec-refs-expr x*) -> i]
-                ,[(replace-vec-refs-expr x*) -> e2])
-   `(vector-set! ,t ,e1 ,i ,e2))
   ((while ,[(replace-vec-refs-expr x*) -> expr]
      ,[(replace-vec-refs-stmt x*) -> body])
    `(while ,expr ,body))

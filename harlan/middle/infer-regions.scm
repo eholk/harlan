@@ -96,10 +96,9 @@
 
   (define (gensym-suffix g)
     (let loop ((g (string->list (symbol->string g))))
-      (let ((g^ (member #\_ g)))
-        (cond
-         (g^ (loop (cdr g^)))
-         (else (string->number (list->string g)))))))
+      (cond
+       ((member #\_ g) => (lambda (g^) (loop (cdr g^))))
+       (else (string->number (list->string g))))))
 
   (define (compare-fallback oc1 oc2)
     (let ((r1 (cadr (oc->rands oc1)))
@@ -282,25 +281,13 @@
          (== stmt `(assert ,triv))
          (== stmto `(assert ,trivo))
          (infer-triv triv env `() trivo)))
+      ;; This implicitly enforces that every vector
+      ;; effect must be from the same region
       ((fresh (x triv xo trivo r*)
          (== stmt `(set! ,x ,triv))
          (== stmto `(set! ,xo ,trivo))
          (infer-triv x env r* xo)
          (infer-triv triv env r* trivo)))
-      ;; This implicitly enforces that every vector
-      ;; effect must be from the same region
-      ((fresh (t x i v to xo io vo r r^)
-         ;; (vector-set!
-         ;;  (vec r int)
-         ;;  (var (vec ?? (vec r int)) v_3)
-         ;;  (var int i_4)
-         ;;  (var (vec r int) x_7))
-         (== stmt `(vector-set! ,t ,x ,i ,v))
-         (== stmto `(vector-set! ,to ,xo ,io ,vo))
-         (infer-triv x env `(,r . ,r^) xo)
-         (infer-triv i env `() io)
-         (infer-triv v env r^ vo)
-         (fill-type-with-region t r^ to)))
       ((fresh (d b fv s so do bo fvo envo t)
          (== stmt `(kernel ,t ,d ,b (free-vars . ,fv) ,s))
          (== stmto `(kernel ,do ,bo (free-vars . ,fvo) ,so))

@@ -28,8 +28,6 @@
      `(let ((,x* ,t* ,e*) ...) ,body))
     ((set! ,[Expr -> lhs] ,[Expr -> rhs])
      `(set! ,lhs ,rhs))
-    ((vector-set! ,t ,[Expr -> v] ,[Expr -> i] ,[Expr -> e])
-     `(vector-set! ,t ,v ,i ,e))
     ((if ,[Expr -> test] ,[conseq] ,[altern])
      `(if ,test ,conseq ,altern))
     ((if ,[Expr -> test] ,[conseq])

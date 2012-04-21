@@ -49,8 +49,6 @@
   ((println ,[Value -> e] ...) `(println . ,e))
   ((assert ,[Value -> e]) `(assert ,e))
   ((set! ,[Value -> x] ,[Value -> v]) `(set! ,x ,v))
-  ((vector-set! ,[Value -> v] ,[Value -> i] ,[Value -> e])
-   `(vector-set! ,v ,i ,e))
   ((for (,i ,[Value -> start]
           ,[Value -> end])
      . ,[(Value* '()) -> value*])

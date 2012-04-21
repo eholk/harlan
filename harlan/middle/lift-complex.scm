@@ -132,7 +132,10 @@
   ((assert ,expr)
    (lift-expr expr (lambda (e^) `(assert ,e^))))
   ((set! ,x ,e)
-   (lift-expr e (lambda (e^) `(set! ,x ,e^))))
+   (lift-expr
+    x
+    (lambda (x)
+      (lift-expr e (lambda (e^) `(set! ,x ,e^))))))
   ((let () ,[stmt]) stmt)
   ((let ((,x ,t ,e) . ,rest) ,stmt)
    (Expr e
@@ -143,15 +146,6 @@
    (lift-expr test (lambda (t) `(if ,t ,conseq))))
   ((if ,test ,[conseq] ,[alt])
    (lift-expr test (lambda (t) `(if ,t ,conseq ,alt))))
-  ((vector-set! ,t ,x ,e1 ,e2)
-   (lift-expr
-     x
-     (lambda (x^)
-       (lift-expr
-         e1
-         (lambda (e1^)
-           (lift-expr e2
-             (lambda (e2^) `(vector-set! ,t ,x^ ,e1^ ,e2^))))))))             
   ((return) `(return))
   ((return ,expr)
    (lift-expr expr (lambda (e^) `(return ,e^))))

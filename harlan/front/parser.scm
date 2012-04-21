@@ -93,11 +93,6 @@
   ((set! ,[(parse-expr env) -> x]
      ,[(parse-expr env) -> e])
    `(set! ,x ,e))
-  ((vector-set!
-     ,[(parse-expr env) -> v]
-     ,[(parse-expr env) -> i]
-     ,[(parse-expr env) -> e])
-   `(vector-set! ,v ,i ,e))
   ((let ((,x* ,[(parse-expr env) -> e*]) ...) . ,body)
    (begin
      (check-idents x*)
@@ -126,15 +121,8 @@
    `(vector . ,e*))
   ((begin ,[(parse-stmt env) -> stmt*] ... ,[(parse-expr env) -> expr])
    `(begin ,@stmt* ,expr))
-  ((make-vector ,e ,[expr])
-   (let ((v (gensym 'v))
-         (i (gensym 'i))
-         (size ((parse-expr env) e)))
-     `(let ((,v (make-vector ,size)))
-        (begin
-          (for (,i (num 0) ,size (num 1))
-            (vector-set! (var ,v) (var ,i) ,expr))
-          (var ,v)))))
+  ((make-vector ,[(parse-expr env) -> size] ,[expr])
+   `(make-vector ,size ,expr))
   ((if ,[test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
   ((iota ,[e])

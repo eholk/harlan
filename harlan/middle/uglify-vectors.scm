@@ -42,10 +42,6 @@
      (var (ptr region) ,region)
      ,e)))
 
-(define uglify-vector-set!
-  (lambda (t x i v r)
-    `(set! ,(uglify-vector-ref t x i r) ,v)))
-
 (define (extract-regions t)
   (match t
     ((vec ,r ,[r*])
@@ -142,12 +138,6 @@
    (values `(return ,e) r*))
   ((assert ,[uglify-expr -> e r*])
    (values `(assert ,e) r*))
-  ((vector-set! ,t
-                ,[uglify-expr -> x xr*]
-                ,[uglify-expr -> i ir*]
-                ,[uglify-expr -> v vr*])
-   (values (uglify-vector-set! t x i v (car xr*))
-           (append xr* ir* vr*)))
   ((print ,[uglify-expr -> e* r**] ...)
    (values `(print . ,e*)
            (apply append r**)))
