@@ -7,6 +7,7 @@
    (harlan helpers)
    (only (harlan verification-passes)
          verify-make-kernel-dimensions-explicit)
+   (harlan compile-opts)
    (elegant-weapons helpers))
 
   (define verify-optimize-fuse-kernels
@@ -71,7 +72,7 @@
      `(if ,test ,conseq ,altern))
     ((if ,[test] ,[conseq])
      `(if ,test ,conseq))
-    ((kernel ,t ,dims ,iters ,body)
+    ((kernel ,t ,dims ,iters ,[body])
      (inline-kernel t dims iters body))
     ((let ((,x* ,t* ,[e*]) ...) ,[e])
      `(let ((,x* ,t* ,e*) ...) ,e))
@@ -91,13 +92,16 @@
        ;; Super kernel!
        (begin
          (assert (equal? dims dims^))
+         (if (verbose)
+             (begin
+               (display "Harlan Compiler Message:")
+               (display "optimize-fuse-kernels is inlining a kernel\n")))
          `(kernel ,t ,dims
                   (,@rest . ,iters^)
                   (let ((,x ,xt ,body^))
                     ,body))))
       (,else
-       `(kernel ,t ,dims ,iters
-                ,(Expr body)))))
+       `(kernel ,t ,dims ,iters ,body))))
 
   ;; end library
   )
