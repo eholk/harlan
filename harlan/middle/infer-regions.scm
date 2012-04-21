@@ -94,6 +94,13 @@
   (define (fallback-region-oc? oc)
     (eq? (oc->rator oc) 'fallback-region-c))
 
+  (define (gensym-suffix g)
+    (let loop ((g (string->list (symbol->string g))))
+      (let ((g^ (member #\_ g)))
+        (cond
+         (g^ (loop (cdr g^)))
+         (else (string->number (list->string g)))))))
+
   (define (compare-fallback oc1 oc2)
     (let ((r1 (cadr (oc->rands oc1)))
           (r2 (cadr (oc->rands oc2))))
@@ -101,9 +108,8 @@
        ((var? r1) #f)
        ((var? r2) #t)
        (else
-        (string-ci<=?
-         (symbol->string r1)
-         (symbol->string r2))))))
+        (<= (gensym-suffix r1)
+            (gensym-suffix r2))))))
 
   (define (sort-and-fallback c)
     (lambdag@ (a)
