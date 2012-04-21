@@ -31,10 +31,10 @@
     verify-make-kernel-dimensions-explicit
     lift-complex
     verify-lift-complex
-    remove-nested-kernels
-    verify-remove-nested-kernels
     optimize-lift-lets
     verify-optimize-lift-lets
+    remove-nested-kernels
+    verify-remove-nested-kernels
     returnify-kernels
     verify-returnify-kernels
     make-vector-refs-explicit
