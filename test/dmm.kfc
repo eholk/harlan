@@ -1,5 +1,3 @@
-;; -*- scheme -*-
-
 ;; Dense matrix-matrix product
 
 (module

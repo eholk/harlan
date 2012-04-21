@@ -1,12 +1,16 @@
 (library
   (harlan middle optimize-fuse-kernels)
   (export optimize-fuse-kernels
-    Expr
-    inline-kernel)
+    verify-optimize-fuse-kernels)
   (import
    (rnrs)
    (harlan helpers)
+   (only (harlan verification-passes)
+         verify-make-kernel-dimensions-explicit)
    (elegant-weapons helpers))
+
+  (define verify-optimize-fuse-kernels
+    verify-make-kernel-dimensions-explicit)
 
   (define-match optimize-fuse-kernels
     ((module ,[Decl -> decl*] ...)
@@ -55,6 +59,8 @@
     ((int->float ,[e]) `(int->float ,e))
     ((make-vector ,t ,[e])
      `(make-vector ,t ,e))
+    ((c-expr ,t ,v)
+     `(c-expr ,t ,v))
     ((vector-ref ,t ,[v] ,[i])
      `(vector-ref ,t ,v ,i))
     ((length ,[e])
@@ -90,7 +96,8 @@
                   (let ((,x ,xt ,body^))
                     ,body))))
       (,else
-       `(kernel ,t ,dims ,iters ,body))))
+       `(kernel ,t ,dims ,iters
+                ,(Expr body)))))
 
   ;; end library
   )

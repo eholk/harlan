@@ -7,6 +7,7 @@
     (harlan verification-passes)
 
     (harlan middle make-kernel-dimensions-explicit)
+    (harlan middle optimize-fuse-kernels)
     (harlan middle lift-complex)
     (harlan middle remove-nested-kernels)
     (harlan middle optimize-lift-lets)
@@ -29,6 +30,8 @@
   (passes
     make-kernel-dimensions-explicit
     verify-make-kernel-dimensions-explicit
+    optimize-fuse-kernels
+    verify-optimize-fuse-kernels
     lift-complex
     verify-lift-complex
     optimize-lift-lets
