@@ -1,10 +1,8 @@
-;; -*- scheme -*-
-
 (module
   (define (main)
-    (print (kernel ((i (iota 10)))
+    (println (kernel ((i (iota 10)))
                    (if (= i 0)
                        #t
                        #f)))
-    (print "\n")
     (return 0)))
+

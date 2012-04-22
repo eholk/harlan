@@ -1,10 +1,8 @@
-;; -*- scheme -*-
-
 ;; Simple reduction on a vector
 
 (module
   (define (main)
-      (let x (reduce + (vector 1 1 1 1)))
-      (print x)
+    (let ((x (reduce + (vector 1 1 1 1))))
+      (println x)
       (assert (= 4 x))
-      (return 0)))
+      (return 0))))

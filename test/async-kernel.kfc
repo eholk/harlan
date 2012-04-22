@@ -1,4 +1,3 @@
-;; -*- scheme -*-
 (%testspec xfail)
 
 ;; async kernel example from Harlan proposal

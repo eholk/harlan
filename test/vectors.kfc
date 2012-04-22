@@ -1,5 +1,3 @@
-;; -*- scheme -*-
-
 ;; A test case making sure vectors are somewhat working.
 
 (module

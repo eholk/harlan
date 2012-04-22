@@ -1,5 +1,3 @@
-;; -*- scheme -*-
-
 (module
   (extern open_outfile (str) -> (ptr ofstream))
   (extern close_outfile ((ptr ofstream)) -> void)

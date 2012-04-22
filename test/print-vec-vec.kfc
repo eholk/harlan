@@ -1,9 +1,6 @@
-;; -*- scheme -*-
-
 (module
   (define (main)
-      (print (vector (vector 1 8 9)
+      (println (vector (vector 1 8 9)
                      (vector 2 3 7)
                      (vector 4 5 6)))
-      (print "\n")
       (return 0)))

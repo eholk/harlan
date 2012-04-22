@@ -1,5 +1,3 @@
-;; -*- scheme -*-
-
 (%testspec xfail)
 
 ;; This should produce a triangular vector. However, it requires being

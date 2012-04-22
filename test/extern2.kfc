@@ -1,8 +1,6 @@
-;; -*- scheme -*-
-
 (module
  (extern nanotime () -> u64)
  (define (main)
-     (let x (nanotime))
+   (let ((x (nanotime)))
      (print x)
-     (return 0)))
+     (return 0))))

@@ -1,5 +1,3 @@
-;; -*- scheme -*-
-
 (module
   (define (main)
     (let ((img (make-vector 1024 (make-vector 1024 0))))

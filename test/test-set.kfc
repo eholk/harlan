@@ -1,10 +1,8 @@
-;; -*- scheme -*_
-
 (module
   (define (main)
-      (let x 0)
+    (let ((x 0))
       (set! x (+ x 1))
       (assert (= x 1))
-      (let y x)
-      (assert (= x y))
-      (return 0)))
+      (let ((y x))
+        (assert (= x y))
+        (return 0)))))

@@ -1,5 +1,3 @@
-;; -*- scheme -*-
-
 ;; Reducing within a kernel.
 
 (module
@@ -10,8 +8,7 @@
       (let ((B (kernel ((a A))
                  (reduce + a))))
         (for (i 0 (length B))
-          (print (vector-ref B i))
-          (print "\n"))
+          (println (vector-ref B i)))
         (assert (= (vector-ref B 0) 6))
         (assert (= (vector-ref B 1) 15))))
     (return 0)))

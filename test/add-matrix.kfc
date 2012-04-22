@@ -1,5 +1,3 @@
-;; -*- scheme -*-
-
 (module
   (define (main)
     (let ((A (vector (vector 1 2 3)
@@ -11,8 +9,7 @@
       (let ((C (kernel ((Arow A) (Brow B))
                  (kernel ((a Arow) (b Brow))
                    (+ a b)))))
-        (print C)
-        (print "\n")
+        (println C)
         (for (i 0 3)
           (for (j 0 3)
             (assert (= (vector-ref (vector-ref C i) j) 10))))))

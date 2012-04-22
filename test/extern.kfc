@@ -1,5 +1,3 @@
-;; -*- scheme -*-
-
 (module
  (extern nanotime () -> u64)
  (define (main)

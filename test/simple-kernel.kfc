@@ -1,5 +1,3 @@
-;; -*- scheme -*-
-
 (module
   (define (main)
     (let ((X (vector 1 2 3 4)))

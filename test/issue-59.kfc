@@ -1,7 +1,4 @@
-;; -*- scheme -*-
-
 (module
   (define (main)
     (let ((v (make-vector 10 0)))
       (return 0))))
-

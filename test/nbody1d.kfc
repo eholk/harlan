@@ -1,5 +1,3 @@
-;; -*- scheme -*-
-
 ;; code for 1 dimensional nbody simulation 
 (%testspec xfail)
 

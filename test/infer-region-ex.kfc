@@ -1,5 +1,3 @@
-;; -*- scheme -*-
-
 (module
   (define (foo x)
     (let ((y (make-vector x (iota 5))))

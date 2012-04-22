@@ -8,7 +8,6 @@
 
 (module
   (extern nanotime () -> u64)
-  (extern print_int_u64 (int u64) -> void)
 
   (define (main)
     (let ((ttime 0))
@@ -22,7 +21,6 @@
                   (assert (= (vector-ref Sum m) 1)))
                 
                 (set! ttime (+ ttime (- stop start))))))))
-;;      (print_int_u64 len (/ (/ ttime 1000) iters))
       (print len)
       (print "\t")
       (print (/ (/ ttime 1000) iters)))

@@ -1,24 +1,21 @@
-;; -*- scheme -*-
-
 ;; Sparse matrix-vector
 
 (module
   (define (main)
-      (let Ai (vector
+    (let ((Ai (vector
                (vector 0)
                (vector 1)
                (vector 2)
                (vector 3)))
-      (let Av (vector
+          (Av (vector
                (vector 1)
                (vector 1)
                (vector 1)
                (vector 1)))
-      (let X (vector 1 2 3 4))
-      (let Y (kernel ((is Ai) (vs Av))
-                     (reduce + (kernel ((i is) (v vs))
-                                       (* v (vector-ref X i))))))
-      ;;(assert (= X Y))
-      (for (i 0 (length X))
-           (assert (= (vector-ref X i) (vector-ref Y i))))
-      (return 0)))
+          (X (vector 1 2 3 4)))
+      (let ((Y (kernel ((is Ai) (vs Av))
+                 (reduce +
+                   (kernel ((i is) (v vs))
+                     (* v (vector-ref X i)))))))
+        (assert (= X Y))
+        (return 0)))))

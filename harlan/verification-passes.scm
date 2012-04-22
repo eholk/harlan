@@ -69,7 +69,6 @@
       float
       string
       ident
-      (let Var Value)
       (let ((Var Value) *) Value +)
       (begin Value * Value)
       (print Value)

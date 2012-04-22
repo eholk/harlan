@@ -1,13 +1,11 @@
-;; -*- scheme -*-
-
 ;; Dense dot product between two vectors.
 
 (module
   (define (main)
-      (let X (vector 1 2 3 4))
-      (let Y (vector 4 3 2 1))
-      (let dot (reduce + (kernel ((x X) (y Y))
-                                 (* x y))))
-      (print dot)
-      (assert (= dot 20))
-      (return 0)))
+    (let ((X (vector 1 2 3 4))
+          (Y (vector 4 3 2 1)))
+      (let ((dot (reduce + (kernel ((x X) (y Y))
+                             (* x y)))))
+        (println dot)
+        (assert (= dot 20))
+        (return 0)))))
