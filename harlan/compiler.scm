@@ -10,10 +10,12 @@
 
 (define compile-harlan
   (passes
-    compile-harlan-frontend
-    compile-harlan-middle))
+   (compile-harlan-frontend)
+   (compile-harlan-middle)))
 
 (define harlan->c++
-  (passes compile-harlan harlan-format-c))
+  (passes
+   (compile-harlan)
+   (harlan-format-c)))
 
 )

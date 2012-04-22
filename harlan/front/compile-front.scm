@@ -19,17 +19,11 @@
   
   (define compile-harlan-frontend
     (passes
-      verify-harlan
-      parse-harlan
-      verify-parse-harlan
-      returnify
-      verify-returnify
-      typecheck
-      verify-typecheck
-      expand-primitives
-      verify-expand-primitives
-      remove-danger
-      verify-remove-danger))
+     (parse-harlan verify-parse-harlan)
+     (returnify verify-returnify)
+     (typecheck verify-typecheck)
+     (expand-primitives verify-expand-primitives)
+     (remove-danger verify-remove-danger)))
   
   ;; end library
   )
