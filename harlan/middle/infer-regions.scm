@@ -31,6 +31,7 @@
     (harlan compile-opts)
     (util color))
 
+  ;; Switch this to expand to trace-define-mk when debugging.
   (define-syntax define-mk
     (syntax-rules ()
       ((_ . rest) (define . rest))))
@@ -43,7 +44,7 @@
   ;; still-fresh regions.
   (define-mk (extend-with-region x t r env to r* envo)
     (fresh ()
-      (== envo `((,x . ,r*) . ,env))
+      (== envo `((,x ,r* ,to) . ,env))
       (fill-type-with-backup-region t r to r*)))
 
   (define-mk (fill-type-with-backup-region t r to r*)
@@ -136,14 +137,14 @@
         (== `(,a . ,d) x))))
 
   (define-mk lookupo
-    (lambda (x env r)
+    (lambda (x env r t)
       (fresh (env^)
         (conde
-          ((== `((,x . ,r) . ,env^) env))
-          ((fresh (y r^)
-             (== `((,y . ,r^) . ,env^) env)
+          ((== `((,x ,r ,t) . ,env^) env))
+          ((fresh (y r^ t^)
+             (== `((,y ,r^ ,t^) . ,env^) env)
              (=/= x y)
-             (lookupo x env^ r)))))))
+             (lookupo x env^ r t)))))))
 
   (define-mk (memory-type t)
     (conde
@@ -241,11 +242,12 @@
        (== arg-t `())
        (== env `())
        (== in-r `()))
-      ((fresh (a at res rest in-r^ env^ r* r*^)
+      ((fresh (a at res rest in-r^ env^ r* r*^ ato)
          (== args `(,a . ,res))
          (== arg-t `(,at . ,rest))
          (== in-r `(,r* . ,r*^))
-         (== env `((,a . ,r*) . ,env^))
+         (== env `((,a ,r* ,ato) . ,env^))
+         (fill-type-with-region at r* ato)
          (infer-fn-args res rest in-r^ env^)))))
 
   (define-mk (infer-stmts stmts env outr* letr stmtso)
@@ -330,7 +332,7 @@
                envo starto endo stepo)
          (== stmt `(for (,x ,start ,end ,step) ,s))
          (== stmto `(for (,x ,starto ,endo ,step) ,so))
-         (== envo `((,x . ()) . ,env))
+         (== envo `((,x () int) . ,env))
          (infer-triv start env `() starto)
          (infer-triv end env `() endo)
          (infer-triv step env `() stepo)
@@ -366,8 +368,7 @@
       ((fresh (x t t^)
          (== triv `(var ,t ,x))
          (== trivo `(var ,t^ ,x))
-         (lookupo x env r*)
-         (fill-type-with-region t r* t^)))
+         (lookupo x env r* t^)))
       ((fresh (t to)
          (== triv `(int->float ,t))
          (== trivo `(int->float ,to))
@@ -463,8 +464,7 @@
       ((== op '>))
       ((== op '>=))))
 
-  (define-mk (infer-let-bindings
-           b env letr bo envo)
+  (define-mk (infer-let-bindings b env letr bo envo)
     (conde
       ((== b `())
        (== bo b)
@@ -497,7 +497,7 @@
          (infer-triv e env `(,r . ,r*) eo)
          (fill-type-with-region et `(,r . ,r*) eto)
          (fill-type-with-region xt r* xto)
-         (== env^ `((,x . ,r*) . ,env))
+         (== env^ `((,x ,r* ,xto) . ,env))
          (infer-kernel-bindings rest env^ resto envo)))))
 
   (define-mk (infer-kernel-free-vars fv env fvo)
@@ -506,8 +506,7 @@
       ((fresh (x t rest to resto r*)
          (== fv `((,x ,t) . ,rest))
          (== fvo `((,x ,to) . ,resto))
-         (lookupo x env r*)
-         (fill-type-with-region t r* to)
+         (lookupo x env r* to)
          (infer-kernel-free-vars rest env resto)))))
 
   )
