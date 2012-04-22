@@ -41,8 +41,8 @@
   ;; allows region variables to stay fresh until enforce-constraints,
   ;; where the correct region annotations will be added to any
   ;; still-fresh regions.
-  (define-mk (extend-with-region x t r env to envo)
-    (fresh (r*)
+  (define-mk (extend-with-region x t r env to r* envo)
+    (fresh ()
       (== envo `((,x . ,r*) . ,env))
       (fill-type-with-backup-region t r to r*)))
 
@@ -472,8 +472,7 @@
       ((fresh (x t e rest env^ resto eo to r*)
          (== b `((,x ,t ,e) . ,rest))
          (== bo `((,x ,to ,eo) . ,resto))
-         (extend-with-region x t letr env to env^)
-         (lookupo x env^ r*)
+         (extend-with-region x t letr env to r* env^)
          (infer-lifted-expr e env r* eo)
          (infer-let-bindings
           rest env^ letr resto envo)))))
