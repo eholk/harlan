@@ -9,11 +9,13 @@
     make-shared-object
     trace-pass
     untrace-pass
-    parse-args)
+    parse-args
+    quiet
+    timing)
   (import
     (rnrs)
     (util color)
-    (harlan helpers)
+;;    (harlan helpers)
     (only (chezscheme) pretty-print make-parameter time))
   
 (define verbose            (make-parameter #f))
