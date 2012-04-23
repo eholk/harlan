@@ -143,11 +143,6 @@
            (apply append r**)))
   ((kernel
      (,[uglify-expr -> dims dr**] ...)
-     (((,x ,[remove-regions -> t])
-       (,[uglify-expr -> e er**]
-        ,[remove-regions -> et])
-       ,i)
-      ...)
      (free-vars . ,fv*)
      ,[stmt sr*])
    (let ((regions (remove-dups
@@ -156,16 +151,13 @@
                                (map cadr fv*))))))
      (values
       `(kernel ,dims
-               (((,x ,t) (,e ,et) ,i) ...)
                (free-vars
                 ,@(map (lambda (fv) `(,(car fv)
                                  ,(remove-regions (cadr fv))))
                        fv*)
                 ,@(map (lambda (r) `(,r (ptr region))) regions))
                ,stmt)
-      (append sr*
-              (apply append dr**)
-              (apply append er**)))))
+      (apply append sr* dr**))))
   ((do ,[uglify-expr -> e r*])
    (values `(do ,e) r*)))
 

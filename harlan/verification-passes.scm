@@ -431,8 +431,23 @@
       Triv))
 
   (make-vector-refs-explicit
-    (%inherits Module Decl Body Stmt Ret-Stmt Lifted-Expr)
+    (%inherits Module Decl Body Ret-Stmt Lifted-Expr)
     (Start Module)
+    (Stmt
+      (print Triv)
+      (print Triv Triv)
+      (assert Triv)
+      (set! Triv Triv)
+      (kernel Type (Triv +) Stmt)
+      (let ((Var Type Lifted-Expr) *) Stmt)
+      (if Triv Stmt)
+      (if Triv Stmt Stmt)
+      (for (Var Triv Triv Triv) Stmt)
+      (while Triv Stmt)
+      (do Triv)
+      (begin Stmt * Stmt)
+      (error Var)
+      Ret-Stmt)
     (Triv
       (bool Boolean)
       (char Char)
@@ -462,7 +477,6 @@
       (set! Triv Triv)
       (kernel Type
         (Triv +)
-        (((Var Type) (Triv Type) Integer) *)
         (free-vars (Var Type) *)
         Stmt)
       (let ((Var Type Lifted-Expr) *) Stmt)
@@ -490,7 +504,6 @@
       (set! Triv Triv)
       (kernel Type
         (Triv +)
-        (((Var Type) (Triv Type) Integer) *)
         (free-vars (Var Type) *)
         Stmt)
       (let ((Var Type Lifted-Expr) *) Stmt)
@@ -525,7 +538,6 @@
       (set! Triv Triv)
       (kernel
         (Triv +)
-        (((Var Rho-Type) (Triv Rho-Type) Integer) *)
         (free-vars (Var Rho-Type) *)
         Stmt)
       (let ((Var Rho-Type Lifted-Expr) *) Stmt)
@@ -584,7 +596,7 @@
       (print Expr Expr)
       (assert Expr)
       (set! Expr Expr)
-      (kernel (Expr +) (((Var Type) (Expr Type) Integer) *)
+      (kernel (Expr +) 
         (free-vars (Var Type) *)
         Stmt)
       (let ((Var Type Expr) *) Stmt)
@@ -633,7 +645,7 @@
       (print Expr Expr)
       (assert Expr)
       (set! Expr Expr)
-      (kernel (Expr +) (((Var Type) (Expr Type) Integer) *)
+      (kernel (Expr +)
         (free-vars (Var Type) *)
         Stmt)
       (let ((Var Type Expr) *) Stmt)
@@ -659,7 +671,6 @@
       (assert Expr)
       (set! Expr Expr)
       (kernel (Expr +)
-       (((Var Type) (Expr Type) Integer) *)
        (free-vars (Var Type) *) Stmt)
       (let Var Type Expr)
       (if Expr Stmt)
@@ -812,7 +823,7 @@
       (global C-Type Var Expr)
       (extern C-Type Var (C-Type *))) 
     (Kernel
-      (kernel Var ((Var C-Type) *) Stmt))
+      (kernel Var ((Var Type) *) Stmt))
     (Expr
       (bool Boolean)
       (char Char)

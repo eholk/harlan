@@ -49,8 +49,8 @@
    `(return ,e))
   ((assert ,e) `(assert ,e))
   ((print ,e ...) `(print . ,e))
-  ((kernel ,d ,iters ,fv* ,[stmt])
-   `(kernel ,d ,iters ,fv* ,stmt))
+  ((kernel ,d ,fv* ,[stmt])
+   `(kernel ,d ,fv* ,stmt))
   ((do ,e) `(do ,e)))
 
 (define-match (add-free before-return)

@@ -19,8 +19,7 @@
    (values `(global ,type ,name ,e) '())))
 
 (define-match hoist-stmt
-  ((kernel ,dims (((,x* ,t*) (,xs* ,ts*) ,dim) ...)
-     (free-vars (,fv* ,ft*) ...)
+  ((kernel ,dims (free-vars (,fv* ,ft*) ...)
      ,[hoist-stmt -> stmt kernel*])
    (let ((name (gensym 'kernel)))
      (values
