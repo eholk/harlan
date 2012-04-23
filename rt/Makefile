@@ -11,6 +11,7 @@ SRC = \
 	cl++.h \
 	cl++.cpp \
 	gpu_common.h \
+	gpu_only.h \
 
 CXXFLAGS = -I../gc/include -g
 

@@ -1,0 +1,12 @@
+(%testspec xfail)
+
+(module
+  (define (main)
+    (let ((x (kernel ((i (iota 5))) (vector i))))
+      (println x)
+      (assert (= x (vector (vector 0)
+                           (vector 1)
+                           (vector 2)
+                           (vector 3)
+                           (vector 4))))
+      (return 0))))
