@@ -1,7 +1,10 @@
 (library
   (harlan middle optimize-fuse-kernels)
   (export optimize-fuse-kernels
-    verify-optimize-fuse-kernels)
+    verify-optimize-fuse-kernels
+    make-2d-kernel
+    Expr
+    Stmt)
   (import
    (rnrs)
    (harlan helpers)
@@ -98,8 +101,37 @@
                   (,@rest . ,iters^)
                   (let ((,x ,xt ,body^))
                     ,body))))
-      (,else
-       `(kernel ,t ,dims ,iters ,body))))
+      (,else (make-2d-kernel t dims iters body))))
+
+  ;; This seems wrong.  But here's the example:
+  ;; (do (kernel [vec (vec int)]
+  ;;       [(length (var (vec (vec int)) x_1))]
+  ;;       [((row_2 (vec int))
+  ;;         ((var (vec (vec int)) x_1) (vec (vec int))) 0)]
+  ;;       [kernel (vec int) ((length (var (vec int) row_2)))
+  ;;               (((i_3 int) ((var (vec int) row_2) (vec int))  0))
+  ;;               (+ (var int i_3) (int 1))]))
+  ;; All references to row_2 would be get_global_id(0),
+  ;; and all references to i_3 would be get_global_id(1).
+  ;; The matrix x_1 would be the only remaining argument.
+
+  (define (make-2d-kernel t dims iters body)
+    (match iters
+      ((((,x ,xt) (,e ,et) ,i))
+       (match body
+         ((kernel ,t^ ,dims^
+                  (((,bx ,bxt) ((var ,t^ ,ev) ,bet) ,d))
+                  ,body^)
+          (guard (eq? ev x))
+          (match dims
+            (((length (var (vec ,yt) ,y)))
+             `(kernel ,t
+                (,@dims (length (vector-ref ,yt (var (vec ,t) ,y) (int 0))))
+                (((,x ,xt) (,e ,et) ,i)
+                 ((,bx ,bxt) ((var ,t ,ev) ,bet) ,(+ d 1)))
+                ,body^))))
+         (,else `(kernel ,t ,dims ,iters ,body))))
+      (,else `(kernel ,t ,dims ,iters ,body))))
 
   ;; end library
   )

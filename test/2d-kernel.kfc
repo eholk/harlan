@@ -1,0 +1,8 @@
+(module
+  (define (main)
+    (let ((x (vector (vector 1 2)
+                     (vector 3 4))))
+      (kernel ((row x))
+        (kernel ((i row))
+          (+ i 1)))
+      (return 0))))
