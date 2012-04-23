@@ -1,5 +1,3 @@
-(%testspec xfail)
-
 ;; This should produce a triangular vector. However, it requires being
 ;; able to allocate in a kernel. With regions, we have some limited
 ;; ability for in-kernel allocation, but it might be better to
