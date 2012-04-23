@@ -49,6 +49,7 @@
          (str
            ,(string-append
               "#include \"rt/gpu_common.h\"\n\n"
+              "#include \"rt/gpu_only.h\"\n\n"
               (join "\n" (map compile-kernel kernel*)))))))
   
   (define (harlan-decl decl ft)
