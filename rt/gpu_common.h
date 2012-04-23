@@ -24,3 +24,4 @@ typedef struct region_ {
 
 // This gives us a pointer to something in a region.
 #define get_region_ptr(r, i) (((char __global *)r) + i)
+
