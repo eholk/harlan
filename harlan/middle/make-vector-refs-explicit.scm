@@ -19,7 +19,7 @@
    (make-begin stmt*))
   ((kernel ,t ,dims (((,x* ,t*) (,xs* ,ts*) ,d*) ...)
      ,[stmt])
-   `(kernel ,t ,dims ,(generate-kernel x* t* xs* d* stmt)))
+   `(kernel ,t ,dims ,(generate-kernel x* t* (map (replace-vec-refs-expr x*) xs*) d* stmt)))
   ((error ,x) `(error ,x))
   ((print ,expr ...)
    `(print . ,expr))
@@ -38,21 +38,23 @@
   ((return ,expr) `(return ,expr))
   ((do ,expr) `(do ,expr)))
 
-(define (generate-kernel-args x t xs d)
-  `(,x
-    (ptr ,t)
-    (addressof
-      (vector-ref ,t ,xs
-        (call
-          (c-expr ((int) -> int) get_global_id)
-          (int ,d))))))
+;; This enforces the let* semantics of kernel arguments.
+(define (generate-kernel-args x t xs d prev)
+  `(let ((,x
+          (ptr ,t)
+          (addressof
+           (vector-ref ,t ,xs
+                       (call
+                        (c-expr ((int) -> int) get_global_id)
+                        (int ,d))))))
+     ,prev))
 
 (define generate-kernel
   (lambda (x* t* xs* d* stmt)
-    `(let ,(map
-            generate-kernel-args
-            x* t* xs* d*)
-       ,((replace-vec-refs-stmt x*) stmt))))
+    (fold-right
+     generate-kernel-args
+     ((replace-vec-refs-stmt x*) stmt)
+     x* t* xs* d*)))
 
 (define-match (replace-vec-refs-stmt x*)
   ((let ((,x ,t ,[(replace-vec-refs-expr x*) -> e]) ...)
@@ -60,10 +62,6 @@
    `(let ((,x ,t ,e) ...) ,stmt))
   ((begin ,[(replace-vec-refs-stmt x*) -> stmt*] ...)
    (make-begin stmt*))
-  ;; Will this break with nested kernels?
-  ((kernel ,t ,dims (((,x* ,t*) (,xs* ,ts*) ,d*) ...)
-     ,[(replace-vec-refs-stmt x*) -> stmt])
-   `(kernel ,t ,dims ,(generate-kernel x* t* xs* d* stmt)))
   ((print ,[(replace-vec-refs-expr x*) -> expr])
    `(print ,expr))      
   ((assert ,[(replace-vec-refs-expr x*) -> expr])

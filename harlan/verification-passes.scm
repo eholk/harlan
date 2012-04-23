@@ -645,7 +645,7 @@
       (print Expr Expr)
       (assert Expr)
       (set! Expr Expr)
-      (kernel (Expr +)
+      (kernel (Expr +) 
         (free-vars (Var Type) *)
         Stmt)
       (let ((Var Type Expr) *) Stmt)

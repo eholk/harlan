@@ -52,17 +52,44 @@
     . ,[(returnify-kernel-let finish) -> rest])
    (match arg*
      ((((,x* ,tx*) (,xe* ,xet*) ,dim) ...)
-      (let ((retvar (gensym 'retval)))
+      (let ((retvars (map (lambda (_) (gensym 'retval)) dims)))
         `(let ((,id ,xt (make-vector ,t ,(car dims))))
            (begin
-             (kernel (vec ,t) ,dims
-               (((,retvar ,t)
-                 ((var (vec ,t) ,id) (vec ,t)) 0)
-                . ,arg*)
-               ,((set-retval t retvar) body))
+             (kernel
+              (vec ,t)
+              ,dims
+              ,(insert-retvars retvars (cons id retvars) 0 t arg*)
+              ,((set-retval (shave-type (length dims) `(vec ,t)) (car (reverse retvars))) body))
              ,rest))))))
   (((,id ,t ,expr) . ,[(returnify-kernel-let finish) -> rest])
    `(let ((,id ,t ,expr)) ,rest)))
+
+;; This is stupid
+(define (shave-type dim t)
+  (if (zero? dim) t (shave-type (- dim 1) (cadr t))))
+
+(define (insert-retvars retvars sources dim t arg*)
+  (match arg*
+    ((((,x ,tx) (,xs ,ts) ,d) . ,rest)
+     (if (<= dim d)
+         (cons
+          `((,(car retvars) ,t)
+            ((var (vec ,t) ,(car sources))
+             (vec ,t))
+            ,dim)
+          (if (null? rest)
+              arg*
+              (insert-retvars (cdr retvars)
+                              (cdr sources)
+                              (+ dim 1)
+                              (cadr t)
+                              arg*)))
+         (cons (car arg*)
+               (insert-retvars retvars
+                               sources
+                               dim
+                               t
+                               (cdr arg*)))))))
 
 (define-match (set-retval t retvar)
   ((begin ,stmt* ... ,[(set-retval t retvar) -> expr])

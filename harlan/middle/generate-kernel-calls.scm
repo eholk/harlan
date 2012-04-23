@@ -45,10 +45,18 @@
                               (var (ptr region) ,x)))
                           (,else else)))))
             arg* (iota (length arg*)))
-        (do (call (field (var cl::queue g_queue) execute)
-              (var cl::kernel ,kernel)
-              ,(car dims) ;; global size
-              (int 1)))
+        ,(if (null? (cdr dims))
+             `(do (call (field (var cl::queue g_queue) execute)
+                        (var cl::kernel ,kernel)
+                        ,(car dims) ;; global size
+                        (int 1)))
+             (begin
+               (assert (= (length dims) 2))
+             `(do (call (field (var cl::queue g_queue) execute2d)
+                        (var cl::kernel ,kernel)
+                        ,(car dims) ;; global size
+                        ,(cadr dims)
+                        (int 1)))))
         ,@(map (lambda (region)
                  `(do (call
                         (c-expr (((ptr region)) -> void)

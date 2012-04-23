@@ -233,6 +233,12 @@ void command_queue::execute(kernel &k, size_t global_size, size_t local_size)
 	executeND(k, 1, &global_size, &local_size);
 }
 
+void command_queue::execute2d(kernel &k, size_t dim1, size_t dim2, size_t local_size)
+{
+  size_t global_size[] = {dim1, dim2};
+	executeND(k, 2, global_size, &local_size);
+}
+
 void command_queue::executeND(kernel &k, size_t dimensions,
                               size_t global_size[], size_t local_size[])
 {

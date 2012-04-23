@@ -111,27 +111,39 @@
   ;;       [kernel (vec int) ((length (var (vec int) row_2)))
   ;;               (((i_3 int) ((var (vec int) row_2) (vec int))  0))
   ;;               (+ (var int i_3) (int 1))]))
-  ;; All references to row_2 would be get_global_id(0),
-  ;; and all references to i_3 would be get_global_id(1).
-  ;; The matrix x_1 would be the only remaining argument.
 
   (define (make-2d-kernel t dims iters body)
+    (match body
+      ((kernel ,t^ ,dims^ ,iters^ ,body^)
+       ;; ensure this would be a 2d kernel later
+       (guard (and (null? (cdr dims))
+                   (null? (cdr dims^))))
+       `(kernel
+         ,t
+         (,@dims ,@(map (subst-iters (make-env iters)) dims^))
+         (,@iters
+          ,@(map incr-dimension iters^))
+         ,body^))
+      (,else
+       `(kernel ,t ,dims ,iters ,body))))
+
+  (define (make-env iters)
     (match iters
-      ((((,x ,xt) (,e ,et) ,i))
-       (match body
-         ((kernel ,t^ ,dims^
-                  (((,bx ,bxt) ((var ,t^ ,ev) ,bet) ,d))
-                  ,body^)
-          (guard (eq? ev x))
-          (match dims
-            (((length (var (vec ,yt) ,y)))
-             `(kernel ,t
-                (,@dims (length (vector-ref ,yt (var (vec ,t) ,y) (int 0))))
-                (((,x ,xt) (,e ,et) ,i)
-                 ((,bx ,bxt) ((var ,t ,ev) ,bet) ,(+ d 1)))
-                ,body^))))
-         (,else `(kernel ,t ,dims ,iters ,body))))
-      (,else `(kernel ,t ,dims ,iters ,body))))
+      (() `())
+      ((((,x ,xt) (,xs ,ts) ,d) . ,[env])
+       (cons `(,x . ,xs) env))))
+
+  (define-match (subst-iters env)
+    ((var ,t ,x)
+     (cond
+      ((assq x env) =>
+       (lambda (p) `(vector-ref ,t ,(cdr p) (int 0))))))
+    ((length ,[e]) `(length ,e)))
+
+  (define (incr-dimension iter)
+    (match iter
+      ((,arg ,exp ,dim)
+       `(,arg ,exp ,(+ dim 1)))))
 
   ;; end library
   )
