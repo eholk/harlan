@@ -181,8 +181,8 @@
                           (if (> (var int ,p) (int 255))
                               (set! (var int ,p) (int 255))))
                       (print (var int ,p)
-                             (var ofstream ,stream)))))
-             (print (str " ") (var ofstream ,stream))
+                             (var ofstream ,stream))
+                      (print (str " ") (var ofstream ,stream)))))
              (do (call (var (((ptr ofstream)) -> void) close_outfile)
                        (var (ptr ofstream) ,stream))))))))
 

@@ -74,7 +74,7 @@
     ((if ,[test] ,[conseq])
      `(if ,test ,conseq))
     ((kernel ,t ,dims ,iters ,[body])
-     (inline-kernel t dims iters body))
+     (make-2d-kernel t dims iters body))
     ((let ((,x* ,t* ,[e*]) ...) ,[e])
      `(let ((,x* ,t* ,e*) ...) ,e))
     ((begin ,[Stmt -> s*] ... ,[e])
@@ -92,16 +92,16 @@
         . ,rest)
        ;; Super kernel!
        (begin
-         (assert (equal? dims dims^))
          (if (verbose)
              (begin
                (display "Harlan Compiler Message:")
                (display "optimize-fuse-kernels is inlining a kernel\n")))
-         `(kernel ,t ,dims
-                  (,@rest . ,iters^)
-                  (let ((,x ,xt ,body^))
-                    ,body))))
-      (,else (make-2d-kernel t dims iters body))))
+         (Expr
+          `(kernel ,t ,dims
+                   (,@rest . ,iters^)
+                   (let ((,x ,xt ,body^))
+                     ,body)))))
+      (,else `(kernel ,t ,dims ,iters ,body))))
 
   ;; This seems wrong.  But here's the example:
   ;; (do (kernel [vec (vec int)]
@@ -118,14 +118,15 @@
        ;; ensure this would be a 2d kernel later
        (guard (and (null? (cdr dims))
                    (null? (cdr dims^))))
-       `(kernel
-         ,t
-         (,@dims ,@(map (subst-iters (make-env iters)) dims^))
-         (,@iters
-          ,@(map incr-dimension iters^))
-         ,body^))
+       (Expr
+        `(kernel
+          ,t
+          (,@dims ,@(map (subst-iters (make-env iters)) dims^))
+          (,@iters
+           ,@(map incr-dimension iters^))
+          ,(incr-dim-expr body^))))
       (,else
-       `(kernel ,t ,dims ,iters ,body))))
+       (inline-kernel t dims iters body))))
 
   (define (make-env iters)
     (match iters
@@ -137,13 +138,77 @@
     ((var ,t ,x)
      (cond
       ((assq x env) =>
-       (lambda (p) `(vector-ref ,t ,(cdr p) (int 0))))))
-    ((length ,[e]) `(length ,e)))
+       (lambda (p) `(vector-ref ,t ,(cdr p) (int 0))))
+      (else `(var ,t ,x))))
+    ((length ,[e]) `(length ,e))
+    ((,t ,x) (guard (scalar-type? t)) `(,t ,x)))
 
   (define (incr-dimension iter)
     (match iter
       ((,arg ,exp ,dim)
        `(,arg ,exp ,(+ dim 1)))))
+
+  (define-match incr-dim-stmt
+    ((let ((,x* ,t* ,[incr-dim-expr -> e*]) ...) ,[body])
+     `(let ((,x* ,t* ,e*) ...) ,body))
+    ((set! ,[incr-dim-expr -> lhs] ,[incr-dim-expr -> rhs])
+     `(set! ,lhs ,rhs))
+    ((if ,[incr-dim-expr -> test] ,[conseq] ,[altern])
+     `(if ,test ,conseq ,altern))
+    ((if ,[incr-dim-expr -> test] ,[conseq])
+     `(if ,test ,conseq))
+    ((while ,[incr-dim-expr -> test] ,[body])
+     `(while ,test ,body))
+    ((for (,x ,[incr-dim-expr -> start]
+              ,[incr-dim-expr -> stop]
+              ,[incr-dim-expr -> step])
+          ,[body])
+     `(for (,x ,start ,stop ,step) ,body))
+    ((begin ,[stmt*] ...)
+     `(begin ,stmt* ...))
+    ((print ,[incr-dim-expr -> e] ...)
+     `(print . ,e))
+    ((assert ,[incr-dim-expr -> e])
+     `(assert ,e))
+    ((return) `(return))
+    ((return ,[incr-dim-expr -> e])
+     `(return ,e))
+    ((error ,x) `(error ,x))
+    ((do ,[incr-dim-expr -> e])
+     `(do ,e)))
+
+  (define-match incr-dim-expr
+    ((,t ,v) (guard (scalar-type? t)) `(,t ,v))
+    ((var ,t ,x) `(var ,t ,x))
+    ((int->float ,[e]) `(int->float ,e))
+    ((make-vector ,t ,[e])
+     `(make-vector ,t ,e))
+    ((c-expr ,t ,v)
+     `(c-expr ,t ,v))
+    ((vector-ref ,t ,[v] ,[i])
+     `(vector-ref ,t ,v ,i))
+    ((length ,[e])
+     `(length ,e))
+    ((call (c-expr ,t get_global_id) (int ,n))
+     `(call (c-expr ,t get_global_id) (int ,(+ n 1))))
+    ((call ,[f] ,[args] ...)
+     `(call ,f ,args ...))
+    ((if ,[test] ,[conseq] ,[altern])
+     `(if ,test ,conseq ,altern))
+    ((kernel ,t (,[dims] ...)
+             (((,x ,xt) (,[e] ,et) ,d) ...)
+             ,[body])
+     `(kernel ,t ,dims
+              (((,x ,xt) (,e ,et) ,d) ...)
+              ,body))
+    ((let ((,x* ,t* ,[e*]) ...) ,[e])
+     `(let ((,x* ,t* ,e*) ...) ,e))
+    ((begin ,[incr-dim-stmt -> s*] ... ,[e])
+     `(begin ,s* ... ,e))
+    ((,op ,[lhs] ,[rhs])
+     (guard (or (relop? op) (binop? op)))
+     `(,op ,lhs ,rhs)))
+
 
   ;; end library
   )

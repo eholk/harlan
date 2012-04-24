@@ -52,9 +52,17 @@
     . ,[(returnify-kernel-let finish) -> rest])
    (match arg*
      ((((,x* ,tx*) (,xe* ,xet*) ,dim) ...)
-      (let ((retvars (map (lambda (_) (gensym 'retval)) dims)))
+      (let ((retvars (map (lambda (_) (gensym 'retval)) dims))
+            (i (gensym 'i))
+            (vv (gensym 'vv)))
         `(let ((,id ,xt (make-vector ,t ,(car dims))))
            (begin
+             ,@(if (null? (cdr dims))
+                   `()
+                   `((for (,i (int 0) ,(car dims) (int 1))
+                       (let ((,vv ,t (make-vector ,(cadr t) ,(cadr dims))))
+                         (set! (vector-ref ,t (var ,xt ,id) (var int ,i))
+                               (var ,t ,vv))))))
              (kernel
               (vec ,t)
               ,dims
@@ -68,8 +76,23 @@
 (define (shave-type dim t)
   (if (zero? dim) t (shave-type (- dim 1) (cadr t))))
 
+;; This is the stupidest procedure I've ever written
 (define (insert-retvars retvars sources dim t arg*)
   (match arg*
+    (() (guard (null? retvars)) `())
+    (()
+     (cons
+      `((,(car retvars) ,t)
+        ((var (vec ,t) ,(car sources))
+         (vec ,t))
+        ,dim)
+      (if (null? (cdr retvars))
+          `()
+          (insert-retvars (cdr retvars)
+                          (cdr sources)
+                          (+ dim 1)
+                          (cadr t)
+                          arg*))))
     ((((,x ,tx) (,xs ,ts) ,d) . ,rest)
      (if (<= dim d)
          (cons
@@ -77,7 +100,7 @@
             ((var (vec ,t) ,(car sources))
              (vec ,t))
             ,dim)
-          (if (null? rest)
+          (if (null? (cdr retvars))
               arg*
               (insert-retvars (cdr retvars)
                               (cdr sources)
