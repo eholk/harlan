@@ -7,7 +7,6 @@
   (define (main)
     (let ((triangle
            (kernel ((i (iota 10)))
-             (iota i))))
-      (print triangle)
-      (print "\n"))
+             (iota (+ i 1)))))
+      (println triangle))
     (return 0)))

@@ -11,7 +11,8 @@
    (only (harlan verification-passes)
          verify-make-kernel-dimensions-explicit)
    (harlan compile-opts)
-   (elegant-weapons helpers))
+   (elegant-weapons helpers)
+   (only (chezscheme) trace-define))
 
   (define verify-optimize-fuse-kernels
     verify-make-kernel-dimensions-explicit)
@@ -113,35 +114,32 @@
   ;;               (+ (var int i_3) (int 1))]))
 
   (define (make-2d-kernel t dims iters body)
-    (match body
-      ((kernel ,t^ ,dims^ ,iters^ ,body^)
-       ;; ensure this would be a 2d kernel later
-       (guard (and (null? (cdr dims))
-                   (null? (cdr dims^))))
-       (Expr
-        `(kernel
-          ,t
-          (,@dims ,@(map (subst-iters (make-env iters)) dims^))
-          (,@iters
-           ,@(map incr-dimension iters^))
-          ,(incr-dim-expr body^))))
-      (,else
-       (inline-kernel t dims iters body))))
+    (let ((arg-vars (map caar iters)))
+      (match body
+        ((kernel ,t^ ,dims^ ,iters^ ,body^)
+         (guard (and ((not-in arg-vars) dims^)
+                     ((not-in arg-vars) iters^)))
+         (Expr
+          `(kernel
+               ,t
+             (,@dims ,@dims^)
+             (,@iters
+              ,@(map incr-dimension iters^))
+             ,(incr-dim-expr body^))))
+        (,else
+         (inline-kernel t dims iters body)))))
+
+  (define-match (not-in argv)
+    ((var ,t ,x) (not (memq x argv)))
+    ((,x* ...)
+     (andmap (not-in argv) x*))
+    (,x #t))
 
   (define (make-env iters)
     (match iters
       (() `())
       ((((,x ,xt) (,xs ,ts) ,d) . ,[env])
        (cons `(,x . ,xs) env))))
-
-  (define-match (subst-iters env)
-    ((var ,t ,x)
-     (cond
-      ((assq x env) =>
-       (lambda (p) `(vector-ref ,t ,(cdr p) (int 0))))
-      (else `(var ,t ,x))))
-    ((length ,[e]) `(length ,e))
-    ((,t ,x) (guard (scalar-type? t)) `(,t ,x)))
 
   (define (incr-dimension iter)
     (match iter
