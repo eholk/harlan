@@ -1,7 +1,6 @@
 (library
   (harlan helpers)
   (export
-    type-of
     ident?
     reduceop?
     harlan-type?
@@ -11,11 +10,6 @@
     (rnrs)
     (elegant-weapons helpers)
     (elegant-weapons match))
-
-  (define-match type-of
-    ((deref ,[e]) e)
-    ((vector-ref ,t ,v ,i) t)
-    ((var ,t ,x) t))
 
   (define (reserved-word? x)
     (memq x

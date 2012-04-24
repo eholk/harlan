@@ -3,7 +3,7 @@
   (export remove-let-regions)
   (import
     (rnrs)
-    (except (harlan helpers) type-of)
+    (harlan helpers)
     (elegant-weapons helpers)
     (elegant-weapons sets))
 
