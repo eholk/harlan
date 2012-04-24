@@ -40,9 +40,10 @@
   ((print ,[convert-expr -> e] ...) `(print . ,e))
   ((while ,[convert-expr -> e] ,[stmt])
    `(while ,e ,stmt))
-  ((for (,x ,[convert-expr -> start] ,[convert-expr -> end]
-          ,[convert-expr -> step])
-     ,[convert-stmt -> stmt*] ...)
+  ((for (,x ,[convert-expr -> start]
+            ,[convert-expr -> end]
+            ,[convert-expr -> step])
+        ,[convert-stmt -> stmt*] ...)
    `(for (,x ,start ,end ,step) . ,stmt*))
   ((kernel
      (((,x* ,[convert-type -> t*])

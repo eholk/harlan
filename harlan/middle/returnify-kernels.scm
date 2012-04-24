@@ -31,15 +31,15 @@
    `(while ,expr ,body))
   ((for ,b ,[body])
    `(for ,b ,body))
-  ((let ((,id ,t ,e) ...) ,[stmt])
-   ((returnify-kernel-let stmt) `((,id ,t ,e) ...)))
+  ((let ,b ,[stmt])
+   ((returnify-kernel-let stmt) ,b))
   ((do ,expr) `(do ,expr)))
 
 (define-match returnify-kernel-expr
   ((begin ,[returnify-kernel-stmt -> stmt*] ,[expr])
    `(begin ,@stmt* ,expr))
-  ((let ((,id ,t ,e) ...) ,[expr])
-   ((returnify-kernel-let expr) `((,id ,t ,e) ...)))
+  ((let ,b ,[expr])
+   ((returnify-kernel-let expr) ,b))
   (,else else))
 
 (define-match (returnify-kernel-let finish)
@@ -67,7 +67,9 @@
               (vec ,t)
               ,dims
               ,(insert-retvars retvars (cons id retvars) 0 t arg*)
-              ,((set-retval (shave-type (length dims) `(vec ,t)) (car (reverse retvars))) body))
+              ,((set-retval (shave-type (length dims) `(vec ,t))
+                            (car (reverse retvars)))
+                body))
              ,rest))))))
   (((,id ,t ,expr) . ,[(returnify-kernel-let finish) -> rest])
    `(let ((,id ,t ,expr)) ,rest)))

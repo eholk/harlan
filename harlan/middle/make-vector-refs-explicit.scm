@@ -19,7 +19,9 @@
    (make-begin stmt*))
   ((kernel ,t ,dims (((,x* ,t*) (,xs* ,ts*) ,d*) ...)
      ,[stmt])
-   `(kernel ,t ,dims ,(generate-kernel x* t* (map (replace-vec-refs-expr x*) xs*) d* stmt)))
+   (let ((xs* (map (replace-vec-refs-expr x*) xs*)))
+     `(kernel ,t ,dims
+              ,(generate-kernel x* t* xs* d* stmt))))
   ((error ,x) `(error ,x))
   ((print ,expr ...)
    `(print . ,expr))
@@ -44,9 +46,9 @@
           (ptr ,t)
           (addressof
            (vector-ref ,t ,xs
-                       (call
-                        (c-expr ((int) -> int) get_global_id)
-                        (int ,d))))))
+            (call
+             (c-expr ((int) -> int) get_global_id)
+             (int ,d))))))
      ,prev))
 
 (define generate-kernel
@@ -117,6 +119,7 @@
   ((c-expr ,t ,v) `(c-expr ,t ,v))
   ((,op ,[(replace-vec-refs-expr x*) -> e1]
         ,[(replace-vec-refs-expr x*) -> e2])
+   (guard (or (bionp? op) (relop? op)))
    `(,op ,e1 ,e2)))
 
 )

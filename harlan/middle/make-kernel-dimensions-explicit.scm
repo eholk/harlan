@@ -27,7 +27,10 @@
      `(if ,test ,conseq))
     ((while ,[Expr -> test] ,[body])
      `(while ,test ,body))
-    ((for (,x ,[Expr -> start] ,[Expr -> stop] ,[Expr -> step]) ,[body])
+    ((for (,x ,[Expr -> start]
+              ,[Expr -> stop]
+              ,[Expr -> step])
+          ,[body])
      `(for (,x ,start ,stop ,step) ,body))
     ((begin ,[stmt*] ...)
      `(begin ,stmt* ...))

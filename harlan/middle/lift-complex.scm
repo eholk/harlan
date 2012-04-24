@@ -42,6 +42,7 @@
                   (finish `(vector-ref ,t ,e1^ ,e2^)))))))
       ((make-vector ,t ,e)
        (lift-expr e (lambda (e^) (finish `(make-vector ,t ,e^)))))
+      ;; There are TWO kernel lines, don't forget.
       ((kernel ,t ,dims (((,x* ,t*) (,e* ,ts*) ,dim*) ...) ,body)
        (let ((finish
                (lambda (dims^ e*^)
@@ -91,6 +92,7 @@
 (define Expr
   (lambda (expr finish)
     (match expr
+      ;; There are TWO kernel lines, don't forget.
       ((kernel ,t ,dims (((,x* ,t*) (,e* ,ts*) ,dim*) ...) ,body)
        (let ((finish
               (lambda (dims^ e*^)

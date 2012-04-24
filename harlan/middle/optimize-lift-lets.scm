@@ -1,5 +1,4 @@
-(library
-    (harlan middle optimize-lift-lets)
+(library (harlan middle optimize-lift-lets)
   (export optimize-lift-lets verify-optimize-lift-lets)
   (import
    (rnrs)
@@ -67,8 +66,8 @@
       `(begin ,@(map make-let bindings* stmt*) ,(make-let bindings e))
       '()))
     ((for (,x ,[Expr -> start start-bindings]
-            ,[Expr -> end end-bindings]
-            ,[Expr -> step step-bindings])
+              ,[Expr -> end end-bindings]
+              ,[Expr -> step step-bindings])
           ,[body bindings])
      (let-values (((liftable pinned)
                    ((split-bindings (list x)) bindings)))
@@ -112,14 +111,14 @@
     ((vector-ref ,t ,[x] ,[i])
      (union x i))
     ((kernel ,t ,dims (((,x* ,t*) (,[xs*] ,ts*) ,d) ...) ,[e])
-     (apply union (cons (difference e x*) xs*)))
+     (apply union (difference e x*) xs*))
     ((let ((,x* ,t* ,[e*]) ...) ,[e])
-     (apply union (cons (difference e x*) e*)))
+     (apply union (difference e x*) e*))
     ((if ,[t] ,[c] ,[a])
      (union t c a))
     ((c-expr ,t ,v) `(c-expr ,t ,v))
     ((begin ,[free-vars-Stmt -> s*] ... ,[e])
-     (union e (apply union s*))))
+     (apply union e s*)))
 
   (define-match free-vars-Stmt
     ((print ,[free-vars-Expr -> fv*]) fv*)
@@ -138,7 +137,7 @@
     ((while ,[free-vars-Expr -> test] ,[body])
      (union test body))
     ((let ((,x* ,t* ,[free-vars-Expr -> e*]) ...) ,[e])
-     (apply union (cons (difference e x*) e*)))
+     (apply union (difference e x*) e*))
     ((begin ,[s*] ...)
      (apply union s*)))
 
@@ -154,8 +153,8 @@
     ((vector ,t . ,e*) #f)
     ((make-vector ,t ,e) #f)
     ((length ,[e]) e)
-    ((call ,[fn] ,[arg*] ...)
-     #f)
+    ;; Don't lift function calls.
+    ((call ,fn ,arg* ...) #f)
     ((vector-ref ,t ,[x] ,[i])
      (and x i))
     ((iota ,[e]) e)

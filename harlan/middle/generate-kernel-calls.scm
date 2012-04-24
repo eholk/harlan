@@ -18,6 +18,7 @@
     ((var (ptr region) ,name) #t)
     (,else #f)))
 
+;; This deserves a helper function now...
 (define-match generate-stmt
   ((apply-kernel ,k ,dims ,arg* ...)
    (let ((kernel (gensym k))

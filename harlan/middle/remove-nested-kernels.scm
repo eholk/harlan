@@ -4,11 +4,6 @@
   (import (rnrs) (elegant-weapons helpers)
     (harlan helpers))
 
-;; This pass takes a nest of kernels and turns all but the innermost
-;; one into for loops. This isn't the best way to do this, but it's
-;; the easiest way to support nested kernels and will give us
-;; something to build off of.
-
 (define-match remove-nested-kernels
   ((module ,[Decl -> decl*] ...)
    `(module . ,decl*)))
@@ -18,10 +13,6 @@
    `(fn ,name ,args ,type ,stmt))
   ((extern . ,rest)
    `(extern . ,rest)))
-
-(define (any? ls)
-  (and (not (null? ls))
-       (or (car ls) (any? (cdr ls)))))
 
 (define (kernel-arg->binding i)
   (lambda (x t xs)
