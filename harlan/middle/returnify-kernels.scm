@@ -32,14 +32,14 @@
   ((for ,b ,[body])
    `(for ,b ,body))
   ((let ,b ,[stmt])
-   ((returnify-kernel-let stmt) ,b))
+   ((returnify-kernel-let stmt) b))
   ((do ,expr) `(do ,expr)))
 
 (define-match returnify-kernel-expr
   ((begin ,[returnify-kernel-stmt -> stmt*] ,[expr])
    `(begin ,@stmt* ,expr))
   ((let ,b ,[expr])
-   ((returnify-kernel-let expr) ,b))
+   ((returnify-kernel-let expr) b))
   (,else else))
 
 (define-match (returnify-kernel-let finish)

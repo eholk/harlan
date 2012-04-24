@@ -119,7 +119,7 @@
   ((c-expr ,t ,v) `(c-expr ,t ,v))
   ((,op ,[(replace-vec-refs-expr x*) -> e1]
         ,[(replace-vec-refs-expr x*) -> e2])
-   (guard (or (bionp? op) (relop? op)))
+   (guard (or (binop? op) (relop? op)))
    `(,op ,e1 ,e2)))
 
 )
