@@ -1,4 +1,5 @@
 
+region_ptr alloc_in_region(region __global *r, unsigned int size);
 region_ptr alloc_in_region(region __global *r, unsigned int size)
 {
     // region_ptr p = r->alloc_ptr;
