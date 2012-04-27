@@ -31,13 +31,15 @@
 
   (define-match insert-decl
     ((fn ,name ,args (,argt -> ,rt) ,s)
-     (let ((in-r (map type->regions argt))
-           (out-r (type->regions rt))
-           (r (new-region)))
-       `(fn ,name ,args (,argt -> ,rt)
-            (input-regions ,in-r)
-            (output-regions ,out-r)
-            ,(letr (insert-stmt s)))))
+     (let ((region (gensym (symbol-append name 'region))))
+       (let ((in-r (map type->regions argt))
+             (out-r (type->regions rt))
+             (r (new-region)))
+         `(fn ,name ,args (,argt -> ,rt)
+              (input-regions ,in-r)
+              (output-regions ,out-r)
+              (let-region (,region)
+                          ,(insert-stmt s))))))
     ((extern ,name ,args -> ,t)
      `(extern ,name ,args -> ,t)))
 
