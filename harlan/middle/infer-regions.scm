@@ -7,9 +7,14 @@
     (cKanren tree-unify)
     (cKanren neq)
     (cKanren tracing)
-    (harlan compile-opts)
-    (only (chezscheme) time))
+    (harlan compile-opts))
 
+;; Most important observation:
+;; If x is on regions r1 and r2,
+;; x is associated with the region list `(r1 r2)
+;; had type (vec (vec <type>))
+;; now has type (vec r1 (vec r2 <type>))
+  
 ;; Switch this to expand to trace-define-mk when debugging.
 (define-syntax define-mk
   (syntax-rules ()
