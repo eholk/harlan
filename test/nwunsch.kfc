@@ -1,4 +1,5 @@
 (%testspec xfail)
+
 (module
 	(define (makeScore X Y)
 		(kernel ((x (iota X)))
