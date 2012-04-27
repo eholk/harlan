@@ -30,7 +30,11 @@
   (define (make-let bindings body)
     (if (null? bindings)
         body
-        `(let ,bindings ,body)))
+        (fold-right
+         (lambda (b exp)
+           `(let (,b) ,exp))
+         body
+         bindings)))
   
   (define-match Decl
     ((extern . ,_)
@@ -52,10 +56,14 @@
          (values liftable (cons `(,x ,t ,e) pinned)))))
       
   (define-match Stmt
-    ((let ((,x* ,t* ,e*) ...)
+    ((let ((,x* ,t* ,[Expr -> e* binding*]) ...)
        ,[body bindings])
      (let-values (((liftable pinned) ((split-bindings x*) bindings)))
-       (values (make-let pinned body) (append (map list x* t* e*) liftable))))
+       (values (make-let pinned body)
+               (append
+                (apply append binding*)
+                liftable
+                (map list x* t* e*)))))
     ((begin ,[stmt* bindings*] ... ,[Expr -> e bindings])
      (values
       `(begin ,@(map make-let bindings* stmt*) ,(make-let bindings e))
@@ -90,6 +98,18 @@
      (values `(do ,e) bindings)))
 
   (define-match Expr
+    ((let ((,x* ,t* ,e*) ...) ,[body bindings])
+     (let-values (((liftable pinned) ((split-bindings x*) bindings)))
+       (values (make-let pinned body) (append liftable (map list x* t* e*)))))
+    ((begin ,[Stmt -> stmt* bindings*] ... ,[e bindings])
+     (values
+      `(begin ,@(map make-let bindings* stmt*) ,(make-let bindings e))
+      `()))
+    ((kernel ,kt ,d (((,x* ,t) (,e ,es) ,dim) ...) ,[body bindings])
+     (let-values (((liftable pinned) ((split-bindings x*) bindings)))
+       (values `(kernel ,kt ,d (((,x* ,t) (,e ,es) ,dim) ...)
+                        ,(make-let pinned body))
+               liftable)))
     (,e (values e `())))
 
   (define-match free-vars-Expr
@@ -105,8 +125,8 @@
     ((make-vector ,t ,[e]) e)
     ((vector-ref ,t ,[x] ,[i])
      (union x i))
-    ((kernel ,t ,dims (((,x* ,t*) (,[xs*] ,ts*) ,d) ...) ,[e])
-     (apply union (difference e x*) xs*))
+    ((kernel ,t (,[dims] ...) (((,x* ,t*) (,[xs*] ,ts*) ,d) ...) ,[e])
+     (apply union dims (difference e x*) xs*))
     ((let ((,x* ,t* ,[e*]) ...) ,[e])
      (apply union (difference e x*) e*))
     ((if ,[t] ,[c] ,[a])
@@ -140,9 +160,7 @@
   ;; pure means that it has no side effects
   ;; TODO: fix pure
   (define-match pure?
-    ((int ,n) #t)
-    ((float ,x) #t)
-    ((bool ,b) #t)
+    ((,t ,x) (guard (scalar-type? t)) `(,t ,x))
     ((var ,t ,x) #t)
     ((int->float ,[e]) e)
     ((,op ,[lhs] ,[rhs])
@@ -151,16 +169,27 @@
     ((let ((,x ,t ,e) ...) ,b)
      (and (andmap pure? e) (pure? b)))
     ((begin ,stmt* ... ,e) #f)
-    ((vector ,t . ,e*) #f)
-    ((make-vector ,t ,e) #f)
+    ((vector ,t . ,e*)
+     (andmap pure? e*))
+    ((make-vector ,t ,[e]) e)
     ((length ,[e]) e)
     ;; Don't lift function calls.
+    ((if ,[t] ,[c] ,[a])
+     (and t c a))
     ((call ,fn ,arg* ...) #f)
     ((vector-ref ,t ,[x] ,[i])
      (and x i))
     ((iota ,[e]) e)
     ;; TODO: Kernels might actually be pure in some cases.
-    ((kernel . ,_) #f))
+    ((kernel
+       ,t
+       (,dims ...)
+       (((,x ,xt) (,e ,et) ,d)
+        ...)
+       ,body)
+     (and (andmap pure? e)
+          (andmap pure? dims)
+          (pure? body))))
   
   ;; end library
   )
