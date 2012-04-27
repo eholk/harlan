@@ -7,9 +7,6 @@
    (elegant-weapons sets)
    (harlan verification-passes))
 
-  ;; This is an optimization pass, so it doesn't change the grammar.
-  (define verify-optimize-lift-lets verify-remove-nested-kernels)
-  
   ;; This optimization does something like loop invariant code
   ;; motion. The main idea is to let bindings up as high as possible
   ;; in the program. This may not be a good idea in general, but we'll
@@ -46,12 +43,10 @@
   ;; bindings that can and cannot be lifted over the definition of the
   ;; variables in vars.
   (define-match (split-bindings vars)
-    (() (values '() '()))
+    (() (values `() `()))
     (((,x ,t ,e) . ,[liftable pinned])
-     ;; TODO: get a more correct test for whether this can be lifted
      (if (let ((fv (free-vars-Expr e)))
-           (and (not (member x fv))
-                (null? (intersection vars fv))
+           (and (null? (intersection vars fv))
                 (pure? e)))
          (values (cons `(,x ,t ,e) liftable) pinned)
          (values liftable (cons `(,x ,t ,e) pinned)))))
@@ -64,7 +59,7 @@
     ((begin ,[stmt* bindings*] ... ,[Expr -> e bindings])
      (values
       `(begin ,@(map make-let bindings* stmt*) ,(make-let bindings e))
-      '()))
+      `()))
     ((for (,x ,[Expr -> start start-bindings]
               ,[Expr -> end end-bindings]
               ,[Expr -> step step-bindings])
@@ -88,17 +83,17 @@
              (append x-bindings e-bindings)))
     ((assert ,[Expr -> e bindings])
      (values `(assert ,e) bindings))
-    ((print . ,e*) (values `(print . ,e*) '()))
-    ((return) (values `(return) '()))
-    ((return ,e) (values `(return ,e) '()))
+    ((print . ,e*) (values `(print . ,e*) `()))
+    ((return) (values `(return) `()))
+    ((return ,e) (values `(return ,e) `()))
     ((do ,[Expr -> e bindings])
      (values `(do ,e) bindings)))
 
   (define-match Expr
-    (,e (values e '())))
+    (,e (values e `())))
 
   (define-match free-vars-Expr
-    ((,t ,x) (guard (scalar-type? t)) '())
+    ((,t ,x) (guard (scalar-type? t)) `())
     ((var ,t ,x) (list x))
     ((,op ,[e1] ,[e2])
      (guard (or (binop? op) (relop? op)))
@@ -121,6 +116,7 @@
      (apply union e s*)))
 
   (define-match free-vars-Stmt
+    ((error ,x) `())
     ((print ,[free-vars-Expr -> fv*]) fv*)
     ((assert ,[free-vars-Expr -> fv*]) fv*)
     ((return) `())
@@ -141,6 +137,8 @@
     ((begin ,[s*] ...)
      (apply union s*)))
 
+  ;; pure means that it has no side effects
+  ;; TODO: fix pure
   (define-match pure?
     ((int ,n) #t)
     ((float ,x) #t)
@@ -150,6 +148,9 @@
     ((,op ,[lhs] ,[rhs])
      (guard (or (binop? op) (relop? op)))
      (and lhs rhs))
+    ((let ((,x ,t ,e) ...) ,b)
+     (and (andmap pure? e) (pure? b)))
+    ((begin ,stmt* ... ,e) #f)
     ((vector ,t . ,e*) #f)
     ((make-vector ,t ,e) #f)
     ((length ,[e]) e)

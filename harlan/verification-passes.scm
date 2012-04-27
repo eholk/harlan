@@ -10,6 +10,7 @@
     verify-remove-danger
     verify-make-kernel-dimensions-explicit
     verify-lift-complex
+    verify-optimize-lift-lets
     verify-remove-nested-kernels
     verify-returnify-kernels
     verify-make-vector-refs-explicit
@@ -355,7 +356,11 @@
       (Relop Expr Expr)
       (c-expr C-Type Var)
       (call Expr Expr *)))
-  
+
+  (optimize-lift-lets
+    (%inherits Module Decl Stmt Body Expr Ret-Stmt)
+    (Start Module))
+
   (lift-complex (%inherits Module Decl)
     (Start Module)
     (Body
