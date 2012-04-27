@@ -212,13 +212,13 @@
      (== arg-t `())
      (== env `())
      (== in-r `()))
-    ((fresh (a at res rest in-r^ env^ r* r*^ ato)
+    ((fresh (a at res rest env^ r* r*^ ato)
        (== args `(,a . ,res))
        (== arg-t `(,at . ,rest))
        (== in-r `(,r* . ,r*^))
        (== env `((,a ,r* ,ato) . ,env^))
        (fill-type-with-region at r* ato)
-       (infer-fn-args res rest in-r^ env^)))))
+       (infer-fn-args res rest r*^ env^)))))
 
 (define-mk (infer-stmts stmts env outr* letr stmtso)
   (conde
