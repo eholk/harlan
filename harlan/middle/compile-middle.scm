@@ -31,11 +31,13 @@
    (make-kernel-dimensions-explicit
     verify-make-kernel-dimensions-explicit)
    (optimize-fuse-kernels
-    verify-optimize-fuse-kernels)
+    verify-optimize-fuse-kernels
+    1)
    (lift-complex
     verify-lift-complex)
    (optimize-lift-lets
-    verify-optimize-lift-lets)
+    verify-optimize-lift-lets
+    1)
    (remove-nested-kernels
     verify-remove-nested-kernels)
    (returnify-kernels
