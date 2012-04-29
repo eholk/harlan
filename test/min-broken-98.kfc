@@ -1,7 +1,7 @@
 (module
   (define (main)
     (let ((B (vector (vector 17))))
-      (for (i 0 1000)
+      (for (i 0 100)
         (let ((row (vector-ref (vector-ref B 0) 0)))
           (print row)))      
       (return 0))))
