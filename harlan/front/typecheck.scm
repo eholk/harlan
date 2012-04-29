@@ -52,7 +52,6 @@
                mod))
         ((1) (car result))
         (else
-         (display result)
          (error 'typecheck
            "Could not infer a unique type for program"
            result))))))
@@ -185,13 +184,14 @@
          (== stmt `(do ,e))
          (== stmto `(do ,e^))
          (infer-expr e env type e^)))
-      ((fresh (x start start^ end end^ step step^ s s^)
+      ((fresh (x start start^ end end^ step step^ s s^ argtype)
          (== stmt `(for (,x ,start ,end ,step) ,s))
          (== stmto `(for (,x ,start^ ,end^ ,step^) ,s^))
-         (infer-expr start env 'int start^)
-         (infer-expr end env 'int end^)
-         (infer-expr step env 'int step^)
-         (infer-stmt s `((,x . int) . ,env) rtype s^)))
+         (prefo argtype `(int u64))
+         (infer-expr start env argtype start^)
+         (infer-expr end env argtype end^)
+         (infer-expr step env argtype step^)
+         (infer-stmt s `((,x . ,argtype) . ,env) rtype s^)))
       ((fresh (e e^ s s^)
          (== stmt `(while ,e ,s))
          (== stmto `(while ,e^ ,s^))

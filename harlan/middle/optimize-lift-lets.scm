@@ -77,8 +77,8 @@
         (append start-bindings end-bindings step-bindings liftable))))
     ((while ,[Expr -> test test-bindings]
        ,[body bindings])
-     (values `(while ,test ,(make-let bindings body))
-             test-bindings))
+     (values `(while ,test ,body)
+             (append test-bindings bindings)))
     ((if ,[Expr -> e bindings] ,c)
      (values `(if ,e ,c) bindings))
     ((if ,[Expr -> e bindings] ,c ,a)
@@ -142,9 +142,7 @@
      (apply union s*)))
 
   (define-match pure?
-    ((int ,n) #t)
-    ((float ,x) #t)
-    ((bool ,b) #t)
+    ((,t ,v) (guard (scalar-type? t)) `(,t ,v))
     ((var ,t ,x) #t)
     ((int->float ,[e]) e)
     ((,op ,[lhs] ,[rhs])
