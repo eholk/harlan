@@ -1,12 +1,12 @@
 (library
-  (harlan middle make-kernel-dimensions-explicit)
-  (export make-kernel-dimensions-explicit)
+  (harlan middle make-work-size-explicit)
+  (export make-work-size-explicit)
   (import
    (rnrs)
    (harlan helpers)
    (elegant-weapons helpers))
 
-  (define-match make-kernel-dimensions-explicit
+  (define-match make-work-size-explicit
     ((module ,[Decl -> decl*] ...)
      `(module ,decl* ...)))
     
@@ -59,13 +59,22 @@
      `(call ,f . ,args))
     ((if ,[t] ,[c] ,[a]) `(if ,t ,c ,a))
     ((if ,[t] ,[c]) `(if ,t ,c))
-    ((kernel ,kt (((,x ,xt) (,[e] ,et)) ...) ,[body])
-     `(kernel ,kt 1 (((,x ,xt) (,e ,et) 0) ...) ,body))
-    ((iota ,[e])
-     `(kernel (vec int) 1 (,e) ()
-              (call (c-expr ((int) -> int)
-                            get_global_id)
-                    (int 0))))
+    ((kernel ,kt ,dim ,ws ,args ,body)
+     `(kernel ,kt ,ws ,args ,body))
+    ((kernel
+      (vec ,inner-type)
+      ,dim
+      (((,x ,t) (,[xs] ,ts) ,d)
+       ((,x* ,t*) (,[xs*] ,ts*) ,d*) ...) ,[body])
+     ((arg-length
+       ts
+       (lambda (len xs^)
+         (assert (= (length len) dim))
+         `(kernel (vec ,inner-type)
+                  ,len
+                  (((,x ,t) (,xs^ ,ts) ,d)
+                   ((,x* ,t*) (,xs* ,ts*) ,d*) ...) ,body)))
+      xs))
     ((let ((,x* ,t* ,[e*]) ...) ,[e])
      `(let ((,x* ,t* ,e*) ...) ,e))
     ((begin ,[Stmt -> s*] ... ,[e])
@@ -73,6 +82,21 @@
     ((,op ,[lhs] ,[rhs])
      (guard (or (relop? op) (binop? op)))
      `(,op ,lhs ,rhs)))
+
+  (define (arg-length ts finish)
+    (lambda (s)
+      (match s
+        ((make-vector ,t (int ,n))
+         (finish `((int ,n)) `(make-vector ,t (int ,n))))
+        ((kernel ,t (,dim ...) ,arg ,body)
+         (finish dim `(kernel ,t ,dim ,arg ,body)))
+        ((var ,t ,x)
+         (finish `((length (var ,t ,x))) `(var ,t ,x)))
+        (,else
+         (let ((xs^ (gensym 'xs)))
+           `(let ((,xs^ ,ts ,else))
+              ,(finish `((length (var ,ts ,xs^)))
+                       `(var ,ts ,xs^))))))))
 
   ;; end library
   )

@@ -9,6 +9,8 @@
     verify-expand-primitives
     verify-remove-danger
     verify-make-kernel-dimensions-explicit
+    verify-make-work-size-explicit
+    verify-optimize-fuse-kernels
     verify-lift-complex
     verify-remove-nested-kernels
     verify-returnify-kernels
@@ -347,6 +349,31 @@
       (let ((Var Type Expr) *) Expr)
       (begin Stmt * Expr)
       (vector-ref Type Expr Expr)
+      (kernel Type Integer (Expr +) (((Var Type) (Expr Type) Integer) *) Expr)
+      (kernel Type Integer (((Var Type) (Expr Type) Integer) *) Expr)
+      (length Expr)
+      (int->float Expr)
+      (make-vector Type Expr)
+      (Binop Expr Expr)
+      (Relop Expr Expr)
+      (c-expr C-Type Var)
+      (call Expr Expr *)))
+
+  (make-work-size-explicit
+    (%inherits Module Decl Body Stmt Ret-Stmt)
+    (Start Module)
+    (Expr
+      (char Char)
+      (int Integer)
+      (u64 Number)
+      (float Float)
+      (str String)
+      (bool Boolean)
+      (var Type Var)
+      (if Expr Expr Expr)
+      (let ((Var Type Expr) *) Expr)
+      (begin Stmt * Expr)
+      (vector-ref Type Expr Expr)
       (kernel Type (Expr +) (((Var Type) (Expr Type) Integer) *) Expr)
       (length Expr)
       (int->float Expr)
@@ -355,6 +382,9 @@
       (Relop Expr Expr)
       (c-expr C-Type Var)
       (call Expr Expr *)))
+
+  (optimize-fuse-kernels
+   (%inherits Module Decl Body Stmt Ret-Stmt Expr))
   
   (lift-complex (%inherits Module Decl)
     (Start Module)
