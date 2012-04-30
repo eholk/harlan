@@ -106,40 +106,6 @@
                      ,body)))))
       (,else `(kernel ,t ,dims ,iters ,body))))
 
-  ;; This seems wrong.  But here's the example:
-  ;; (do (kernel [vec (vec int)]
-  ;;       [(length (var (vec (vec int)) x_1))]
-  ;;       [((row_2 (vec int))
-  ;;         ((var (vec (vec int)) x_1) (vec (vec int))) 0)]
-  ;;       [kernel (vec int) ((length (var (vec int) row_2)))
-  ;;               (((i_3 int) ((var (vec int) row_2) (vec int))  0))
-  ;;               (+ (var int i_3) (int 1))]))
-  ;; =>
-  ;; (let ((len_x_1 (length (var (vec (vec int)) x_1)))
-  ;;       (len_row (length (vector-ref (var (vec (vec int)) x_1))))
-  ;;       (res (bool #t)))
-  ;;   (begin
-  ;;     (for (i (int 1) (var int len_x_1) (int 1))
-  ;;          (if (= (= len_row (length (vector-ref (var (vec (vec int)) x_1) (int 0))))
-  ;;                 #f)
-  ;;              (set! res #f)
-  ;;              (set! i (var int len_x_1))))
-  ;;     (if (var bool res)
-  ;;         (do (kernel [vec (vec int)]
-  ;;                     [(length (var (vec (vec int)) x_1))
-  ;;                      (length (var (vec int) row_2))]
-  ;;                     [((row_2 (vec int))
-  ;;                       ((var (vec (vec int)) x_1) (vec (vec int))) 0)
-  ;;                      ((i_3 int) ((var (vec int) row_2) (vec int))  1)]
-  ;;                     (+ (var int i_3) (int 1))))
-  ;;         (do (kernel [vec (vec int)]
-  ;;                     [(length (var (vec (vec int)) x_1))]
-  ;;                     [((row_2 (vec int))
-  ;;                       ((var (vec (vec int)) x_1) (vec (vec int))) 0)]
-  ;;                     [kernel (vec int) ((length (var (vec int) row_2)))
-  ;;                             (((i_3 int) ((var (vec int) row_2) (vec int))  0))
-  ;;                             (+ (var int i_3) (int 1))])))))
-
   (define (make-2d-kernel t dims iters body)
     (let ((arg-vars (map caar iters))
           (fallback (lambda () (inline-kernel t dims iters body))))
@@ -201,7 +167,7 @@
                 `(if (var bool ,res) 
                      (for (,i (int 1) (var int ,lenx) (int 1))
                           (if (= (= (var int ,lenrow)
-                                    (length (vector-ref ,(cadadr varx) ,varx (int 0))))
+                                    (length (vector-ref ,(cadadr varx) ,varx (var int ,i))))
                                  (bool #f))
                               (begin
                                 (set! (var bool ,res) (bool #f))
@@ -210,7 +176,7 @@
            (if (var bool ,res)
                (begin
                  ,@(if (verbose)
-                       `((print (str "Took branch to 2D-erize a kernel\n")))
+                       `((print (str "Rectangular argument, took branch to 2D-erize a kernel\n")))
                        `())
                  (kernel
                   ,t
@@ -219,7 +185,11 @@
                   (,@iters
                    ,@(map incr-dimension iters^))
                   ,(incr-dim-expr body^)))
-               ,oldkernel)))))
+               (begin
+                 ,@(if (verbose)
+                       `((print (str "Non-recangular argument, took branch to run nested kernel\n")))
+                       `())
+                 ,oldkernel))))))
   
   (define-match (not-in argv)
     ((var ,t ,x) (not (memq x argv)))
