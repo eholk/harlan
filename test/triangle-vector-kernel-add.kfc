@@ -1,0 +1,19 @@
+(module
+  (define (main)
+    (let ((triangle
+           (vector (iota 1)
+                   (iota 2)
+                   (iota 3)
+                   (iota 4)
+                   (iota 5)
+                   (iota 6)
+                   (iota 7)
+                   (iota 8)
+                   (iota 9))))
+      (println triangle)
+      (let ((triangle1
+             (kernel ((row triangle))
+               (kernel ((i row))
+                 (+ i 1)))))
+        (println triangle1)))
+    (return 0)))

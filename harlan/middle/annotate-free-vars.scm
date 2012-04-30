@@ -92,37 +92,5 @@
   ((vector-ref ,t ,[vfv*] ,[ifv*])
    (union/var vfv* ifv*)))
 
-(define (member/var x s)
-  (cond
-    ((null? s) #f)
-    ((eq? (caddar s) x) #t)
-    (else (member/var x (cdr s)))))
-
-(define (remove/var x s)
-  (cond
-    ((null? s) `())
-    ((eq? (caddar s) x) (cdr s))
-    (else (cons (car s) (remove/var x (cdr s))))))
-
-(define (difference/var s r)
-  (cond
-    ((null? s) `())
-    ((member/var (car s) r)
-     (difference/var (cdr s) r))
-    (else (cons (car s)
-            (difference/var (cdr s) r)))))
-
-(define (set-add/var s x)
-  (if (member/var (caddr x) s) s (cons x s)))
-
-(define (union/var . s*)
-  (cond
-    ((null? s*) `())
-    (else
-      (let ((s (car s*)) (s* (cdr s*)))
-        (fold-left
-          (lambda (s1 s2) (fold-left set-add/var s1 s2))
-          s s*)))))
-
 ;; end library
 )

@@ -1,0 +1,13 @@
+(%testspec xfail)
+
+(module
+  (define (main)
+    (if (if (< 5 6)
+            (begin
+              (println "Right answer\n")
+              #t)
+            (begin
+              (println "Wrong answer\n")
+              #f))
+        (return 0)
+        (return 1))))

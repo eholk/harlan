@@ -25,6 +25,7 @@
 (define benchmark          (make-parameter #f))
 (define generate-debug     (make-parameter #f))
 (define make-shared-object (make-parameter #f))
+(define optimize-level     (make-parameter 1))
 
 (define trace-passes '())
 
@@ -47,25 +48,26 @@
     ;; pat-args is not yet used, but it's supposed to be for things
     ;; like "-o file.out"
     ((_ args
-        (((long short) pat-args ...) body ...) ...)
+        (((long short) pat-args ...) body body* ...) ...)
      (let loop ((x args))
        (cond
          ((null? x) '())
          ((or (string=? long  (car x))
               (string=? short (car x)))
-          body ...
+          body body* ...
           (loop (cdr x)))
          ...
          (else (cons (car x) (loop (cdr x)))))))))
           
 (define (parse-args command-line)
   (match-args command-line
-    ((("--verbose" "-v"))  (verbose #t))
-    ((("--debug" "-g"))    (generate-debug #t))
-    ((("--shared" "-s"))   (make-shared-object #t))
-    ((("--quiet" "-q")     (quiet #t)))
-    ((("--no-verify" "-V") (verify #f)))
-    ((("--time" "-t"))     (timing #t))))
+    ((("--no-optimize" "-O0")) (optimize-level 0))
+    ((("--verbose" "-v"))      (verbose #t))
+    ((("--debug" "-g"))        (generate-debug #t))
+    ((("--shared" "-s"))       (make-shared-object #t))
+    ((("--quiet" "-q"))        (quiet #t))
+    ((("--no-verify" "-V"))    (verify #f))
+    ((("--time" "-t"))         (timing #t))))
 
 (define-syntax add-time
   (syntax-rules ()
@@ -118,7 +120,12 @@
          (begin
            (if (verify)
                (do-verify-pass 'verify-pass verify-pass expr))
-           expr))))))
+           expr))))
+    ((_ (pass-name verify-pass olevel))
+     (lambda (expr)
+       (if (<= olevel (optimize-level))
+           ((single-pass (pass-name verify-pass)) expr)
+           expr)))))
 
 (define-syntax passes
   (syntax-rules ()
