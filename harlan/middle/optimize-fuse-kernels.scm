@@ -4,7 +4,9 @@
     verify-optimize-fuse-kernels
     make-2d-kernel
     Expr
-    Stmt)
+    Stmt
+    shares-dimension
+    build-switch)
   (import
    (rnrs)
    (harlan helpers)
@@ -12,7 +14,7 @@
          verify-make-kernel-dimensions-explicit)
    (harlan compile-opts)
    (elegant-weapons helpers)
-   (only (chezscheme) trace-define))
+   (only (chezscheme) trace-define trace-lambda))
 
   (define verify-optimize-fuse-kernels
     verify-make-kernel-dimensions-explicit)
@@ -112,23 +114,113 @@
   ;;       [kernel (vec int) ((length (var (vec int) row_2)))
   ;;               (((i_3 int) ((var (vec int) row_2) (vec int))  0))
   ;;               (+ (var int i_3) (int 1))]))
+  ;; =>
+  ;; (let ((len_x_1 (length (var (vec (vec int)) x_1)))
+  ;;       (len_row (length (vector-ref (var (vec (vec int)) x_1))))
+  ;;       (res (bool #t)))
+  ;;   (begin
+  ;;     (for (i (int 1) (var int len_x_1) (int 1))
+  ;;          (if (= (= len_row (length (vector-ref (var (vec (vec int)) x_1) (int 0))))
+  ;;                 #f)
+  ;;              (set! res #f)
+  ;;              (set! i (var int len_x_1))))
+  ;;     (if (var bool res)
+  ;;         (do (kernel [vec (vec int)]
+  ;;                     [(length (var (vec (vec int)) x_1))
+  ;;                      (length (var (vec int) row_2))]
+  ;;                     [((row_2 (vec int))
+  ;;                       ((var (vec (vec int)) x_1) (vec (vec int))) 0)
+  ;;                      ((i_3 int) ((var (vec int) row_2) (vec int))  1)]
+  ;;                     (+ (var int i_3) (int 1))))
+  ;;         (do (kernel [vec (vec int)]
+  ;;                     [(length (var (vec (vec int)) x_1))]
+  ;;                     [((row_2 (vec int))
+  ;;                       ((var (vec (vec int)) x_1) (vec (vec int))) 0)]
+  ;;                     [kernel (vec int) ((length (var (vec int) row_2)))
+  ;;                             (((i_3 int) ((var (vec int) row_2) (vec int))  0))
+  ;;                             (+ (var int i_3) (int 1))])))))
 
   (define (make-2d-kernel t dims iters body)
-    (let ((arg-vars (map caar iters)))
+    (let ((arg-vars (map caar iters))
+          (fallback (lambda () (inline-kernel t dims iters body))))
       (match body
         ((kernel ,t^ ,dims^ ,iters^ ,body^)
-         (guard (and ((not-in arg-vars) dims^)
+         (guard (and ((not-in arg-vars) dims^)    ;; this should be (not (in ...))
                      ((not-in arg-vars) iters^)))
          (Expr
           `(kernel
-               ,t
-             (,@dims ,@dims^)
-             (,@iters
-              ,@(map incr-dimension iters^))
-             ,(incr-dim-expr body^))))
-        (,else
-         (inline-kernel t dims iters body)))))
+            ,t
+            (,@dims ,@dims^)
+            (,@iters
+             ,@(map incr-dimension iters^))
+            ,(incr-dim-expr body^))))
+        ((kernel ,t^ ,dims^ ,iters^ ,body^)
+         (cond
+          ((shares-dimension iters iters^)
+           =>
+           (lambda (varxs)
+             (build-switch
+              (map caddr varxs)
+              varxs
+              t
+              dims dims^
+              iters iters^
+              body^
+              (fallback))))
+          (else (fallback))))
+        (,else (fallback)))))
 
+  (define (shares-dimension iters iters^)
+    (let ((ls (map (lambda (iter) (cons (caar iter) (caadr iter))) iters)))
+      (match iters^
+        (() #f)
+        ((((,x ,xt) ((var ,et ,e) ,et) ,d) . ,[rest])
+         (cond
+          ((assq e ls)
+           => (lambda (p) (if rest (set-add/var rest (cdr p)) `(,(cdr p)))))
+          (else rest)))
+        ((((,x ,xt) (,e ,et) ,d) . ,[rest]) rest))))
+
+  (define (build-switch
+           xs varxs t dims dims^ iters iters^ body^ oldkernel)
+    (let ((lenxs (map (lambda (x) (gensym (symbol-append 'len x))) xs))
+          (lenrows (map (lambda (x) (gensym (symbol-append 'lenrow x))) xs))
+          (is (map (lambda (_) (gensym 'i)) varxs))
+          (res (gensym 'res)))
+      `(let ((,res bool (bool #t))
+             ,@(map
+                (lambda (lenx varx) `(,lenx int (length ,varx)))
+                lenxs varxs)
+             ,@(map
+                (lambda (lenrow varx)
+                  `(,lenrow int (length (vector-ref ,(cadadr varx) ,varx (int 0)))))
+                lenrows varxs))
+         (begin
+           ,@(map
+              (lambda (i lenx lenrow varx)
+                `(if (var bool ,res) 
+                     (for (,i (int 1) (var int ,lenx) (int 1))
+                          (if (= (= (var int ,lenrow)
+                                    (length (vector-ref ,(cadadr varx) ,varx (int 0))))
+                                 (bool #f))
+                              (begin
+                                (set! (var bool ,res) (bool #f))
+                                (set! (var int ,i) (var int ,lenx)))))))
+              is lenxs lenrows varxs)
+           (if (var bool ,res)
+               (begin
+                 ,@(if (verbose)
+                       `((print (str "Took branch to 2D-erize a kernel\n")))
+                       `())
+                 (kernel
+                  ,t
+                  (,@dims
+                   (length (vector-ref ,(cadadr (car varxs)) ,(car varxs) (int 0))))
+                  (,@iters
+                   ,@(map incr-dimension iters^))
+                  ,(incr-dim-expr body^)))
+               ,oldkernel)))))
+  
   (define-match (not-in argv)
     ((var ,t ,x) (not (memq x argv)))
     ((,x* ...)
