@@ -176,9 +176,8 @@
     ((let ((,x ,t ,e) ...) ,b)
      (and (andmap pure? e) (pure? b)))
     ((begin ,stmt* ... ,e) #f)
-    ((vector ,t . ,e*)
-     (andmap pure? e*))
-    ((make-vector ,t ,[e]) e)
+    ((vector ,t . ,e*) #f)
+    ((make-vector ,t ,[e]) #f)
     ((length ,[e]) e)
     ;; Don't lift function calls.
     ((if ,[t] ,[c] ,[a])
