@@ -10,10 +10,10 @@
     (harlan middle make-kernel-dimensions-explicit)
     (harlan middle make-work-size-explicit)
     (harlan middle optimize-fuse-kernels)
-    (harlan middle lift-complex)
     (harlan middle remove-nested-kernels)
     (harlan middle returnify-kernels)
     (harlan middle make-vector-refs-explicit)
+    (harlan middle lift-complex)
     (harlan middle annotate-free-vars)
     (harlan middle lower-vectors)
     (harlan middle insert-let-regions)
@@ -44,13 +44,13 @@
     verify-remove-nested-kernels)
    (returnify-kernels
     verify-returnify-kernels)
+   (make-vector-refs-explicit
+    verify-make-vector-refs-explicit)
    (lift-complex
     verify-lift-complex)
    (optimize-lift-allocation
     verify-optimize-lift-allocation
     1)
-   (make-vector-refs-explicit
-    verify-make-vector-refs-explicit)
    (annotate-free-vars
     verify-annotate-free-vars)
    (lower-vectors

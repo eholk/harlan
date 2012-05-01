@@ -68,6 +68,10 @@
            rand*
            (lambda (rand*)
              (finish `(call ,rator . ,rand*)))))))
+      ((addressof ,e)
+       (lift-expr e (lambda (e) (finish `(addressof ,e)))))
+      ((deref ,e)
+       (lift-expr e (lambda (e) (finish `(deref ,e)))))
       (,else (error 'lift-expr "unmatched datum" else)))))
 
 (define Expr
@@ -91,16 +95,11 @@
        (lambda (e^) (loop (cdr e*) (cons e^ e^*))))))))
 
 (define-match lift-stmt
-  ((kernel ,t ,dims (((,x* ,t*) (,e* ,ts*) ,dim*) ...) ,[body])
+  ((kernel ,t ,dims ,[body])
    (lift-expr*
     dims
     (lambda (dims)
-      (lift-expr*
-       e*
-       (lambda (e*^)
-         `(kernel ,t ,dims
-                  (((,x* ,t*) (,e*^ ,ts*) ,dim*) ...)
-                  ,body))))))
+      `(kernel ,t ,dims ,body))))
   ((begin ,[lift-stmt -> stmt*] ...)
    (make-begin stmt*))
   ((error ,x) `(error ,x))
@@ -118,7 +117,7 @@
    (lift-expr
     x
     (lambda (x)
-      (lift-expr e (lambda (e^) `(set! ,x ,e^))))))
+       (lift-expr e (lambda (e^) `(set! ,x ,e^))))))
   ((let () ,[stmt]) stmt)
   ((let ((,x ,t ,e) . ,rest) ,stmt)
    (Expr e
