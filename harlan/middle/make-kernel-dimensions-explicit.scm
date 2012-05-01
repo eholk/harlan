@@ -51,7 +51,7 @@
     ((int->float ,[e]) `(int->float ,e))
     ((make-vector ,t ,[e])
      `(make-vector ,t ,e))
-    ((vector ,t ,e ...)
+    ((vector ,t ,[e] ...)
      `(vector ,t . ,e))
     ((vector-ref ,t ,[v] ,[i])
      `(vector-ref ,t ,v ,i))

@@ -25,11 +25,11 @@
   ;; immediately inside this form. We then continue to pass the rest
   ;; of the bindings up the tree.
 
-  (define optimize-lift-allocation optimize-lift-lets)
-
   (define-match optimize-lift-lets
     ((module ,[Decl -> decl*] ...)
      `(module ,decl* ...)))
+
+  (define optimize-lift-allocation optimize-lift-lets)
 
   (define (make-let bindings body)
     (if (null? bindings)

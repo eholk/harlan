@@ -68,16 +68,18 @@
                  (loop e* e*^ (cdr dims) (cons d dims^)))))))))
       ((make-vector ,t ,c)
        (finish `(make-vector ,t ,c)))
-      ((vector ,t ,e* ...)
-       (let loop ((e* e*) (e^* `()))
-         (cond
-          ((null? e*)
-           (finish `(vector ,t ,(reverse e^*))))
-          (else
-           (lift-expr
-            (car e*)
-            (lambda (e^)
-              (loop (cdr e*) (cons e^ e^*))))))))
+      ((vector ,t . ,e*)
+       (let ((finish (lambda (e*^)
+                       (let ((v (gensym 'v)))
+                         `(let ((,v ,t (vector ,t . ,e*^)))
+                            ,(finish `(var ,t ,v)))))))
+         (let loop ((e* e*) (e*^ '()))
+           (if (null? e*)
+               (finish (reverse e*^))
+               (lift-expr
+                (car e*)
+                (lambda (e^)
+                  (loop (cdr e*) (cons e^ e*^))))))))
       ((length ,e) 
        (lift-expr
          e (lambda (e^)
@@ -127,16 +129,15 @@
        (lift-expr e
           (lambda (e)
             (finish `(make-vector ,t ,e)))))
-      ((vector ,t ,e* ...)
-       (let loop ((e* e*) (e^* `()))
-         (cond
-          ((null? e*)
-           (finish `(vector ,t ,(reverse e^*))))
-          (else
-           (lift-expr
-            (car e*)
-            (lambda (e^)
-              (loop (cdr e*) (cons e^ e^*))))))))
+      ((vector ,t . ,e*)
+       (let ((finish (lambda (e*^) (finish `(vector ,t . ,e*^)))))
+         (let loop ((e* e*) (e*^ '()))
+           (if (null? e*)
+               (finish (reverse e*^))
+               (lift-expr
+                (car e*)
+                (lambda (e^)
+                  (loop (cdr e*) (cons e^ e*^))))))))
       (,else (lift-expr else finish)))))
 
 (define-match lift-stmt

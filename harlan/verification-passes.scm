@@ -276,6 +276,7 @@
       (length Expr)
       (int->float Expr)
       (make-vector Type Expr)
+      (vector Type Expr +)
       (iota Expr)
       (Binop Expr Expr)
       (Relop Expr Expr)
@@ -319,6 +320,7 @@
       (length Expr)
       (int->float Expr)
       (make-vector Type Expr)
+      (vector Type Expr +)
       (Binop Expr Expr)
       (Relop Expr Expr)
       (c-expr C-Type Var)
@@ -343,6 +345,7 @@
       (length Expr)
       (int->float Expr)
       (make-vector Type Expr)
+      (vector Type Expr +)
       (Binop Expr Expr)
       (Relop Expr Expr)
       (c-expr C-Type Var)
@@ -381,6 +384,7 @@
     (Lifted-Expr
       (kernel Type (Triv +) (((Var Type) (Triv Type) Integer) *) Expr)
       (make-vector Type Triv)
+      (vector Type Triv +)
       Triv)
     (Expr
       (let ((Var Type Lifted-Expr)) Expr)
@@ -402,10 +406,6 @@
       (vector-ref Type Triv Triv)
       (Binop Triv Triv)
       (Relop Triv Triv)))
-
-  (optimize-lift-lets
-    (%inherits Module Decl Stmt Body Lifted-Expr Expr Triv Ret-Stmt)
-    (Start Module))
 
   ;; This is really not true, the grammar does change.  Lazy!
   (remove-nested-kernels
@@ -431,6 +431,7 @@
       Ret-Stmt)
     (Lifted-Expr
       (make-vector Type Triv)
+      (vector Type Triv +)
       Triv))
 
   (make-vector-refs-explicit

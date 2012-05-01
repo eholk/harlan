@@ -1,15 +1,10 @@
 (library
   (harlan middle lower-vectors)
-  (export lower-vectors
-    lower-stmt
-    lower-decl
-    lower-expr)
+  (export lower-vectors)
   (import
     (rnrs)
-    (elegant-weapons helpers)
-    (elegant-weapons sets))
-
-  
+    (harlan helpers)
+    (elegant-weapons helpers))
 
 (define-match lower-vectors
   ((module ,[lower-decl -> decl*] ...)
@@ -45,26 +40,27 @@
    `(assert ,e))
   ((print ,e* ...)
    `(print . ,e*))
-  ((kernel (,dims ...) ,fv* ,[stmt])
-   `(kernel ,dims ,fv* ,stmt))
+  ((kernel ,t (,dims ...) ,fv* ,[stmt])
+   `(kernel ,t ,dims ,fv* ,stmt))
   ((do ,e) `(do ,e)))
 
-(define (lower-lifted-vector b s)
+(define (lower-lifted-expr b s)
   (match b
     (() s)
-    (((,x (vec ,t) (vector ,t ,e*)) . ,[rest])
+    (((,x (vec ,t) (vector (vec ,t) . ,e*)) . ,[rest])
      `(let ((,x (vec ,t)
                 (make-vector ,t (int ,(length e*)))))
-        ,(make-begin
-          (let loop ((e* e*) (i 0))
-            (if (null? e*)
-                `(,rest)
-                `((set! (vector-ref ,t
-                                    (var (vec ,t) ,x)
-                                    (int ,i))
-                        ,(car e*))
-                  . ,(loop (cdr e*) (+ 1 i)))))))))
-  (((,x ,t ,e) . ,[rest])
-   `(let ((,x ,t ,e)) . ,rest)))
+        (begin
+          ,@(let loop ((e* e*) (i 0))
+              (if (null? e*)
+                  `()
+                  `((set! (vector-ref ,t
+                                      (var (vec ,t) ,x)
+                                      (int ,i))
+                          ,(car e*))
+                    . ,(loop (cdr e*) (+ 1 i)))))
+          ,rest)))
+    (((,x ,t ,e) . ,[rest])
+     `(let ((,x ,t ,e)) ,rest))))
 
 )
