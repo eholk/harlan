@@ -42,44 +42,13 @@
                   (finish `(vector-ref ,t ,e1^ ,e2^)))))))
       ((make-vector ,t ,e)
        (lift-expr e (lambda (e^) (finish `(make-vector ,t ,e^)))))
-      ;; There are TWO kernel lines, don't forget.
-      ((kernel ,t ,dims (((,x* ,t*) (,e* ,ts*) ,dim*) ...) ,body)
-       (let ((finish
-               (lambda (dims^ e*^)
-                 (let ((v (gensym 'v)))
-                   `(let ((,v ,t
-                            (kernel ,t ,dims^
-                               (((,x* ,t*) (,e*^ ,ts*) ,dim*) ...)
-                              ,(lift-expr body (lambda (b) b)))))
-                      ,(finish `(var ,t ,v)))))))
-         (let loop ((e* e*) (e*^ '()) (dims dims) (dims^ `()))
-           (cond
-             ((and (null? dims) (null? e*))
-              (finish (reverse dims^) (reverse e*^)))
-             ((and (null? dims) (not (null? e*)))
-              (lift-expr
-               (car e*)
-               (lambda (e^)
-                 (loop (cdr e*) (cons e^ e*^) dims dims^))))
-             (else
-              (lift-expr
-               (car dims)
-               (lambda (d)
-                 (loop e* e*^ (cdr dims) (cons d dims^)))))))))
-      ((make-vector ,t ,c)
-       (finish `(make-vector ,t ,c)))
       ((vector ,t . ,e*)
-       (let ((finish (lambda (e*^)
-                       (let ((v (gensym 'v)))
-                         `(let ((,v ,t (vector ,t . ,e*^)))
-                            ,(finish `(var ,t ,v)))))))
-         (let loop ((e* e*) (e*^ '()))
-           (if (null? e*)
-               (finish (reverse e*^))
-               (lift-expr
-                (car e*)
-                (lambda (e^)
-                  (loop (cdr e*) (cons e^ e*^))))))))
+       (lift-expr*
+        e*
+        (lambda (e*)
+          (let ((v (gensym 'v)))
+            `(let ((,v ,t (vector ,t . ,e*)))
+               ,(finish `(var ,t ,v)))))))
       ((length ,e) 
        (lift-expr
          e (lambda (e^)
@@ -92,55 +61,46 @@
                 e2 (lambda (e2^)
                      (finish `(,op ,e1^ ,e2^)))))))
       ((call ,rator . ,rand*)
-       (let loop ((e* (cons rator rand*)) (e*^ '()))
-         (if (null? e*)
-             (finish `(call . ,(reverse e*^)))
-             (lift-expr
-               (car e*)
-               (lambda (e^)
-                 (loop (cdr e*) (cons e^ e*^)))))))
+       (lift-expr
+        rator
+        (lambda (rator)
+          (lift-expr*
+           rand*
+           (lambda (rand*)
+             (finish `(call ,rator . ,rand*)))))))
       (,else (error 'lift-expr "unmatched datum" else)))))
 
 (define Expr
   (lambda (expr finish)
     (match expr
-      ;; There are TWO kernel lines, don't forget.
-      ((kernel ,t ,dims (((,x* ,t*) (,e* ,ts*) ,dim*) ...) ,body)
-       (let ((finish
-              (lambda (dims^ e*^)
-                (finish `(kernel ,t ,dims^
-                                 (((,x* ,t*) (,e*^ ,ts*) ,dim*) ...)
-                                 ,(lift-expr body (lambda (b) b)))))))
-         (let loop ((e* e*) (e*^ '()) (dims dims) (dims^ `()))
-           (cond
-             ((and (null? dims) (null? e*))
-              (finish (reverse dims^) (reverse e*^)))
-             ((and (null? dims) (not (null? e*)))
-              (lift-expr
-               (car e*)
-               (lambda (e^)
-                 (loop (cdr e*) (cons e^ e*^) dims dims^))))
-             (else
-              (lift-expr
-               (car dims)
-               (lambda (d)
-                 (loop e* e*^ (cdr dims) (cons d dims^)))))))))
       ((make-vector ,t ,e)
        (lift-expr e
           (lambda (e)
             (finish `(make-vector ,t ,e)))))
       ((vector ,t . ,e*)
-       (let ((finish (lambda (e*^) (finish `(vector ,t . ,e*^)))))
-         (let loop ((e* e*) (e*^ '()))
-           (if (null? e*)
-               (finish (reverse e*^))
-               (lift-expr
-                (car e*)
-                (lambda (e^)
-                  (loop (cdr e*) (cons e^ e*^))))))))
+       (lift-expr* e* (lambda (e*) (finish `(vector ,t . ,e*)))))
       (,else (lift-expr else finish)))))
 
+(define (lift-expr* e* finish)
+  (let loop ((e* e*) (e^* `()))
+    (cond
+     ((null? e*) (finish (reverse e^*)))
+     (else
+      (lift-expr
+       (car e*)
+       (lambda (e^) (loop (cdr e*) (cons e^ e^*))))))))
+
 (define-match lift-stmt
+  ((kernel ,t ,dims (((,x* ,t*) (,e* ,ts*) ,dim*) ...) ,[body])
+   (lift-expr*
+    dims
+    (lambda (dims)
+      (lift-expr*
+       e*
+       (lambda (e*^)
+         `(kernel ,t ,dims
+                  (((,x* ,t*) (,e*^ ,ts*) ,dim*) ...)
+                  ,body))))))
   ((begin ,[lift-stmt -> stmt*] ...)
    (make-begin stmt*))
   ((error ,x) `(error ,x))

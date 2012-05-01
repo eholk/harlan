@@ -42,22 +42,19 @@
     1)
    (remove-nested-kernels
     verify-remove-nested-kernels)
-   (lift-complex
-    verify-lift-complex)
-   (optimize-lift-lets
-    verify-optimize-lift-lets
-    1)
    (returnify-kernels
     verify-returnify-kernels)
+   (lift-complex
+    verify-lift-complex)
+   (optimize-lift-allocation
+    verify-optimize-lift-allocation
+    1)
    (make-vector-refs-explicit
     verify-make-vector-refs-explicit)
    (annotate-free-vars
     verify-annotate-free-vars)
    (lower-vectors
     verify-lower-vectors)
-   ;; (optimize-lift-allocation
-   ;;  verify-lift-allocation
-   ;;  1)
    (insert-let-regions
     verify-insert-let-regions)
    (infer-regions

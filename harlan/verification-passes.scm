@@ -9,11 +9,12 @@
     verify-remove-danger
     verify-make-kernel-dimensions-explicit
     verify-make-work-size-explicit
-    verify-optimize-fuse-kernels
-    verify-lift-complex
     verify-optimize-lift-lets
+    verify-optimize-fuse-kernels
     verify-remove-nested-kernels
     verify-returnify-kernels
+    verify-lift-complex
+    verify-optimize-lift-allocation
     verify-make-vector-refs-explicit
     verify-annotate-free-vars
     verify-lower-vectors
@@ -363,6 +364,25 @@
     (%inherits Module Decl Stmt Body Expr Ret-Stmt)
     (Start Module))
 
+  (returnify-kernels
+   (%inherits Module Decl Body Expr Ret-Stmt)
+    (Start Module)
+    (Stmt
+      (print Expr)
+      (print Expr Expr)
+      (assert Expr)
+      (set! Expr Expr)
+      (kernel Type (Expr +) (((Var Type) (Expr Type) Integer) *) Stmt)
+      (let ((Var Type Expr) *) Stmt)
+      (if Expr Stmt)
+      (if Expr Stmt Stmt)
+      (for (Var Expr Expr Expr) Stmt)
+      (while Expr Stmt)
+      (do Expr)
+      (begin Stmt * Stmt)
+      (error Var)
+      Ret-Stmt))
+
   (lift-complex (%inherits Module Decl)
     (Start Module)
     (Body
@@ -381,13 +401,13 @@
       (print Triv Triv)
       (assert Triv)
       (set! Triv Triv)
+      (kernel Type (Expr +) (((Var Type) (Expr Type) Integer) *) Stmt)
       (do Triv)
       (for (Var Triv Triv Triv) Stmt)
       (while Triv Stmt)
       (error Var)
       Ret-Stmt)
     (Lifted-Expr
-      (kernel Type (Triv +) (((Var Type) (Triv Type) Integer) *) Expr)
       (make-vector Type Triv)
       (vector Type Triv +)
       Triv)
@@ -412,27 +432,8 @@
       (Binop Triv Triv)
       (Relop Triv Triv)))
 
-  (returnify-kernels (%inherits Module Decl Body Triv Ret-Stmt)
-    (Start Module)
-    (Stmt
-      (print Triv)
-      (print Triv Triv)
-      (assert Triv)
-      (set! Triv Triv)
-      (kernel Type (Triv +) (((Var Type) (Triv Type) Integer) *) Stmt)
-      (let ((Var Type Lifted-Expr) *) Stmt)
-      (if Triv Stmt)
-      (if Triv Stmt Stmt)
-      (for (Var Triv Triv Triv) Stmt)
-      (while Triv Stmt)
-      (do Triv)
-      (begin Stmt * Stmt)
-      (error Var)
-      Ret-Stmt)
-    (Lifted-Expr
-      (make-vector Type Triv)
-      (vector Type Triv +)
-      Triv))
+  (optimize-lift-allocation
+   (%inherits Module Decl Body Ret-Stmt Lifted-Expr Stmt Triv Expr))
 
   (make-vector-refs-explicit
     (%inherits Module Decl Body Ret-Stmt Lifted-Expr)

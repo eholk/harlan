@@ -68,6 +68,11 @@
                 (apply append binding*)
                 (map list x* t* e*)
                 liftable))))
+    ((kernel ,kt ,d (((,x* ,t) (,e ,es) ,dim) ...) ,[body bindings])
+     (let-values (((liftable pinned) ((split-bindings x*) bindings)))
+       (values `(kernel ,kt ,d (((,x* ,t) (,e ,es) ,dim) ...)
+                        ,(make-let pinned body))
+               liftable)))
     ((begin ,[stmt* bindings*] ... ,[Expr -> e bindings])
      (values
       `(begin ,@(map make-let bindings* stmt*) ,(make-let bindings e))
