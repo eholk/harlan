@@ -1,10 +1,7 @@
 (library
   (harlan middle optimize-fuse-kernels)
   (export optimize-fuse-kernels
-    verify-optimize-fuse-kernels
     make-2d-kernel
-    Expr
-    Stmt
     shares-dimension
     build-switch)
   (import
@@ -15,9 +12,6 @@
    (harlan compile-opts)
    (elegant-weapons helpers)
    (only (chezscheme) trace-define trace-lambda))
-
-  (define verify-optimize-fuse-kernels
-    verify-make-kernel-dimensions-explicit)
 
   (define-match optimize-fuse-kernels
     ((module ,[Decl -> decl*] ...)

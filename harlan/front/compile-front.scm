@@ -23,7 +23,8 @@
      (returnify verify-returnify)
      (typecheck verify-typecheck)
      (expand-primitives verify-expand-primitives)
-     (remove-danger verify-remove-danger)))
+;;     (remove-danger verify-remove-danger)
+     ))
   
   ;; end library
   )

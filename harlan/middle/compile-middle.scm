@@ -7,6 +7,7 @@
     (harlan verification-passes)
 
     (harlan middle make-kernel-dimensions-explicit)
+    (harlan middle make-work-size-explicit)
     (harlan middle optimize-fuse-kernels)
     (harlan middle lift-complex)
     (harlan middle remove-nested-kernels)
@@ -30,16 +31,18 @@
   (passes
    (make-kernel-dimensions-explicit
     verify-make-kernel-dimensions-explicit)
-   (optimize-lift-lets
-    verify-optimize-lift-lets)
+   ;;(optimize-lift-lets
+   ;; verify-optimize-lift-lets)
+   (make-work-size-explicit
+    verify-make-work-size-explicit)
    (optimize-fuse-kernels
     verify-optimize-fuse-kernels
     1)
    (lift-complex
     verify-lift-complex)
-   (optimize-lift-lets
-    verify-optimize-lift-lets
-    1)
+   ;;(optimize-lift-lets
+   ;; verify-optimize-lift-lets
+   ;; 1)
    (remove-nested-kernels
     verify-remove-nested-kernels)
    (returnify-kernels
