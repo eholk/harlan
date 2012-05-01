@@ -104,6 +104,8 @@
    (if (memq x x*) `(deref (var ,t ,x)) `(var ,t ,x)))
   ((make-vector ,t ,[(replace-vec-refs-expr x*) -> triv*] ...)
    `(make-vector ,t . ,triv*))
+  ((vector ,t ,[triv*] ...)
+   `(vector ,t . ,triv*))
   ((if ,[(replace-vec-refs-expr x*) -> t]
        ,[(replace-vec-refs-expr x*) -> c]
        ,[(replace-vec-refs-expr x*) -> a])

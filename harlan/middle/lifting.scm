@@ -1,5 +1,7 @@
-(library (harlan middle optimize-lift-lets)
-  (export optimize-lift-lets verify-optimize-lift-lets)
+(library (harlan middle lifting)
+  (export
+    optimize-lift-lets
+    optimize-lift-allocation)
   (import
    (rnrs)
    (harlan helpers)
@@ -22,6 +24,8 @@
   ;; the liftable bindings depends on, we go ahead and place this let
   ;; immediately inside this form. We then continue to pass the rest
   ;; of the bindings up the tree.
+
+  (define optimize-lift-allocation optimize-lift-lets)
 
   (define-match optimize-lift-lets
     ((module ,[Decl -> decl*] ...)
@@ -123,6 +127,7 @@
     ((int->float ,[e]) e)
     ((length ,[e]) e)
     ((make-vector ,t ,[e]) e)
+    ((vector ,t ,[e] ...) (apply union e))
     ((vector-ref ,t ,[x] ,[i])
      (union x i))
     ((kernel ,t (,[dfv**] ...) (((,x* ,t*) (,[fv**] ,ts*) ,d) ...) ,[e])

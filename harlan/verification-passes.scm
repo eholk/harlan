@@ -16,6 +16,7 @@
     verify-returnify-kernels
     verify-make-vector-refs-explicit
     verify-annotate-free-vars
+    verify-lower-vectors
     verify-insert-let-regions
     verify-infer-regions
     verify-uglify-vectors
@@ -402,6 +403,10 @@
       (Binop Triv Triv)
       (Relop Triv Triv)))
 
+  (optimize-lift-lets
+    (%inherits Module Decl Stmt Body Lifted-Expr Expr Triv Ret-Stmt)
+    (Start Module))
+
   ;; This is really not true, the grammar does change.  Lazy!
   (remove-nested-kernels
     (%inherits Module Decl Stmt Body Lifted-Expr Expr Triv Ret-Stmt)
@@ -485,6 +490,12 @@
       (do Triv)
       (begin Stmt * Stmt)
       Ret-Stmt))
+
+  (lower-vectors (%inherits Module Body Decl Triv Ret-Stmt Stmt)
+    (Start Module)
+    (Lifted-Expr
+      (make-vector Type Triv)
+      Triv))
 
   (insert-let-regions (%inherits Module Body Lifted-Expr Triv Ret-Stmt)
     (Start Module)

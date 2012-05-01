@@ -119,6 +119,8 @@
    `(if ,t ,c ,a))
   ((make-vector ,t ,[n])
    `(make-vector ,t ,n))
+  ((vector ,t ,[e] ...)
+   `(vector ,t . ,e))
   ((call
     (c-expr ((int) -> int) get_global_id)
     ,n)

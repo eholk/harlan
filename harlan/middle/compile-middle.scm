@@ -5,16 +5,17 @@
     (rnrs)
     (harlan compile-opts)
     (harlan verification-passes)
+    (harlan middle lifting)
 
     (harlan middle make-kernel-dimensions-explicit)
     (harlan middle make-work-size-explicit)
     (harlan middle optimize-fuse-kernels)
     (harlan middle lift-complex)
     (harlan middle remove-nested-kernels)
-    (harlan middle optimize-lift-lets)
     (harlan middle returnify-kernels)
     (harlan middle make-vector-refs-explicit)
     (harlan middle annotate-free-vars)
+    (harlan middle lower-vectors)
     (harlan middle insert-let-regions)
     (harlan middle infer-regions)
     (harlan middle uglify-vectors)
@@ -51,6 +52,11 @@
     verify-make-vector-refs-explicit)
    (annotate-free-vars
     verify-annotate-free-vars)
+   (lower-vectors
+    verify-lower-vectors)
+   ;; (optimize-lift-allocation
+   ;;  verify-lift-allocation
+   ;;  1)
    (insert-let-regions
     verify-insert-let-regions)
    (infer-regions

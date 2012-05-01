@@ -73,17 +73,7 @@
     ((iota ,[e])
      `(iota ,e))
     ((vector (vec ,t) ,[e*] ...)
-     (let ((x (gensym 'x)))
-       `(let ((,x (vec ,t) (make-vector ,t (int ,(length e*)))))
-          ,(make-begin
-            (let loop ((e* e*) (i 0))
-              (if (null? e*)
-                  `((var (vec ,t) ,x))
-                  `((set! (vector-ref ,t
-                                      (var (vec ,t) ,x)
-                                      (int ,i))
-                          ,(car e*))
-                    . ,(loop (cdr e*) (+ 1 i)))))))))
+     `(vector (vec ,t) . ,e*))
     ((make-vector ,t ,[size] ,[init])
      (let ((i (gensym 'i))
            (len (gensym 'len))

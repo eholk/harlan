@@ -80,6 +80,8 @@
   ((call ,[fv*] ,[fv**] ...)
    (apply union/var fv* fv**))
   ((make-vector ,t ,[fv*]) fv*)
+  ((vector ,t ,[fv**] ...)
+   (apply union/var fv**))
   ((let ((,x* ,t* ,[fv**]) ...) ,[fv*])
    (let ((fv* (fold-right remove/var fv* x*)))
      (apply union/var fv* fv**)))
