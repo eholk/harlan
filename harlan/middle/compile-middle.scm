@@ -40,13 +40,13 @@
    (optimize-fuse-kernels
     verify-optimize-fuse-kernels
     1)
+   (remove-nested-kernels
+    verify-remove-nested-kernels)
    (lift-complex
     verify-lift-complex)
    (optimize-lift-lets
     verify-optimize-lift-lets
     1)
-   (remove-nested-kernels
-    verify-remove-nested-kernels)
    (returnify-kernels
     verify-returnify-kernels)
    (make-vector-refs-explicit

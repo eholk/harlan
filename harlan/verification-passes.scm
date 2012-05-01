@@ -358,6 +358,11 @@
   (optimize-fuse-kernels
    (%inherits Module Decl Body Stmt Ret-Stmt Expr))
   
+  ;; This is really not true, the grammar does change.  Lazy!
+  (remove-nested-kernels
+    (%inherits Module Decl Stmt Body Expr Ret-Stmt)
+    (Start Module))
+
   (lift-complex (%inherits Module Decl)
     (Start Module)
     (Body
@@ -406,11 +411,6 @@
       (vector-ref Type Triv Triv)
       (Binop Triv Triv)
       (Relop Triv Triv)))
-
-  ;; This is really not true, the grammar does change.  Lazy!
-  (remove-nested-kernels
-    (%inherits Module Decl Stmt Body Lifted-Expr Expr Triv Ret-Stmt)
-    (Start Module))
 
   (returnify-kernels (%inherits Module Decl Body Triv Ret-Stmt)
     (Start Module)
