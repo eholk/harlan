@@ -62,8 +62,8 @@
        (values (make-let pinned body)
                (append
                 (apply append binding*)
-                liftable
-                (map list x* t* e*)))))
+                (map list x* t* e*)
+                liftable))))
     ((begin ,[stmt* bindings*] ... ,[Expr -> e bindings])
      (values
       `(begin ,@(map make-let bindings* stmt*) ,(make-let bindings e))
@@ -125,8 +125,10 @@
     ((make-vector ,t ,[e]) e)
     ((vector-ref ,t ,[x] ,[i])
      (union x i))
-    ((kernel ,t ,dims (((,x* ,t*) (,[xs*] ,ts*) ,d) ...) ,[e])
-     (union (difference e x*) xs*))
+    ((kernel ,t (,[dfv**] ...) (((,x* ,t*) (,[fv**] ,ts*) ,d) ...) ,[e])
+     (apply union
+            (difference e x*)
+            (union dfv** fv**)))
     ((let ((,x* ,t* ,[e*]) ...) ,[e])
      (apply union (difference e x*) e*))
     ((if ,[t] ,[c] ,[a])

@@ -31,10 +31,10 @@
   (passes
    (make-kernel-dimensions-explicit
     verify-make-kernel-dimensions-explicit)
-   ;;(optimize-lift-lets
-   ;; verify-optimize-lift-lets)
    (make-work-size-explicit
     verify-make-work-size-explicit)
+   (optimize-lift-lets
+    verify-optimize-lift-lets)
    (optimize-fuse-kernels
     verify-optimize-fuse-kernels
     1)

@@ -2,7 +2,6 @@
   (harlan verification-passes)
   (export
     verify-harlan
-    verify-nest-lets
     verify-parse-harlan
     verify-returnify
     verify-typecheck
@@ -92,42 +91,6 @@
       (vector Value +)
       (vector-ref Value Value)
       (kernel ((Var Value) +) Value * Value)
-      (reduce Reduceop Value)
-      (iota Value)
-      (length Value)
-      (make-vector Value Value)
-      (Binop Value Value)
-      (Relop Value Value)
-      (Var Value *)))
-
-  (nest-lets (%inherits Module Decl)
-    (Start Module)
-    (Value
-      char
-      integer
-      boolean
-      float
-      string
-      ident
-      (let ((Var Value) *) Value +)
-      (begin Value * Value)
-      (print Value)
-      (print Value Value)
-      (println Value)
-      (println Value Value)
-      (write-pgm Value Value)
-      (assert Value)
-      (set! Value Value)
-      (for (Var Value Value) Value +)
-      (for (Var Value Value Value) Value +)
-      (while Value Value +)
-      (if Value Value)
-      (if Value Value Value)
-      (return Value)
-      (var Var)
-      (vector Value +)
-      (vector-ref Value Value)
-      (kernel ((Var Value) +) Value +)
       (reduce Reduceop Value)
       (iota Value)
       (length Value)
