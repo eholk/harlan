@@ -20,20 +20,6 @@
     (elegant-weapons compat)
     (elegant-weapons helpers))
 
-  (define (harlan-expr expr ft)
-    (match expr
-      ((alloc
-         ,[format-expr -> region]
-         ,[format-expr -> size])
-       (string-append
-         "alloc_in_region(" region ", " size ")"))
-      ((region-ref
-         ,[format-type -> type]
-         ,[format-expr -> region]
-         ,[format-expr -> ptr])
-       (string-append "((" type ")(get_region_ptr(" region ", " ptr ")))"))
-      (,else (ft else))))
-
   (define-match compile-kernel
     ((kernel
        ,[format-ident -> name]
@@ -61,8 +47,7 @@
   (define-syntax format-as-harlan
     (syntax-rules ()
       ((_ expr ...)
-       (call-with-fns ((expr-fns harlan-expr)
-                       (decl-fns harlan-decl))
+       (call-with-fns ((decl-fns harlan-decl))
          (begin expr ...)))))
 
   (define-syntax define-with-harlan-fns
