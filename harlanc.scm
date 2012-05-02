@@ -31,11 +31,11 @@
             (if (verbose) (printf c-code))
             (g++-compile-stdin c-code (output-filename filename)))))))
 
-;; (trace-pass
-;;  'remove-nested-kernels
-;;  'optimize-lift-lets)
+(define (harlanc args)
+  (let ((args (parse-args (cdr args))))
+    (unless (null? args)
+      ;; There should be a usage.
+      (let ((filename (car args)))
+        (print-compile-harlan filename)))))
 
-(let ((args (parse-args (cdr (command-line)))))
-  (unless (null? args)
-    (let ((filename (car args)))
-      (print-compile-harlan filename))))
+(harlanc (command-line))

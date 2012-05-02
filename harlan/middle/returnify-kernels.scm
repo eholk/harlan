@@ -69,7 +69,7 @@
 (define-match returnify-kernel
   ((kernel (vec ,t)
            ,dims
-           (((,x* ,tx*) (,xe* ,xet*) ,dim) ...)
+           (((,x* ,tx*) (,[returnify-kernel-expr -> xe*] ,xet*) ,dim) ...)
            ,body)
    (let ((retvars (map (lambda (_) (gensym 'retval)) dims))
          (i (gensym 'i))

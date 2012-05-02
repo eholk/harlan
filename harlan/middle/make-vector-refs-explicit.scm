@@ -21,6 +21,8 @@
                       (,[explicify-expr -> xs*] ,ts*)
                       , d*) ...)
      ,[stmt])
+   ;; This map is important because kernel arguments can depend on
+   ;; each other; don't take it out as appealing as that may be!
    (let ((xs* (map (replace-vec-refs-expr x*) xs*)))
      `(kernel ,t ,dims
               ,(generate-kernel x* t* xs* d* stmt))))
@@ -99,6 +101,8 @@
   ((set! ,[(replace-vec-refs-expr x*) -> x]
      ,[(replace-vec-refs-expr x*) -> expr])
    `(set! ,x ,expr))
+  ((kernel ,t (,[(replace-vec-refs-expr x*) -> dims] ...) ,[body])
+   `(kernel ,t ,dims ,body))
   ((if ,[(replace-vec-refs-expr x*) -> test]
        ,[(replace-vec-refs-stmt x*) -> conseq])
    `(if ,test ,conseq))
@@ -127,6 +131,8 @@
   ((bool ,b) `(bool ,b))
   ((int->float ,[(replace-vec-refs-expr x*) -> e])
    `(int->float ,e))
+  ((deref ,[e]) `(deref ,e))
+  ((addressof ,[e]) `(addressof ,e))
   ((str ,s) `(str ,s))
   ((var ,t ,x)
    (if (memq x x*) `(deref (var ,t ,x)) `(var ,t ,x)))

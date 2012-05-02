@@ -1,16 +1,17 @@
 #! /usr/bin/env scheme-script
 
-(import (chezscheme)
-        (util color)
-        (elegant-weapons match)
-        (util system)
-        (harlan driver)
-        (harlan compiler)
-        (harlan compile-opts))
+(import
+  (chezscheme)
+  (util color)
+  (elegant-weapons match)
+  (util system)
+  (harlan driver)
+  (harlan compiler)
+  (harlan compile-opts))
 
-(define failures (make-parameter 0))
+(define failures  (make-parameter 0))
 (define successes (make-parameter 0))
-(define ignored (make-parameter 0))
+(define ignored   (make-parameter 0))
 
 (define (is-test? filename)
   (equal? (path-extension filename) "kfc"))
@@ -99,17 +100,12 @@
       (+ (successes) (failures) (ignored)))
     (zero? (failures))))
 
-;;(verbose #t)
+(define (run-tests cl)
+  (let loop ((cl (parse-args (cdr cl))))
+    (cond
+     ((null? cl)
+      (if (do-*all*-the-tests) (exit) (exit #f)))
+     (else
+      (begin (do-test (car cl)) (exit))))))
 
-(let loop ((cl (cdr (command-line))))
-  (cond
-    ((null? cl)
-     (if (do-*all*-the-tests) (exit) (exit #f)))
-    ((equal? (car cl) "-v")
-     (begin (verbose #t) (loop (cdr cl))))
-    ((equal? (car cl) "--benchmark")
-     (begin (benchmark #t) (loop (cdr cl))))
-    ((equal? (car cl) "--noverify")
-     (begin (verify #f) (loop (cdr cl))))
-    (else
-      (begin (do-test (car cl)) (exit)))))
+(run-tests (command-line))
