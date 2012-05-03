@@ -28,6 +28,8 @@
    `(begin . ,stmt*))
   ((let ,x ,t ,[compile-expr -> e])
    `(let ,x ,t ,e))
+  ((let ,x ,t)
+   `(let ,x ,t))
   ((if ,[compile-expr -> test] ,[conseq])
    `(if ,test ,conseq))
   ((if ,[compile-expr -> test] ,[conseq] ,[alt])

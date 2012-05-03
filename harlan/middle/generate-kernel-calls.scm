@@ -70,6 +70,10 @@
    `(for (,i ,start ,end ,step) ,stmt))
   ((while ,expr ,[stmt])
    `(while ,expr ,stmt))
+  ((if ,t ,[conseq] ,[alt])
+   `(if ,t ,conseq ,alt))
+  ((if ,t ,[conseq])
+   `(if ,t ,conseq))
   (,else else))
 
 ;; end library

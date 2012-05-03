@@ -17,10 +17,10 @@
    `(extern ,name ,args -> ,t)))
 
 (define-match lower-stmt
-  ((error ,x) (values `(error ,x) '()))
+  ((error ,x) `(error ,x))
   ((let ,b ,[s])
    (lower-lifted-expr b s))
-  ((begin ,[stmt* ] ...)
+  ((begin ,[stmt*] ...)
    (make-begin stmt*))
   ((if ,t ,[c])
    `(if ,t ,c))
@@ -61,6 +61,8 @@
                     . ,(loop (cdr e*) (+ 1 i)))))
           ,rest)))
     (((,x ,t ,e) . ,[rest])
-     `(let ((,x ,t ,e)) ,rest))))
+     `(let ((,x ,t ,e)) ,rest))
+    (((,x ,t) . ,[rest])
+     `(let ((,x ,t)) ,rest))))
 
 )

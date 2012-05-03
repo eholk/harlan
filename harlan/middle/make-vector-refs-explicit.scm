@@ -15,6 +15,8 @@
 (define-match explicify-stmt
   ((let ((,x ,t ,[explicify-expr -> e]) ...) ,[stmt])
    `(let ((,x ,t ,e) ...) ,stmt))
+  ((let ((,x ,t) ...) ,[stmt])
+   `(let ((,x ,t) ...) ,stmt))
   ((begin ,[stmt*] ...)
    (make-begin stmt*))
   ((kernel ,t ,dims (((,x* ,t*)
@@ -92,6 +94,8 @@
   ((let ((,x ,t ,[(replace-vec-refs-expr x*) -> e]) ...)
      ,[(replace-vec-refs-stmt x*) -> stmt])
    `(let ((,x ,t ,e) ...) ,stmt))
+  ((let ((,x ,t) ...) ,[stmt])
+   `(let ((,x ,t) ...) ,stmt))
   ((begin ,[(replace-vec-refs-stmt x*) -> stmt*] ...)
    (make-begin stmt*))
   ((print ,[(replace-vec-refs-expr x*) -> expr])

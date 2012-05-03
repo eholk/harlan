@@ -18,6 +18,10 @@
    `(begin
       ,@(map (lambda (x t e) `(let ,x ,t ,e)) x* t* e*)
       ,stmt))
+  ((let ((,x* ,t*) ...) ,[stmt])
+   `(begin
+      ,@(map (lambda (x t) `(let ,x ,t)) x* t*)
+      ,stmt))
   ((if ,[flatten-expr -> test] ,[conseq])
    `(if ,test ,conseq))
   ((if ,[flatten-expr -> test] ,[conseq] ,[alt])

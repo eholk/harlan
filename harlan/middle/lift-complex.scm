@@ -14,8 +14,7 @@
       ((int->float ,e)
        (lift-expr e (lambda (e) (finish `(int->float ,e)))))
       ((begin ,[lift-stmt -> stmt*] ... ,e)
-       (lift-expr e
-         (lambda (e) `(begin ,@stmt* ,(finish e)))))
+       (lift-expr e (lambda (e) `(begin ,@stmt* ,(finish e)))))
       ((let () ,expr)
        (lift-expr expr finish))
       ((let ((,x ,t ,e) . ,rest) ,expr)
@@ -27,12 +26,13 @@
        (lift-expr
          test
          (lambda (t)
-           (lift-expr
-             conseq
-             (lambda (c)
-               (lift-expr
-                 alt
-                 (lambda (a) (finish `(if ,t ,c ,a)))))))))
+           (let ((if-res (gensym 'if_res)))
+             (let ((c (lift-expr conseq (lambda (c) `(set! (var bool ,if-res) ,c))))
+                   (a (lift-expr alt (lambda (a) `(set! (var bool ,if-res) ,a)))))
+               `(let ((,if-res ,(type-of conseq)))
+                  (begin
+                    (if ,t ,c ,a)
+                    ,(finish `(var bool ,if-res)))))))))
       ((vector-ref ,t ,e1 ,e2)
        (lift-expr
          e1
@@ -156,5 +156,25 @@
 (define-match lift-complex
   ((module ,[lift-decl -> fn*] ...)
    `(module . ,fn*)))
+
+(define-match type-of
+  ((,t ,v) (guard (scalar-type? t)) t)
+  ((var ,t ,x) t)
+  ((int->float ,t) `float)
+  ((length ,t) `int)
+  ((addressof ,[t]) `(ptr ,t))
+  ((deref ,[t]) (cadr t))
+  ((if ,t ,[c] ,a) c)
+  ((call (var (,argt -> ,rt) ,fn) . ,arg*) rt)
+  ((c-expr ,t ,v) t)
+  ((vector-ref ,t ,v ,i) t)
+  ((,op ,[lhs] ,rhs)
+   (guard (binop? op))
+   lhs)
+  ((let ,b ,[e]) e)
+  ((begin ,s* ... ,[e]) e)
+  ((,op ,lhs ,rhs)
+   (guard (relop? op))
+   rhs))
 
 )

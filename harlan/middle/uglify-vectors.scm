@@ -98,7 +98,10 @@
     . ,[(uglify-let finish) -> rest rr*])
    (values `(let ((,x ,(remove-regions t) ,e))
               ,rest)
-           (append er* rr*))))
+           (append er* rr*)))
+  (((,x ,t)  . ,[(uglify-let finish) -> rest rr*])
+   (values `(let ((,x ,(remove-regions t))) ,rest)
+           rr*)))
 
 (define-match uglify-stmt
   ((error ,x) (values `(error ,x) '()))

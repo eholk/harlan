@@ -283,24 +283,6 @@
       (Relop Expr Expr)
       (call Expr Expr *)))
 
-  (remove-danger
-   (%inherits Module Decl Body Ret-Stmt Expr)
-   (Start Module)
-   (Stmt
-      (let ((Var Type Expr) *) Stmt)
-      (if Expr Stmt)
-      (begin Stmt * Stmt)
-      (if Expr Stmt Stmt)
-      (print Expr)
-      (print Expr Expr)
-      (assert Expr)
-      (set! Expr Expr)
-      (do Expr)
-      (for (Var Expr Expr Expr) Stmt)
-      (while Expr Stmt)
-      (error Var)
-      (return Expr)))
-  
   (make-kernel-dimensions-explicit
     (%inherits Module Decl Body Stmt Ret-Stmt)
     (Start Module)
@@ -359,6 +341,24 @@
   (optimize-fuse-kernels
    (%inherits Module Decl Body Stmt Ret-Stmt Expr))
   
+  (remove-danger
+   (%inherits Module Decl Body Ret-Stmt Expr)
+   (Start Module)
+   (Stmt
+     (let ((Var Type Expr) *) Stmt)
+     (if Expr Stmt)
+     (begin Stmt * Stmt)
+     (if Expr Stmt Stmt)
+     (print Expr)
+     (print Expr Expr)
+     (assert Expr)
+     (set! Expr Expr)
+     (do Expr)
+     (for (Var Expr Expr Expr) Stmt)
+     (while Expr Stmt)
+     (error Var)
+     (return Expr)))
+  
   ;; This is really not true, the grammar does change.  Lazy!
   (remove-nested-kernels
     (%inherits Module Decl Stmt Body Expr Ret-Stmt)
@@ -408,12 +408,14 @@
     (Body
       (begin Stmt * Body)
       (let ((Var Type Lifted-Expr) *) Body)
+      (let ((Var Type) *) Body)
       (if Triv Body)
       (if Triv Body Body)
       Ret-Stmt)
     (Ret-Stmt (return Triv) (return))
     (Stmt
       (let ((Var Type Lifted-Expr) *) Stmt)
+      (let ((Var Type) *) Stmt)
       (if Triv Stmt)
       (if Triv Stmt Stmt)
       (begin Stmt * Stmt)
@@ -421,7 +423,7 @@
       (print Triv Triv)
       (assert Triv)
       (set! Triv Triv)
-      (kernel Type (Expr +) (((Var Type) (Expr Type) Integer) *) Stmt)
+      (kernel Type (Triv +) (((Var Type) (Triv Type) Integer) *) Stmt)
       (do Triv)
       (for (Var Triv Triv Triv) Stmt)
       (while Triv Stmt)
@@ -430,10 +432,6 @@
     (Lifted-Expr
       (make-vector Type Triv)
       (vector Type Triv +)
-      Triv)
-    (Expr
-      (let ((Var Type Lifted-Expr)) Expr)
-      (begin Stmt * Expr)
       Triv)
     (Triv
       (if Triv Triv Triv)
@@ -453,7 +451,7 @@
       (Relop Triv Triv)))
 
   (optimize-lift-allocation
-   (%inherits Module Decl Body Ret-Stmt Lifted-Expr Stmt Triv Expr))
+   (%inherits Module Decl Body Ret-Stmt Lifted-Expr Stmt Triv))
 
   (make-vector-refs-explicit
     (%inherits Module Decl Body Ret-Stmt Lifted-Expr)
@@ -465,6 +463,7 @@
       (set! Triv Triv)
       (kernel Type (Triv +) Stmt)
       (let ((Var Type Lifted-Expr) *) Stmt)
+      (let ((Var Type) *) Stmt)
       (if Triv Stmt)
       (if Triv Stmt Stmt)
       (for (Var Triv Triv Triv) Stmt)
@@ -505,6 +504,7 @@
         (free-vars (Var Type) *)
         Stmt)
       (let ((Var Type Lifted-Expr) *) Stmt)
+      (let ((Var Type) *) Stmt)
       (if Triv Stmt)
       (if Triv Stmt Stmt)
       (for (Var Triv Triv Triv) Stmt)
@@ -538,6 +538,7 @@
         (free-vars (Var Type) *)
         Stmt)
       (let ((Var Type Lifted-Expr) *) Stmt)
+      (let ((Var Type) *) Stmt)
       (let-region (Var *) Stmt)
       (if Triv Stmt)
       (if Triv Stmt Stmt)
@@ -558,6 +559,7 @@
     (Body
       (begin Stmt * Body)
       (let ((Var Rho-Type Lifted-Expr) *) Body)
+      (let ((Var Rho-Type) *) Body)
       (let-region (Var) Body)
       (if Triv Body)
       (if Triv Body Body)
@@ -572,6 +574,7 @@
         (free-vars (Var Rho-Type) *)
         Stmt)
       (let ((Var Rho-Type Lifted-Expr) *) Stmt)
+      (let ((Var Rho-Type) *) Stmt)
       (let-region (Var) Stmt)
       (if Triv Stmt)
       (if Triv Stmt Stmt)
@@ -617,6 +620,7 @@
     (Body
       (begin Stmt * Body)
       (let ((Var Type Expr) *) Body)
+      (let ((Var Type) *) Body)
       (let-region (Var *) Body)
       (if Expr Body)
       (if Expr Body Body)
@@ -631,6 +635,7 @@
         (free-vars (Var Type) *)
         Stmt)
       (let ((Var Type Expr) *) Stmt)
+      (let ((Var Type) *) Stmt)
       (let-region (Var *) Stmt)
       (if Expr Stmt)
       (if Expr Stmt Stmt)
@@ -667,6 +672,7 @@
     (Body
       (begin Stmt * Body)
       (let ((Var Type Expr) *) Body)
+      (let ((Var Type) *) Body)
       (if Expr Body)
       (if Expr Body Body)
       Ret-Stmt)
@@ -680,6 +686,7 @@
         (free-vars (Var Type) *)
         Stmt)
       (let ((Var Type Expr) *) Stmt)
+      (let ((Var Type) *) Stmt)
       (if Expr Stmt)
       (if Expr Stmt Stmt)
       (for (Var Expr Expr Expr) Stmt)
@@ -704,6 +711,7 @@
       (kernel (Expr +)
        (free-vars (Var Type) *) Stmt)
       (let Var Type Expr)
+      (let Var Type)
       (if Expr Stmt)
       (if Expr Stmt Stmt)
       (for (Var Expr Expr Expr) Stmt)
@@ -750,6 +758,7 @@
       (set! Expr Expr)
       (apply-kernel Var (Expr +) Expr *)
       (let Var Type Expr)
+      (let Var Type)
       (begin Stmt * Stmt)
       (if Expr Stmt)
       (if Expr Stmt Stmt)
@@ -791,6 +800,7 @@
       (assert Expr)
       (set! Expr Expr)
       (let Var C-Type Expr)
+      (let Var C-Type)
       (begin Stmt * Stmt)
       (if Expr Stmt)
       (if Expr Stmt Stmt)
@@ -816,6 +826,7 @@
       (if Expr Stmt)
       (if Expr Stmt Stmt)
       (let Var C-Type Expr)
+      (let Var C-Type)
       (begin Stmt * Stmt)
       (for (Var Expr Expr Expr) Stmt)
       (while Expr Stmt)

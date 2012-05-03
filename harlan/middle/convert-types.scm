@@ -31,6 +31,8 @@
    `(begin . ,stmt*))
   ((let ,x ,[convert-type -> type] ,[convert-expr -> e])
    `(let ,x ,type ,e))
+  ((let ,x ,[convert-type -> type])
+   `(let ,x ,type))
   ((if ,[convert-expr -> test] ,[conseq])
    `(if ,test ,conseq))
   ((if ,[convert-expr -> test] ,[conseq] ,[alt])

@@ -449,6 +449,12 @@
        (extend-with-region x t letr env to r* env^)
        (infer-lifted-expr e env r* eo)
        (infer-let-bindings
+        rest env^ letr resto envo)))
+    ((fresh (x t rest env^ resto to r*)
+       (== b `((,x ,t) . ,rest))
+       (== bo `((,x ,to) . ,resto))
+       (extend-with-region x t letr env to r* env^)
+       (infer-let-bindings
         rest env^ letr resto envo)))))
 
 (define-mk (infer-kernel-dims d env do)

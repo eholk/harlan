@@ -1,5 +1,5 @@
 (library
-  (harlan front remove-danger)
+  (harlan middle remove-danger)
   (export remove-danger)
   (import
    (rnrs)
@@ -49,8 +49,8 @@
      `(make-vector ,t ,e))
     ((iota ,[e]) `(iota ,e))
     ((vector-ref ,t ,[v] ,[i])
-     (let ((v-var (gensym 'v))
-           (i-var (gensym 'i)))
+     (let ((v-var (gensym 'vec))
+           (i-var (gensym 'refindex)))
        `(let ((,v-var (vec ,t) ,v)
               (,i-var int ,i))
           (begin
@@ -59,24 +59,24 @@
             (vector-ref ,t (var (vec ,t) ,v-var) (var int ,i-var))))))
     ((length ,[e])
      `(length ,e))
+    ((vector ,t ,[e*] ...)
+     `(vector ,t . ,e*))
     ((call ,[f] ,[args] ...)
-     `(call ,f ,args ...))
+     `(call ,f . ,args))
     ((if ,[test] ,[conseq] ,[altern])
      `(if ,test ,conseq ,altern))
-    ((if ,[test] ,[conseq])
-     `(if ,test ,conseq))
     ((kernel
-         (vec ,inner-type)
-       (((,x ,t) (,[xs] ,ts))
-        ((,x* ,t*) (,[xs*] ,ts*)) ...)
-       ;; TODO: put the cata form for body back, once we figure out
-       ;; how to do kernel error reporting.
-       ,body)
+      (vec ,inner-type)
+      (,[dim] ...)
+      (((,x* ,t*) (,[xs*] ,ts*) ,d*) ...)
+      ;; TODO: put the cata form for body back, once we figure out
+      ;; how to do kernel error reporting.
+      ,body)
      ;; TODO
      `(kernel
-          (vec ,inner-type)
-        (((,x ,t) (,xs ,ts))
-         ((,x* ,t*) (,xs* ,ts*)) ...) ,body))
+       (vec ,inner-type)
+       ,dim
+       (((,x* ,t*) (,xs* ,ts*) ,d*) ...) ,body))
     ((let ((,x* ,t* ,[e*]) ...) ,[e])
      `(let ((,x* ,t* ,e*) ...) ,e))
     ((begin ,[Stmt -> s*] ... ,[e])

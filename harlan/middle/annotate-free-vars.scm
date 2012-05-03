@@ -51,6 +51,10 @@
      (values `(let ((,x* ,t* ,e*) ...) ,stmt)
        (apply union/var fv*
          (map expr-fv e*)))))
+  ((let ((,x* ,t*) ...) ,[stmt fv*])
+   (let ((fv* (fold-right remove/var fv* x*)))
+     (values `(let ((,x* ,t*) ...) ,stmt)
+             fv*)))
   ((while ,e ,[stmt sfv*])
    (values `(while ,e ,stmt)
      (union/var (expr-fv e) sfv*)))

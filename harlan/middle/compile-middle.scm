@@ -10,6 +10,7 @@
     (harlan middle make-kernel-dimensions-explicit)
     (harlan middle make-work-size-explicit)
     (harlan middle optimize-fuse-kernels)
+    (harlan middle remove-danger)
     (harlan middle remove-nested-kernels)
     (harlan middle returnify-kernels)
     (harlan middle make-vector-refs-explicit)
@@ -40,6 +41,8 @@
    (optimize-fuse-kernels
     verify-optimize-fuse-kernels
     1)
+   (remove-danger
+    verify-remove-danger)
    (remove-nested-kernels
     verify-remove-nested-kernels)
    (returnify-kernels
