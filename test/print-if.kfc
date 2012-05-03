@@ -5,8 +5,6 @@
 ;; Right answer
 ;; Wrong answer
 
-(%testspec xfail)
-
 (module
   (define (main)
     (if (if (< 5 6)
