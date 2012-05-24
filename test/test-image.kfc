@@ -1,11 +1,7 @@
-;; -*- scheme -*-
-
 (module
-  (extern write_pgm (str (vec 1024 (vec 1024 int))) -> void)
-
   (define (main)
-      (let img (kernel ((i (iota 1024)))
-                       (kernel ((j (iota 1024)))
-                               (mod (* i j) 256))))
-      (write_pgm "test.bin/test-image.pgm" img)
-      (return 0)))
+    (let ((img (kernel ((i (iota 1024)))
+                 (kernel ((j (iota 1024)))
+                   (mod (* i j) 256)))))
+      (write-pgm "test.bin/test-image.pgm" img)
+      (return 0))))

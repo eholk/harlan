@@ -185,6 +185,7 @@ namespace cl {
         // Enqueues the kernel and waits for it to complete.
         void execute(kernel &k, size_t global_size);
         void execute(kernel &k, size_t global_size, size_t local_size);
+        void execute2d(kernel &k, size_t dim1, size_t dim2, size_t local_size);
         void executeND(kernel &k, size_t dimensions, size_t global_size[], 
                        size_t local_size[]);
 

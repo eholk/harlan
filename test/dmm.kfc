@@ -1,30 +1,25 @@
-;; -*- scheme -*-
-
 ;; Dense matrix-matrix product
 
 (module
   (define (main)
-      (let A (vector
+    (let ((A (vector
+               (vector 1 0 0 0)
+               (vector 0 1 0 0)
+               (vector 0 0 1 0)
+               (vector 0 0 0 1)))
+          (B (vector
               (vector 1 0 0 0)
               (vector 0 1 0 0)
               (vector 0 0 1 0)
-              (vector 0 0 0 1)))
-      (let B (vector
-              (vector 1 0 0 0)
-              (vector 0 1 0 0)
-              (vector 0 0 1 0)
-              (vector 0 0 0 1)))
-      (let Bt (kernel ((j (iota 4)))
-                      (kernel ((i (iota 4)))
-                              (vector-ref (vector-ref B j) i))))
-      (let C (kernel ((row A))
-               (kernel ((col Bt))
-                 (reduce +
-                   (kernel ((x row) (y col))
-                     (* x y))))))
-      ;;(assert (= C A))
-      (for (i 0 (length C))
-           (for (j 0 (length (vector-ref C 0)))
-                (assert (= (vector-ref (vector-ref C i) j)
-                           (vector-ref (vector-ref A i) j)))))
-      (return 0)))
+              (vector 0 0 0 1))))
+      (let ((Bt (kernel ((j (iota 4)))
+                  (kernel ((i (iota 4)))
+                    (vector-ref (vector-ref B j) i)))))
+        (assert (= Bt A))
+        (let ((C (kernel ((row A))
+                   (kernel ((col Bt))
+                     (reduce +
+                       (kernel ((x row) (y col))
+                         (* x y)))))))
+          (assert (= C A))
+          (return 0))))))

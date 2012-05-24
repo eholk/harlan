@@ -1,0 +1,10 @@
+(module
+  (define (main)
+    (let ((x (vector 1 2))
+          (y (vector 3 4)))
+      (let ((z (kernel ((i x))
+                 (kernel ((j y))
+                   (+ i j)))))
+        (println z)
+        (assert (= z (vector (vector 4 5) (vector 5 6))))))
+    (return 0)))

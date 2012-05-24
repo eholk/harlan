@@ -5,49 +5,76 @@
     (harlan helpers))
   
 (define-match generate-kernel-calls
-  ((module ,[Decl -> decl*] ...)
+  ((module ,[generate-decl -> decl*] ...)
    `(module . ,decl*)))
 
-(define-match Decl
-  ((fn ,name ,args ,type ,[Stmt -> stmt*] ...)
-   `(fn ,name ,args ,type . ,stmt*))
+(define-match generate-decl
+  ((fn ,name ,args ,type ,[generate-stmt -> stmt])
+   `(fn ,name ,args ,type ,stmt))
   (,else else))
 
-(define (get-arg-length a)
-  (match (type-of a)
-    ((vec ,n ,t) n)
-    (,else (error 'get-arg-length "Invalid kernel argument" a))))
+(define (region? arg)
+  (match arg
+    ((var (ptr region) ,name) #t)
+    (,else #f)))
 
-(define-match Stmt
-  ((apply-kernel ,k ,arg* ...)
-   (let ((kernel (gensym k)))
+;; This deserves a helper function now...
+(define-match generate-stmt
+  ((apply-kernel ,k ,dims ,arg* ...)
+   (let ((kernel (gensym k))
+         (region* (filter region? arg*)))
      `(begin
         (let ,kernel cl::kernel
              (call
-               (field (var cl::program g_prog)
-                 createKernel)
-               (str ,(symbol->string k))))
+              (field (var cl::program g_prog)
+                     createKernel)
+              (str ,(symbol->string k))))
+        ,@(map (lambda (region)
+                 `(do (call
+                        (c-expr (((ptr region)) -> void)
+                          unmap_region)
+                        ,region)))
+            region*)
         ,@(map (lambda (arg i)
                  `(do (call
-                        (field (var cl::kernel ,kernel) setArg)
-                        (int ,i)
-                        ,arg)))
+                       (field (var cl::kernel ,kernel) setArg)
+                       (int ,i)
+                       ,(match arg
+                          ((var (ptr region) ,x)
+                           `(call
+                              (c-expr (((ptr region)) -> cl_mem) get_cl_buffer)
+                              (var (ptr region) ,x)))
+                          (,else else)))))
             arg* (iota (length arg*)))
-        (do (call (field (var cl::queue g_queue) execute)
-              (var cl::kernel ,kernel)
-              (int ,(get-arg-length (car arg*))) ;; global size
-              (int 1)))))) ;; local size
+        ,(if (null? (cdr dims))
+             `(do (call (field (var cl::queue g_queue) execute)
+                        (var cl::kernel ,kernel)
+                        ,(car dims) ;; global size
+                        (int 1)))
+             (begin
+               (assert (= (length dims) 2))
+             `(do (call (field (var cl::queue g_queue) execute2d)
+                        (var cl::kernel ,kernel)
+                        ,(car dims) ;; global size
+                        ,(cadr dims)
+                        (int 1)))))
+        ,@(map (lambda (region)
+                 `(do (call
+                        (c-expr (((ptr region)) -> void)
+                          map_region)
+                        ,region)))
+            region*)))) ;; local size
   ((begin ,[stmt*] ...)
    `(begin . ,stmt*))
-  ((for (,i ,start ,end) ,[stmt*] ...)
-   `(for (,i ,start ,end) . ,stmt*))
-  ((while ,expr ,[stmt*] ...)
-   `(while ,expr . ,stmt*))
+  ((for (,i ,start ,end ,step) ,[stmt])
+   `(for (,i ,start ,end ,step) ,stmt))
+  ((while ,expr ,[stmt])
+   `(while ,expr ,stmt))
+  ((if ,t ,[conseq] ,[alt])
+   `(if ,t ,conseq ,alt))
+  ((if ,t ,[conseq])
+   `(if ,t ,conseq))
   (,else else))
-
-(define-match unpack-arg
-  ((var ,t ,x^) x^)
-  (,x^ (guard (symbol? x^)) x^))
 
 ;; end library
 )

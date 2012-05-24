@@ -5,55 +5,77 @@
     (rnrs)
     (harlan compile-opts)
     (harlan verification-passes)
+    (harlan middle lifting)
 
-    (harlan middle flatten-lets)
-    (harlan middle lift-complex)
-    (harlan middle lower-vectors)
+    (harlan middle make-kernel-dimensions-explicit)
+    (harlan middle make-work-size-explicit)
+    (harlan middle optimize-fuse-kernels)
+    (harlan middle remove-danger)
     (harlan middle remove-nested-kernels)
-    (harlan middle optimize-lift-lets)
     (harlan middle returnify-kernels)
-    (harlan middle uglify-vectors)
+    (harlan middle make-vector-refs-explicit)
+    (harlan middle lift-complex)
     (harlan middle annotate-free-vars)
+    (harlan middle lower-vectors)
+    (harlan middle insert-let-regions)
+    (harlan middle infer-regions)
+    (harlan middle uglify-vectors)
+    (harlan middle remove-let-regions)
+    (harlan middle flatten-lets)
     (harlan middle hoist-kernels)
-    (harlan middle move-gpu-data)
     (harlan middle generate-kernel-calls)
     (harlan middle compile-module)
-    (harlan middle convert-types)
-    (harlan middle compile-kernels)
-    (harlan middle make-kernel-dimensions-explicit))
+    (harlan middle convert-types))
 
 ;; The "middle end" of a compiler. No one ever knows what's supposed
 ;; to go here. This goes from TFC to something we can give to print-c.
 (define compile-harlan-middle
   (passes
-    make-kernel-dimensions-explicit
-    verify-make-kernel-dimensions-explicit
-    lift-complex
-    verify-lift-complex
-    remove-nested-kernels
-    verify-remove-nested-kernels
-    optimize-lift-lets
+   (make-kernel-dimensions-explicit
+    verify-make-kernel-dimensions-explicit)
+   (make-work-size-explicit
+    verify-make-work-size-explicit)
+   (optimize-lift-lets
     verify-optimize-lift-lets
-    returnify-kernels
-    verify-returnify-kernels
-    lower-vectors
-    verify-lower-vectors
-    uglify-vectors
-    verify-uglify-vectors
-    annotate-free-vars
-    verify-annotate-free-vars
-    flatten-lets
-    verify-flatten-lets
-    hoist-kernels
-    verify-hoist-kernels
-    move-gpu-data
-    verify-move-gpu-data
-    generate-kernel-calls
-    verify-generate-kernel-calls
-    compile-module
-    verify-compile-module
-    convert-types
-    verify-convert-types
-    compile-kernels
-    verify-compile-kernels)))
+    1)
+   (optimize-fuse-kernels
+    verify-optimize-fuse-kernels
+    1)
+   (remove-danger
+    verify-remove-danger)
+   (remove-nested-kernels
+    verify-remove-nested-kernels)
+   (returnify-kernels
+    verify-returnify-kernels)
+   (lift-complex
+    verify-lift-complex)
+   (optimize-lift-allocation
+    verify-optimize-lift-allocation
+    1)
+   (make-vector-refs-explicit
+    verify-make-vector-refs-explicit)
+   (annotate-free-vars
+    verify-annotate-free-vars)
+   (lower-vectors
+    verify-lower-vectors)
+   (insert-let-regions
+    verify-insert-let-regions)
+   (infer-regions
+    verify-infer-regions)
+   (uglify-vectors
+    verify-uglify-vectors)
+   (remove-let-regions
+    verify-remove-let-regions)
+   (flatten-lets
+    verify-flatten-lets)
+   (hoist-kernels
+    verify-hoist-kernels)
+   (generate-kernel-calls
+    verify-generate-kernel-calls)
+   (compile-module
+    verify-compile-module)
+   (convert-types
+    verify-convert-types)))
+
+)
 

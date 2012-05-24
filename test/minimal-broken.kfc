@@ -1,13 +1,7 @@
-;; -*- scheme -*-
-
 (module
   (define (main)
-      (let B (vector
-              (vector 17)))
-
-      ;;; without the loop, the program doesn't always segfault
-      (for (i 0 1000)
-        (let row (kernel ((i (vector 0 1 2 3)))
-                         (vector-ref (vector-ref B 0) (* i 0)))))
-      
-      (return 0)))
+    (let ((B (vector (vector 17))))
+      (for (i 0 100)
+        (kernel ((i (vector 0 1 2 3)))
+          (vector-ref (vector-ref B 0) (* i 0))))
+      (return 0))))

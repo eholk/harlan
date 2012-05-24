@@ -1,0 +1,20 @@
+(module
+  (define (main)
+    (let ((triangle
+           ;; reduce right now seems to require vectors of at least
+           ;; length 1. It doesn't error otherwise, but the results
+           ;; look incorrect. Adding safety checks would catch the
+           ;; errors.
+           (vector (iota 1)
+                   (iota 2)
+                   (iota 3)
+                   (iota 4)
+                   (iota 5)
+                   (iota 6)
+                   (iota 7)
+                   (iota 8)
+                   (iota 9))))
+      (print (kernel ((r triangle))
+               (reduce + r)))
+      (print "\n"))
+    (return 0)))

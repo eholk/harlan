@@ -1,0 +1,7 @@
+(module
+  (define (main)
+    (print (kernel ((i (iota 10)))
+                   (if (= i 0)
+                       #t
+                       #f)))
+    (return 0)))

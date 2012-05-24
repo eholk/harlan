@@ -1,12 +1,10 @@
-;; -*- scheme -*-
-
 (module
   (define (main)
-      (let y 0)
-      (let x 0)
+    (let ((y 0)
+          (x 0))
       (while (< x 10)
-           (print x)
-           (set! y (+ x y))
-           (set! x (+ x 1)))
+        (print x)
+        (set! y (+ x y))
+        (set! x (+ x 1)))
       (assert (= y 45))
-      (return 0)))
+      (return 0))))

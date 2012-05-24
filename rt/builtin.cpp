@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <time.h>
-#include <gc/gc.h>
 
 #ifdef __APPLE__
 #include <mach/mach_time.h>
@@ -34,42 +33,16 @@ uint64_t nanotime() {
 #endif    
 }
 
-// ((vector (vector int 2) 2)) -> void
-void print_2x2_int_vec(int *v) {
-    printf("[ %d %d ]\n"
-           "[ %d %d ]\n",
-           v[0], v[1], v[2], v[3]);
+// (str) -> (ptr ofstream)
+std::ofstream* open_outfile(const char *filename) {
+    // TODO: This is leaking files
+    std::ofstream *f = new std::ofstream;
+    f->open(filename);
+    return f;
 }
 
-// ((vector int 4) int) -> (vector int 4)
-int *rotate_4_int_vec(int *v, int j) {
-  int *result = (int *)GC_MALLOC(4 * sizeof(int));
-
-  for(int i = 0; i < 4; i++) {
-    result[i] = v[(i + j) % 4];
-  }
-
-  return result;
+void close_outfile(std::ofstream *f) {
+    f->close();
+    delete f;
 }
 
-// (str (vector (vector int 1024) 1024)) -> void
-void write_pgm(const char *filename, int *data) {
-    ofstream f(filename);
-
-    f << "P2" << endl;
-    f << "1024 1024" << endl;
-    f << "255" << endl;
-    for(int i = 0; i < 1024 * 1024; i++) {
-        int p = data[i];
-        if(p < 0) 
-            p = 0;
-        if(p > 255)
-            p = 255;
-        f << p << " ";
-    }
-}
-
-// (int u64) -> void
-void print_int_u64(int x, uint64_t y) {
-  cout << x << "\t" << y << endl;
-}

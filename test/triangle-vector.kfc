@@ -1,0 +1,12 @@
+;; This should produce a triangular vector. However, it requires being
+;; able to allocate in a kernel. With regions, we have some limited
+;; ability for in-kernel allocation, but it might be better to
+;; sequentialize kernels that might allocate.
+
+(module
+  (define (main)
+    (let ((triangle
+           (kernel ((i (iota 10)))
+             (iota (+ i 1)))))
+      (println triangle))
+    (return 0)))

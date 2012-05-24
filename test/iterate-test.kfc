@@ -1,5 +1,3 @@
-;; -*- scheme -*-
-
 (%testspec
  (iterate
   (N (range 1 10))

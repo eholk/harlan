@@ -1,0 +1,15 @@
+(module
+  (define (main)
+    (let ((triangle
+           (vector (iota 1)
+                   (iota 2)
+                   (iota 3)
+                   (iota 4)
+                   (iota 5)
+                   (iota 6)
+                   (iota 7)
+                   (iota 8)
+                   (iota 9))))
+      (print triangle)
+      (print "\n"))
+    (return 0)))

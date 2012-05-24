@@ -1,0 +1,13 @@
+(module
+  (define (main)
+    (let ((X (vector 1 2 3 4))
+          (Y (vector 1 2 3 4))
+          (Z (vector 1 2 5 6)))
+      (assert (= X Y))
+      (assert (= Y X))
+      (assert (= (= X Z) #f))
+      (assert (= (= Z X) #f))
+      (assert (= (= Y Z) #f))
+      (assert (= (= Z Y) #f))
+      (return 0))))
+

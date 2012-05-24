@@ -1,0 +1,8 @@
+(module
+  (extern open_outfile (str) -> (ptr ofstream))
+  (extern close_outfile ((ptr ofstream)) -> void)
+  (define (main)
+    (let ((f (open_outfile "test.bin/outfile.txt")))
+      (print "Hello there!\n" f)
+      (close_outfile f)
+      (return 0))))

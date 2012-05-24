@@ -10,7 +10,11 @@
 #include <assert.h>
 #include <string.h>
 
-#include "gc.h"
+#ifdef __APPLE__
+#include <OpenCL/opencl.h>
+#else
+#include <CL/opencl.h>
+#endif
 
 #include "gpu_common.h"
 
@@ -34,10 +38,24 @@ extern cl::command_queue g_queue;
 #endif
 
 template<typename T>
-void print(T n) {
-    std::cout << n << std::endl;
+void print(T n, std::ostream *f) {
+  *f << n;
 }
 
-void *alloc_buffer(unsigned int size);
+void print(bool b, std::ostream *f);
+
+template<typename T>
+void print(T n) {
+    print(n, &std::cout);
+}
+
+region *create_region(unsigned int size);
+void free_region(region *r);
+void map_region(region *ptr);
+void unmap_region(region *ptr);
+region_ptr alloc_in_region(region *r, unsigned int size);
+cl_mem get_cl_buffer(region *r);
+
+void harlan_error(const char *msg);
 
 #define __global

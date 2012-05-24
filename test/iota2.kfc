@@ -1,7 +1,5 @@
-;; -*- scheme -*-
-
 (module
   (define (main)
-      (let v (iota 4))
+    (let ((v (iota 4)))
       (assert (= 6 (reduce + v)))
-      (return 0)))
+      (return 0))))

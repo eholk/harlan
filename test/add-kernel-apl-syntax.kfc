@@ -1,16 +1,14 @@
-;; -*- scheme -*-
-
 ;; APL-stye syntax for adding two vectors, from Harlan proposal
 ;; Z = kernel(x : X, y : Y) { x + y }
 
 (module
   (define (main)
-      (let X (vector 1 2 3 4))
-      (let Y (vector 5 1 1 7))
-      (let Z (kernel ((x X) (y Y))
-               (+ x y)))
-      (assert (= (vector-ref Z 0) 6))
-      (assert (= (vector-ref Z 1) 3))
-      (assert (= (vector-ref Z 2) 4))
-      (assert (= (vector-ref Z 3) 11))
-      (return 0)))
+    (let ((X (vector 1 2 3 4))
+          (Y (vector 5 1 1 7)))
+      (let ((Z (kernel ((x X) (y Y))
+                 (+ x y))))
+        (assert (= (vector-ref Z 0) 6))
+        (assert (= (vector-ref Z 1) 3))
+        (assert (= (vector-ref Z 2) 4))
+        (assert (= (vector-ref Z 3) 11)))
+      (return 0))))

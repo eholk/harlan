@@ -1,9 +1,8 @@
-;; -*- scheme -*-
-
 (module
   (define (main)
     (let ((v (vector 5 7 9)))
       (let ((i (iota (length v))))
+        (println i)
         (assert (= (length i) 3))
         (return 0)))))
 

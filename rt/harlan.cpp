@@ -6,6 +6,22 @@
 
 using namespace std;
 
+#define ALLOC_MAGIC 0xa110ca7e
+
+#define CHECK_MAGIC(hdr) assert((hdr)->magic == ALLOC_MAGIC)
+
+void print(bool b, std::ostream *f) {
+    if(b)
+        print("#t", f);
+    else
+        print("#f", f);
+}
+
+void harlan_error(const char *msg) {
+    std::cerr << "Harlan Runtime Error: " << msg << std::endl;
+    abort();
+}
+
 cl_device_type get_device_type()
 {
   const char *cfg = getenv("HARLAN_DEVICE");
@@ -25,32 +41,34 @@ cl_device_type get_device_type()
           0);
 }
 
-void finalize_buffer(void *buffer, void *data)
+// void finalize_buffer(void *buffer, void *data)
+void finalize_buffer(region *r)
 {
-    alloc_header *header = (alloc_header *)buffer;
-
-    CL_CHECK(clReleaseMemObject((cl_mem)header->cl_buffer));
+    CHECK_MAGIC(r);
+    CL_CHECK(clReleaseMemObject((cl_mem)r->cl_buffer));
 }
 
-void *alloc_buffer(unsigned int size)
+region *create_region(unsigned int size)
 {
-    unsigned int new_size = size + sizeof(alloc_header);
+    assert(size > sizeof(region));
 
-    void *ptr = GC_MALLOC(new_size);
+    // void *ptr = GC_MALLOC(size);
+    void *ptr = malloc(size);
 
-    alloc_header *header = (alloc_header *)ptr;
-
-    header->size = new_size;
+    region *header = (region *)ptr;
+    header->magic = ALLOC_MAGIC;
+    header->size = size;
+    header->alloc_ptr = sizeof(region);
 
     cl_int status = 0;
     header->cl_buffer = clCreateBuffer(g_ctx,
-                                    CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
-                                    new_size,
-                                    ptr,
-                                    &status);
+                                       CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
+                                       size,
+                                       ptr,
+                                       &status);
     CL_CHECK(status);
 
-    GC_register_finalizer(ptr, finalize_buffer, NULL, NULL, NULL);
+    // GC_register_finalizer(ptr, finalize_buffer, NULL, NULL, NULL);
 
     // Make the buffer accessible to the CPU
     clEnqueueMapBuffer(g_queue,
@@ -58,12 +76,63 @@ void *alloc_buffer(unsigned int size)
                        CL_TRUE, // blocking
                        CL_MAP_READ | CL_MAP_WRITE,
                        0,
-                       new_size,
+                       size,
                        0,
                        NULL,
                        NULL,
                        &status);
     CL_CHECK(status);
 
-    return ((char *)ptr) + sizeof(alloc_header);
+    return header;
+}
+
+void free_region(region *r)
+{
+  finalize_buffer(r);
+  free(r);
+}
+
+void map_region(region *header)
+{
+    cl_int status = 0;
+    CHECK_MAGIC(header);
+    clEnqueueMapBuffer(g_queue,
+                       (cl_mem)header->cl_buffer,
+                       CL_TRUE, // blocking
+                       CL_MAP_READ | CL_MAP_WRITE,
+                       0,
+                       header->size,
+                       0,
+                       NULL,
+                       NULL,
+                       &status);
+    CL_CHECK(status);
+}
+
+void unmap_region(region *header)
+{
+    CHECK_MAGIC(header);
+    clEnqueueUnmapMemObject(g_queue,
+                            (cl_mem)header->cl_buffer,
+                            header,
+                            0,
+                            NULL,
+                            NULL);
+}
+
+region_ptr alloc_in_region(region *r, unsigned int size)
+{
+    region_ptr p = r->alloc_ptr;
+    r->alloc_ptr += size;
+ 
+    // If this fails, we allocated too much memory and need to resize
+    // the region.
+    assert(r->alloc_ptr < r->size);
+
+    return p;
+}
+
+cl_mem get_cl_buffer(region *r) 
+{
+    return (cl_mem)r->cl_buffer;
 }

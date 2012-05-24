@@ -9,8 +9,7 @@
   language=Scheme,
   morekeywords= {
     extern, kernel, reduce, vector, void, int, u64, float, str,
-    print, module, return, for, while, vector-set!, vector-ref,
-    length, iota, vec
+    print, module, return, for, while, assert, vector-ref, length, iota, vec
   }
 }
 
@@ -48,9 +47,9 @@ Petite Cheze Scheme can be downloaded from
 \url{http://www.scheme.com}.
 
 Once all the prerequisites are installed, you can now build
-Harlan. The source code for Harlan is hosted on Indiana University's
-private GitHub. The following commands will check out the source code,
-build Harlan, and run the test suite.
+Harlan. The source code for Harlan is hosted on GitHub. The following
+commands will check out the source code, build Harlan, and run the
+test suite.
 
 \begin{verbatim}
     git clone git://github.iu.edu/eholk/harlan.git
@@ -65,10 +64,8 @@ all the output.
     All tests succeeded.
 \end{verbatim}
 
-The test programs are available in the \texttt{test}
-directory. End-to-end test programs have the \texttt{.kfc}
-extension. Other extensions represent code that is valid at various
-intermediate passes in the compiler.
+The test programs are available in the \texttt{test} directory. Test
+programs have the \texttt{.kfc} extension.
 
 Make puts test binaries in the \texttt{test.bin} directory, and also
 saves output from test programs here. Programs may be run directly
@@ -80,14 +77,12 @@ Harlan programs can be compiled manually as follows.
     ./harlanc hello.kfc
 \end{verbatim}
 
-For debugging purposes, the \texttt{-v} flag can be used.
-
-\begin{verbatim}
-    ./harlanc -v hello.kfc
-\end{verbatim}
-
-This causes the compiler to write out the intermediate results from
-each compiler pass.
+This script has many options.  For debugging purposes, the \texttt{-v}
+flag can be used to write out the intermediate results from each
+compiler pass.  To see timing output, use the \texttt{-t} option.  It
+is also possible to turn off verification using \texttt{-V}, as well
+as turning on quiet mode with \texttt{-q}, so that no compiler
+warnings or information is shown.
 
 If \texttt{harlanc} is successful, the compiler will produce an
 executable based on the input filename. This program can be run just
@@ -153,10 +148,11 @@ successfully.
 
 Harlan supports a number of different data types, such as integers,
 floating point numbers and strings. A critical component for data
-parallelism is the \lstinline{vector} type. Vectors are collections of
-data all sharing a single type. Vectors can contain other vectors, but
-since the length of a vector is considered part of its type, only
-rectangular shapes are allowed. Vectors are created as follows.
+parallelism is the immutable \lstinline{vector} type. Vectors are
+collections of data all sharing a single type. Vectors can contain
+other vectors, but since the length of a vector is considered part of
+its type, only rectangular shapes are allowed. Vectors are created as
+follows.
 
 \begin{lstlisting}
 (module
@@ -166,7 +162,9 @@ rectangular shapes are allowed. Vectors are created as follows.
 \end{lstlisting}
 
 This program also demonstrates the \lstinline{let} form, which behaves
-like the usual Scheme let. A vector is created and stored in the lexical variable x, a variable that can now be used within the body of the let.
+like the usual Scheme let. A vector is created and stored in the
+lexical variable x, a variable that can now be used within the body of
+the let.
 
 Vectors can also be nested:
 
@@ -179,71 +177,67 @@ Vectors can also be nested:
       (return 0))))
 \end{lstlisting}
 
-Harlan supports several vector manipulation forms. These include
-\lstinline{vector-ref} and \lstinline{vector-set!}, which behave like
-their Scheme equivalents. There is also \lstinline{length}, which
-returns the length of a vector. The following program uses these forms
-to copy the contents of vector \lstinline{x} into \lstinline{y}.
+Harlan does not support vector manipulation, but does support
+Scheme-like vector accessing with \lstinline{vector-ref}. There is
+also \lstinline{length}, which returns the length of a vector. The
+following program is an example of using these primitives.  
 
 \begin{lstlisting}
 (module
   (define (main)
-    (let ((x (vector 1 2))
-          (y (vector 0 0)))
+    (let ((x (vector 0 1)))
       (for (i 0 (length x))
-        (vector-set! y i (vector-ref x i)))
+        (assert (= (vector-ref x i) i)))
       (return 0))))
 \end{lstlisting}
 
-This program also introduces the \lstinline{for} loop. For loops have
-the following form.
+The primitive \lstinline{assert} will throw an error if its condition
+is violated.  It also introduces the \lstinline{for} loop. For loops
+have two possible forms:
 
 \begin{lstlisting}
   (for (<var> <start> <end>) <body>)
+  (for (<var> <start> <end> <step>) <body>)
 \end{lstlisting}
 
 For loops bind the variable \lstinline{<var>} and executes
 \lstinline{<body>} with the loop variable set to each value in the
 range from \lstinline{<start>} up to but not including
-\lstinline{<end>}.
+\lstinline{<end>}, counting by \lstinline{<step>}.
 
 These vector examples so far have not been terribly interesting, since
-they do not display anything to the user. Fortunately, the Harlan
-runtime library provides \lstinline{print_2x2_int_vec} to help with
-this. You can include this function in your program using a new
-top-level declaration called \lstinline{extern}.
+they do not display anything to the user. Fortunately, it is also
+possible to print more complex values, including nested vectors.
 
 \begin{lstlisting}
 (module
-  (extern print_2x2_int_vec ((vec (vec int 2) 2)) -> void)
-  
   (define (main)
     (let ((x (vector
               (vector 1 2)
               (vector 3 4))))
-      (print_2x2_int_vec x)
+      (print x)
       (return 0))))
 \end{lstlisting}
 
-The \lstinline{extern} form takes the name of a procedure, as well as
-a type signature for it. The type signature is necessary because the
-runtime library is written in C++ and Harlan needs to know the
-corresponding type. The declaration above states that
-\lstinline{print_2x2_inc_vec} takes a $2 \times 2$ vector of integers
-and returns no value. This program executes and produces the following result.
+This program executes and produces the following result.
 
 \begin{verbatim}
-[ 1 2 ]
-[ 3 4 ]
+[[1 2]
+ [3 4]]
 \end{verbatim}
+
+It is also possible to use external functions.  The \lstinline{extern}
+form takes the name of a procedure, as well as a type signature for
+it.  The type signature is necessary because the runtime library is
+written in C++ and Harlan needs to know the corresponding type.  The
+available externals are described in Chapter \ref{chap:externs}.
 
 \section{Data Parallelism}
 
 Harlan supports data parallelism through two forms: \lstinline{kernel}
-and \lstinline{reduce}. Kernels most naturally correspond to GPU
-kernel functions from CUDA or OpenCL. The reduce operator, on the
-other hand, is used to combine multiple values into a single
-one. 
+and \lstinline{reduce}.  Kernels most naturally correspond to GPU
+kernel functions from CUDA or OpenCL.  The reduce operator, on the
+other hand, is used to combine multiple values into a single one.
 
 The kernel block takes a list of bindings followed by an
 expression.
@@ -257,11 +251,11 @@ expression.
 In this example, the binding \lstinline{(x xs)} states that
 \lstinline{x} ranges over the values in the vector \lstinline{xs}. For
 each value of \lstinline{x}, the kernel returns the value of
-\lstinline{x} plus one. The result of the kernel expression is a
+\lstinline{x} plus one.  The result of the kernel expression is a
 vector containing 2, 3, 4 and 5.
 
-Kernels are allowed to refer to free variables. For example, the
-previous example can be written like this:
+Kernels are allowed to refer to free variables, but cannot mutate
+them.  For example, the previous example can be written like this:
 
 \begin{lstlisting}
 (let ((xs (vector 1 2 3 4)))
@@ -298,8 +292,8 @@ and \lstinline{(vector 5 7)}. If we print the result, we see we get
 the expected value:
 
 \begin{verbatim}
-[ 10 14 ]
-[ 15 21 ]
+[[10 14]
+ [15 21]]
 \end{verbatim}
 
 The other data parallel operator in Harlan is the \lstinline{reduce}
@@ -329,34 +323,33 @@ the image in Figure \ref{fig:mandelbrot}.
 \begin{figure}
 \begin{lstlisting}
 (module
-  (extern write_pgm (str (vec (vec int 1024) 1024)) -> void)
   (extern nanotime () -> u64)
-  
-  (fn main ()
-    (let start (nanotime))
-    (let img (kernel ((i (iota 1024)))
-               (kernel ((j (iota 1024)))
-                 (let ((cr (- (/ (int->float j) 512.0) 1.5))
-                       (ci (- (/ (int->float i) 512.0) 1.0))
-                       (xr 0.0)
-                       (xi 0.0)
-                       (idx 0)
-                       (escape 0))
-                   (while (< idx 256)
-                     (let ((xrp (+ (- (* xr xr) (* xi xi)) cr))
-                           (xip (+ (* 2.0 (* xr xi)) ci)))
-                       (set! xr xrp)
-                       (set! xi xip)
-                       (let m (+ (* xr xr) (* xi xi)))
-                       (if (< m 4.0)
-                           (set! escape (- idx 1)))
-                       (set! idx (+ idx 1))))
-                   escape))))
-    (let stop (nanotime))
-    (write_pgm "test.bin/mandelbrot.pgm" img)
-    (print "Time to generate Mandelbrot Set in milliseconds:")
-    (print (/ (- stop start) 1000000))
-    (return 0)))  
+  (define (main)
+    (let ((start (nanotime)))
+      (let ((img (kernel ((i (iota 1024)))
+                   (kernel ((j (iota 1024)))
+                     (let ((cr (- (/ (int->float j) 512.0) 1.5))
+                           (ci (- (/ (int->float i) 512.0) 1.0))
+                           (xr 0.0)
+                           (xi 0.0)
+                           (idx 0)
+                           (escape 0))
+                       (while (< idx 256)
+                         (let ((xrp (+ (- (* xr xr) (* xi xi)) cr))
+                               (xip (+ (* 2.0 (* xr xi)) ci)))
+                           (set! xr xrp)
+                           (set! xi xip)
+                           (let ((m (+ (* xr xr) (* xi xi))))
+                             (if (< m 4.0)
+                                 (set! escape (- idx 1)))
+                             (set! idx (+ idx 1)))))
+                       escape)))))
+        (let ((stop (nanotime)))
+          (write-pgm "test.bin/mandelbrot.pgm" img)
+          (print "Time to generate Mandelbrot Set in milliseconds:\n")
+          (print (/ (- stop start) 1000000))
+          (print "\n")
+          (return 0))))))
 \end{lstlisting}
   
   \caption{A program that generates the Mandelbrot Set.}
@@ -370,7 +363,7 @@ the image in Figure \ref{fig:mandelbrot}.
   \label{fig:mandelbrot}
 \end{figure}
 
-\chapter{The Runtime Library}
+\chapter{The Runtime Library}\label{chap:externs}
 
 Harlan provides a small library of built-in functions. These are
 described in this chapter. Each of these may be used in a program by
@@ -381,27 +374,28 @@ adding the appropriate \lstinline{extern} definition.
 \textbf{Prototype:} \lstinline{(extern nanotime () -> u64)}
 
 This function returns the number of nanoseconds that has elapsed since
-January 1, 1970. It is useful for timing benchmark programs.
+January 1, 1970.  It is useful for timing benchmark programs.
 
-\section{print\_2x2\_int\_vec}
+\section{open\_outfile and close\_outfile}
 
-\textbf{Prototype:} \lstinline{(extern print_2x2_int_vec ((vec (vec int 2) 2)) -> void)}
+\textbf{Prototype:} \lstinline{(extern open_outfile (str) -> (ptr ofstream))}
 
-Formats a $2 \times 2$ matrix and prints it to standard out.
+\textbf{Prototype:} \lstinline{(extern close_outfile ((ptr ofstream)) -> void)}
 
-% TODO: include example output
+Opens and closes a file that may be written to, using
+\lstinline{print}.  For example,
 
-\section{write\_pgm}
+\begin{lstlisting}
+(module
+  (extern open_outfile (str) -> (ptr ofstream))
+  (extern close_outfile ((ptr ofstream)) -> void)
+  (define (main)
+    (let ((f (open_outfile "outfile.txt")))
+      (print "Hello there!\n" f)
+      (close_outfile f)
+      (return 0))))
+\end{lstlisting}
 
-\textbf{Prototype:} \lstinline{(extern write_pgm (str (vec (vec int 1024) 1024)) -> void)}
-
-This function treats its second argument as a $1024 \times 1024$
-grayscale image and writes it to a Portable GrayMap (PGM) file named
-by the function's string argument. Each entry in the image should be
-between 0 and 255, inclusive. The resulting file may then be viewed by
-a program such as ToyViewer on a Mac.
-
-This function is used by the Mandelbrot set test cases to allow us to
-visually confirm the program is behaving correctly.
+Instead of printing to the terminal, print sends its output to the open file.
 
 \end{document}

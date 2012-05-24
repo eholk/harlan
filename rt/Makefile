@@ -11,8 +11,9 @@ SRC = \
 	cl++.h \
 	cl++.cpp \
 	gpu_common.h \
+	gpu_only.h \
 
-CXXFLAGS = -I../gc/include
+CXXFLAGS = -I../gc/include -g
 
 libharlanrt.a : $(OBJS) $(SRC)
 	rm -f libharlanrt.a

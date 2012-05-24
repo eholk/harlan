@@ -1,6 +1,7 @@
 (library
   (harlan middle lift-complex)
-  (export lift-complex)
+  (export lift-complex
+          lift-expr)
   (import (rnrs) (elegant-weapons helpers)
     (harlan helpers))
   
@@ -13,28 +14,26 @@
       ((int->float ,e)
        (lift-expr e (lambda (e) (finish `(int->float ,e)))))
       ((begin ,[lift-stmt -> stmt*] ... ,e)
-       (lift-expr e
-         (lambda (e) `(begin ,@stmt* ,(finish e)))))
+       (lift-expr e (lambda (e) `(begin ,@stmt* ,(finish e)))))
       ((let () ,expr)
-       (lift-expr expr (lambda (expr) (finish expr))))
-      ((let ((,x ,e) . ,rest) ,expr)
+       (lift-expr expr finish))
+      ((let ((,x ,t ,e) . ,rest) ,expr)
        (Expr e
          (lambda (e)
-           `(let ((,x ,e))
+           `(let ((,x ,t ,e))
               ,(lift-expr `(let ,rest ,expr) finish)))))
       ((if ,test ,conseq ,alt)
        (lift-expr
          test
          (lambda (t)
-           (lift-expr
-             conseq
-             (lambda (c)
-               (lift-expr
-                 alt
-                 (lambda (a) (finish `(if ,t ,c ,a)))))))))
+           (let ((if-res (gensym 'if_res)))
+             (let ((c (lift-expr conseq (lambda (c) `(set! (var bool ,if-res) ,c))))
+                   (a (lift-expr alt (lambda (a) `(set! (var bool ,if-res) ,a)))))
+               `(let ((,if-res ,(type-of conseq)))
+                  (begin
+                    (if ,t ,c ,a)
+                    ,(finish `(var bool ,if-res)))))))))
       ((vector-ref ,t ,e1 ,e2)
-       (if (symbol? e1)
-           (error 'lift-expr "This form is not legal" e1))
        (lift-expr
          e1
          (lambda (e1^)
@@ -43,50 +42,18 @@
                   (finish `(vector-ref ,t ,e1^ ,e2^)))))))
       ((make-vector ,t ,e)
        (lift-expr e (lambda (e^) (finish `(make-vector ,t ,e^)))))
-      ((kernel ,t ,dims (((,x* ,t*) (,e* ,ts*) ,dim*) ...) ,body)
-       (let ((finish
-               (lambda (e*^)
-                 (let ((v (gensym 'v)))
-                   `(let ((,v
-                            (kernel ,t ,dims (((,x* ,t*) (,e*^ ,ts*) ,dim*) ...)
-                              ,(lift-expr body (lambda (b) b)))))
-                      ,(finish `(var ,t ,v)))))))
-         (let loop ((e* e*) (e*^ '()))
-           (if (null? e*)
-               (finish (reverse e*^))
-               (lift-expr
-                 (car e*)
-                 (lambda (e^)
-                   (loop (cdr e*) (cons e^ e*^))))))))
       ((vector ,t . ,e*)
-       (let ((finish (lambda (e*^)
-                       (let ((v (gensym 'v)))
-                         `(let ((,v (vector ,t . ,e*^)))
-                            ,(finish `(var ,t ,v)))))))
-         (let loop ((e* e*) (e*^ '()))
-           (if (null? e*)
-               (finish (reverse e*^))
-               (lift-expr
-                 (car e*)
-                 (lambda (e^)
-                   (loop (cdr e*) (cons e^ e*^))))))))
-      ((make-vector ,c)
-       (finish `(make-vector ,c)))
-      ((iota (int ,c))
-       (let ((v (gensym 'iota)))
-         `(let ((,v (iota (int ,c))))
-            ,(finish `(var (vec ,c int) ,v)))))
-      ((reduce ,t ,op ,e)
-       (lift-expr
-         e
-         (lambda (e^)
-           (let ((v (gensym 'v)))
-             `(let ((,v (reduce ,t ,op ,e^)))
-                ,(finish `(var ,t ,v)))))))
+       (lift-expr*
+        e*
+        (lambda (e*)
+          (let ((v (gensym 'v)))
+            `(let ((,v ,t (vector ,t . ,e*)))
+               ,(finish `(var ,t ,v)))))))
       ((length ,e) 
        (lift-expr
          e (lambda (e^)
              (finish `(length ,e^)))))
+      ((c-expr ,t ,v) (finish `(c-expr ,t ,v)))
       ((,op ,e1 ,e2) (guard (or (binop? op) (relop? op)))
        (lift-expr
          e1 (lambda (e1^)
@@ -94,90 +61,90 @@
                 e2 (lambda (e2^)
                      (finish `(,op ,e1^ ,e2^)))))))
       ((call ,rator . ,rand*)
-       (let loop ((e* (cons rator rand*)) (e*^ '()))
-         (if (null? e*)
-             (finish `(call . ,(reverse e*^)))
-             (lift-expr
-               (car e*)
-               (lambda (e^)
-                 (loop (cdr e*) (cons e^ e*^))))))))))
+       (lift-expr
+        rator
+        (lambda (rator)
+          (lift-expr*
+           rand*
+           (lambda (rand*)
+             (finish `(call ,rator . ,rand*)))))))
+      (,else (error 'lift-expr "unmatched datum" else)))))
 
 (define Expr
   (lambda (expr finish)
     (match expr
-      ((kernel ,t ,dims (((,x* ,t*) (,e* ,ts*) ,dim*) ...) ,body)
-       (let ((finish
-               (lambda (e*^)
-                 (finish `(kernel ,t ,dims (((,x* ,t*) (,e*^ ,ts*) ,dim*) ...)
-                            ,(lift-expr body (lambda (b) b)))))))
-         (let loop ((e* e*) (e*^ '()))
-           (if (null? e*)
-               (finish (reverse e*^))
-               (lift-expr
-                 (car e*)
-                 (lambda (e^)
-                   (loop (cdr e*) (cons e^ e*^))))))))
+      ((make-vector ,t ,e)
+       (lift-expr e
+          (lambda (e)
+            (finish `(make-vector ,t ,e)))))
       ((vector ,t . ,e*)
-       (let ((finish (lambda (e*^)
-                       (finish `(vector ,t . ,e*^)))))
-         (let loop ((e* e*) (e*^ '()))
-           (if (null? e*)
-               (finish (reverse e*^))
-               (lift-expr
-                 (car e*)
-                 (lambda (e^)
-                   (loop (cdr e*) (cons e^ e*^))))))))
-      ((iota (int ,c))
-       (finish `(iota (int ,c))))
-      ((reduce ,t ,op ,e)
-       (lift-expr
-         e
-         (lambda (e^)
-           (finish `(reduce ,t ,op ,e^)))))
+       (lift-expr* e* (lambda (e*) (finish `(vector ,t . ,e*)))))
       (,else (lift-expr else finish)))))
 
+(define (lift-expr* e* finish)
+  (let loop ((e* e*) (e^* `()))
+    (cond
+     ((null? e*) (finish (reverse e^*)))
+     (else
+      (lift-expr
+       (car e*)
+       (lambda (e^) (loop (cdr e*) (cons e^ e^*))))))))
+
 (define-match lift-stmt
+  ((kernel ,t ,dims (((,x* ,t*) (,e* ,ts*) ,dim*) ...) ,[body])
+   (lift-expr*
+    dims
+    (lambda (dims)
+      (lift-expr*
+       e*
+       (lambda (e*^)
+         `(kernel ,t ,dims
+                  (((,x* ,t*) (,e*^ ,ts*) ,dim*) ...)
+                  ,body))))))
   ((begin ,[lift-stmt -> stmt*] ...)
    (make-begin stmt*))
+  ((error ,x) `(error ,x))
   ((print ,expr)
    (lift-expr expr (lambda (e^) `(print ,e^))))
+  ((print ,expr ,op)
+   (lift-expr expr
+     (lambda (e^)
+       (lift-expr op
+         (lambda (op^)
+           `(print ,e^ ,op^))))))
   ((assert ,expr)
    (lift-expr expr (lambda (e^) `(assert ,e^))))
   ((set! ,x ,e)
-   (lift-expr e (lambda (e^) `(set! ,x ,e^))))
+   (lift-expr
+    x
+    (lambda (x)
+       (lift-expr e (lambda (e^) `(set! ,x ,e^))))))
   ((let () ,[stmt]) stmt)
-  ((let ((,x ,e) . ,rest) ,stmt)
+  ((let ((,x ,t ,e) . ,rest) ,stmt)
    (Expr e
      (lambda (e)
-       `(let ((,x ,e))
+       `(let ((,x ,t ,e))
           ,(lift-stmt `(let ,rest ,stmt))))))
-  ((if ,test ,conseq)
+  ((if ,test ,[conseq])
    (lift-expr test (lambda (t) `(if ,t ,conseq))))
-  ((if ,test ,conseq ,alt)
+  ((if ,test ,[conseq] ,[alt])
    (lift-expr test (lambda (t) `(if ,t ,conseq ,alt))))
-  ((vector-set! ,t ,x ,e1 ,e2)
-   (lift-expr
-     x
-     (lambda (x^)
-       (lift-expr
-         e1
-         (lambda (e1^)
-           (lift-expr e2
-             (lambda (e2^) `(vector-set! ,t ,x^ ,e1^ ,e2^))))))))             
   ((return) `(return))
   ((return ,expr)
    (lift-expr expr (lambda (e^) `(return ,e^))))
-  ((for (,x ,start ,end) ,[stmt])
+  ((for (,x ,start ,end ,step) ,[stmt])
    (lift-expr
      start
      (lambda (start)
        (lift-expr
          end
          (lambda (end)
-           `(for (,x ,start ,end) ,stmt))))))
+           (lift-expr step
+             (lambda (step)
+               `(for (,x ,start ,end ,step) ,stmt))))))))
   ((do ,e)
    (lift-expr e (lambda (e) `(do ,e))))
-  ((while ,expr ,stmt)
+  ((while ,expr ,[stmt])
    (lift-expr expr (lambda (expr) `(while ,expr ,stmt)))))
 
 (define-match lift-decl
@@ -189,5 +156,25 @@
 (define-match lift-complex
   ((module ,[lift-decl -> fn*] ...)
    `(module . ,fn*)))
+
+(define-match type-of
+  ((,t ,v) (guard (scalar-type? t)) t)
+  ((var ,t ,x) t)
+  ((int->float ,t) `float)
+  ((length ,t) `int)
+  ((addressof ,[t]) `(ptr ,t))
+  ((deref ,[t]) (cadr t))
+  ((if ,t ,[c] ,a) c)
+  ((call (var (,argt -> ,rt) ,fn) . ,arg*) rt)
+  ((c-expr ,t ,v) t)
+  ((vector-ref ,t ,v ,i) t)
+  ((,op ,[lhs] ,rhs)
+   (guard (binop? op))
+   lhs)
+  ((let ,b ,[e]) e)
+  ((begin ,s* ... ,[e]) e)
+  ((,op ,lhs ,rhs)
+   (guard (relop? op))
+   rhs))
 
 )

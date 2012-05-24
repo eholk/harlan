@@ -1,0 +1,4 @@
+(module
+  (define (main)
+    (println (kernel ((i (iota 30))) (* i i)))
+    (return 0)))

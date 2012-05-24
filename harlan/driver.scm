@@ -23,10 +23,8 @@
                                 ,(if (make-shared-object) "-shared" "")
                                 "-x c++"
                                 ,src-tmp "-x none"
-                                "rt/libharlanrt.a"
-                                "gc/lib/libgc.a"
-                                "-Irt"
-                                "-Igc/include"
+                                ,(string-append (HARLAND) "/rt/libharlanrt.a")
+                                ,(string-append "-I" (HARLAND) "/rt")
                                 "-o" ,outfile)
                               (get-cflags)
                               args))))
@@ -59,6 +57,7 @@
   (define (parse-testspec spec)
     (match spec
       (xfail `(xfail))
+      (run-fail `(run-fail))
       ((iterate ,iterspec* ...)
        `(iterate . ,iterspec*))
       (,else (error 'parse-testspec "Invalid test specification" else))))

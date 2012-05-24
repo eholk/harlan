@@ -1,8 +1,6 @@
-;; -*- scheme -*-
-
 (module
  (define (main)
-     (let X (vector (vector 1)))
+   (let ((X (vector (vector 1))))
      (print (vector-ref (vector-ref X 0) 0))
      (assert (= 1 (vector-ref (vector-ref X 0) 0)))
-     (return 0)))
+     (return 0))))

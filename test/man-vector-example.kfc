@@ -1,5 +1,3 @@
-;; -*- scheme -*-
-
 ;; An example from the Harlan manual. We want to make sure these all
 ;; run.
 

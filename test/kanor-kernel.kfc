@@ -1,4 +1,3 @@
-;; -*- scheme -*-
 (%testspec xfail)
 
 ;; Harlan/Kanor hybrid program from Harlan proposal

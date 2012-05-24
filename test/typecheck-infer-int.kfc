@@ -1,7 +1,5 @@
-;; -*- scheme -*-
-
 (module
   (define (main)
-      (let x (+ 0 0))
+    (let ((x (+ 0 0)))
       (print x)
-      (return 0)))
+      (return 0))))
