@@ -108,4 +108,5 @@
      (else
       (begin (do-test (car cl)) (exit))))))
 
+(benchmark #t)
 (run-tests (command-line))
