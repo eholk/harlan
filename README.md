@@ -25,7 +25,7 @@ Scheme. Below are several OpenCL implementations that should work.
 * [AMD Accelerated Parallel Processing (APP) SDK](http://developer.amd.com/SDKS/AMDAPPSDK/Pages/default.aspx)
 
 Petite Cheze Scheme can be downloaded from
-[http://www.scheme.com](http://www.scheme.com).
+[http://www.scheme.com/download](http://www.scheme.com/download).
 
 Once all the prerequisites are installed, you can compile and run the
 test suite as follows.
