@@ -1,27 +1,24 @@
-;; -*- scheme -*-
-;; Vector sum
-
-(%testspec
- (iterate
-  (iters (range 10 10))
-  (len (range 100000 10000000 100000))))
-
 (module
   (extern nanotime () -> u64)
 
+  (define (id len)
+    (let ((X (make-vector len 1)))
+      (let ((start (nanotime)))
+        (let ((Sum (kernel ((x X)) x)))
+          (let ((stop (nanotime)))
+            
+            (for (m 0 len)
+              (assert (= (vector-ref Sum m) 1)))
+                
+            (- stop start))))))
+  
   (define (main)
-    (let ((ttime 0))
-      (for (k 0 iters)
-        (let ((X (make-vector len 1)))
-          (let ((start (nanotime)))
-            (let ((Sum (kernel ((x X)) x)))
-              (let ((stop (nanotime)))
-                
-                (for (m 0 len)
-                  (assert (= (vector-ref Sum m) 1)))
-                
-                (set! ttime (+ ttime (- stop start))))))))
-      (print len)
-      (print "\t")
-      (print (/ (/ ttime 1000) iters)))
-      (return 0))))
+    (let ((iters 10))
+      (for (len 100000 10000000 100000)
+        (let ((ttime 0))
+          (for (k 0 iters)
+            (set! ttime (+ ttime (id len))))
+          (print len)
+          (print "\t")
+          (println (/ (/ ttime 1000) iters)))))
+    (return 0)))

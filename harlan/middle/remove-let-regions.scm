@@ -7,8 +7,9 @@
     (elegant-weapons helpers)
     (elegant-weapons sets))
 
-;; (define region-size (expt 2 27)) ;; 128MB
-(define region-size 16777216) ;; 16MB
+ (define region-size (expt 2 27)) ;; 128MB
+;; (define region-size (expt 2 26)) ;; 64MB
+;; (define region-size 16777216) ;; 16MB
 
 (define-match remove-let-regions
   ((module ,[remove-decl -> decl*] ...)
