@@ -43,19 +43,29 @@
          (set! trace-passes (remove pass trace-passes)))
        passes))
 
+(define-syntax decode-pattern
+  (syntax-rules ()
+    ((_ loop args () body ...)
+     (begin
+       body ...
+       (loop args)))
+    ((_ loop args (pat pat* ...) body ...)
+     (let ((pat (car args))
+           (x (cdr args)))
+       (decode-pattern loop x (pat* ...) body ...)))))
+    
 (define-syntax match-args
   (syntax-rules ()
     ;; pat-args is not yet used, but it's supposed to be for things
     ;; like "-o file.out"
     ((_ args
-        (((long short) pat-args ...) body body* ...) ...)
+        (((long short ...) pat-args ...) body body* ...) ...)
      (let loop ((x args))
        (cond
          ((null? x) '())
          ((or (string=? long  (car x))
-              (string=? short (car x)))
-          body body* ...
-          (loop (cdr x)))
+              (string=? short (car x)) ...)
+          (decode-pattern loop (cdr x) (pat-args ...) body body* ...))
          ...
          (else (cons (car x) (loop (cdr x)))))))))
           
