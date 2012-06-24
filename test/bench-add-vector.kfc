@@ -1,5 +1,8 @@
 ;; Vector sum
 
+(%testspec
+ (%tags bench))
+
 (module
   (extern nanotime () -> u64)
 

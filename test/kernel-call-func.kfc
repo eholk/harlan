@@ -1,4 +1,4 @@
-(%testspec xfail)
+(%testspec (%tags xfail))
 
 (module
   (define (magnitude x y)

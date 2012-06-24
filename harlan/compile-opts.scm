@@ -7,6 +7,7 @@
     verify
     generate-debug
     make-shared-object
+    test-tags
     trace-pass
     untrace-pass
     parse-args
@@ -26,7 +27,7 @@
 (define generate-debug     (make-parameter #f))
 (define make-shared-object (make-parameter #f))
 (define optimize-level     (make-parameter 1))
-(define include-test-tags  (make-parameter '((xfail . -) (bench . -))))
+(define test-tags  (make-parameter '((xfail . -) (bench . -))))
 
 (define trace-passes '())
 
@@ -79,7 +80,7 @@
     ((("--quiet" "-q"))        (quiet #t))
     ((("--no-verify" "-V"))    (verify #f))
     ((("--time" "-t"))         (timing #t))
-    ((("--tags") tags)         (parse-tags tags))))
+    ((("--tags" "-x") tags)    (parse-tags tags))))
 
 (define (string-search needle haystack)
   (let loop ((i 0))

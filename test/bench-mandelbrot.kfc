@@ -1,6 +1,9 @@
 ;; This no longer bothers saving the image. The other mandelbrot test
 ;; makes sure that works.
 
+(%testspec
+ (%tags bench))
+
 (module
   (extern nanotime () -> u64)
 

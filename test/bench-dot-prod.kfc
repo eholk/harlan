@@ -1,5 +1,8 @@
 ;; Dense dot product between two vectors.
 
+(%testspec
+ (%tags bench))
+
 (module
   (extern nanotime () -> u64)
 

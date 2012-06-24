@@ -1,4 +1,4 @@
-(%testspec xfail)
+(%testspec (%tags xfail))
 
 ;; Harlan/Kanor hybrid program from Harlan proposal
 ;; kernel(x : X, y : Y, z : Z) { z = x * y; }

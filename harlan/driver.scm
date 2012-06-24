@@ -56,10 +56,11 @@
 
   (define (parse-testspec spec)
     (match spec
-      (xfail `(xfail))
-      (run-fail `(run-fail))
+      (xfail (error 'parse-testspec "xfail is now a tag"))
+      (run-fail '(run-fail))
       ((iterate ,iterspec* ...)
-       `(iterate . ,iterspec*))
+       (error 'parse-testspec "iteration is no longer supported"))
+      ((%tags ,tags ...) `(tags ,tags ...))
       (,else (error 'parse-testspec "Invalid test specification" else))))
 
   ;;end library

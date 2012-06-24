@@ -1,5 +1,5 @@
 ;; code for 1 dimensional nbody simulation 
-(%testspec xfail)
+(%testspec (%tags xfail))
 
 (module
   (define (main)

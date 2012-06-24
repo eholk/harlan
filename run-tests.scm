@@ -11,6 +11,7 @@
   (chezscheme)
   (util color)
   (elegant-weapons match)
+  (elegant-weapons sets)
   (util system)
   (harlan driver)
   (harlan compiler)
@@ -19,6 +20,9 @@
 (define failures  (make-parameter 0))
 (define successes (make-parameter 0))
 (define ignored   (make-parameter 0))
+
+(define include-tags (make-parameter '()))
+(define exclude-tags (make-parameter '()))
 
 (define (is-test? filename)
   (equal? (path-extension filename) "kfc"))
@@ -37,30 +41,18 @@
                  (lambda ()
                    body ...)))))))
 
-(define (iterate source iters yield)
-  (if (null? iters)
-      (yield source)
+(define (decode-tags)
+  (let loop ((tags (test-tags)))
+    (unless (null? tags)
       (begin
-        (match (car iters)
-          ((,x (range ,start ,stop))
-           (if (benchmark)
-               (let loop ((i start))
-                 (if (= i stop)
-                     (iterate (substq i x source) (cdr iters) yield)
-                     (begin
-                       (iterate (substq i x source) (cdr iters) yield)
-                       (loop (add1 i)))))
-               (iterate (substq start x source) (cdr iters) yield)))
-          ((,x (range ,start ,stop ,step))
-           (if (benchmark)
-               (let loop ((i start))
-                 (if (<= i stop)
-                     (begin
-                       (iterate (substq i x source) (cdr iters) yield)
-                       (loop (+ step i)))))
-               (iterate (substq start x source) (cdr iters) yield)))
-          (,else (error 'iterate "Invalid iteration clause" else))))))
-
+        (loop (cdr tags))
+        (let ((tag (caar tags))
+              (op (cdar tags)))
+          (case op
+            ((-) (begin (include-tags (remove tag (include-tags)))
+                        (exclude-tags (cons tag (exclude-tags)))))
+            ((+) (begin (exclude-tags (remove tag (exclude-tags)))
+                        (include-tags (cons tag (include-tags)))))))))))
 
 (define (do-test test)
   (let* ((path (join-path "test" test))
@@ -87,18 +79,20 @@
                        (error 'do-test "Test execution failed.")))))))
     (printf "Test ~a\n" path)
     (let-values (((source spec) (read-source path)))
-      (if (assq 'xfail spec)
-          (begin
+      (let ((tags (assq 'tags spec)))
+        (let ((tags (if tags (cdr tags) '())))
+          (if (and (subset? (include-tags) tags)
+                   (null? (intersection (exclude-tags) tags)))
+              (begin
+                (delete-file out-path)
+                (test-source source))
+              (begin
             (ignored (add1 (ignored)))
-            (with-color 'yellow (printf "IGNORED\n")))
-          (begin
-            (delete-file out-path)
-            (if (assq 'iterate spec)
-                (iterate source (cdr (assq 'iterate spec)) test-source)
-                (test-source source)))))))
+            (with-color 'yellow (printf "IGNORED\n")))))))))
 
 (define (do-*all*-the-tests)
   (begin
+    (decode-tags)
     (map do-test (enumerate-tests))
     (printf "Successes: ~a; Failures: ~a; Ignored: ~a; Total: ~a\n"
       (format-in-color 'green (successes))
@@ -114,8 +108,5 @@
       (if (do-*all*-the-tests) (exit) (exit #f)))
      (else
       (begin (do-test (car cl)) (exit))))))
-
-; Uncomment this line to run the benchmarks
-(benchmark #t)
 
 (run-tests (command-line))
