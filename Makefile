@@ -86,6 +86,12 @@ rt/libharlanrt.a : rt/*.h rt/*.cpp rt/*.hpp
 docs: update-submodules
 	make -C doc
 
+.phony: etags
+etags:
+	find -E . -regex "\./(rt/.*.(cpp|h|cpp|c)|harlan/.*\.(scm|ss))$"" \
+		| xargs etags
+#"
+
 #============================================================
 # For JIT support we embed Chez Scheme in a static library:
 
