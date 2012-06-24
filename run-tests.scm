@@ -1,5 +1,12 @@
 #! /usr/bin/env scheme-script
 
+; run-tests.scm <filename-with-extension>
+; For example,
+;   ./run-tests.scm bench-add-vector.kfc
+; generates the file
+;   test.bin/bench-add-vector.kfc.out
+; containing timing information
+
 (import
   (chezscheme)
   (util color)
@@ -108,5 +115,7 @@
      (else
       (begin (do-test (car cl)) (exit))))))
 
+; Uncomment this line to run the benchmarks
 (benchmark #t)
+
 (run-tests (command-line))
