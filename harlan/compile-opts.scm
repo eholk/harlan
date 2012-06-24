@@ -26,6 +26,7 @@
 (define generate-debug     (make-parameter #f))
 (define make-shared-object (make-parameter #f))
 (define optimize-level     (make-parameter 1))
+(define include-test-tags  (make-parameter '((xfail . -) (bench . -))))
 
 (define trace-passes '())
 
@@ -77,7 +78,29 @@
     ((("--shared" "-s"))       (make-shared-object #t))
     ((("--quiet" "-q"))        (quiet #t))
     ((("--no-verify" "-V"))    (verify #f))
-    ((("--time" "-t"))         (timing #t))))
+    ((("--time" "-t"))         (timing #t))
+    ((("--tags") tags)         (parse-tags tags))))
+
+(define (string-search needle haystack)
+  (let loop ((i 0))
+    (cond
+      ((>= i (string-length haystack)) #f)
+      ((char=? needle (string-ref haystack i)) i)
+      (else (loop (+ 1 i))))))
+
+(define (parse-tags tags)
+  (for-each (lambda (t)
+              (let ((tag (string->symbol (substring t 1 (string-length t))))
+                    (op (string->symbol (substring t 0 1))))
+                (test-tags (cons (cons tag op) (test-tags)))))
+            (reverse (string-split #\, tags))))
+
+(define (string-split sep str)
+  (let ((i (string-search sep str)))
+    (if i
+        (cons (substring str 0 i)
+              (string-split sep (substring str (+ 1 i) (string-length str))))
+        (list str))))
 
 (define-syntax add-time
   (syntax-rules ()
