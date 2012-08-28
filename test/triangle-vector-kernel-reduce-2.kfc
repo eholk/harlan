@@ -1,0 +1,11 @@
+;; This version uses a triangular kernel to generate the vector.
+
+(module
+  (define (main)
+    (let ((triangle
+           (kernel ((i (iota 10)))
+             (iota (+ 1 i)))))
+      (print (kernel ((r triangle))
+               (reduce + r)))
+      (print "\n"))
+    (return 0)))
