@@ -11,7 +11,8 @@
   (define (get-cflags)
     (case (get-os)
       ('darwin '("-framework OpenCL"))
-      ('linux  '("-I/opt/cuda/include" "-lOpenCL" "-lrt"))))
+      ('linux  '("-I/opt/cuda/include" "-I/usr/local/cuda/include"
+                 "-lOpenCL" "-lrt"))))
 
   (define (g++-compile-stdin src outfile . args)
     (let* ((src-tmp (if (generate-debug)

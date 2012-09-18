@@ -13,7 +13,7 @@ SRC = \
 	gpu_common.h \
 	gpu_only.h \
 
-CXXFLAGS = -I../gc/include -g
+CXXFLAGS = -I/usr/local/cuda/include -g
 
 libharlanrt.a : $(OBJS) $(SRC)
 	rm -f libharlanrt.a

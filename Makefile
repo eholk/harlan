@@ -13,7 +13,9 @@ CXX := g++-4.2
 else
 ifeq ($(shell uname), Linux)
 # This should work on 64-bit Gentoo with NVIDIA GPUs at least. YMMV.
-CXXFLAGS := $(CXXFLAGS) -I/opt/cuda/include -lOpenCL -lrt
+# This should also work on the IUCS Mine Machines.
+CXXFLAGS := $(CXXFLAGS) -I/opt/cuda/include -I/usr/local/cuda/include \
+	-lOpenCL -lrt
 CXX := g++
 ECHO_ESCAPE := "-e"
 else
