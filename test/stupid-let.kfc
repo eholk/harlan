@@ -1,0 +1,13 @@
+;; This is a test to make sure the stupid let inbetween kernels is
+;; lifted out so that it can become a 2D kernel.
+
+(module
+  (define (main)
+    (let ((v (vector 1 2 3)))
+      (let ((w (vector 4 5 6)))
+        (let ((Z (kernel ((x v))
+                   (let ((y 5))
+                     (kernel ((z w))
+                       (+ x z))))))
+          (println Z)
+          (return 0))))))
