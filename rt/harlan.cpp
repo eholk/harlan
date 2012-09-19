@@ -10,6 +10,11 @@ using namespace std;
 
 #define CHECK_MAGIC(hdr) assert((hdr)->magic == ALLOC_MAGIC)
 
+void check_region(region *r) {
+    CHECK_MAGIC(r);
+    assert(r->cl_buffer);
+}
+
 void print(bool b, std::ostream *f) {
     if(b)
         print("#t", f);
@@ -41,10 +46,9 @@ cl_device_type get_device_type()
           0);
 }
 
-// void finalize_buffer(void *buffer, void *data)
 void finalize_buffer(region *r)
 {
-    CHECK_MAGIC(r);
+    check_region(r);
     CL_CHECK(clReleaseMemObject((cl_mem)r->cl_buffer));
 }
 
@@ -55,24 +59,17 @@ region *create_region(unsigned int size)
     // void *ptr = GC_MALLOC(size);
     void *ptr = malloc(size);
 
-    region *header = (region *)ptr;
-    header->magic = ALLOC_MAGIC;
-    header->size = size;
-    header->alloc_ptr = sizeof(region);
-
     cl_int status = 0;
-    header->cl_buffer = clCreateBuffer(g_ctx,
-                                       CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
-                                       size,
-                                       ptr,
-                                       &status);
+    cl_mem buffer = clCreateBuffer(g_ctx,
+                                   CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
+                                   size,
+                                   ptr,
+                                   &status);
     CL_CHECK(status);
-
-    // GC_register_finalizer(ptr, finalize_buffer, NULL, NULL, NULL);
 
     // Make the buffer accessible to the CPU
     clEnqueueMapBuffer(g_queue,
-                       (cl_mem)header->cl_buffer,
+                       (cl_mem)buffer,
                        CL_TRUE, // blocking
                        CL_MAP_READ | CL_MAP_WRITE,
                        0,
@@ -82,6 +79,15 @@ region *create_region(unsigned int size)
                        NULL,
                        &status);
     CL_CHECK(status);
+
+    region *header = (region *)ptr;
+    header->magic = ALLOC_MAGIC;
+    header->size = size;
+    header->alloc_ptr = sizeof(region);
+    header->cl_buffer = buffer;
+    assert(header->cl_buffer);
+
+    check_region(header);
 
     return header;
 }
@@ -95,7 +101,7 @@ void free_region(region *r)
 void map_region(region *header)
 {
     cl_int status = 0;
-    CHECK_MAGIC(header);
+    check_region(header);
     clEnqueueMapBuffer(g_queue,
                        (cl_mem)header->cl_buffer,
                        CL_TRUE, // blocking
@@ -111,7 +117,7 @@ void map_region(region *header)
 
 void unmap_region(region *header)
 {
-    CHECK_MAGIC(header);
+    check_region(header);
     clEnqueueUnmapMemObject(g_queue,
                             (cl_mem)header->cl_buffer,
                             header,
