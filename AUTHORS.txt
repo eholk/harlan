@@ -1,7 +1,8 @@
 The following people have contributed code to the Harlan repository.
 
-Claire Alvis <claire.alvis@gmail.com>
-William Byrd <webyrd@gmail.com
-Eric Holk    <eric.holk@gmail.com>
-Ryan Newton  <rrnewton@gmail.com>
-Greg Zynda   <gjzynda@gmail.com>
+Claire Alvis      <claire.alvis@gmail.com>
+William Byrd      <webyrd@gmail.com
+Eric Holk         <eric.holk@gmail.com>
+Ryan Newton       <rrnewton@gmail.com>
+Sajith Sasidharan <sasasidh@indiana.edu>
+Greg Zynda        <gjzynda@gmail.com>

@@ -10,6 +10,7 @@
 #include <sstream>
 #include <cassert>
 #include <stdlib.h>
+#include <unistd.h>
 
 extern cl::device_list g_devices;
 
@@ -181,7 +182,7 @@ string escape_path(const char *s) {
 void program::build()
 // TODO: make a variant that can compile for certain devices.
 {
-    char *cwd = getcwd(NULL, 0);
+    char *cwd = ::getcwd(NULL, 0);
     string opts = "-I";
     opts += escape_path(cwd);
     opts += " -I/Users/eric/class/osl/dpp/svn/user/webyrd/harlan";
