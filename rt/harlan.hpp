@@ -18,11 +18,6 @@
 
 #include "gpu_common.h"
 
-enum error {
-    HARLAN_ERR_OUT_OF_BOUNDS,
-    HARLAN_ERR_MISPLACED_VECTOR
-};
-
 #include "cl++.h"
 
 cl_device_type get_device_type();
