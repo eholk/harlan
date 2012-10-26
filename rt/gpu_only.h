@@ -8,7 +8,9 @@ region_ptr alloc_in_region(region __global *r, unsigned int size)
     
     // If this fails, we allocated too much memory and need to resize
     // the region.
-    // assert(r->alloc_ptr < r->size);
+    if(r->alloc_ptr > r->size) {
+        return 0;
+    }
 
     return p;
 }

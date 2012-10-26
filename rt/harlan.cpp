@@ -41,7 +41,6 @@ cl_device_type get_device_type()
           0);
 }
 
-// void finalize_buffer(void *buffer, void *data)
 void finalize_buffer(region *r)
 {
     CHECK_MAGIC(r);
@@ -67,8 +66,6 @@ region *create_region(unsigned int size)
                                        ptr,
                                        &status);
     CL_CHECK(status);
-
-    // GC_register_finalizer(ptr, finalize_buffer, NULL, NULL, NULL);
 
     // Make the buffer accessible to the CPU
     clEnqueueMapBuffer(g_queue,
@@ -127,7 +124,35 @@ region_ptr alloc_in_region(region **r, unsigned int size)
  
     // If this fails, we allocated too much memory and need to resize
     // the region.
-    assert((*r)->alloc_ptr < (*r)->size);
+    while((*r)->alloc_ptr > (*r)->size) {
+        // Free the OpenCL backing buffer
+        finalize_buffer(*r);
+        int new_size = (*r)->size * 2;
+        (*r) = (region *)realloc(*r, new_size);
+        (*r)->size = new_size;
+
+        cl_int status = 0;
+        (*r)->cl_buffer = clCreateBuffer(g_ctx,
+                                         CL_MEM_READ_WRITE
+                                         | CL_MEM_USE_HOST_PTR,
+                                         (*r)->size,
+                                         *r,
+                                         &status);
+        CL_CHECK(status);
+        
+        // Make the buffer accessible to the CPU
+        clEnqueueMapBuffer(g_queue,
+                           (cl_mem)(*r)->cl_buffer,
+                           CL_TRUE, // blocking
+                           CL_MAP_READ | CL_MAP_WRITE,
+                           0,
+                           (*r)->size,
+                           0,
+                           NULL,
+                           NULL,
+                           &status);
+        CL_CHECK(status);    
+    }
 
     return p;
 }
