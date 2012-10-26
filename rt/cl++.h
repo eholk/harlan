@@ -28,6 +28,7 @@
 
 namespace cl {
     void handle_error(const char *code, cl_int e);
+    std::string format_status(cl_int status);
 
     // represents an OpenCL device.
     class device {

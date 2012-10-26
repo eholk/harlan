@@ -1,3 +1,5 @@
+(%testspec
+ (%tags xfail))
 (module
   (define (main)
     (let ((B (vector (vector 17))))

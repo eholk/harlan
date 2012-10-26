@@ -1,6 +1,5 @@
 /*
  *  cl++.cpp
- *  CLmandelbrot
  *
  *  Created by eholk on 12/3/10.
  *
@@ -8,8 +7,10 @@
 
 #include "cl++.h"
 #include <iostream>
+#include <sstream>
 #include <cassert>
 #include <stdlib.h>
+#include <unistd.h>
 
 extern cl::device_list g_devices;
 
@@ -181,7 +182,7 @@ string escape_path(const char *s) {
 void program::build()
 // TODO: make a variant that can compile for certain devices.
 {
-    char *cwd = getcwd(NULL, 0);
+    char *cwd = ::getcwd(NULL, 0);
     string opts = "-I";
     opts += escape_path(cwd);
     opts += " -I/Users/eric/class/osl/dpp/svn/user/webyrd/harlan";
@@ -298,42 +299,84 @@ command_queue context::createCommandQueue(cl_device_id dev)
 	return command_queue(q);
 }
 
+string cl::format_status(cl_int e) {
+#define STATUS_STR(x) case x: return #x;
+
+    switch(e) {
+        STATUS_STR(CL_SUCCESS);
+        STATUS_STR(CL_BUILD_PROGRAM_FAILURE);
+        STATUS_STR(CL_COMPILER_NOT_AVAILABLE);
+        STATUS_STR(CL_DEVICE_NOT_FOUND);
+        STATUS_STR(CL_INVALID_BINARY);
+        STATUS_STR(CL_INVALID_BUILD_OPTIONS);
+        STATUS_STR(CL_INVALID_COMMAND_QUEUE);
+        STATUS_STR(CL_INVALID_CONTEXT);
+        STATUS_STR(CL_INVALID_DEVICE);
+        STATUS_STR(CL_INVALID_DEVICE_TYPE);
+        STATUS_STR(CL_INVALID_EVENT_WAIT_LIST);
+        STATUS_STR(CL_INVALID_GLOBAL_OFFSET);
+        STATUS_STR(CL_INVALID_IMAGE_SIZE);
+        STATUS_STR(CL_INVALID_MEM_OBJECT);
+        STATUS_STR(CL_INVALID_KERNEL);
+        STATUS_STR(CL_INVALID_KERNEL_ARGS);
+        STATUS_STR(CL_INVALID_OPERATION);
+        STATUS_STR(CL_INVALID_PLATFORM);
+        STATUS_STR(CL_INVALID_PROGRAM);
+        STATUS_STR(CL_INVALID_PROGRAM_EXECUTABLE);
+        STATUS_STR(CL_INVALID_QUEUE_PROPERTIES);
+        STATUS_STR(CL_INVALID_VALUE);
+        STATUS_STR(CL_INVALID_WORK_DIMENSION);
+        STATUS_STR(CL_INVALID_WORK_GROUP_SIZE);
+        STATUS_STR(CL_INVALID_WORK_ITEM_SIZE);
+        STATUS_STR(CL_MEM_OBJECT_ALLOCATION_FAILURE);
+        STATUS_STR(CL_OUT_OF_RESOURCES);
+        STATUS_STR(CL_OUT_OF_HOST_MEMORY);
+
+    default:
+        stringstream s;
+        s << e;
+        return s.str();
+    }
+}
+
 void cl::handle_error(const char *code, cl_int e)
 {
 #define HANDLE(x)                                                       \
     if(e == x) {                                                        \
-        cerr << code << " failed with error " #x " (" << e << ")" << endl; \
+        cerr << code << " failed with error "                           \
+             << format_status(e) << " (" << e << ")" << endl;           \
 		abort();														\
     }
  
-    HANDLE(CL_BUILD_PROGRAM_FAILURE)
-    HANDLE(CL_COMPILER_NOT_AVAILABLE)
-    HANDLE(CL_DEVICE_NOT_FOUND)
-    HANDLE(CL_INVALID_BINARY)
-    HANDLE(CL_INVALID_BUILD_OPTIONS)
-    HANDLE(CL_INVALID_COMMAND_QUEUE)
-    HANDLE(CL_INVALID_CONTEXT)
-    HANDLE(CL_INVALID_DEVICE)
-    HANDLE(CL_INVALID_DEVICE_TYPE)
-    HANDLE(CL_INVALID_EVENT_WAIT_LIST)
-    HANDLE(CL_INVALID_GLOBAL_OFFSET)
-    //HANDLE(CL_INVALID_GLOBAL_WORK_SIZE)
-    HANDLE(CL_INVALID_IMAGE_SIZE)
-    HANDLE(CL_INVALID_KERNEL)
-    HANDLE(CL_INVALID_KERNEL_ARGS)
-    HANDLE(CL_INVALID_OPERATION)
-    HANDLE(CL_INVALID_PLATFORM)
-    HANDLE(CL_INVALID_PROGRAM)
-    HANDLE(CL_INVALID_PROGRAM_EXECUTABLE)
-    HANDLE(CL_INVALID_QUEUE_PROPERTIES)
-    HANDLE(CL_INVALID_VALUE)
-    HANDLE(CL_INVALID_WORK_DIMENSION)
-    HANDLE(CL_INVALID_WORK_GROUP_SIZE)
-    HANDLE(CL_INVALID_WORK_ITEM_SIZE)
-    HANDLE(CL_MEM_OBJECT_ALLOCATION_FAILURE)
-    //HANDLE(CL_MISALIGNED_SUB_BUFFER_OFFSET)
-    HANDLE(CL_OUT_OF_RESOURCES)
-    HANDLE(CL_OUT_OF_HOST_MEMORY)
+    HANDLE(CL_BUILD_PROGRAM_FAILURE);
+    HANDLE(CL_COMPILER_NOT_AVAILABLE);
+    HANDLE(CL_DEVICE_NOT_FOUND);
+    HANDLE(CL_INVALID_BINARY);
+    HANDLE(CL_INVALID_BUILD_OPTIONS);
+    HANDLE(CL_INVALID_COMMAND_QUEUE);
+    HANDLE(CL_INVALID_CONTEXT);
+    HANDLE(CL_INVALID_DEVICE);
+    HANDLE(CL_INVALID_DEVICE_TYPE);
+    HANDLE(CL_INVALID_EVENT_WAIT_LIST);
+    HANDLE(CL_INVALID_GLOBAL_OFFSET);
+    //HANDLE(CL_INVALID_GLOBAL_WORK_SIZE);
+    HANDLE(CL_INVALID_IMAGE_SIZE);
+    HANDLE(CL_INVALID_MEM_OBJECT);
+    HANDLE(CL_INVALID_KERNEL);
+    HANDLE(CL_INVALID_KERNEL_ARGS);
+    HANDLE(CL_INVALID_OPERATION);
+    HANDLE(CL_INVALID_PLATFORM);
+    HANDLE(CL_INVALID_PROGRAM);
+    HANDLE(CL_INVALID_PROGRAM_EXECUTABLE);
+    HANDLE(CL_INVALID_QUEUE_PROPERTIES);
+    HANDLE(CL_INVALID_VALUE);
+    HANDLE(CL_INVALID_WORK_DIMENSION);
+    HANDLE(CL_INVALID_WORK_GROUP_SIZE);
+    HANDLE(CL_INVALID_WORK_ITEM_SIZE);
+    HANDLE(CL_MEM_OBJECT_ALLOCATION_FAILURE);
+    //HANDLE(CL_MISALIGNED_SUB_BUFFER_OFFSET);
+    HANDLE(CL_OUT_OF_RESOURCES);
+    HANDLE(CL_OUT_OF_HOST_MEMORY);
 
     cerr << code << " failed with unknown error (" << e << ")" << endl;
     abort();
