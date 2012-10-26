@@ -1,0 +1,42 @@
+;; Experimenting with named kernel syntax. The goal is to get a way
+;; that we could write reduce as a library function.
+
+(%testspec
+ (%tags xfail))
+
+(module
+  (define (main)
+    (let ((x (iota 1000)))
+      ;; one phase of the reduction
+      (kernel ((i (iota (/ (length x) 2))))
+        (+ (vector-ref x i) (vector-ref x (+ i (/ (length x) 2))))))))
+
+;; Use named let to loop over all this.
+(module
+  (define (main)
+    (let ((x (iota 1000)))
+      (let reduce ((x x))
+        ;; one phase of the reduction
+        (if (> 1 (length x))
+            (reduce
+             (kernel ((i (iota (/ (length x) 2))))
+               (+ (vector-ref x i) (vector-ref x (+ i (/ (length x) 2))))))
+            (vector-ref x 0))))))
+
+;; Lift the named let into a top-level function.
+;;
+;; This should be legal in current Harlan.
+(module
+  (define (reduce x)
+    (if (> 1 (length x))
+        (reduce
+         (kernel ((i (iota (/ (length x) 2))))
+           (+ (vector-ref x i) (vector-ref x (+ i (/ (length x) 2))))))
+        (vector-ref x 0)))
+  
+  (define (main)
+    (let ((x (iota 1000)))
+      (reduce x))))
+
+;; Now, how can our compiler fuse iterated kernels into a single
+;; iterating kernel?
