@@ -44,7 +44,7 @@ void print(T n) {
     print(n, &std::cout);
 }
 
-region *create_region(unsigned int size);
+region *create_region(int size = -1);
 void free_region(region *r);
 void map_region(region *ptr);
 void unmap_region(region *ptr);

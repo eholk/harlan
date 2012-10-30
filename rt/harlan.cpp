@@ -46,14 +46,25 @@ cl_device_type get_device_type()
           0);
 }
 
+int get_default_region_size()
+{
+  const char *cfg = getenv("HARLAN_MIN_REGION_SIZE");
+
+  if(cfg)
+      return atoi(cfg);
+  else return 8192;
+}
+
 void finalize_buffer(region *r)
 {
     check_region(r);
     CL_CHECK(clReleaseMemObject((cl_mem)r->cl_buffer));
 }
 
-region *create_region(unsigned int size)
+region *create_region(int size)
 {
+    if(size == -1) size = get_default_region_size();
+
     assert(size > sizeof(region));
 
     // void *ptr = GC_MALLOC(size);
