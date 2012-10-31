@@ -99,7 +99,6 @@
       (reduce Reduceop Value)
       (iota Value)
       (length Value)
-      (make-vector Value Value)
       (Binop Value Value)
       (Relop Value Value)
       (Var Value *)))
