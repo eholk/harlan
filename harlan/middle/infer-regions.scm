@@ -325,6 +325,12 @@
        (== r* `(,r . ,rest))
        (fill-type-with-region t rest to)
        (infer-triv triv env `() trivo)))
+    ((fresh (t triv trivo r to rest)
+       (== expr `(make-vector-r ,t ,r ,triv))
+       (== expro `(make-vector ,to ,trivo))
+       (== r* `(,r . ,rest))
+       (fill-type-with-region t rest to)
+       (infer-triv triv env `() trivo)))
     ((infer-triv expr env r* expro))))
 
 (define-mk (infer-triv triv env r* trivo)

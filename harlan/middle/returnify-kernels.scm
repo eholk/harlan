@@ -41,6 +41,7 @@
    `(for (,i ,start ,stop ,step) ,body))
   ((let ((,x ,t ,[returnify-kernel-expr -> e]) ...) ,[stmt])
    `(let ((,x ,t ,e) ...) ,stmt))
+  ((let-region (,r) ,[body]) `(let-region (,r) ,body))
   ((do ,[returnify-kernel-expr -> expr]) `(do ,expr)))
 
 (define-match returnify-kernel-expr
@@ -58,6 +59,8 @@
   ((int->float ,[e]) `(int->float ,e))
   ((make-vector ,t ,[e]) `(make-vector ,t ,e))
   ((vector ,t ,[e*] ...) `(vector ,t . ,e*))
+  ((vector-r ,t ,r ,[e] ...)
+   `(vector-r ,t ,r . ,e))
   ((,op ,[lhs] ,[rhs])
    (guard (or (binop? op) (relop? op)))
    `(,op ,lhs ,rhs))

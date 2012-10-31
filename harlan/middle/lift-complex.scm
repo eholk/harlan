@@ -49,6 +49,13 @@
           (let ((v (gensym 'v)))
             `(let ((,v ,t (vector ,t . ,e*)))
                ,(finish `(var ,t ,v)))))))
+      ((vector-r ,t ,r . ,e*)
+       (lift-expr*
+        e*
+        (lambda (e*)
+          (let ((v (gensym 'v)))
+            `(let ((,v ,t (vector-r ,t ,r . ,e*)))
+               ,(finish `(var ,t ,v)))))))
       ((length ,e) 
        (lift-expr
          e (lambda (e^)
@@ -119,6 +126,7 @@
     x
     (lambda (x)
        (lift-expr e (lambda (e^) `(set! ,x ,e^))))))
+  ((let-region (,r) ,[body]) `(let-region (,r) ,body))
   ((let () ,[stmt]) stmt)
   ((let ((,x ,t ,e) . ,rest) ,stmt)
    (Expr e

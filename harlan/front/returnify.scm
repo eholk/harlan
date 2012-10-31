@@ -18,6 +18,7 @@
   ((var ,x) `(return (var ,x)))       
   ((let ((,x ,e) ...) ,[stmt])
    `(let ((,x ,e) ...) ,stmt))
+  ((let-region (,r) ,[s]) `(let-region (,r) ,s))
   ((print ,e ...) (make-begin `((print . ,e) (return))))
   ((println ,e ...) (make-begin `((println . ,e) (return))))
   ((assert ,e) (make-begin `((assert ,e) (return))))

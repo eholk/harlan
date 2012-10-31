@@ -1,0 +1,9 @@
+(module
+  (define (main)
+    (let-region
+     (r1)
+     (let-region
+      (r2)
+      (let ((x (vector-r r1 1 2 3 4))
+            (y (vector-r r2 1 2 3 4)))
+        (return 0))))))

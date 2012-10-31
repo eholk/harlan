@@ -24,6 +24,7 @@
   (define-match Stmt
     ((let ((,x* ,t* ,[Expr -> e*]) ...) ,[body])
      `(let ((,x* ,t* ,e*) ...) ,body))
+    ((let-region (,r) ,[body]) `(let-region (,r) ,body))
     ((set! ,[Expr -> lhs] ,[Expr -> rhs])
      `(set! ,lhs ,rhs))
     ((if ,[Expr -> test] ,[conseq] ,[altern])
@@ -58,6 +59,8 @@
      `(make-vector ,t ,e))
     ((vector ,t ,[e] ...)
      `(vector ,t . ,e))
+    ((vector-r ,t ,r ,[e] ...)
+     `(vector-r ,t ,r . ,e))
     ((c-expr ,t ,v)
      `(c-expr ,t ,v))
     ((vector-ref ,t ,[v] ,[i])

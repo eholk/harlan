@@ -68,6 +68,11 @@
                 (apply append binding*)
                 (map list x* t* e*)
                 liftable))))
+    ((let-region (,r) ,[body bindings])
+     ;; FIXME: This is overly conservative, many bindings can be
+     ;; lifted beyond this.
+     (values `(let-region (,r) ,(make-let bindings body))
+             '()))
     ((let ((,x* ,t*) ...) ,[body bindings])
      (values `(let ((,x* ,t*) ...) ,(make-let bindings body))
              `()))
@@ -138,6 +143,7 @@
     ((length ,[e]) e)
     ((make-vector ,t ,[e]) e)
     ((vector ,t ,[e] ...) (apply union e))
+    ((vector-r ,t ,r ,[e] ...) (apply union e))
     ((vector-ref ,t ,[x] ,[i])
      (union x i))
     ((kernel ,t (,[dfv**] ...) (((,x* ,t*) (,[fv**] ,ts*) ,d) ...) ,[e])
@@ -187,6 +193,7 @@
      (and (andmap pure? e) (pure? b)))
     ((begin ,stmt* ... ,e) #f)
     ((vector ,t . ,e*) #f)
+    ((vector-r ,t ,r . ,e*) #f)
     ((make-vector ,t ,[e]) #f)
     ((length ,[e]) e)
     ;; Don't lift function calls.

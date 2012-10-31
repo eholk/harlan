@@ -93,6 +93,7 @@
   ((set! ,[(parse-expr env) -> x]
      ,[(parse-expr env) -> e])
    `(set! ,x ,e))
+  ((let-region (,r) ,[e]) `(let-region (,r) ,e))
   ((let ((,x* ,[(parse-expr env) -> e*]) ...) . ,body)
    (begin
      (check-idents x*)
@@ -119,6 +120,8 @@
      `(var ,(cdr x^))))
   ((vector ,[e*] ...)
    `(vector . ,e*))
+  ((vector-r ,r ,[e*] ...)
+   `(vector-r ,r . ,e*))
   ((begin ,[(parse-stmt env) -> stmt*] ... ,[(parse-expr env) -> expr])
    `(begin ,@stmt* ,expr))
   ((make-vector ,[(parse-expr env) -> size] ,[expr])

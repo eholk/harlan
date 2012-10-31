@@ -35,6 +35,7 @@
 (define-match (Stmt k)
   ((let ((,x ,t ,[(Expr k) -> e]) ...) ,[stmt])
    `(let ((,x ,t ,e) ...) ,stmt))
+  ((let-region (,r) ,[body]) `(let-region (,r) ,body))
   ((begin ,[stmt*] ...) (make-begin stmt*))
   ((error ,x) `(error ,x))
   ((for ,b ,[stmt]) `(for ,b ,stmt))
@@ -77,6 +78,8 @@
    (guard (or (binop? op) (relop? op)))
    `(,op ,lhs ,rhs))
   ((make-vector ,t ,[e]) `(make-vector ,t ,e))
+  ((vector-r ,t ,r ,[e] ...)
+   `(vector-r ,t ,r . ,e))
   ((vector ,t ,[e*] ...) `(vector ,t . ,e*)))
 
 (define-match (set-kernel-return t x i)

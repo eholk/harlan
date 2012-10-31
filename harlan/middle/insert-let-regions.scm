@@ -51,6 +51,7 @@
     ((kernel ,args ... ,s)
      `(kernel ,args ... ,s))
     ((let ,b ,[s]) `(let ,b ,s))
+    ((let-region (,r) ,[s]) `(let-region (,r) ,s))
     ((if ,t ,[c]) `(if ,t ,c))
     ((if ,t ,[c] ,[a]) `(if ,t ,c ,a))
     ((for ,b ,s)

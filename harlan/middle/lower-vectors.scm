@@ -20,6 +20,7 @@
   ((error ,x) `(error ,x))
   ((let ,b ,[s])
    (lower-lifted-expr b s))
+  ((let-region (,r) ,[s]) `(let-region (,r) ,s))
   ((begin ,[stmt*] ...)
    (make-begin stmt*))
   ((if ,t ,[c])
@@ -50,6 +51,19 @@
     (((,x (vec ,t) (vector (vec ,t) . ,e*)) . ,[rest])
      `(let ((,x (vec ,t)
                 (make-vector ,t (int ,(length e*)))))
+        (begin
+          ,@(let loop ((e* e*) (i 0))
+              (if (null? e*)
+                  `()
+                  `((set! (vector-ref ,t
+                                      (var (vec ,t) ,x)
+                                      (int ,i))
+                          ,(car e*))
+                    . ,(loop (cdr e*) (+ 1 i)))))
+          ,rest)))
+    (((,x (vec ,t) (vector-r (vec ,t) ,r . ,e*)) . ,[rest])
+     `(let ((,x (vec ,t)
+                (make-vector-r ,t ,r (int ,(length e*)))))
         (begin
           ,@(let loop ((e* e*) (i 0))
               (if (null? e*)
