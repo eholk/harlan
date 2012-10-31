@@ -25,7 +25,7 @@
         (expr (gensym 'expr))) ;; this is unused
     (assert (= (length dims) 1))
     `(let ((,expr ,t ,(car dims)))
-       (let ((,kernelfor (vec ,t) (make-vector ,t r
+       (let ((,kernelfor (vec ,t) (make-vector ,t ,r
                                                (var ,t ,expr))))
          (begin
            (for (,i (int 0) (var ,t ,expr) (int 1))
