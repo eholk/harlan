@@ -1,5 +1,5 @@
 (%testspec
- (%tags xfail))
+ (%tags))
 
 (module
   (extern nanotime () -> u64)
