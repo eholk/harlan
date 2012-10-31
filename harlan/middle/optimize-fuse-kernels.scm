@@ -71,8 +71,8 @@
      `(if ,test ,conseq ,altern))
     ((if ,[test] ,[conseq])
      `(if ,test ,conseq))
-    ((kernel ,t ,dims ,iters ,[body])
-     (make-2d-kernel t dims iters body))
+    ((kernel ,t ,r ,dims ,iters ,[body])
+     (make-2d-kernel t r dims iters body))
     ((let ((,x* ,t* ,[e*]) ...) ,[e])
      `(let ((,x* ,t* ,e*) ...) ,e))
     ((begin ,[Stmt -> s*] ... ,[e])
@@ -81,10 +81,10 @@
      (guard (or (relop? op) (binop? op)))
      `(,op ,lhs ,rhs)))
 
-  (define (inline-kernel t dims iters body)
+  (define (inline-kernel t r dims iters body)
     (match iters
       ((((,x ,xt)
-         ((kernel ,t^ ,dims^ ,iters^ ,body^)
+         ((kernel ,t^ ,r^ ,dims^ ,iters^ ,body^)
           ,et)
          ,i)
         . ,rest)
@@ -95,27 +95,27 @@
                (display "Harlan Compiler Message:")
                (display "optimize-fuse-kernels is inlining a kernel\n")))
          (Expr
-          `(kernel ,t ,dims
+          `(kernel ,t ,r ,dims
                    (,@rest . ,iters^)
                    (let ((,x ,xt ,body^))
                      ,body)))))
-      (,else `(kernel ,t ,dims ,iters ,body))))
+      (,else `(kernel ,t ,r ,dims ,iters ,body))))
 
-  (define (make-2d-kernel t dims iters body)
+  (define (make-2d-kernel t r dims iters body)
     (let ((arg-vars (map caar iters))
-          (fallback (lambda () (inline-kernel t dims iters body))))
+          (fallback (lambda () (inline-kernel t r dims iters body))))
       (match body
-        ((kernel ,t^ ,dims^ ,iters^ ,body^)
+        ((kernel ,t^ ,r^ ,dims^ ,iters^ ,body^)
          (guard (and ((not-in arg-vars) dims^)    ;; this should be (not (in ...))
                      ((not-in arg-vars) iters^)))
          (Expr
           `(kernel
-            ,t
+            ,t ,r
             (,@dims ,@dims^)
             (,@iters
              ,@(map incr-dimension iters^))
             ,(incr-dim-expr body^))))
-        ((kernel ,t^ ,dims^ ,iters^ ,body^)
+        ((kernel ,t^ ,r^ ,dims^ ,iters^ ,body^)
          (cond
           ((shares-dimension iters iters^)
            =>
@@ -123,7 +123,7 @@
              (build-switch
               (map caddr varxs)
               varxs
-              t
+              t r
               dims dims^
               iters iters^
               body^
@@ -143,7 +143,7 @@
         ((((,x ,xt) (,e ,et) ,d) . ,[rest]) rest))))
 
   (define (build-switch
-           xs varxs t dims dims^ iters iters^ body^ oldkernel)
+           xs varxs t r dims dims^ iters iters^ body^ oldkernel)
     (let ((lenxs (map (lambda (x) (gensym (symbol-append 'len x))) xs))
           (lenrows (map (lambda (x) (gensym (symbol-append 'lenrow x))) xs))
           (is (map (lambda (_) (gensym 'i)) varxs))
@@ -174,7 +174,7 @@
                        `((print (str "Rectangular argument, took branch to 2D-erize a kernel\n")))
                        `())
                  (kernel
-                  ,t
+                  ,t ,r
                   (,@dims
                    (length (vector-ref ,(cadadr (car varxs)) ,(car varxs) (int 0))))
                   (,@iters
@@ -252,10 +252,10 @@
      `(call ,f ,args ...))
     ((if ,[test] ,[conseq] ,[altern])
      `(if ,test ,conseq ,altern))
-    ((kernel ,t (,[dims] ...)
+    ((kernel ,t ,r (,[dims] ...)
              (((,x ,xt) (,[e] ,et) ,d) ...)
              ,[body])
-     `(kernel ,t ,dims
+     `(kernel ,t ,r ,dims
               (((,x ,xt) (,e ,et) ,d) ...)
               ,body))
     ((let ((,x* ,t* ,[e*]) ...) ,[e])

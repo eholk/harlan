@@ -68,6 +68,7 @@
      `(if ,test ,conseq ,altern))
     ((kernel
       (vec ,inner-type)
+      ,r
       (,[dim] ...)
       (((,x* ,t*) (,[xs*] ,ts*) ,d*) ...)
       ;; TODO: put the cata form for body back, once we figure out
@@ -76,6 +77,7 @@
      ;; TODO
      `(kernel
        (vec ,inner-type)
+       ,r
        ,dim
        (((,x* ,t*) (,xs* ,ts*) ,d*) ...) ,body))
     ((let ((,x* ,t* ,[e*]) ...) ,[e])

@@ -4,7 +4,8 @@
   (import
    (rnrs)
    (harlan helpers)
-   (elegant-weapons helpers))
+   (elegant-weapons helpers)
+   (cKanren mk))
 
   (define-match make-kernel-dimensions-explicit
     ((module ,[Decl -> decl*] ...)
@@ -62,10 +63,10 @@
      `(call ,f . ,args))
     ((if ,[t] ,[c] ,[a]) `(if ,t ,c ,a))
     ((if ,[t] ,[c]) `(if ,t ,c))
-    ((kernel ,kt (((,x ,xt) (,[e] ,et)) ...) ,[body])
-     `(kernel ,kt 1 (((,x ,xt) (,e ,et) 0) ...) ,body))
+    ((kernel ,kt ,r (((,x ,xt) (,[e] ,et)) ...) ,[body])
+     `(kernel ,kt ,r 1 (((,x ,xt) (,e ,et) 0) ...) ,body))
     ((iota ,[e])
-     `(kernel (vec int) 1 (,e) ()
+     `(kernel (vec int) ,(var 'region) 1 (,e) ()
               (call (c-expr ((int) -> int)
                             get_global_id)
                     (int 0))))

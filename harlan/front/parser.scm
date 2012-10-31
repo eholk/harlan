@@ -153,6 +153,15 @@
           ,(make-begin
              `(,@(map (parse-stmt env) stmt*)
                ,((parse-expr env) e)))))))
+  ((kernel-r ,r ((,x* ,[e*]) ...) ,stmt* ... ,e)
+   (begin
+     (check-idents x*)
+     (let* ((x*^ (map gensym x*))
+            (env (append (map cons x* x*^) env)))
+       `(kernel-r ,r ((,x*^ ,e*) ...)
+          ,(make-begin
+             `(,@(map (parse-stmt env) stmt*)
+               ,((parse-expr env) e)))))))
   ((reduce ,op ,[e])
    (begin
      (unless (reduceop? op)

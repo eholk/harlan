@@ -70,14 +70,15 @@
 
 (define-match returnify-kernel
   ((kernel (vec ,t)
-           ,dims
-           (((,x* ,tx*) (,[returnify-kernel-expr -> xe*] ,xet*) ,dim) ...)
-           ,body)
+     ,r
+     ,dims
+     (((,x* ,tx*) (,[returnify-kernel-expr -> xe*] ,xet*) ,dim) ...)
+     ,body)
    (let ((retvars (map (lambda (_) (gensym 'retval)) dims))
          (i (gensym 'i))
          (vv (gensym 'vv))
          (id (gensym 'kern)))
-     `(let ((,id (vec ,t) (make-vector ,t ,(var 'region) ,(car dims))))
+     `(let ((,id (vec ,t) (make-vector ,t ,r ,(car dims))))
         (begin
           ,@(if (null? (cdr dims))
                 `()

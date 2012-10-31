@@ -62,21 +62,21 @@
      `(call ,f . ,args))
     ((if ,[t] ,[c] ,[a]) `(if ,t ,c ,a))
     ((if ,[t] ,[c]) `(if ,t ,c))
-    ((kernel ,kt ,dim ,ws ,args ,body)
-     `(kernel ,kt ,ws ,args ,body))
+    ((kernel ,kt ,r ,dim ,ws ,args ,body)
+     `(kernel ,kt ,r ,ws ,args ,body))
     ((kernel
-      (vec ,inner-type)
-      ,dim
-      (((,x ,t) (,[xs] ,ts) ,d)
-       ((,x* ,t*) (,[xs*] ,ts*) ,d*) ...) ,[body])
+         (vec ,inner-type) ,r
+         ,dim
+         (((,x ,t) (,[xs] ,ts) ,d)
+          ((,x* ,t*) (,[xs*] ,ts*) ,d*) ...) ,[body])
      ((arg-length
        ts
        (lambda (len xs^)
          (assert (= (length len) dim))
-         `(kernel (vec ,inner-type)
-                  ,len
-                  (((,x ,t) (,xs^ ,ts) ,d)
-                   ((,x* ,t*) (,xs* ,ts*) ,d*) ...) ,body)))
+         `(kernel (vec ,inner-type) ,r
+            ,len
+            (((,x ,t) (,xs^ ,ts) ,d)
+             ((,x* ,t*) (,xs* ,ts*) ,d*) ...) ,body)))
       xs))
     ((let ((,x* ,t* ,[e*]) ...) ,[e])
      `(let ((,x* ,t* ,e*) ...) ,e))

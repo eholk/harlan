@@ -378,6 +378,13 @@
          (== type `(vec ,t))
          (== expro `(kernel ,type ,b^* ,body^))
          (infer-kernel-bindings b* b^* env env^ n)
+         (infer-expr body env^ t body^)))
+      ((fresh (b* body b^* body^ env^ t n r)
+         (== expr `(kernel-r ,r ,b* ,body))
+         (report-backtrack `(kernel ,b* ,body) env)
+         (== type `(vec ,t))
+         (== expro `(kernel-r ,type ,r ,b^* ,body^))
+         (infer-kernel-bindings b* b^* env env^ n)
          (infer-expr body env^ t body^))))))
 
 (define infer-args

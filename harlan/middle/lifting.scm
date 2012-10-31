@@ -81,6 +81,11 @@
        (values `(kernel ,kt ,d (((,x* ,t) (,e ,es) ,dim) ...)
                         ,(make-let pinned body))
                liftable)))
+    ((kernel ,kt ,r ,d (((,x* ,t) (,e ,es) ,dim) ...) ,[body bindings])
+     (let-values (((liftable pinned) ((split-bindings x*) bindings)))
+       (values `(kernel ,kt ,r ,d (((,x* ,t) (,e ,es) ,dim) ...)
+                        ,(make-let pinned body))
+               liftable)))
     ((begin ,[stmt* bindings*] ... ,[Expr -> e bindings])
      (values
       `(begin ,@(map make-let bindings* stmt*) ,(make-let bindings e))
@@ -127,6 +132,11 @@
        (values `(kernel ,kt ,d (((,x* ,t) (,e ,es) ,dim) ...)
                         ,(make-let pinned body))
                liftable)))
+    ((kernel ,kt ,r ,d (((,x* ,t) (,e ,es) ,dim) ...) ,[body bindings])
+     (let-values (((liftable pinned) ((split-bindings x*) bindings)))
+       (values `(kernel ,kt ,r ,d (((,x* ,t) (,e ,es) ,dim) ...)
+                        ,(make-let pinned body))
+               liftable)))
     (,e (values e `())))
 
   (define-match free-vars-Expr
@@ -146,6 +156,10 @@
     ((vector-ref ,t ,[x] ,[i])
      (union x i))
     ((kernel ,t (,[dfv**] ...) (((,x* ,t*) (,[fv**] ,ts*) ,d) ...) ,[e])
+     (apply union
+            (difference e x*)
+            (union dfv** fv**)))
+    ((kernel ,t ,r (,[dfv**] ...) (((,x* ,t*) (,[fv**] ,ts*) ,d) ...) ,[e])
      (apply union
             (difference e x*)
             (union dfv** fv**)))
@@ -204,9 +218,17 @@
     ((vector-ref ,t ,[x] ,[i])
      (and x i))
     ((iota ,[e]) e)
-    ;; TODO: Kernels might actually be pure in some cases.
     ((kernel
        ,t
+       (,dims ...)
+       (((,x ,xt) (,e ,et) ,d)
+        ...)
+       ,body)
+     (and (andmap pure? e)
+          (andmap pure? dims)
+          (pure? body)))
+    ((kernel
+       ,t ,r
        (,dims ...)
        (((,x ,xt) (,e ,et) ,d)
         ...)

@@ -19,13 +19,13 @@
   (lambda (x t xs)
     `(,x ,t (vector-ref ,t ,xs (var int ,i)))))
 
-(define (kernel->for t dims x* t* xs* ts* d* e)
+(define (kernel->for t r dims x* t* xs* ts* d* e)
   (let ((kernelfor (gensym 'x))
         (i (gensym 'i))
         (expr (gensym 'expr))) ;; this is unused
     (assert (= (length dims) 1))
     `(let ((,expr ,t ,(car dims)))
-       (let ((,kernelfor (vec ,t) (make-vector ,t ,(var 'region)
+       (let ((,kernelfor (vec ,t) (make-vector ,t r
                                                (var ,t ,expr))))
          (begin
            (for (,i (int 0) (var ,t ,expr) (int 1))
@@ -57,12 +57,12 @@
    `(let ((,x ,t ,e) ...) ,expr))
   ((begin ,[(Stmt k) -> stmt*] ... ,[e])
    `(begin ,@stmt* ,e))
-  ((kernel (vec ,t) (,[dims] ...)
+  ((kernel (vec ,t) ,r (,[dims] ...)
            (((,x* ,t*) (,[xs*] ,ts*) ,d*) ...)
            ,[(Expr #t) -> e])
    (if k
-       (kernel->for t dims x* t* xs* ts* d* e)
-       `(kernel (vec ,t) ,dims
+       (kernel->for t r dims x* t* xs* ts* d* e)
+       `(kernel (vec ,t) ,r ,dims
                 (((,x* ,t*) (,xs* ,ts*) ,d*) ...)
                 ,e)))
   ((if ,[t] ,[c] ,[a])
@@ -143,10 +143,10 @@
     ,n)
    `(var int ,i))
   ;; Don't go inside kernels, the get-global-id is out of scope.
-  ((kernel ,t (,[dims] ...)
+  ((kernel ,t ,r (,[dims] ...)
            (((,x ,xt) (,[e] ,et) ,i^) ...)
            ,body)
-   `(kernel ,t (,dims ...)
+   `(kernel ,t ,r (,dims ...)
             (((,x ,xt) (,e ,et) ,i^) ...)
             ,body))
   ((call ,[fn] ,[args] ...)
