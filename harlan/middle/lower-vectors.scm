@@ -4,7 +4,8 @@
   (import
     (rnrs)
     (harlan helpers)
-    (elegant-weapons helpers))
+    (elegant-weapons helpers)
+    (cKanren mk))
 
 (define-match lower-vectors
   ((module ,[lower-decl -> decl*] ...)
@@ -50,7 +51,7 @@
     (() s)
     (((,x (vec ,t) (vector (vec ,t) . ,e*)) . ,[rest])
      `(let ((,x (vec ,t)
-                (make-vector ,t (int ,(length e*)))))
+                (make-vector-r ,t ,(var 'region) (int ,(length e*)))))
         (begin
           ,@(let loop ((e* e*) (i 0))
               (if (null? e*)

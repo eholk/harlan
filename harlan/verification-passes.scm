@@ -31,8 +31,12 @@
     (rnrs)
     (harlan helpers)
     (elegant-weapons helpers)
-    (util verify-grammar))
+    (util verify-grammar)
+    (cKanren mk))
 
+(define (region-var? x)
+  (or (symbol? x) (var? x)))
+  
 (grammar-transforms
 
   (%static
@@ -58,7 +62,7 @@
     (Char char)
     (Boolean boolean)
     (Number number)
-    (RegionVar symbol))
+    (RegionVar region-var))
   
   (harlan
     (Start Module)
