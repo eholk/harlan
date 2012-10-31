@@ -49,22 +49,9 @@
 (define (lower-lifted-expr b s)
   (match b
     (() s)
-    (((,x (vec ,t) (vector (vec ,t) . ,e*)) . ,[rest])
+    (((,x (vec ,t) (vector (vec ,t) ,r . ,e*)) . ,[rest])
      `(let ((,x (vec ,t)
-                (make-vector-r ,t ,(var 'region) (int ,(length e*)))))
-        (begin
-          ,@(let loop ((e* e*) (i 0))
-              (if (null? e*)
-                  `()
-                  `((set! (vector-ref ,t
-                                      (var (vec ,t) ,x)
-                                      (int ,i))
-                          ,(car e*))
-                    . ,(loop (cdr e*) (+ 1 i)))))
-          ,rest)))
-    (((,x (vec ,t) (vector-r (vec ,t) ,r . ,e*)) . ,[rest])
-     `(let ((,x (vec ,t)
-                (make-vector-r ,t ,r (int ,(length e*)))))
+                (make-vector ,t ,r (int ,(length e*)))))
         (begin
           ,@(let loop ((e* e*) (i 0))
               (if (null? e*)

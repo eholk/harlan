@@ -40,21 +40,14 @@
            (lift-expr
              e2 (lambda (e2^)
                   (finish `(vector-ref ,t ,e1^ ,e2^)))))))
-      ((make-vector ,t ,e)
-       (lift-expr e (lambda (e^) (finish `(make-vector ,t ,e^)))))
-      ((vector ,t . ,e*)
+      ((make-vector ,t ,r ,e)
+       (lift-expr e (lambda (e^) (finish `(make-vector ,t ,r ,e^)))))
+      ((vector ,t ,r . ,e*)
        (lift-expr*
         e*
         (lambda (e*)
           (let ((v (gensym 'v)))
-            `(let ((,v ,t (vector ,t . ,e*)))
-               ,(finish `(var ,t ,v)))))))
-      ((vector-r ,t ,r . ,e*)
-       (lift-expr*
-        e*
-        (lambda (e*)
-          (let ((v (gensym 'v)))
-            `(let ((,v ,t (vector-r ,t ,r . ,e*)))
+            `(let ((,v ,t (vector ,t ,r . ,e*)))
                ,(finish `(var ,t ,v)))))))
       ((length ,e) 
        (lift-expr
@@ -84,8 +77,8 @@
        (lift-expr e
           (lambda (e)
             (finish `(make-vector ,t ,e)))))
-      ((vector ,t . ,e*)
-       (lift-expr* e* (lambda (e*) (finish `(vector ,t . ,e*)))))
+      ((vector ,t ,r . ,e*)
+       (lift-expr* e* (lambda (e*) (finish `(vector ,t ,r . ,e*)))))
       (,else (lift-expr else finish)))))
 
 (define (lift-expr* e* finish)

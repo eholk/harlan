@@ -5,8 +5,12 @@
     (rnrs)
     (elegant-weapons helpers)
     (elegant-weapons compat)
-    (only (chezscheme) printf trace-define))
+    (only (chezscheme) printf trace-define)
+    (cKanren mk))
 
+  ;; This pass macro-expands primitives. It also inserts fresh region
+  ;; variables.
+  
   (define externs (make-parameter '()))
 
   (define (add-externs prim)
@@ -74,15 +78,15 @@
     ((iota ,[e])
      `(iota ,e))
     ((vector (vec ,t) ,[e*] ...)
-     `(vector (vec ,t) . ,e*))
+     `(vector (vec ,t) ,(var 'region) . ,e*))
     ((vector-r (vec ,t) ,r ,[e*] ...)
-     `(vector-r (vec ,t) ,r . ,e*))
+     `(vector (vec ,t) ,r . ,e*))
     ((make-vector ,t ,[size] ,[init])
      (let ((i (gensym 'i))
            (len (gensym 'len))
            (v (gensym 'v)))
        `(let ((,len int ,size))
-          (let ((,v (vec ,t) (make-vector ,t (var int ,len))))
+          (let ((,v (vec ,t) (make-vector ,t ,(var 'region) (var int ,len))))
             (begin
               (for (,i (int 0) (var int ,len) (int 1))
                    (set! (vector-ref ,t
@@ -190,7 +194,7 @@
       `(let ((,l (vec ,t) ,lhs)
              (,r (vec ,t) ,rhs))
          (let ((,len int (length (var (vec ,t) ,l))))
-           (let ((,res (vec ,t) (make-vector ,t (var int ,len))))
+           (let ((,res (vec ,t) (make-vector ,t ,(var 'region) (var int ,len))))
              (begin
                (for (,i (int 0) (var int ,len) (int 1))
                     (let ((,lhsi

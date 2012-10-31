@@ -2,7 +2,8 @@
   (harlan middle remove-nested-kernels)
   (export remove-nested-kernels)
   (import (rnrs) (elegant-weapons helpers)
-    (harlan helpers))
+    (harlan helpers)
+    (cKanren mk))
 
 (define-match remove-nested-kernels
   ((module ,[Decl -> decl*] ...)
@@ -24,7 +25,8 @@
         (expr (gensym 'expr))) ;; this is unused
     (assert (= (length dims) 1))
     `(let ((,expr ,t ,(car dims)))
-       (let ((,kernelfor (vec ,t) (make-vector ,t (var ,t ,expr))))
+       (let ((,kernelfor (vec ,t) (make-vector ,t ,(var 'region)
+                                               (var ,t ,expr))))
          (begin
            (for (,i (int 0) (var ,t ,expr) (int 1))
                 (let ,(map (kernel-arg->binding i) x* t* xs*)
@@ -77,10 +79,8 @@
   ((,op ,[lhs] ,[rhs])
    (guard (or (binop? op) (relop? op)))
    `(,op ,lhs ,rhs))
-  ((make-vector ,t ,[e]) `(make-vector ,t ,e))
-  ((vector-r ,t ,r ,[e] ...)
-   `(vector-r ,t ,r . ,e))
-  ((vector ,t ,[e*] ...) `(vector ,t . ,e*)))
+  ((make-vector ,t ,r ,[e]) `(make-vector ,t ,r ,e))
+  ((vector ,t ,r ,[e*] ...) `(vector ,t ,r . ,e*)))
 
 (define-match (set-kernel-return t x i)
   ((begin ,stmt* ... ,[expr])
@@ -134,8 +134,8 @@
    `(let ((,x ,t ,e) ...) ,expr))
   ((if ,[t] ,[c] ,[a])
    `(if ,t ,c ,a))
-  ((make-vector ,t ,[n])
-   `(make-vector ,t ,n))
+  ((make-vector ,t ,r ,[n])
+   `(make-vector ,t ,r ,n))
   ((vector ,t ,[e] ...)
    `(vector ,t . ,e))
   ((call

@@ -65,9 +65,8 @@
    `(vector-ref ,t ,v ,i))
   ((length ,[e]) `(length ,e))
   ((int->float ,[e]) `(int->float ,e))
-  ((make-vector ,t ,[e]) `(make-vector ,t ,e))
-  ((vector ,t ,[e*] ...) `(vector ,t . ,e*))
-  ((vector-r ,t ,r ,[e*] ...) `(vector-r ,t ,r . ,e*))
+  ((make-vector ,t ,r ,[e]) `(make-vector ,t ,r ,e))
+  ((vector ,t ,r ,[e*] ...) `(vector ,t ,r . ,e*))
   ((,op ,[lhs] ,[rhs])
    (guard (or (binop? op) (relop? op)))
    `(,op ,lhs ,rhs))
@@ -149,10 +148,10 @@
   ((begin ,[(replace-vec-refs-stmt x*) -> stmt*] ...
           ,[expr])
    (make-begin `(,@stmt* ,expr)))
-  ((make-vector ,t ,[(replace-vec-refs-expr x*) -> triv*] ...)
-   `(make-vector ,t . ,triv*))
-  ((vector ,t ,[triv*] ...)
-   `(vector ,t . ,triv*))
+  ((make-vector ,t ,r ,[(replace-vec-refs-expr x*) -> triv*] ...)
+   `(make-vector ,t ,r . ,triv*))
+  ((vector ,t ,r ,[triv*] ...)
+   `(vector ,t ,r . ,triv*))
   ((if ,[(replace-vec-refs-expr x*) -> t]
        ,[(replace-vec-refs-expr x*) -> c]
        ,[(replace-vec-refs-expr x*) -> a])

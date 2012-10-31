@@ -2,7 +2,8 @@
   (harlan middle returnify-kernels)
   (export returnify-kernels)
   (import (rnrs) (elegant-weapons helpers)
-    (harlan helpers))
+    (harlan helpers)
+    (cKanren mk))
   
 (define-match returnify-kernels
   ((module ,[returnify-kernel-decl -> fn*] ...)
@@ -57,10 +58,8 @@
    `(vector-ref ,t ,v ,i))
   ((length ,[e]) `(length ,e))
   ((int->float ,[e]) `(int->float ,e))
-  ((make-vector ,t ,[e]) `(make-vector ,t ,e))
-  ((vector ,t ,[e*] ...) `(vector ,t . ,e*))
-  ((vector-r ,t ,r ,[e] ...)
-   `(vector-r ,t ,r . ,e))
+  ((make-vector ,t ,r ,[e]) `(make-vector ,t ,r ,e))
+  ((vector ,t ,r ,[e*] ...) `(vector ,t ,r . ,e*))
   ((,op ,[lhs] ,[rhs])
    (guard (or (binop? op) (relop? op)))
    `(,op ,lhs ,rhs))
@@ -78,12 +77,13 @@
          (i (gensym 'i))
          (vv (gensym 'vv))
          (id (gensym 'kern)))
-     `(let ((,id (vec ,t) (make-vector ,t ,(car dims))))
+     `(let ((,id (vec ,t) (make-vector ,t ,(var 'region) ,(car dims))))
         (begin
           ,@(if (null? (cdr dims))
                 `()
                 `((for (,i (int 0) ,(car dims) (int 1))
-                       (let ((,vv ,t (make-vector ,(cadr t) ,(cadr dims))))
+                       (let ((,vv ,t (make-vector ,(cadr t) ,(var 'region)
+                                                  ,(cadr dims))))
                          (set! (vector-ref ,t (var (vec ,t) ,id) (var int ,i))
                                (var ,t ,vv))))))
           (kernel
