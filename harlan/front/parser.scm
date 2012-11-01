@@ -131,6 +131,8 @@
    `(if ,test ,conseq ,alt))
   ((iota ,[e])
    `(iota ,e))
+  ((iota-r ,r ,[e])
+   `(iota-r ,r ,e))
   ((vector-ref ,[v] ,[i])
    `(vector-ref ,v ,i))
   ((length ,[e])

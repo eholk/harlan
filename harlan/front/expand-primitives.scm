@@ -77,6 +77,8 @@
     ((int->float ,[e]) `(int->float ,e))
     ((iota ,[e])
      `(iota ,e))
+    ((iota-r ,r ,[e])
+     `(iota-r ,r ,e))
     ((vector (vec ,t) ,[e*] ...)
      `(vector (vec ,t) ,(var 'region) . ,e*))
     ((vector-r (vec ,t) ,r ,[e*] ...)

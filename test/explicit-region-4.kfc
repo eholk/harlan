@@ -1,0 +1,8 @@
+(module
+  (define (main)
+    (let-region
+     (r1)
+     (let-region
+      (r2)
+      (let ((x (iota-r r1 256)))
+        (return (vector-ref x 0)))))))
