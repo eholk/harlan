@@ -1,7 +1,7 @@
 (library
   (harlan middle generate-kernel-calls)
   (export generate-kernel-calls)
-  (import (rnrs) (elegant-weapons helpers)
+  (import (rnrs) (except (elegant-weapons helpers) ident?)
     (harlan helpers))
   
 (define-match generate-kernel-calls

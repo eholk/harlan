@@ -30,7 +30,7 @@
   (import
     (rnrs)
     (harlan helpers)
-    (elegant-weapons helpers)
+    (except (elegant-weapons helpers) ident?)
     (util verify-grammar)
     (cKanren mk))
 

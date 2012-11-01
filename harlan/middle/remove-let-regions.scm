@@ -4,7 +4,7 @@
   (import
     (rnrs)
     (harlan helpers)
-    (elegant-weapons helpers)
+    (except (elegant-weapons helpers) ident?)
     (elegant-weapons sets))
 
   (define region-size -1) ;; Let the runtime decide.

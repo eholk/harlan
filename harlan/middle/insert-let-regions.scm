@@ -3,7 +3,7 @@
   (export insert-let-regions)
   (import (rnrs)
     (harlan helpers)
-    (elegant-weapons helpers))
+    (except (elegant-weapons helpers) ident?))
   
   ;; insert-let-regions inserts let-regions (no kidding) in an
   ;; ascending order from top level inwards.  otherwise, the region

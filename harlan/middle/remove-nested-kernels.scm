@@ -1,9 +1,11 @@
 (library
   (harlan middle remove-nested-kernels)
   (export remove-nested-kernels)
-  (import (rnrs) (elegant-weapons helpers)
-    (harlan helpers)
-    (cKanren mk))
+  (import
+   (rnrs)
+   (except (elegant-weapons helpers) ident?)
+   (harlan helpers)
+   (cKanren mk))
 
 (define-match remove-nested-kernels
   ((module ,[Decl -> decl*] ...)

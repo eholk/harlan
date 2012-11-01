@@ -1,7 +1,7 @@
 (library
   (harlan middle convert-types)
   (export convert-types convert-type)
-  (import (rnrs) (elegant-weapons helpers)
+  (import (rnrs) (except (elegant-weapons helpers) ident?)
     (harlan helpers))
   
 ;; This pass converts Harlan types into C types.

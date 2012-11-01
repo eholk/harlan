@@ -1,7 +1,7 @@
 (library
   (harlan middle compile-module)
   (export compile-module)
-  (import (rnrs) (elegant-weapons helpers)
+  (import (rnrs) (except (elegant-weapons helpers) ident?)
     (harlan helpers))
 
 (define-match compile-module

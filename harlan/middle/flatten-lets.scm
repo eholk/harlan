@@ -1,7 +1,7 @@
 (library
   (harlan middle flatten-lets)
   (export flatten-lets)
-  (import (rnrs) (elegant-weapons helpers)
+  (import (rnrs) (except (elegant-weapons helpers) ident?)
     (harlan helpers))
 
 (define-match flatten-lets

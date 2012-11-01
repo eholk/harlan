@@ -8,7 +8,7 @@
    (rnrs)
    (harlan helpers)
    (harlan compile-opts)
-   (elegant-weapons helpers)
+   (except (elegant-weapons helpers) ident?)
    (only (chezscheme) trace-define trace-lambda))
 
   (define-match optimize-fuse-kernels

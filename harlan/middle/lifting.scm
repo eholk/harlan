@@ -5,7 +5,7 @@
   (import
    (rnrs)
    (harlan helpers)
-   (elegant-weapons helpers)
+   (except (elegant-weapons helpers) ident?)
    (elegant-weapons sets)
    (harlan verification-passes))
 

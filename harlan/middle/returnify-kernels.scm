@@ -1,9 +1,11 @@
 (library
   (harlan middle returnify-kernels)
   (export returnify-kernels)
-  (import (rnrs) (elegant-weapons helpers)
-    (harlan helpers)
-    (cKanren mk))
+  (import
+   (rnrs)
+   (except (elegant-weapons helpers) ident?)
+   (harlan helpers)
+   (cKanren mk))
   
 (define-match returnify-kernels
   ((module ,[returnify-kernel-decl -> fn*] ...)

@@ -4,7 +4,7 @@
   (import
    (rnrs)
    (harlan helpers)
-   (elegant-weapons helpers))
+   (except (elegant-weapons helpers) ident?))
 
 (define-match annotate-free-vars
   ((module . ,[annotate-decl* -> decl*])

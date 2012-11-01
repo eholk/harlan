@@ -12,7 +12,7 @@
     union/var)
   (import
     (rnrs)
-    (elegant-weapons helpers)
+    (except (elegant-weapons helpers) ident?)
     (elegant-weapons match))
 
   (define (reserved-word? x)

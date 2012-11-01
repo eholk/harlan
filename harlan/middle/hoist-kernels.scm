@@ -1,7 +1,7 @@
 (library
   (harlan middle hoist-kernels)
   (export hoist-kernels)
-  (import (rnrs) (elegant-weapons helpers)
+  (import (rnrs) (except (elegant-weapons helpers) ident?)
     (harlan helpers))
 
 (define-match hoist-kernels
