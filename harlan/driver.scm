@@ -19,9 +19,10 @@
                          (string-append outfile ".cpp")
                          "-"))
            (command
-            (join " " (append `("g++"
+            (join " " (append `("clang++"
                                 ,(if (generate-debug) "-g" "")
                                 ,(if (make-shared-object) "-shared" "")
+                                " -Wno-unused-value "
                                 "-x c++"
                                 ,src-tmp "-x none"
                                 ,(string-append (HARLAND) "/rt/libharlanrt.a")

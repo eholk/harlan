@@ -9,14 +9,14 @@ CXXFLAGS := -g -O2 -Irt
 # Set up the flags to handle OpenCL
 ifeq ($(shell uname), Darwin)
 CXXFLAGS := $(CXXFLAGS) -framework OpenCL
-CXX := g++-4.2
+CXX := clang++
 else
 ifeq ($(shell uname), Linux)
 # This should work on 64-bit Gentoo with NVIDIA GPUs at least. YMMV.
 # This should also work on the IUCS Mine Machines.
 CXXFLAGS := $(CXXFLAGS) -I/opt/cuda/include -I/usr/local/cuda/include \
 	-lOpenCL -lrt
-CXX := g++
+CXX := clang++
 ECHO_ESCAPE := "-e"
 else
 $(error Your operating system is not yet supported.)

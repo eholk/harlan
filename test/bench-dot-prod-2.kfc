@@ -12,7 +12,28 @@
   (define (my_make_vector len val)
     (kernel ((i (iota len))) val))
 
+  ;; Recursive with cutoff
   (define (vector_sum xs)
+    (if (<= (length xs) 1024)
+        (reduce + xs)
+        (let ((len (/ (length xs) 2)))
+          (vector_sum
+           (kernel ((i (iota len)))
+             (+ (vector-ref xs i)
+                (vector-ref xs (+ i len))))))))
+  
+  ;; Recursive algorithm
+  #;(define (vector_sum xs)
+    (if (= (length xs) 1)
+        (vector-ref xs 0)
+        (let ((len (/ (length xs) 2)))
+          (vector_sum
+           (kernel ((i (iota len)))
+             (+ (vector-ref xs i)
+                (vector-ref xs (+ i len))))))))
+
+  ;; Iterative algorithm
+  #;(define (vector_sum xs)
     (let ((len (/ (length xs) 2)))
       (while (> (length xs) 1)
         ;;(print "vector_sum length = ");

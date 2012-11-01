@@ -149,14 +149,25 @@ region_ptr alloc_in_region(region **r, unsigned int size)
     while((*r)->alloc_ptr > (*r)->size) {
         // Free the OpenCL backing buffer
         finalize_buffer(*r);
-        int new_size = (*r)->size * 2;
+        unsigned int new_size = (*r)->size * 2;
+		// As long as we stick with power of two region sizes, this
+		// will let us get up to 4GB regions. It's a big of a hacky
+		// special case...
+		if(new_size == 0) {
+		  new_size = UINT_MAX;
+		}
+		assert(new_size > (*r)->size);
         region *old = *r;
-        int old_size = (*r)->size;
+        unsigned int old_size = (*r)->size;
+		//printf("realloc(%p, %d)\n", *r, new_size);
         (*r) = (region *)realloc(*r, new_size);
+
+		assert(*r != NULL);
+
         (*r)->size = new_size;
 
-        // printf("resized region %p with size %d to %p with size %d\n",
-        //        old, old_size, *r, new_size);
+        //printf("resized region %p with size %d to %p with size %d\n",
+        //       old, old_size, *r, new_size);
 
         cl_int status = 0;
         (*r)->cl_buffer = clCreateBuffer(g_ctx,
