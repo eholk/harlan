@@ -186,7 +186,7 @@ void program::build()
     string opts = "-I";
     opts += escape_path(cwd);
     opts += " -I/Users/eric/class/osl/dpp/svn/user/webyrd/harlan";
-    opts += " -Werror";
+    // opts += " -Werror";
     free(cwd);
     cl_int status = clBuildProgram(prog, 0, NULL, opts.c_str(), NULL, NULL);
     if(status != CL_SUCCESS) {
