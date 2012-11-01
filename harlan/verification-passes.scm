@@ -44,11 +44,13 @@
       harlan-type
       (vec Type)
       (ptr Type)
+      (ref Type)
       ((Type *) -> Type))
     (C-Type
       harlan-c-type
       harlan-cl-type
       (ptr C-Type)
+      (ref C-Type)
       (const-ptr C-Type)
       ((C-Type *) -> C-Type)
       Type)

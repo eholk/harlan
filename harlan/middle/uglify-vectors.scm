@@ -71,8 +71,8 @@
      `(fn ,name
           (,@args ,@all-in ,@out-r)
           ((,@arg-t
-            ,@(map (lambda (_) `(ptr region)) all-in)
-            ,@(map (lambda (_) `(ptr region)) out-r))
+            ,@(map (lambda (_) `(ref (ptr region))) all-in)
+            ,@(map (lambda (_) `(ref (ptr region))) out-r))
            -> ,rt)
           ,s)))
   ((extern ,name ,args -> ,t)

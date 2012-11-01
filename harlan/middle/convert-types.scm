@@ -103,6 +103,7 @@
   (cl_mem 'cl_mem)
   ((cl::buffer ,[t]) `(cl::buffer ,t))
   ((cl::buffer_map ,[t]) `(cl::buffer_map ,t))
+  ((ref ,[t]) `(ref ,t))
   ((ptr (vec ,[t])) `(ptr ,t))
   ((ptr ,[scalar]) `(ptr ,scalar))
   ((vec ,[t]) 'region_ptr)
