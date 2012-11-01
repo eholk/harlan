@@ -140,7 +140,7 @@ void unmap_region(region *header)
 
 region_ptr alloc_in_region(region **r, unsigned int size)
 {
-    printf("allocating %d bytes from region %p\n", size, *r);
+    // printf("allocating %d bytes from region %p\n", size, *r);
     region_ptr p = (*r)->alloc_ptr;
     (*r)->alloc_ptr += size;
  
@@ -155,8 +155,8 @@ region_ptr alloc_in_region(region **r, unsigned int size)
         (*r) = (region *)realloc(*r, new_size);
         (*r)->size = new_size;
 
-        printf("resized region %p with size %d to %p with size %d\n",
-               old, old_size, *r, new_size);
+        // printf("resized region %p with size %d to %p with size %d\n",
+        //        old, old_size, *r, new_size);
 
         cl_int status = 0;
         (*r)->cl_buffer = clCreateBuffer(g_ctx,
