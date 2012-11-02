@@ -1,10 +1,10 @@
 (module
   (define (main)
     (let-region
-     (r1)
+     (r_1)
      (let-region
-      (r2)
-      (let ((x (vector-r r1 1 2 3 4))
+      (r_2)
+      (let ((x (vector-r r_1 1 2 3 4))
             (y (vector 1 2 3 4)))
-        (let ((z (kernel-r r1 ((x x) (y y)) (+ x y))))
+        (let ((z (kernel-r r_1 ((x x) (y y)) (+ x y))))
           (return 0)))))))
