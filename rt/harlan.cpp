@@ -2,6 +2,7 @@
 #include "harlan.hpp"
 
 #include <stdlib.h>
+#include <limits.h>
 #include <string>
 
 using namespace std;

@@ -22,7 +22,8 @@
             (join " " (append `("clang++"
                                 ,(if (generate-debug) "-g" "")
                                 ,(if (make-shared-object) "-shared" "")
-                                " -Wno-unused-value "
+                                "-Wno-unused-value"
+                                "-Wno-comment"
                                 "-x c++"
                                 ,src-tmp "-x none"
                                 ,(string-append (HARLAND) "/rt/libharlanrt.a")
