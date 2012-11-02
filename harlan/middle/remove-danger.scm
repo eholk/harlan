@@ -71,10 +71,7 @@
       ,r
       (,[dim] ...)
       (((,x* ,t*) (,[xs*] ,ts*) ,d*) ...)
-      ;; TODO: put the cata form for body back, once we figure out
-      ;; how to do kernel error reporting.
-      ,body)
-     ;; TODO
+      ,[body])
      `(kernel
        (vec ,inner-type)
        ,r
@@ -84,6 +81,7 @@
      `(let ((,x* ,t* ,e*) ...) ,e))
     ((begin ,[Stmt -> s*] ... ,[e])
      `(begin ,s* ... ,e))
+    ((c-expr . ,whatever) `(c-expr . ,whatever))
     ((,op ,[lhs] ,[rhs])
      (guard (or (relop? op) (binop? op)))
      `(,op ,lhs ,rhs)))

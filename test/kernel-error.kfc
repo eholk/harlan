@@ -1,0 +1,11 @@
+;; checks to be sure we can correctly report errors in kernels.
+
+(%testspec
+ (%tags xfail mustfail))
+
+(module
+  (define (main)
+    (let ((xs (iota 5)))
+      (kernel ((i xs))
+        (vector-ref xs (* i 2))))
+    (return 0)))

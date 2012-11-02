@@ -90,7 +90,8 @@ docs: update-submodules
 
 .phony: etags
 etags:
-	find -E . -regex "\./(rt/.*.(cpp|h|cpp|c)|harlan/.*\.(scm|ss))$"" \
+	find . -regextype posix-egrep \
+		-regex "\./(rt/.*.(cpp|h|cpp|c)|harlan/.*\.(scm|ss))$"" \
 		| xargs etags
 #"
 
