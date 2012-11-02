@@ -81,6 +81,7 @@
   ((int->float ,[fv*]) fv*)
   ((length ,[fv*]) fv*)
   ((addressof ,[fv*]) fv*)
+  ((not ,[e]) e)
   ((deref ,[fv*]) fv*)
   ((c-expr ,t ,x) `())
   ((call ,[fv*] ,[fv**] ...)

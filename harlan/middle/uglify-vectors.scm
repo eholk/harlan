@@ -186,6 +186,8 @@
   ((if ,[test tr*] ,[conseq cr*] ,[alt ar*])
    (values `(if ,test ,conseq ,alt)
            (append tr* cr* ar*)))
+  ((not ,[e r])
+   (values `(not ,e) r))
   ((,op ,[lhs lr*] ,[rhs rr*])
    (guard (or (binop? op) (relop? op)))
    (values `(,op ,lhs ,rhs)

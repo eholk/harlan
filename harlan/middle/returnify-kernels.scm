@@ -6,6 +6,12 @@
    (except (elegant-weapons helpers) ident?)
    (harlan helpers)
    (cKanren mk))
+
+  ;; Variables related to danger
+  (define danger-type 'bool)
+  (define danger-vec-t '(vec bool))
+  (define no-danger '(bool #f))
+  (define bounds-check '(bool #t))
   
 (define-match returnify-kernels
   ((module ,[returnify-kernel-decl -> fn*] ...)
@@ -86,8 +92,8 @@
          (id (gensym 'kern)))
      `(let ((,id (vec ,t) (make-vector ,t ,r ,(car dims)))
             (,danger-vector
-             (vec bool)
-             (make-vector bool ,(var 'danger-region) ,(car dims))))
+             ,danger-vec-t
+             (make-vector ,danger-type ,(var 'danger-region) ,(car dims))))
         (begin
           ,@(if (null? (cdr dims))
                 `()
@@ -101,8 +107,9 @@
            ,dims
            ,(insert-retvars retvars (cons id retvars) 0 t
                             ;; Insert the danger vector as an argument
-                            `(((,danger bool)
-                               ((var (vec bool) ,danger-vector) (vec bool)) 0)
+                            `(((,danger ,danger-type)
+                               ((var ,danger-vec-t ,danger-vector)
+                                ,danger-vec-t) 0)
                               ((,x* ,tx*) (,xe* ,xet*) ,dim) ...))
            ,((set-retval (shave-type (length dims) `(vec ,t))
                          (car (reverse retvars))
@@ -117,7 +124,10 @@
     `(let ((,found-danger bool (bool #t)))
        (begin
          (for (,i (int 0) ,len (int 1))
-              (if (vector-ref bool (var (vec bool) ,danger-vector) (var int ,i))
+              (if (not (= ,no-danger
+                          (vector-ref ,danger-type
+                                      (var ,danger-vec-t ,danger-vector)
+                                      (var int ,i))))
                   (begin
                     (do (call (c-expr ((void str int) -> void) fprintf)
                               (c-expr void stderr)
@@ -175,7 +185,7 @@
 (define-match (rewrite-errors-stmt danger)
   ((error ,e)
    `(begin
-      (set! (var bool ,danger) (bool #t))
+      (set! (var ,danger-type ,danger) ,bounds-check)
       (return)))
   ((for (,x ,[(rewrite-errors-expr danger) -> start]
             ,[(rewrite-errors-expr danger) -> stop]
@@ -206,7 +216,7 @@
    `(vector-ref ,t ,v ,i))
   ((error ,e)
    `(begin
-      (set! (var bool ,danger) (bool #t))
+      (set! (var ,danger-type ,danger) ,bounds-check)
       (return)))
   ((let ((,x ,t ,[e]) ...) ,[body])
    `(let ((,x ,t ,e) ...) ,body))
@@ -231,7 +241,7 @@
    `(let ((,x ,t ,e) ...) ,((rewrite-errors-stmt danger) expr)))
   (,[(rewrite-errors-expr danger) -> else]
    `(begin
-      (set! (var bool ,danger) (bool #f))
+      (set! (var ,danger-type ,danger) ,no-danger)
       (set! (var ,t ,retvar) ,else))))
 
 ;; end library

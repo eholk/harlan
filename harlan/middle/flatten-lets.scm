@@ -71,6 +71,7 @@
    `(vector-ref ,type ,e1 ,e2))
   ((length ,n)
    `(length ,n))
+  ((not ,[e]) `(not ,e))
   ((,op ,[e1] ,[e2]) (guard (binop? op))
    `(,op ,e1 ,e2))
   ((,op ,[e1] ,[e2]) (guard (relop? op))

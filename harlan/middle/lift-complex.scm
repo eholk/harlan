@@ -15,6 +15,8 @@
       ((var ,t ,x) (finish `(var ,t ,x)))
       ((int->float ,e)
        (lift-expr e (lambda (e) (finish `(int->float ,e)))))
+      ((not ,e)
+       (lift-expr e (lambda (e) (finish `(not ,e)))))
       ((begin ,[lift-stmt -> stmt*] ... ,e)
        (lift-expr e (lambda (e) `(begin ,@stmt* ,(finish e)))))
       ((let () ,expr)

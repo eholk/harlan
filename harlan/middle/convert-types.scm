@@ -86,6 +86,7 @@
   ((deref ,[e]) `(deref ,e))
   ((addressof ,[e]) `(addressof ,e))
   ((assert ,[expr]) `(assert ,expr))
+  ((not ,[e]) `(not ,e))
   ((call ,[e] ,[arg*] ...) `(call ,e . ,arg*)))
 
 (define-match convert-type

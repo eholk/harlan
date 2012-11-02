@@ -427,6 +427,7 @@
       (int->float Expr)
       (make-vector Type RegionVar Expr)
       (vector Type RegionVar Expr +)
+      (not Expr)
       (Binop Expr Expr)
       (Relop Expr Expr)
       (c-expr C-Type Var)
@@ -478,6 +479,7 @@
       (var Type Var)
       (c-expr C-Type Var)
       (vector-ref Type Triv Triv)
+      (not Triv)
       (Binop Triv Triv)
       (Relop Triv Triv)))
 
@@ -520,6 +522,7 @@
       (call Triv Triv *)
       (c-expr C-Type Var)
       (vector-ref Type Triv Triv)
+      (not Triv)
       (Binop Triv Triv)
       (Relop Triv Triv)))
 
@@ -636,6 +639,7 @@
       (call Triv Triv *)
       (c-expr C-Type Var)
       (vector-ref Rho-Type Triv Triv)
+      (not Triv)
       (Binop Triv Triv)
       (Relop Triv Triv))
     (Rho-Type
@@ -697,6 +701,7 @@
       (deref Expr)
       (vector-ref Type Expr Expr)
       (length Expr)
+      (not Expr)
       (Relop Expr Expr)
       (Binop Expr Expr)))
 
@@ -772,6 +777,7 @@
       (deref Expr)
       (vector-ref Type Expr Expr)
       (length Expr)
+      (not Expr)
       (Relop Expr Expr)
       (Binop Expr Expr)))
 
@@ -820,6 +826,7 @@
       (sizeof Type)
       (addressof Expr)
       (vector-ref Type Expr Expr)
+      (not Expr)
       (Relop Expr Expr)
       (Binop Expr Expr)))
 
@@ -886,6 +893,7 @@
       (sizeof Type)
       (addressof Expr)
       (vector-ref Expr Expr)
+      (not Expr)
       (Relop Expr Expr)
       (Binop Expr Expr)))
 
@@ -920,6 +928,7 @@
       (sizeof C-Type)
       (addressof Expr)
       (vector-ref Expr Expr)
+      (not Expr)
       (Relop Expr Expr)
       (Binop Expr Expr)))
 

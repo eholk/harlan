@@ -69,6 +69,7 @@
   ((deref ,[e]) `(deref ,e))
   ((addressof ,[e]) `(addressof ,e))
   ((cast ,t ,[e]) `(cast ,t ,e))
+  ((not ,[e]) `(not ,e))
   ((,op ,[e1] ,[e2])
    (guard (or (binop? op) (relop? op)))
    `(,op ,e1 ,e2))
