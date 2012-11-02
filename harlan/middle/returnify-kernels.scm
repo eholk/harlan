@@ -80,7 +80,7 @@
          ;; FIXME: we actually need N-dimensional danger vectors for
          ;; N-dimensional kernels.
          (danger-vector (gensym 'danger_vector))
-         (danger (gensym 'danger))
+         (danger 'danger)
          (i (gensym 'i))
          (vv (gensym 'vv))
          (id (gensym 'kern)))

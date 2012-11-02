@@ -15,3 +15,4 @@ region_ptr alloc_in_region(region __global *r, unsigned int size)
     return p;
 }
 
+#define harlan_error(code) { *danger = true; return; }

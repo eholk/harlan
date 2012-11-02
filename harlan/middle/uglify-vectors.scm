@@ -90,7 +90,9 @@
       `(let ((,length int ,n))
          (let ((,x ,xt ,vv))
            ,(make-begin
-             `((set! ,(vector-length-field `(var ,xt ,x) r)
+             `((if (= (int 0) (cast int (var ,xt ,x)))
+                   (error allocation-failure))
+               (set! ,(vector-length-field `(var ,xt ,x) r)
                      (var int ,length))
                ,rest))))
       (append r* rr*))))

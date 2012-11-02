@@ -48,7 +48,7 @@
   ((if ,test ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
   ((set! ,lhs ,rhs) `(set! ,lhs ,rhs))
-  ((do ,e) `(do ,e))
+  ((do ,[(Expr k) -> e]) `(do ,e))
   ((print . ,e*) `(print . ,e*))
   ((assert ,e) `(assert ,e))
   ((return) `(return))

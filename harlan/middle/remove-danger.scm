@@ -48,7 +48,6 @@
     ((int->float ,[e]) `(int->float ,e))
     ((make-vector ,t ,r ,[e])
      `(make-vector ,t ,r ,e))
-    ((iota ,[e]) `(iota ,e))
     ((vector-ref ,t ,[v] ,[i])
      (let ((v-var (gensym 'vec))
            (i-var (gensym 'refindex)))
