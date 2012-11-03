@@ -1,0 +1,14 @@
+;; checks to be sure we can correctly report errors in kernels.
+
+;; In this case, we allocate something absurdly large that should
+;; require a region resize.
+
+(%testspec
+ (%tags xfail mustfail))
+
+(module
+  (define (main)
+    (let ((xs (iota 5)))
+      (kernel ((i xs))
+        (iota (* i 100000000))))
+    (return 0)))
