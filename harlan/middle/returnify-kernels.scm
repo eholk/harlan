@@ -8,10 +8,11 @@
    (cKanren mk))
 
   ;; Variables related to danger
-  (define danger-type 'bool)
-  (define danger-vec-t '(vec bool))
-  (define no-danger '(bool #f))
-  (define bounds-check '(bool #t))
+  (define danger-type 'int)
+  (define danger-vec-t `(vec ,danger-type))
+  (define no-danger '(int 0))
+  (define bounds-check '(int 1))
+  (define allocation-failure '(int 2))
   
 (define-match returnify-kernels
   ((module ,[returnify-kernel-decl -> fn*] ...)
@@ -120,20 +121,28 @@
 
 (define (check-danger-vector danger-vector len)
   (let ((i (gensym 'danger_i))
-        (found-danger (gensym 'no_found_danger)))
+        (found-danger (gensym 'no_found_danger))
+        (di (gensym 'di)))
     `(let ((,found-danger bool (bool #t)))
        (begin
          (for (,i (int 0) ,len (int 1))
-              (if (not (= ,no-danger
-                          (vector-ref ,danger-type
-                                      (var ,danger-vec-t ,danger-vector)
-                                      (var int ,i))))
-                  (begin
-                    (do (call (c-expr ((void str int) -> void) fprintf)
-                              (c-expr void stderr)
-                              (str "Kernel lane %d encountered danger!\n")
-                              (var int ,i)))
-                    (set! (var bool ,found-danger) (bool #f)))))
+              (let ((,di ,danger-type
+                         (vector-ref ,danger-type
+                                     (var ,danger-vec-t ,danger-vector)
+                                     (var int ,i))))
+                (if (not (= ,no-danger (var ,danger-type ,di)))
+                    (begin
+                      (if (= (var ,danger-type ,di) ,bounds-check)
+                          (do (call (c-expr ((void str int) -> void) fprintf)
+                                    (c-expr void stderr)
+                                    (str "Kernel lane %d encountered bounds check danger!\n")
+                                    (var int ,i))))
+                      (if (= (var ,danger-type ,di) ,allocation-failure)
+                          (do (call (c-expr ((void str int) -> void) fprintf)
+                                    (c-expr void stderr)
+                                    (str "Kernel lane %d encountered allocation failure danger!\n")
+                                    (var int ,i))))
+                      (set! (var bool ,found-danger) (bool #f))))))
          (assert (var bool ,found-danger))))))
                 
              
