@@ -8,7 +8,9 @@
 
 (module
   (extern nanotime () -> u64)
-
+  (extern get_kernel_time () -> u64)
+  (extern reset_kernel_time () -> void)
+  
   (define (my_make_vector len val)
     (kernel ((i (iota len))) val))
 
@@ -47,23 +49,38 @@
   ;;                   (+ (vector-ref xs i) (vector-ref xs (+ i len)))))
   ;;      (set! len (/ len 2)))
   ;;    (vector-ref xs 0)))
-  
-  (define (dot X Y)
-    (let ((start (nanotime)))
-      (let ((dot (reduce + (kernel ((x X) (y Y))
-                             (* x y)))))
-        (let ((stop (nanotime)))
-          ;;(assert (= dot (int->float len)))
-          (- stop start)))))
 
-  ;; This one uses vector_sum
+  ;; This one does kernel time.
+  (define (dot X Y)
+    (reset_kernel_time)
+    (let ((dot (reduce + (kernel ((x X) (y Y))
+                           (* x y)))))
+      (get_kernel_time)))
+
+  ;; This include memory transfer time.
+  ;;(define (dot X Y)
+  ;;  (let ((start (nanotime)))
+  ;;    (let ((dot (reduce + (kernel ((x X) (y Y))
+  ;;                           (* x y)))))
+  ;;      (let ((stop (nanotime)))
+  ;;        ;;(assert (= dot (int->float len)))
+  ;;        (- stop start)))))
+
+  ;; This one uses vector_sum and gets kernel time.
   (define (dot2 X Y)
-    (let ((start (nanotime)))
-      (let ((dot (vector_sum (kernel ((x X) (y Y))
-                               (* x y)))))
-        (let ((stop (nanotime)))
-          ;;(assert (= dot (int->float len)))
-          (- stop start)))))
+    (reset_kernel_time)
+    (let ((dot (vector_sum (kernel ((x X) (y Y))
+                             (* x y)))))
+      (get_kernel_time)))
+  
+  ;; This one uses vector_sum and includes memory transfer time
+  ;;(define (dot2 X Y)
+  ;;  (let ((start (nanotime)))
+  ;;    (let ((dot (vector_sum (kernel ((x X) (y Y))
+  ;;                             (* x y)))))
+  ;;      (let ((stop (nanotime)))
+  ;;        ;;(assert (= dot (int->float len)))
+  ;;        (- stop start)))))
   
   (define (bench_length len)
     (let ((iters 10)
@@ -83,7 +100,7 @@
       (print "\n")))
   
   (define (main)
-    (let ((i 1000000))
+    (let ((i 1))
       (while (< i 100000000)
         (begin
           (for (j i (* 2 i) (if (> i 16) (/ i 10) 1))

@@ -157,6 +157,8 @@ namespace cl {
         friend class context;
         
         cl_command_queue queue;
+
+        uint64_t kernel_time;
         
         command_queue(cl_command_queue queue);
     public:
@@ -218,6 +220,14 @@ namespace cl {
 
         operator cl_command_queue() const {
             return queue;
+        }
+
+        uint64_t get_kernel_time() const {
+            return kernel_time;
+        }
+
+        void reset_kernel_time() {
+            kernel_time = 0;
         }
     };
     

@@ -17,6 +17,9 @@ extern cl::device_list g_devices;
 using namespace std;
 using namespace cl;
 
+// in builtin.cpp
+uint64_t nanotime();
+
 std::string device::name()
 {
 	char n[256];
@@ -209,12 +212,12 @@ kernel program::createKernel(string name)
 }
 
 command_queue::command_queue(cl_command_queue queue)
-: queue(queue)
+    : queue(queue), kernel_time(0)
 {
 }
 
 command_queue::command_queue(const command_queue &other)
-	: queue(other.queue)
+	: queue(other.queue), kernel_time(other.kernel_time)
 {
 	clRetainCommandQueue(queue);
 }
@@ -245,11 +248,15 @@ void command_queue::executeND(kernel &k, size_t dimensions,
                               size_t global_size[], size_t local_size[])
 {
 	cl_event e;
+    uint64_t start = nanotime();
 	CL_CHECK(clEnqueueNDRangeKernel(queue, k.k, dimensions, NULL,
                                     global_size, local_size, 0, 0, &e));
 	CL_CHECK(clEnqueueBarrier(queue));
 	CL_CHECK(clWaitForEvents(1, &e));
+    uint64_t stop = nanotime();
 	CL_CHECK(clReleaseEvent(e));
+
+    kernel_time += (stop - start);
 }
 
 program context::createProgramFromSourceFile(string filename)

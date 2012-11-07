@@ -15,6 +15,10 @@
 
 using namespace std;
 
+#define NO_GLOBALS
+#include "harlan.hpp"
+#undef NO_GLOBALS
+
 // () -> u64
 uint64_t nanotime() {
 #ifdef __APPLE__
@@ -46,3 +50,10 @@ void close_outfile(std::ofstream *f) {
     delete f;
 }
 
+uint64_t get_kernel_time() {
+    return g_queue.get_kernel_time();
+}
+
+void reset_kernel_time() {
+    g_queue.reset_kernel_time();
+}
