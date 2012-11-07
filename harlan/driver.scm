@@ -24,6 +24,7 @@
                                 ,(if (make-shared-object) "-shared" "")
                                 "-Wno-unused-value"
                                 "-Wno-comment"
+                                "-O2"
                                 "-x c++"
                                 ,src-tmp "-x none"
                                 ,(string-append (HARLAND) "/rt/libharlanrt.a")

@@ -83,7 +83,7 @@
       (print "\n")))
   
   (define (main)
-    (let ((i 1))
+    (let ((i 1000000))
       (while (< i 100000000)
         (begin
           (for (j i (* 2 i) (if (> i 16) (/ i 10) 1))
