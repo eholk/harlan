@@ -1,0 +1,6 @@
+;; A minimal test to see if inlining works.
+
+(module
+  (define (main)
+    (let ((x (kernel ((i (iota 10000))) (+ 1 i))))
+      (return 0))))

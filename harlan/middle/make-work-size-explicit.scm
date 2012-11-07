@@ -91,8 +91,8 @@
       (match s
         ((make-vector ,t ,r (int ,n))
          (finish `((int ,n)) `(make-vector ,t ,r (int ,n))))
-        ((kernel ,t (,dim ...) ,arg ,body)
-         (finish dim `(kernel ,t ,dim ,arg ,body)))
+        ((kernel ,t ,r (,dim ...) ,arg ,body)
+         (finish dim `(kernel ,t ,r ,dim ,arg ,body)))
         ((var ,t ,x)
          (finish `((length (var ,t ,x))) `(var ,t ,x)))
         (,else
