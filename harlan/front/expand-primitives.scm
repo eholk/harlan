@@ -111,7 +111,7 @@
            (v (gensym 'v))
            (x (gensym 'x)))
        `(let ((,v (vec ,t) ,e))
-          (let ((,x int (vector-ref ,t (var (vec ,t) ,v) (int 0))))
+          (let ((,x ,t (vector-ref ,t (var (vec ,t) ,v) (int 0))))
             (begin
               (for (,i (int 1) (length (var (vec ,t) ,v)) (int 1))
                    (set! (var int ,x)
