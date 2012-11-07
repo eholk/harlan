@@ -50,7 +50,8 @@
              `(do (call (field (var cl::queue g_queue) execute)
                         (var cl::kernel ,kernel)
                         ,(car dims) ;; global size
-                        (int 1)))
+                        ;;(int 1) ;; local size
+                        ))
              (begin
                (assert (= (length dims) 2))
              `(do (call (field (var cl::queue g_queue) execute2d)
