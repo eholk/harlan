@@ -13,36 +13,40 @@
     (kernel ((i (iota len))) val))
 
   ;; Recursive with cutoff
-  #;(define (vector_sum xs)
-    (if (<= (length xs) 1024)
-        (reduce + xs)
-        (let ((len (/ (length xs) 2)))
-          (vector_sum
-           (kernel ((i (iota len)))
-             (+ (vector-ref xs i)
-                (vector-ref xs (+ i len))))))))
+  ;;(define (vector_sum xs)
+  ;;  (if (<= (length xs) 1024)
+  ;;      (reduce + xs)
+  ;;      (let ((len (/ (length xs) 2)))
+  ;;        (vector_sum
+  ;;         (kernel ((i (iota len)))
+  ;;           (+ (vector-ref xs i)
+  ;;              (vector-ref xs (+ i len))))))))
   
   ;; Recursive algorithm
   (define (vector_sum xs)
     (if (= (length xs) 1)
         (vector-ref xs 0)
         (let ((len (/ (length xs) 2)))
-          (vector_sum
-           (kernel ((i (iota len)))
-             (+ (vector-ref xs i)
-                (vector-ref xs (+ i len))))))))
+          (let ((temp_sum (vector_sum
+                           (kernel ((i (iota len)))
+                             (+ (vector-ref xs i)
+                                (vector-ref xs (+ i len)))))))
+            (if (= 1 (mod (length xs) 2))
+                (+ (vector-ref xs (- (length xs) 1))
+                   temp_sum)
+                temp_sum)))))
 
   ;; Iterative algorithm
-  #;(define (vector_sum xs)
-    (let ((len (/ (length xs) 2)))
-      (while (> (length xs) 1)
-        ;;(print "vector_sum length = ");
-        ;;(print (length xs))
-        ;;(print "\n")
-        (set! xs (kernel ((i (iota len)))
-                     (+ (vector-ref xs i) (vector-ref xs (+ i len)))))
-        (set! len (/ len 2)))
-      (vector-ref xs 0)))
+  ;;(define (vector_sum xs)
+  ;;  (let ((len (/ (length xs) 2)))
+  ;;    (while (> (length xs) 1)
+  ;;      ;;(print "vector_sum length = ");
+  ;;      ;;(print (length xs))
+  ;;      ;;(print "\n")
+  ;;      (set! xs (kernel ((i (iota len)))
+  ;;                   (+ (vector-ref xs i) (vector-ref xs (+ i len)))))
+  ;;      (set! len (/ len 2)))
+  ;;    (vector-ref xs 0)))
   
   (define (dot X Y)
     (let ((start (nanotime)))
@@ -81,7 +85,9 @@
   (define (main)
     (let ((i 1))
       (while (< i 100000000)
-        (bench_length i)
-        (set! i (* i 2))))
+        (begin
+          (for (j i (* 2 i) (if (> i 16) (/ i 10) 1))
+            (bench_length j))
+          (set! i (* i 2)))))
     (return 0)))
 
