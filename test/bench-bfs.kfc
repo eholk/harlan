@@ -1,20 +1,35 @@
 ;; Breadth first search
 
+(%testspec
+ (%tags xfail bench))
+
 (module
   (extern rand () -> int)
 
   (define (append A B)
     (let ((lenA (length A))
           (len (+ (length A) (length B))))
+      (print "append A  ") (println (length A))
+      (print "append B  ") (println (length B))
+      (println A) (println B)
+      (print "append AB ") (println len)
       (kernel ((i (iota len)))
         (if (< i lenA)
             (vector-ref A i)
             (vector-ref B (- i lenA))))))
+
+  (define (choose_edges N max_vertex)
+    (if (<= N 1)
+        (vector (mod (rand) max_vertex))
+        (let ((A (choose_edges (/ N 2)  max_vertex))
+              (B (choose_edges (- N (/ N 2)) max_vertex)))
+          (println A) (println B)
+          (append A B))))
   
   (define (main)
     ;; Just kidding, this isn't actually BFS. It's testing if we can
     ;; generate random numbers.
-    (println (append (vector 1 2) (vector 3 4)))
+    (println (choose_edges 2 100000))
     (return 0))
   
   )
