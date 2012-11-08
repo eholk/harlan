@@ -2,13 +2,19 @@
 
 (module
   (extern rand () -> int)
+
+  (define (append A B)
+    (let ((lenA (length A))
+          (len (+ (length A) (length B))))
+      (kernel ((i (iota len)))
+        (if (< i lenA)
+            (vector-ref A i)
+            (vector-ref B (- i lenA))))))
   
   (define (main)
     ;; Just kidding, this isn't actually BFS. It's testing if we can
     ;; generate random numbers.
-    (println (rand))
-    (println (rand))
-    (println (rand))
+    (println (append (vector 1 2) (vector 3 4)))
     (return 0))
   
   )
