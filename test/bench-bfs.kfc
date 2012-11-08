@@ -1,0 +1,14 @@
+;; Breadth first search
+
+(module
+  (extern rand () -> int)
+  
+  (define (main)
+    ;; Just kidding, this isn't actually BFS. It's testing if we can
+    ;; generate random numbers.
+    (println (rand))
+    (println (rand))
+    (println (rand))
+    (return 0))
+  
+  )
