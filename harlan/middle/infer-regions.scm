@@ -1,5 +1,5 @@
 (library (harlan middle infer-regions)
-  (export infer-regions)
+  (export infer-regions infer-decl infer-module infer-decls)
   (import
     (rnrs)
     (cKanren mk)

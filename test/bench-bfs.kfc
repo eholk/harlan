@@ -9,10 +9,15 @@
   (define (append A B)
     (let ((lenA (length A))
           (len (+ (length A) (length B))))
-      (print "append A  ") (println (length A))
-      (print "append B  ") (println (length B))
-      (println A) (println B)
-      (print "append AB ") (println len)
+      (kernel ((i (iota len)))
+        (if (< i lenA)
+            (vector-ref A i)
+            (vector-ref B (- i lenA))))))
+
+  ;; We wouldn't need this if we had polymorphism
+  (define (append2 A B)
+    (let ((lenA (length A))
+          (len (+ (length A) (length B))))
       (kernel ((i (iota len)))
         (if (< i lenA)
             (vector-ref A i)
@@ -23,13 +28,28 @@
         (vector (mod (rand) max_vertex))
         (let ((A (choose_edges (/ N 2)  max_vertex))
               (B (choose_edges (- N (/ N 2)) max_vertex)))
-          (println A) (println B)
           (append A B))))
+
+  (define (make-graph-inner edge_factor N remainder)
+    (if (= 1 remainder)
+        (vector (choose_edges edge_factor N))
+        (let ((A (make-graph-inner edge_factor N (/ remainder 2)))
+              (B (make-graph-inner edge_factor N (- remainder
+                                                    (/ remainder 2)))))
+          (append2 A B))))
+  
+  (define (make-graph edge_factor N)
+    (make-graph-inner edge_factor N N))
+
+  ;; Ideally, this would be make-graph, but we'd have to be able to do
+  ;; function calls from kernels first.
+  ;;(define (make-graph edge_factor N)
+  ;;  (kernel ((i (iota N))) (choose_edges edge_factor N)))
   
   (define (main)
     ;; Just kidding, this isn't actually BFS. It's testing if we can
     ;; generate random numbers.
-    (println (choose_edges 2 100000))
+    (println (make-graph 3 10))
     (return 0))
   
   )
