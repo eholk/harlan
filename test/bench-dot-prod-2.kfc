@@ -67,11 +67,29 @@
   ;;        (- stop start)))))
 
   ;; This one uses vector_sum and gets kernel time.
+  ;; It also manually combines the first sum round.
   (define (dot2 X Y)
     (reset_kernel_time)
-    (let ((dot (vector_sum (kernel ((x X) (y Y))
-                             (* x y)))))
-      (get_kernel_time)))
+    (let ((len (/ (length X) 2)))
+      (let ((dot (vector_sum
+                  (kernel ((i (iota len)))
+                    (let ((x (* (vector-ref X i)
+                                (vector-ref Y i)))
+                          (y (* (vector-ref X (+ i len))
+                                (vector-ref Y (+ i len)))))
+                      (+ x y))))))
+        ;; FIXME: for odd-length vectors, this ignores the last
+        ;; element. Since we're mostly concerned about timing and not
+        ;; correctness, we're going to ignore the trivial amount of time
+        ;; to multiply and add two more floats.
+        (get_kernel_time))))
+
+  ;; This one uses vector_sum and gets kernel time.
+  ;;(define (dot2 X Y)
+  ;;  (reset_kernel_time)
+  ;;  (let ((dot (vector_sum (kernel ((x X) (y Y))
+  ;;                           (* x y)))))
+  ;;    (get_kernel_time)))
   
   ;; This one uses vector_sum and includes memory transfer time
   ;;(define (dot2 X Y)
@@ -100,7 +118,7 @@
       (print "\n")))
   
   (define (main)
-    (let ((i 1))
+    (let ((i 2))
       (while (< i 100000000)
         (begin
           (for (j i (* 2 i) (if (> i 16) (/ i 10) 1))
