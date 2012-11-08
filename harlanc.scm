@@ -27,7 +27,9 @@
           (error 'harlanc
                  "Test iteration is not supported. Use run-tests.scm instead.")
           (let* ((c-expr (compile-harlan input))
-                 (c-code (harlan-format-c c-expr)))
+                 (c-code (if (timing)
+                             (time (harlan-format-c c-expr))
+                             (harlan-format-c c-expr))))
             (if (verbose) (printf c-code))
             (g++-compile-stdin c-code (output-filename filename)))))))
 
