@@ -69,7 +69,7 @@
        ,[uglify-stmt -> s sr*])
    (let ((all-in (apply append in-r)))
      `(fn ,name
-          (,@args ,@all-in ,@out-r)
+          (,@args ,@out-r ,@all-in)
           ((,@arg-t
             ,@(map (lambda (_) `(ref (ptr region))) all-in)
             ,@(map (lambda (_) `(ref (ptr region))) out-r))
