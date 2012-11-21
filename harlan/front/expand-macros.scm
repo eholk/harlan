@@ -2,7 +2,8 @@
     (harlan front expand-macros)
   (export expand-macros)
   (import
-   (chezscheme)
+   (except (chezscheme) gensym)
+   (only (elegant-weapons helpers) gensym define-match)
    (elegant-weapons match))
 
   ;; This is basically going to be syntax-case as given in Dybvig et
@@ -10,6 +11,8 @@
   ;; syntax. We need to be sure that there is primitive syntax for
   ;; every binding form in Harlan, or else we'll get all the capture
   ;; wrong.
+
+  (define-record-type ident (fields name binding marks))
 
   (define (match-pat kw* p e sk fk)
     (cond
@@ -49,13 +52,18 @@
                    (lambda ()
                      (apply-macro kw* (cdr patterns) e)))))
   
-  
   (define (expand-one e env)
     (match e
       ((,m . ,args) (guard (assq m env))
        (expand-one ((cdr (assq m env)) `(,m . ,args)) env))
       ((,[e*] ...) e*)
       (,x x)))
+
+  (define-match reify
+    (,x (guard (symbol? x))
+        (getprop x 'rename x))
+    ((,[e*] ...) e*)
+    (,e e))
   
   ;; This is the main expander driver. It combines parsing too.
   (define (expand-top e env)
@@ -69,11 +77,31 @@
                                            (apply-macro kw* patterns e)))
                               env)))
       ((,e . ,[e*])
-       (cons (expand-one e env) e*))
+       (cons (reify (expand-one e env)) e*))
       (() '())))
        
+  (define (expand-let e)
+    (match e
+      ((let ((,x ,e)) ,b ...)
+       (let ((let (gensym 'let))
+             (x^ (gensym x)))
+         (putprop let 'rename 'let)
+         `(,let ((,x^ ,e)) ,@(map (lambda (b) `(subst ,b ,x ,x^)) b))))))
 
-  (define primitive-env '())
+  (define (expand-subst e)
+    (match e
+      ((subst ,e ,x ,x^) (guard (and (symbol? x) (eq? e x))) x^)
+      ((subst (subst ,e ,y ,y^) ,x ,x^)
+       `(subst ,(expand-subst `(subst ,e ,y ,y^)) ,x ,x^))
+      ((subst (,e ,e* ...) ,x ,x^)
+       (guard (and (symbol? e) (symbol? x)))
+       (cons (if (eq? e x) x^ e) (map (lambda (e) `(subst ,e ,x ,x^)) e*)))
+      ((subst (,e ...) ,x ,x^) (guard (symbol? x))
+       (map (lambda (e) `(subst ,e ,x ,x^)) e))
+      ((subst ,e ,x ,x^) (guard (and (symbol? x) (not (pair? e)))) e)))
+    
+  (define primitive-env `((let . ,expand-let)
+                          (subst . ,expand-subst)))
     
   (define (expand-macros x)
     ;; Assume we got a (module decl ...) form

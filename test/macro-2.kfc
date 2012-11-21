@@ -1,0 +1,13 @@
+(module
+
+  (define-syntax (or x)
+    (syntax-case x ()
+      ((_ e1 e2)
+       (let ((t e1))
+         (if t t e2)))))
+  
+  (define (main)
+    (let ((t #t))
+      (println (or #f t))
+      (assert (or #f t)))
+    (return 0)))
