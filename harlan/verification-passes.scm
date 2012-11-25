@@ -569,8 +569,8 @@
     (Decl
       (extern Var (Type *) -> Type)
       (fn Var (Var *) Type
-          (input-regions ((Var *) *))
-          (output-regions (Var *))
+          (input-regions ((RegionVar *) *))
+          (output-regions (RegionVar *))
           Stmt))
     (Stmt
       (error Var)
