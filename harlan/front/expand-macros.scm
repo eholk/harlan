@@ -13,8 +13,8 @@
   ;; wrong.
 
   (define-record-type ident (fields name binding marks))
-
-  (define (match-pat kw* p e sk fk)
+  
+  (trace-define (match-pat kw* p e sk fk)
     (cond
       ((and (pair? p) (pair? e))
        (match-pat kw* (car p) (car e)
@@ -30,7 +30,7 @@
        (sk (list (cons p e))))
       ((and (null? p) (null? e))
        (sk '()))
-      (else (error 'match-path "Couldn't match pattern" kw* p e))))
+      (else (fk))))
 
   (define (subst* e bindings)
     (match e
@@ -43,7 +43,7 @@
       (() '())))
   
   
-  (define (apply-macro kw* patterns e)
+  (trace-define (apply-macro kw* patterns e)
     (if (null? patterns)
         (error 'apply-macro "Invalid syntax")
         (match-pat kw* (caar patterns) e
