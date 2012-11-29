@@ -68,11 +68,9 @@
   ;; This is the main expander driver. It combines parsing too.
   (define (expand-top e env)
     (match e
-      (((define-syntax (,name ,x)
-          (syntax-case ,x
-              (,kw* ...)
-            ,patterns ...)) . ,rest)
-       (guard (and (symbol? name) (symbol? x)))
+      (((define-macro ,name (,kw* ...)
+          ,patterns ...) . ,rest)
+       (guard (symbol? name))
        (expand-top rest (cons (cons name (lambda (e)
                                            (apply-macro kw* patterns e)))
                               env)))

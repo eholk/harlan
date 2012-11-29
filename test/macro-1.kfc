@@ -1,11 +1,10 @@
 (module
 
-  (define-syntax (or x)
-    (syntax-case x ()
-      ((_ e1 e2)
-       (let ((t e1))
-         (if t t e2)))))
-  
+  (define-macro or ()
+    ((_ e1 e2)
+     (let ((t e1))
+       (if t t e2))))
+
   (define (main)
     (if (or #f #t)
         (println "True!")
