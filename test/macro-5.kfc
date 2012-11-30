@@ -1,0 +1,15 @@
+(module
+
+  (define-macro let* ()
+    ((_ () . b) (begin . b))
+    ((_ ((x e) . rest) . b)
+     (let ((x e))
+       (let* rest . b))))
+
+  (define (main)
+    (let* ((x 5)
+           (x (+ x 1))
+           (x "hello")
+           (x (vector x "world")))
+      (println x))
+    (return 0)))
