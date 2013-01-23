@@ -17,7 +17,7 @@
   (harlan compiler)
   (harlan compile-opts))
 
-(define failures  (make-parameter 0))
+(define failures  (make-parameter '()))
 (define successes (make-parameter 0))
 (define ignored   (make-parameter 0))
 
@@ -59,12 +59,12 @@
          (bin-path (join-path "./test.bin" (string-append test ".bin")))
          (out-path (join-path "./test.bin" (string-append test ".out")))
          (test-source
-          (lambda (source)
+          (lambda (name source)
             (printf "Generating C++...")
             (try (catch (x)
                    (if (or (error? x) (condition? x))
                        (begin
-                         (failures (add1 (failures)))
+                         (failures (cons name (failures)))
                          (with-color 'red (printf "FAILED\n")))))
                  (let ((c++ (harlan->c++ source)))
                    (printf "OK\n")
@@ -85,7 +85,7 @@
                    (null? (intersection (exclude-tags) tags)))
               (begin
                 (delete-file out-path)
-                (test-source source))
+                (test-source path source))
               (begin
             (ignored (add1 (ignored)))
             (with-color 'yellow (printf "IGNORED\n")))))))))
@@ -94,12 +94,20 @@
   (begin
     (decode-tags)
     (map do-test (enumerate-tests))
+    (unless (null? (failures))
+      (set-color 'red)
+      (printf "Some tests failed:\n")
+      (for-each (lambda (name)
+                  (printf "    ~a\n" name))
+                (failures))
+      (set-color 'default))
     (printf "Successes: ~a; Failures: ~a; Ignored: ~a; Total: ~a\n"
       (format-in-color 'green (successes))
-      (format-in-color (if (zero? (failures)) 'green 'red) (failures))
+      (format-in-color (if (zero? (length (failures))) 'green 'red)
+                       (length (failures)))
       (format-in-color (if (zero? (ignored)) 'green 'yellow) (ignored))
-      (+ (successes) (failures) (ignored)))
-    (zero? (failures))))
+      (+ (successes) (length (failures)) (ignored)))
+    (zero? (length (failures)))))
 
 (define (run-tests cl)
   (let loop ((cl (parse-args (cdr cl))))
