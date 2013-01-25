@@ -63,14 +63,14 @@
            e expected found))
   
   ;; returns (e^ t s^)
-  (define (infer-expr e env s)
+  (define (infer-expr e ret env s)
     (match e
       ((int ,n) (guard (integer? n))
        (values `(int ,n) 'int s))
       ((bool ,b)
        (values `(bool ,b) 'bool s))
       ((iota ,e)
-       (let-values (((e^ t s^) (infer-expr e env s)))
+       (let-values (((e^ t s^) (infer-expr e ret env s)))
          (let ((s^^ (unify-types t 'int s^)))
            (if s^^
                (let ((r (make-rvar (gensym 'r))))
@@ -79,6 +79,58 @@
                          s^^))
                (type-error `(iota ,e) 'int t)))))
       ))
-       
+
+  (define (infer-body b ret env s)
+    (match b
+      ((return)
+       (values `(return) 'void s))
+      ((return ,e)
+       (let-values (((e^ t s)
+                     (infer-expr e ret env s)))
+         (let ((s (unify-types t ret s)))
+           (if s
+               (values `(return ,e^) t s)
+               (type-error `(return ,e) ret t)))))))
+
+  (define (make-top-level-env decls)
+    (map (lambda (d)
+           (match d
+             ((fn ,name (,[make-tvar -> var*] ...) ,body)
+              `(,name . ((,var* ...) -> ,(make-tvar name))))
+             ((extern ,name . ,t)
+              (cons name t))))
+         decls))
+
+  (define (infer-module m)
+    (match m
+      ((module . ,decls)
+       (let ((env (make-top-level-env decls)))
+         (infer-decls decls env)))))
+
+  (define (infer-decls decls env)
+    (match decls
+      (() (values '() '()))
+      ((,d . ,d*)
+       (let-values (((d* s) (infer-decls d* env)))
+         (let-values (((d s) (infer-decl d env s)))
+           (values (cons d d*) s))))))
+
+  (define (infer-decl d env s)
+    (match d
+      ((extern . ,whatever)
+       (values `(extern . ,whatever) s))
+      ((fn ,name (,var* ...) ,body)
+       ;; find the function definition in the environment, bring the
+       ;; parameters into scope.
+       (match (lookup name env)
+         (((,t* ...) -> ,t)
+          (let-values (((b t s)
+                        (infer-body body t (map cons var* t*) s)))
+            (values
+             `(fn ,name (,var* ...) ((,t* ...) -> ,t) ,b)
+             s)))))))
+
+  (define (lookup x e)
+    (cdr (assq x e)))
 )
 
