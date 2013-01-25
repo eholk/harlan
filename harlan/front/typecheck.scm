@@ -9,7 +9,8 @@
     (util color))
 
   (define (typecheck m)
-    (error 'typecheck "unimplemented"))
+    (let-values (((m s) (infer-module m)))
+      `(module . ,m)))
 
   (define-record-type tvar (fields name))
   (define-record-type rvar (fields name))
@@ -32,7 +33,6 @@
       (bool  'bool)
       ((vector ,r ,[t]) `(vector ,r ,t))
       (((,[t*] ...) -> ,[t]) `((,t* ...) -> ,t))
-      ;; TODO: watch for cycles
       (,x (guard (tvar? x))
           (let ((x^ (walk x s)))
             (if (equal? x x^)
@@ -65,10 +65,26 @@
   ;; returns (e^ t s^)
   (define (infer-expr e ret env s)
     (match e
-      ((int ,n) (guard (integer? n))
+      ((int ,n)
+       (values `(int ,n) 'int s))
+      ((num ,n)
+       ;; TODO: We actually need to add a numerically-constrained type
+       ;; that is grounded later.
        (values `(int ,n) 'int s))
       ((bool ,b)
        (values `(bool ,b) 'bool s))
+      ((var ,x)
+       (let ((t (lookup x env)))
+         (values `(var ,t ,x) t s)))
+      ((return)
+       (values `(return) 'void s))
+      ((return ,e)
+       (let-values (((e^ t s)
+                     (infer-expr e ret env s)))
+         (let ((s (unify-types t ret s)))
+           (if s
+               (values `(return ,e^) t s)
+               (type-error `(return ,e) ret t)))))
       ((iota ,e)
        (let-values (((e^ t s^) (infer-expr e ret env s)))
          (let ((s^^ (unify-types t 'int s^)))
@@ -78,19 +94,51 @@
                          `(vector ,r int)
                          s^^))
                (type-error `(iota ,e) 'int t)))))
+      ((if ,test ,c ,a)
+       (let-values (((test tt s)
+                     (infer-expr test ret env s)))
+         (let ((s (unify-types tt 'bool s)))
+           (if s
+               (let-values
+                   (((c tc s)
+                     (infer-expr c ret env s)))
+                 (let-values (((a ta s)
+                               (infer-expr a ret env s)))
+                   (let ((s (unify-types tc ta s)))
+                     (if s
+                         (values `(if ,test ,c ,a)
+                                 tc
+                                 s)
+                         (type-error `(if ,test ,c ,a)
+                                     tc
+                                     ta)))))
+               (type-error `(if ,test ,c ,a)
+                           tt
+                           'bool)))))
+      ((let ((,x ,e) ...) ,body)
+       (let-values
+           (((x e t* s)
+             (let loop
+                 ((x x)
+                  (e e))
+               (match `(,x ,e)
+                 ((() ()) (values '() '() '() s))
+                 (((,x . ,x*) (,e . ,e*))
+                  (let-values (((x* e* t* s) (loop x* e*)))
+                    (let-values
+                        (((e t s) (infer-expr e ret env s)))
+                      (values (cons x x*)
+                              (cons e e*)
+                              (cons t t*)
+                              s))))))))
+         (let-values (((b t s)
+                       (infer-body body ret
+                                   (append (map cons x t*) env)
+                                   s)))
+           (values `(let ((,x ,t* ,e) ...) ,b) t s))))
       ))
 
-  (define (infer-body b ret env s)
-    (match b
-      ((return)
-       (values `(return) 'void s))
-      ((return ,e)
-       (let-values (((e^ t s)
-                     (infer-expr e ret env s)))
-         (let ((s (unify-types t ret s)))
-           (if s
-               (values `(return ,e^) t s)
-               (type-error `(return ,e) ret t)))))))
+  (define infer-body infer-expr)
 
   (define (make-top-level-env decls)
     (map (lambda (d)
@@ -125,7 +173,7 @@
        (match (lookup name env)
          (((,t* ...) -> ,t)
           (let-values (((b t s)
-                        (infer-body body t (map cons var* t*) s)))
+                        (infer-body body t (append (map cons var* t*) env) s)))
             (values
              `(fn ,name (,var* ...) ((,t* ...) -> ,t) ,b)
              s)))))))
