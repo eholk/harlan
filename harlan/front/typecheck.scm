@@ -78,7 +78,28 @@
             ((seq) s)
             (type-error '() a b)))))
 
-  ;; returns (e^ t s^)
+  (define (require-type e ret env t seq)
+    (let ((tv (make-tvar 'tv)))
+      (bind (infer-expr e ret env)
+            (lambda (e t^)
+              (unify t t^
+                     (lambda ()
+                       (seq e)))))))
+
+  ;; you can use this with bind too!
+  (define (infer-expr* e* ret env)
+    (if (null? e*)
+        (return '() '())
+        (let ((e (car e*))
+              (e* (cdr e*)))
+          (bind
+           (infer-expr* e* ret env)
+           (lambda (e* t*)
+             (bind (infer-expr e ret env)
+                   (lambda (e t)
+                     (return `(,e . ,e*)
+                             `(,t . ,t*)))))))))
+  
   (define (infer-expr e ret env)
     (match e
       ((int ,n)
@@ -100,57 +121,31 @@
                (unify t ret
                       (lambda ()
                         (return `(return ,e) t))))))
-      ;;((iota ,e)
-      ;; (let-values (((e^ t s^) (infer-expr e ret env s)))
-      ;;   (let ((s^^ (unify-types t 'int s^)))
-      ;;     (if s^^
-      ;;         (let ((r (make-rvar (gensym 'r))))
-      ;;           (values `(iota-r ,r ,e^)
-      ;;                   `(vector ,r int)
-      ;;                   s^^))
-      ;;         (type-error `(iota ,e) 'int t)))))
-      ;;((if ,test ,c ,a)
-      ;; (let-values (((test tt s)
-      ;;               (infer-expr test ret env s)))
-      ;;   (let ((s (unify-types tt 'bool s)))
-      ;;     (if s
-      ;;         (let-values
-      ;;             (((c tc s)
-      ;;               (infer-expr c ret env s)))
-      ;;           (let-values (((a ta s)
-      ;;                         (infer-expr a ret env s)))
-      ;;             (let ((s (unify-types tc ta s)))
-      ;;               (if s
-      ;;                   (values `(if ,test ,c ,a)
-      ;;                           tc
-      ;;                           s)
-      ;;                   (type-error `(if ,test ,c ,a)
-      ;;                               tc
-      ;;                               ta)))))
-      ;;         (type-error `(if ,test ,c ,a)
-      ;;                     tt
-      ;;                     'bool)))))
-      ;;((let ((,x ,e) ...) ,body)
-      ;; (let-values
-      ;;     (((x e t* s)
-      ;;       (let loop
-      ;;           ((x x)
-      ;;            (e e))
-      ;;         (match `(,x ,e)
-      ;;           ((() ()) (values '() '() '() s))
-      ;;           (((,x . ,x*) (,e . ,e*))
-      ;;            (let-values (((x* e* t* s) (loop x* e*)))
-      ;;              (let-values
-      ;;                  (((e t s) (infer-expr e ret env s)))
-      ;;                (values (cons x x*)
-      ;;                        (cons e e*)
-      ;;                        (cons t t*)
-      ;;                        s))))))))
-      ;;   (let-values (((b t s)
-      ;;                 (infer-body body ret
-      ;;                             (append (map cons x t*) env)
-      ;;                             s)))
-      ;;     (values `(let ((,x ,t* ,e) ...) ,b) t s))))
+      ((iota ,e)
+       (bind (infer-expr e ret env)
+             (lambda (e^ t)
+               (unify t 'int
+                      (lambda ()
+                        (let ((r (make-rvar (gensym 'r))))
+                          (return `(iota-r ,r ,e^)
+                                  `(vec ,r int))))))))
+      ((if ,test ,c ,a)
+       (require-type
+        test ret env 'bool
+        (lambda (test)
+          (bind (infer-expr c ret env)
+                (lambda (c t)
+                  (require-type
+                   a ret env t
+                   (lambda (a)
+                     (return `(if ,test ,c ,a) t))))))))
+      ((let ((,x ,e) ...) ,body)
+       (bind (infer-expr* e ret env)
+             (lambda (e t*)
+               (bind (infer-expr body ret
+                                 (append (map cons x t*) env))
+                     (lambda (body t)
+                       (return `(let ((,x ,t* ,e) ...) ,body) t))))))
       ))
 
   (define infer-body infer-expr)
