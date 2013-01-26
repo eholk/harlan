@@ -105,6 +105,14 @@
                    (lambda (e t)
                      (return `(,e . ,e*)
                              `(,t . ,t*)))))))))
+
+  (define-syntax do*
+    (syntax-rules ()
+      ((_ (((x ...) e) ((x* ...) e*) ...) b)
+       (bind e (lambda (x ...)
+                 (do* (((x* ...) e*) ...) b))))
+      ((_ () b) b)))
+                   
   
   (define (infer-expr e env)
     (match e
@@ -147,12 +155,9 @@
                    (lambda (a)
                      (return `(if ,test ,c ,a) t))))))))
       ((let ((,x ,e) ...) ,body)
-       (bind (infer-expr* e env)
-             (lambda (e t*)
-               (bind (infer-expr body
-                                 (append (map cons x t*) env))
-                     (lambda (body t)
-                       (return `(let ((,x ,t* ,e) ...) ,body) t))))))
+       (do* (((e t*) (infer-expr* e env))
+             ((body t) (infer-expr body (append (map cons x t*) env))))
+            (return `(let ((,x ,t* ,e) ...) ,body) t)))
       ))
 
   (define infer-body infer-expr)
