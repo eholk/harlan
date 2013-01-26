@@ -10,7 +10,7 @@
 
   (define (typecheck m)
     (let-values (((m s) (infer-module m)))
-      `(module . ,m)))
+      (ground-module `(module . ,m))))
 
   (define-record-type tvar (fields name))
   (define-record-type rvar (fields name))
@@ -32,7 +32,7 @@
       (float 'float)
       (bool  'bool)
       (void  'void)
-      ((vector ,r ,[t]) `(vector ,r ,t))
+      ((vec ,r ,[t]) `(vec ,r ,t))
       (((,[t*] ...) -> ,[t]) `((,t* ...) -> ,t))
       (,x (guard (tvar? x))
           (let ((x^ (walk x s)))
@@ -50,7 +50,7 @@
       ((,a ,b) (guard (equal? (walk-type a s) (walk-type b s))) s)
       ((,a ,b) (guard (tvar? a)) `((,a . ,b) . ,s))
       ((,a ,b) (guard (tvar? b)) `((,b . ,a) . ,s))
-      (((vector ,ra ,a) (vector ,rb ,b))
+      (((vec ,ra ,a) (vec ,rb ,b))
        (let ((s (unify-types a b s)))
          (and s
               (if (eq? ra rb)
@@ -90,8 +90,7 @@
   (define (unify-return-type t seq)
     (lambda (r s)
       ((unify r t seq) r s)))
-          
-  
+            
   ;; you can use this with bind too!
   (define (infer-expr* e* env)
     (if (null? e*)
@@ -105,7 +104,7 @@
                    (lambda (e t)
                      (return `(,e . ,e*)
                              `(,t . ,t*)))))))))
-
+  
   (define-syntax do*
     (syntax-rules ()
       ((_ (((x ...) e) ((x* ...) e*) ...) b)
@@ -142,8 +141,32 @@
        (require-type e env 'int
                      (lambda (e^)
                        (let ((r (make-rvar (gensym 'r))))
-                         (return `(iota-r ,r ,e^)
+                         ;; TODO: add region parameters
+                         (return `(iota ,e^)
                                  `(vec ,r int))))))
+      ((< ,a ,b)
+       (require-type
+        a env 'int
+        (lambda (a)
+          (require-type
+           b env 'int
+           (lambda (b)
+             (return `(< bool ,a ,b) 'bool))))))
+      ((= ,a ,b)
+       (do* (((a t) (infer-expr a env)))
+            (require-type
+             b env t
+             (lambda (b)
+               (return `(= bool ,a ,b) 'bool)))))
+      ((assert ,e)
+       (require-type
+        e env 'bool
+        (lambda (e)
+          (return `(assert ,e) 'bool))))
+      ((begin ,s* ... ,e)
+       (do* (((s* _) (infer-expr* s* env))
+             ((e t) (infer-expr e env)))
+            (return `(begin ,s* ... ,e) t)))
       ((if ,test ,c ,a)
        (require-type
         test env 'bool
@@ -158,6 +181,12 @@
        (do* (((e t*) (infer-expr* e env))
              ((body t) (infer-expr body (append (map cons x t*) env))))
             (return `(let ((,x ,t* ,e) ...) ,body) t)))
+      ((reduce + ,e)
+       (let ((r (make-rvar 'r)))
+         (require-type e env `(vec ,r int)
+                       (lambda (e)
+                         (let ((r (make-rvar 'r)))
+                           (return `(reduce (vec int) + ,e) 'int))))))
       ))
 
   (define infer-body infer-expr)
@@ -203,5 +232,24 @@
 
   (define (lookup x e)
     (cdr (assq x e)))
+
+  (define (ground-module m)
+    (match m
+      ((module ,[ground-decl -> decl*] ...) `(module ,decl* ...))))
+
+  (define (ground-decl d)
+    (match d
+      ((extern . ,whatever) `(extern . ,whatever))
+      ((fn ,name (,var ...) ,[ground-type -> t] ,[ground-expr -> body])
+       `(fn ,name (,var ...) ,t ,body))))
+
+  ;; TODO: not done yet.
+  (define (ground-type t) t)
+
+  (define (ground-expr e)
+    (match e
+      ((iota-r ,r ,[e]) `(iota-r ,(gensym 'r) ,e))
+      ((,[else*] ...) else*)
+      (,else else)))
 )
 
