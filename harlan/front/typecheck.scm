@@ -31,6 +31,7 @@
       (int   'int)
       (float 'float)
       (bool  'bool)
+      (void  'void)
       ((vector ,r ,[t]) `(vector ,r ,t))
       (((,[t*] ...) -> ,[t]) `((,t* ...) -> ,t))
       (,x (guard (tvar? x))
@@ -63,44 +64,49 @@
            e expected found))
 
   (define (return e t)
-    (lambda (s)
+    (lambda (r s)
       (values e t s)))
 
   (define (bind m seq)
-    (lambda (s)
-      (let-values (((e t s) (m s)))
-        ((seq e t) s))))
+    (lambda (r s)
+      (let-values (((e t s) (m r s)))
+        ((seq e t) r s))))
 
   (define (unify a b seq)
-    (lambda (s)
+    (lambda (r s)
       (let ((s (unify-types a b s)))
         (if s
-            ((seq) s)
+            ((seq) r s)
             (type-error '() a b)))))
 
-  (define (require-type e ret env t seq)
+  (define (require-type e env t seq)
     (let ((tv (make-tvar 'tv)))
-      (bind (infer-expr e ret env)
+      (bind (infer-expr e env)
             (lambda (e t^)
               (unify t t^
                      (lambda ()
                        (seq e)))))))
 
+  (define (unify-return-type t seq)
+    (lambda (r s)
+      ((unify r t seq) r s)))
+          
+  
   ;; you can use this with bind too!
-  (define (infer-expr* e* ret env)
+  (define (infer-expr* e* env)
     (if (null? e*)
         (return '() '())
         (let ((e (car e*))
               (e* (cdr e*)))
           (bind
-           (infer-expr* e* ret env)
+           (infer-expr* e* env)
            (lambda (e* t*)
-             (bind (infer-expr e ret env)
+             (bind (infer-expr e env)
                    (lambda (e t)
                      (return `(,e . ,e*)
                              `(,t . ,t*)))))))))
   
-  (define (infer-expr e ret env)
+  (define (infer-expr e env)
     (match e
       ((int ,n)
        (return `(int ,n) 'int))
@@ -114,35 +120,36 @@
        (let ((t (lookup x env)))
          (return `(var ,t ,x) t)))
       ((return)
-       (return `(return) 'void))
+       (unify-return-type
+        'void
+        (lambda () (return `(return) (make-tvar 'bottom)))))
       ((return ,e)
-       (bind (infer-expr e ret env)
+       (bind (infer-expr e env)
              (lambda (e t)
-               (unify t ret
-                      (lambda ()
-                        (return `(return ,e) t))))))
+               (unify-return-type
+                t
+                (lambda ()
+                  (return `(return ,e) t))))))
       ((iota ,e)
-       (bind (infer-expr e ret env)
-             (lambda (e^ t)
-               (unify t 'int
-                      (lambda ()
-                        (let ((r (make-rvar (gensym 'r))))
-                          (return `(iota-r ,r ,e^)
-                                  `(vec ,r int))))))))
+       (require-type e env 'int
+                     (lambda (e^)
+                       (let ((r (make-rvar (gensym 'r))))
+                         (return `(iota-r ,r ,e^)
+                                 `(vec ,r int))))))
       ((if ,test ,c ,a)
        (require-type
-        test ret env 'bool
+        test env 'bool
         (lambda (test)
-          (bind (infer-expr c ret env)
+          (bind (infer-expr c env)
                 (lambda (c t)
                   (require-type
-                   a ret env t
+                   a env t
                    (lambda (a)
                      (return `(if ,test ,c ,a) t))))))))
       ((let ((,x ,e) ...) ,body)
-       (bind (infer-expr* e ret env)
+       (bind (infer-expr* e env)
              (lambda (e t*)
-               (bind (infer-expr body ret
+               (bind (infer-expr body
                                  (append (map cons x t*) env))
                      (lambda (body t)
                        (return `(let ((,x ,t* ,e) ...) ,body) t))))))
@@ -183,8 +190,8 @@
        (match (lookup name env)
          (((,t* ...) -> ,t)
           (let-values (((b t s)
-                        ((infer-body body t (append (map cons var* t*) env))
-                         s)))
+                        ((infer-body body (append (map cons var* t*) env))
+                          t s)))
             (values
              `(fn ,name (,var* ...) ((,t* ...) -> ,t) ,b)
              s)))))))
