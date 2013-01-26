@@ -3,6 +3,7 @@
   (export typecheck)
   (import
     (rnrs)
+    (only (chezscheme) make-parameter parameterize)
     (elegant-weapons match)
     (elegant-weapons helpers)
     (harlan compile-opts)
@@ -56,24 +57,24 @@
 
   (define (type-error e expected found)
     (error 'typecheck
-           "Could not unify types."
+           "Could not unify types"
            e expected found))
 
   (define (return e t)
-    (lambda (r s)
+    (lambda (_ r s)
       (values e t s)))
 
   (define (bind m seq)
-    (lambda (r s)
-      (let-values (((e t s) (m r s)))
-        ((seq e t) r s))))
+    (lambda (e^ r s)
+      (let-values (((e t s) (m e^ r s)))
+        ((seq e t) e^ r s))))
 
   (define (unify a b seq)
-    (lambda (r s)
+    (lambda (e r s)
       (let ((s (unify-types a b s)))
         (if s
-            ((seq) r s)
-            (type-error '() a b)))))
+            ((seq) e r s)
+            (type-error e a b)))))
 
   (define (require-type e env t)
     (let ((tv (make-tvar 'tv)))
@@ -84,9 +85,15 @@
                        (return e t)))))))
 
   (define (unify-return-type t seq)
-    (lambda (r s)
-      ((unify r t seq) r s)))
-            
+    (lambda (e r s)
+      ((unify r t seq) e r s)))
+
+  (define-syntax with-current-expr
+    (syntax-rules ()
+      ((_ e b)
+       (lambda (e^ r s)
+         (b e r s)))))
+  
   ;; you can use this with bind too!
   (define (infer-expr* e* env)
     (if (null? e*)
@@ -117,76 +124,78 @@
        (bind e (lambda (x ...)
                  (do* (((x* ...) e*) ...) b))))
       ((_ () b) b)))
-                   
-  
+
   (define (infer-expr e env)
-    (match e
-      ((int ,n)
-       (return `(int ,n) 'int))
-      ((num ,n)
-       ;; TODO: We actually need to add a numerically-constrained type
-       ;; that is grounded later.
-       (return `(int ,n) 'int))
-      ((bool ,b)
-       (return `(bool ,b) 'bool))
-      ((var ,x)
-       (let ((t (lookup x env)))
-         (return `(var ,t ,x) t)))
-      ((return)
-       (unify-return-type
-        'void
-        (lambda () (return `(return) (make-tvar 'bottom)))))
-      ((return ,e)
-       (bind (infer-expr e env)
-             (lambda (e t)
-               (unify-return-type
-                t
-                (lambda ()
-                  (return `(return ,e) t))))))
-      ((iota ,e)
-       (do* (((e t) (require-type e env 'int)))
-            (let ((r (make-rvar (gensym 'r))))
-              ;; TODO: add region parameters
-              (return `(iota ,e)
-                      `(vec int)))))
-      ((vector ,e* ...)
-       (let ((t (make-tvar 't)))
-         (do* (((e* t) (require-all e* env t)))
-              (return `(vector (vec ,t) ,e* ...) `(vec ,t)))))
-      ((vector-ref ,v ,i)
-       (let ((t (make-tvar 't)))
-         (do* (((v t) (require-type v env `(vec ,t)))
-               ((i _) (require-type i env 'int)))
-              (return `(vector-ref ,t ,v ,i) t))))
-      ((< ,a ,b)
-       (do* (((a t) (require-type a env 'int))
-             ((b t) (require-type b env 'int)))
-            (return `(< bool ,a ,b) 'bool)))
-      ((= ,a ,b)
-       (do* (((a t) (infer-expr a env))
-             ((b t) (require-type b env t)))
-            (return `(= bool ,a ,b) 'bool)))
-      ((assert ,e)
-       (do* (((e t) (require-type e env 'bool)))
-            (return `(assert ,e) t)))
-      ((begin ,s* ... ,e)
-       (do* (((s* _) (infer-expr* s* env))
-             ((e t) (infer-expr e env)))
-            (return `(begin ,s* ... ,e) t)))
-      ((if ,test ,c ,a)
-       (do* (((test tt) (require-type test env 'bool))
-             ((c t) (infer-expr c env))
-             ((a t) (require-type a env t)))
-            (return `(if ,test ,c ,a) t)))
-      ((let ((,x ,e) ...) ,body)
-       (do* (((e t*) (infer-expr* e env))
-             ((body t) (infer-expr body (append (map cons x t*) env))))
-            (return `(let ((,x ,t* ,e) ...) ,body) t)))
-      ((reduce + ,e)
-       (let ((r (make-rvar 'r)))
-         (do* (((e t) (require-type e env '(vec int))))
-              (return `(reduce (vec int) + ,e) 'int))))
-      ))
+    ;(display `(,e :: ,env)) (newline)
+    (with-current-expr
+     e
+     (match e
+       ((int ,n)
+        (return `(int ,n) 'int))
+       ((num ,n)
+        ;; TODO: We actually need to add a numerically-constrained type
+        ;; that is grounded later.
+        (return `(int ,n) 'int))
+       ((bool ,b)
+        (return `(bool ,b) 'bool))
+       ((var ,x)
+        (let ((t (lookup x env)))
+          (return `(var ,t ,x) t)))
+       ((return)
+        (unify-return-type
+         'void
+         (lambda () (return `(return) (make-tvar 'bottom)))))
+       ((return ,e)
+        (bind (infer-expr e env)
+              (lambda (e t)
+                (unify-return-type
+                 t
+                 (lambda ()
+                   (return `(return ,e) t))))))
+       ((iota ,e)
+        (do* (((e t) (require-type e env 'int)))
+             (let ((r (make-rvar (gensym 'r))))
+               ;; TODO: add region parameters
+               (return `(iota ,e)
+                       `(vec int)))))
+       ((vector ,e* ...)
+        (let ((t (make-tvar 't)))
+          (do* (((e* t) (require-all e* env t)))
+               (return `(vector (vec ,t) ,e* ...) `(vec ,t)))))
+       ((vector-ref ,v ,i)
+        (let ((t (make-tvar 't)))
+          (do* (((v _) (require-type v env `(vec ,t)))
+                ((i _) (require-type i env 'int)))
+               (return `(vector-ref ,t ,v ,i) t))))
+       ((< ,a ,b)
+        (do* (((a t) (require-type a env 'int))
+              ((b t) (require-type b env 'int)))
+             (return `(< bool ,a ,b) 'bool)))
+       ((= ,a ,b)
+        (do* (((a t) (infer-expr a env))
+              ((b t) (require-type b env t)))
+             (return `(= bool ,a ,b) 'bool)))
+       ((assert ,e)
+        (do* (((e t) (require-type e env 'bool)))
+             (return `(assert ,e) t)))
+       ((begin ,s* ... ,e)
+        (do* (((s* _) (infer-expr* s* env))
+              ((e t) (infer-expr e env)))
+             (return `(begin ,s* ... ,e) t)))
+       ((if ,test ,c ,a)
+        (do* (((test tt) (require-type test env 'bool))
+              ((c t) (infer-expr c env))
+              ((a t) (require-type a env t)))
+             (return `(if ,test ,c ,a) t)))
+       ((let ((,x ,e) ...) ,body)
+        (do* (((e t*) (infer-expr* e env))
+              ((body t) (infer-expr body (append (map cons x t*) env))))
+             (return `(let ((,x ,t* ,e) ...) ,body) t)))
+       ((reduce + ,e)
+        (let ((r (make-rvar 'r)))
+          (do* (((e t) (require-type e env '(vec int))))
+               (return `(reduce (vec int) + ,e) 'int))))
+       )))
 
   (define infer-body infer-expr)
 
@@ -224,7 +233,7 @@
          (((,t* ...) -> ,t)
           (let-values (((b t s)
                         ((infer-body body (append (map cons var* t*) env))
-                          t s)))
+                         body t s)))
             (values
              `(fn ,name (,var* ...) ((,t* ...) -> ,t) ,b)
              s)))))))
@@ -256,6 +265,8 @@
          `(let ((,x ,t ,e) ...) ,b))
         ((vector ,[ground-type -> t] ,[e*] ...)
          `(vector ,t ,e* ...))
+        ((vector-ref ,[ground-type -> t] ,[v] ,[i])
+         `(vector-ref ,t ,v ,i))
         ((,[else*] ...) else*)
         (,else else))))
 )

@@ -9,6 +9,8 @@
   (util system) ;; HARLAND
   )
 
+(print-gensym 'pretty/suffix)
+
 ;; This could be set from the env var HARLAND, or based on the
 ;; directory in which this script resides.  Using the latter:
 (HARLAND (path-parent (car (command-line))))
