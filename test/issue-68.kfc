@@ -1,0 +1,12 @@
+;; Test case for Issue #68
+
+(%testspec
+ (%tags xfail))
+
+(module
+ (define (id A) A)
+
+ (define (main)
+   (let ((A (vector 5)))
+       (id A))
+   (return 0)))
