@@ -10,7 +10,7 @@
 
   (define (typecheck m)
     (let-values (((m s) (infer-module m)))
-      (ground-module `(module . ,m))))
+      (ground-module `(module . ,m) s)))
 
   (define-record-type tvar (fields name))
   (define-record-type rvar (fields name))
@@ -50,12 +50,8 @@
       ((,a ,b) (guard (equal? (walk-type a s) (walk-type b s))) s)
       ((,a ,b) (guard (tvar? a)) `((,a . ,b) . ,s))
       ((,a ,b) (guard (tvar? b)) `((,b . ,a) . ,s))
-      (((vec ,ra ,a) (vec ,rb ,b))
-       (let ((s (unify-types a b s)))
-         (and s
-              (if (eq? ra rb)
-                  s
-                  `((,ra . ,rb) . ,s)))))
+      (((vec ,a) (vec ,b))
+       (unify-types a b s))
       (,else #f)))
 
   (define (type-error e expected found)
@@ -153,6 +149,15 @@
               ;; TODO: add region parameters
               (return `(iota ,e)
                       `(vec int)))))
+      ((vector ,e* ...)
+       (let ((t (make-tvar 't)))
+         (do* (((e* t) (require-all e* env t)))
+              (return `(vector (vec ,t) ,e* ...) `(vec ,t)))))
+      ((vector-ref ,v ,i)
+       (let ((t (make-tvar 't)))
+         (do* (((v t) (require-type v env `(vec ,t)))
+               ((i _) (require-type i env 'int)))
+              (return `(vector-ref ,t ,v ,i) t))))
       ((< ,a ,b)
        (do* (((a t) (require-type a env 'int))
              ((b t) (require-type b env 'int)))
@@ -227,23 +232,31 @@
   (define (lookup x e)
     (cdr (assq x e)))
 
-  (define (ground-module m)
+  (define (ground-module m s)
     (match m
-      ((module ,[ground-decl -> decl*] ...) `(module ,decl* ...))))
+      ((module ,[(lambda (d) (ground-decl d s)) -> decl*] ...)
+       `(module ,decl* ...))))
 
-  (define (ground-decl d)
+  (define (ground-decl d s)
     (match d
       ((extern . ,whatever) `(extern . ,whatever))
-      ((fn ,name (,var ...) ,[ground-type -> t] ,[ground-expr -> body])
+      ((fn ,name (,var ...)
+           ,[(lambda (t) (ground-type t s)) -> t]
+           ,[(lambda (e) (ground-expr e s)) -> body])
        `(fn ,name (,var ...) ,t ,body))))
 
   ;; TODO: not done yet.
-  (define (ground-type t) t)
+  (define (ground-type t s) (walk-type t s))
 
-  (define (ground-expr e)
-    (match e
-      ((iota-r ,r ,[e]) `(iota-r ,(gensym 'r) ,e))
-      ((,[else*] ...) else*)
-      (,else else)))
+  (define (ground-expr e s)
+    (let ((ground-type (lambda (t) (ground-type t s))))
+      (match e
+        ((iota-r ,r ,[e]) `(iota-r ,(gensym 'r) ,e))
+        ((let ((,x ,[ground-type -> t] ,[e]) ...) ,[b])
+         `(let ((,x ,t ,e) ...) ,b))
+        ((vector ,[ground-type -> t] ,[e*] ...)
+         `(vector ,t ,e* ...))
+        ((,[else*] ...) else*)
+        (,else else))))
 )
 
