@@ -1,0 +1,8 @@
+(module
+  (define (main)
+    (let ((X (iota 4)))
+      (assert (= (vector-ref X 0) 0))
+      (assert (= (vector-ref X 1) 1))
+      (assert (= (vector-ref X 2) 2))
+      (assert (= (vector-ref X 3) 3))
+      (return 0))))
