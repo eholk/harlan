@@ -3,7 +3,7 @@
   (export typecheck)
   (import
     (rnrs)
-    (only (chezscheme) make-parameter parameterize)
+    (only (chezscheme) make-parameter parameterize pretty-print printf)
     (elegant-weapons match)
     (elegant-weapons helpers)
     (harlan compile-opts)
@@ -46,9 +46,9 @@
   ;; successful, this function returns a new substitution. Otherwise,
   ;; this functions returns #f.
   (define (unify-types a b s)
-    (match `(,a ,b)
+    (match `(,(walk-type a s) ,(walk-type b s))
       ;; Obviously equal types unify.
-      ((,a ,b) (guard (equal? (walk-type a s) (walk-type b s))) s)
+      ((,a ,b) (guard (equal? a b)) s)
       ((,a ,b) (guard (tvar? a)) `((,a . ,b) . ,s))
       ((,a ,b) (guard (tvar? b)) `((,b . ,a) . ,s))
       (((vec ,a) (vec ,b))
@@ -72,12 +72,13 @@
   (define (unify a b seq)
     (lambda (e r s)
       (let ((s (unify-types a b s)))
+        ;;(printf "Unifying ~a and ~a => ~a\n" a b s)
         (if s
             ((seq) e r s)
             (type-error e a b)))))
 
   (define (require-type e env t)
-    (let ((tv (make-tvar 'tv)))
+    (let ((tv (make-tvar (gensym 'tv))))
       (bind (infer-expr e env)
             (lambda (e t^)
               (unify t t^
@@ -144,7 +145,7 @@
        ((return)
         (unify-return-type
          'void
-         (lambda () (return `(return) (make-tvar 'bottom)))))
+         (lambda () (return `(return) (make-tvar (gensym 'bottom))))))
        ((return ,e)
         (bind (infer-expr e env)
               (lambda (e t)
@@ -152,6 +153,9 @@
                  t
                  (lambda ()
                    (return `(return ,e) t))))))
+       ((print ,e)
+        (do* (((e t) (infer-expr e env)))
+             (return `(print ,t ,e) 'void)))
        ((iota ,e)
         (do* (((e t) (require-type e env 'int)))
              (let ((r (make-rvar (gensym 'r))))
@@ -159,11 +163,11 @@
                (return `(iota ,e)
                        `(vec int)))))
        ((vector ,e* ...)
-        (let ((t (make-tvar 't)))
+        (let ((t (make-tvar (gensym 'tvec))))
           (do* (((e* t) (require-all e* env t)))
                (return `(vector (vec ,t) ,e* ...) `(vec ,t)))))
        ((vector-ref ,v ,i)
-        (let ((t (make-tvar 't)))
+        (let ((t (make-tvar (gensym 'tvecref))))
           (do* (((v _) (require-type v env `(vec ,t)))
                 ((i _) (require-type i env 'int)))
                (return `(vector-ref ,t ,v ,i) t))))
@@ -242,6 +246,8 @@
     (cdr (assq x e)))
 
   (define (ground-module m s)
+    ;;(pretty-print m) (newline)
+    ;;(display s) (newline)
     (match m
       ((module ,[(lambda (d) (ground-decl d s)) -> decl*] ...)
        `(module ,decl* ...))))
@@ -255,11 +261,17 @@
        `(fn ,name (,var ...) ,t ,body))))
 
   ;; TODO: not done yet.
-  (define (ground-type t s) (walk-type t s))
+  (define (ground-type t s)
+    (let ((t (walk-type t s)))
+      (if (tvar? t)
+          (error 'ground-type "free type variable" t)
+          t)))
 
   (define (ground-expr e s)
     (let ((ground-type (lambda (t) (ground-type t s))))
       (match e
+        ((var ,[ground-type -> t] ,x) `(var ,t ,x))
+        ((print ,[ground-type -> t] ,[e]) `(print ,t ,e))
         ((iota-r ,r ,[e]) `(iota-r ,(gensym 'r) ,e))
         ((let ((,x ,[ground-type -> t] ,[e]) ...) ,[b])
          `(let ((,x ,t ,e) ...) ,b))
@@ -267,6 +279,7 @@
          `(vector ,t ,e* ...))
         ((vector-ref ,[ground-type -> t] ,[v] ,[i])
          `(vector-ref ,t ,v ,i))
+        ((begin ,[e*] ...) `(begin ,e* ...))
         ((,[else*] ...) else*)
         (,else else))))
 )
