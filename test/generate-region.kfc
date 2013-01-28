@@ -1,0 +1,9 @@
+;; Make sure we can infer regions for functions that generate regions.
+
+(module
+  (define (foo) (iota 100))
+  (define (my_print x) (println x))
+  (define (main)
+    (let ((bar (foo)))
+      (my_print bar))
+    (return 0)))
