@@ -32,6 +32,7 @@
   (define (walk-type t s)
     (match t
       (int   'int)
+      (u64   'u64)
       (float 'float)
       (bool  'bool)
       (void  'void)
@@ -368,6 +369,7 @@
     ((var ,[free-regions-type -> t] ,x) t)
     ((int ,n) '())
     ((bool ,b) '())
+    ((str ,s) '())
     ((assert ,[e]) e)
     ((print ,[free-regions-type -> t] ,[e]) (union t e))
     ((println ,[free-regions-type -> t] ,[e]) (union t e))
@@ -388,6 +390,7 @@
     ((let ((,x ,[free-regions-type -> t] ,[e]) ...) ,[b])
      (union b (apply union (append t e))))
     ((if ,[t] ,[c] ,[a]) (union t c a))
+    ((call ,[e*] ...) (apply union e*))
     ((return ,[e]) e))
 
   (define-match free-regions-type
