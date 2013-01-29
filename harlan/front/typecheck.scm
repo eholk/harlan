@@ -3,7 +3,8 @@
   (export typecheck)
   (import
     (rnrs)
-    (only (chezscheme) make-parameter parameterize pretty-print printf)
+    (only (chezscheme) make-parameter parameterize
+          pretty-print printf trace-define trace-let)
     (elegant-weapons match)
     (elegant-weapons helpers)
     (harlan compile-opts)
@@ -54,6 +55,15 @@
       ((,a ,b) (guard (tvar? b)) `((,b . ,a) . ,s))
       (((vec ,a) (vec ,b))
        (unify-types a b s))
+      ((((,a* ...) -> ,a) ((,b* ...) -> ,b))
+       (let loop ((a* a*)
+                  (b* b*))
+         (match `(,a* ,b*)
+           ((() ()) (unify-types a b s))
+           (((,a ,a* ...) (,b ,b* ...))
+            (let ((s (loop a* b*)))
+              (and s (unify-types a b s))))
+           (,else #f))))
       (,else #f)))
 
   (define (type-error e expected found)
@@ -159,6 +169,10 @@
        ((print ,e)
         (do* (((e t) (infer-expr e env)))
              (return `(print ,t ,e) 'void)))
+       ((print ,e ,f)
+        (do* (((e t) (infer-expr e env))
+              ((f _) (require-type f env '(ptr ofstream))))
+             (return `(print ,t ,e ,f) 'voide)))
        ((println ,e)
         (do* (((e t) (infer-expr e env)))
              (return `(println ,t ,e) 'void)))
@@ -227,8 +241,14 @@
               ((b t) (infer-expr b (append (map cons x t*) env))))
              (return `(kernel (vec ,t) (((,x ,t*) (,e (vec ,t*))) ...) ,b)
                      `(vec ,t))))
+       ((call ,f ,e* ...) (guard (ident? f))
+        (let ((t  (make-tvar (gensym 'rt)))
+              (ft (lookup f env)))
+          (do* (((e* t*) (infer-expr* e* env))
+                ((_  __) (require-type `(var ,f) env `(,t* -> ,t))))
+               (return `(call (var (,t* -> ,t) ,f) ,e* ...) t))))
        )))
-
+  
   (define infer-body infer-expr)
 
   (define (make-top-level-env decls)
@@ -306,6 +326,7 @@
          (guard (or (relop? op) (binop? op)))
          `(,op ,t ,e1 ,e2))
         ((print ,[ground-type -> t] ,[e]) `(print ,t ,e))
+        ((print ,[ground-type -> t] ,[e] ,[f]) `(print ,t ,e ,f))
         ((println ,[ground-type -> t] ,[e]) `(println ,t ,e))
         ((assert ,[e]) `(assert ,e))
         ;;((iota-r ,r ,[e]) `(iota-r ,(gensym 'r) ,e))
@@ -325,6 +346,6 @@
         ((begin ,[e*] ...) `(begin ,e* ...))
         ((if ,[t] ,[c] ,[a]) `(if ,t ,c ,a))
         ((return ,[e]) `(return ,e))
+        ((call ,[f] ,[e*] ...) `(call ,f ,e* ...))
         )))
 )
-
