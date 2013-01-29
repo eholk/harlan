@@ -213,7 +213,7 @@
        ((= ,a ,b)
         (do* (((a t) (infer-expr a env))
               ((b t) (require-type b env t)))
-             (return `(= bool ,a ,b) 'bool)))
+             (return `(= ,t ,a ,b) 'bool)))
        ((assert ,e)
         (do* (((e t) (require-type e env 'bool)))
              (return `(assert ,e) t)))

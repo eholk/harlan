@@ -379,7 +379,7 @@
    (%inherits Module Decl Body Ret-Stmt Expr)
    (Start Module)
    (Stmt
-     (let ((Var Type Expr) *) Stmt)
+     (let ((Var Rho-Type Expr) *) Stmt)
      (let-region (RegionVar) Stmt)
      (if Expr Stmt)
      (begin Stmt * Stmt)
