@@ -58,10 +58,10 @@
     verify-annotate-free-vars)
    (lower-vectors
     verify-lower-vectors)
-   (insert-let-regions
-    verify-insert-let-regions)
-   (infer-regions
-    verify-infer-regions)
+   ;;(insert-let-regions
+   ;; verify-insert-let-regions)
+   ;;(infer-regions
+   ;; verify-infer-regions)
    (uglify-vectors
     verify-uglify-vectors)
    (remove-let-regions

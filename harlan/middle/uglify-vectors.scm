@@ -62,17 +62,18 @@
   ((module ,[uglify-decl -> decl*] ...)
    `(module . ,decl*)))
 
+;; TODO: impose the region calling convention, either here or earlier
+;; in the compiler.
 (define-match uglify-decl
   ((fn ,name ,args (,arg-t -> ,rt)
-       (input-regions ,in-r)
-       (output-regions ,out-r)
        ,[uglify-stmt -> s sr*])
-   (let ((all-in (apply append in-r)))
+   (let ((all-in '()));;(apply append in-r)))
      `(fn ,name
-          (,@args ,@out-r ,@all-in)
+          (,@args);; ,@out-r ,@all-in)
           ((,@arg-t
-            ,@(map (lambda (_) `(ref (ptr region))) all-in)
-            ,@(map (lambda (_) `(ref (ptr region))) out-r))
+            ;;,@(map (lambda (_) `(ref (ptr region))) all-in)
+            ;;,@(map (lambda (_) `(ref (ptr region))) out-r)
+            )
            -> ,rt)
           ,s)))
   ((extern ,name ,args -> ,t)
@@ -81,7 +82,7 @@
 (define-match (uglify-let finish)
   (() (values finish `()))
   (((,x (vec ,r ,t)
-        (make-vector ,t ,[uglify-expr -> n r*]))
+        (make-vector ,t ,r ,[uglify-expr -> n r*]))
     . ,[(uglify-let finish) -> rest rr*])
    (let* ((length (gensym (symbol-append x '_length)))
           (vv (uglify-let-vec t `(var int ,length) r))

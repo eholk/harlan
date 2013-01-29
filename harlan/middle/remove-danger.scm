@@ -99,13 +99,14 @@
      `(make-vector ,t ,r ,e))
     ((vector-ref ,t ,[v] ,[i])
      (let ((v-var (gensym 'vec))
-           (i-var (gensym 'refindex)))
-       `(let ((,v-var (vec ,t) ,v)
+           (i-var (gensym 'refindex))
+           (vt    (type-of v)))
+       `(let ((,v-var ,vt ,v)
               (,i-var int ,i))
           (begin
-            (if (>= (var int ,i-var) (length (var (vec ,t) ,v-var)))
+            (if (>= (var int ,i-var) (length (var ,vt ,v-var)))
                 (error ,(gensym 'vector-length-error)))
-            (vector-ref ,t (var (vec ,t) ,v-var) (var int ,i-var))))))
+            (vector-ref ,t (var ,vt ,v-var) (var int ,i-var))))))
     ((length ,[e])
      `(length ,e))
     ((vector ,t ,r ,[e*] ...)
@@ -134,5 +135,8 @@
      (guard (or (relop? op) (binop? op)))
      `(,op ,lhs ,rhs)))
 
+  (define-match type-of
+    ((var ,t ,_) t))
+  
   ;; end library
   )
