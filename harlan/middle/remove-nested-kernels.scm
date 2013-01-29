@@ -59,12 +59,12 @@
    `(let ((,x ,t ,e) ...) ,expr))
   ((begin ,[(Stmt k) -> stmt*] ... ,[e])
    `(begin ,@stmt* ,e))
-  ((kernel (vec ,t) ,r (,[dims] ...)
+  ((kernel (vec ,r ,t) ,r (,[dims] ...)
            (((,x* ,t*) (,[xs*] ,ts*) ,d*) ...)
            ,[(Expr #t) -> e])
    (if k
        (kernel->for t r dims x* t* xs* ts* d* e)
-       `(kernel (vec ,t) ,r ,dims
+       `(kernel (vec ,r ,t) ,r ,dims
                 (((,x* ,t*) (,xs* ,ts*) ,d*) ...)
                 ,e)))
   ((if ,[t] ,[c] ,[a])

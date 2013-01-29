@@ -65,7 +65,7 @@
     ((kernel ,kt ,r ,dim ,ws ,args ,body)
      `(kernel ,kt ,r ,ws ,args ,body))
     ((kernel
-         (vec ,inner-type) ,r
+         (vec ,r ,inner-type) ,r
          ,dim
          (((,x ,t) (,[xs] ,ts) ,d)
           ((,x* ,t*) (,[xs*] ,ts*) ,d*) ...) ,[body])
@@ -73,7 +73,7 @@
        ts
        (lambda (len xs^)
          (assert (= (length len) dim))
-         `(kernel (vec ,inner-type) ,r
+         `(kernel (vec ,r ,inner-type) ,r
             ,len
             (((,x ,t) (,xs^ ,ts) ,d)
              ((,x* ,t*) (,xs* ,ts*) ,d*) ...) ,body)))
