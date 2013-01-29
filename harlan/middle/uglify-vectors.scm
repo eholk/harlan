@@ -146,6 +146,7 @@
    (values `(print . ,e*)
            (apply append r**)))
   ((kernel
+     ,t
      (,[uglify-expr -> dims dr**] ...)
      (free-vars . ,fv*)
      ,[stmt sr*])

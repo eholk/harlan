@@ -71,7 +71,7 @@
                             get_global_id)
                     (int 0))))
     ((iota-r ,r ,[e])
-     `(kernel (vec int) ,r 1 (,e) ()
+     `(kernel (vec ,r int) ,r 1 (,e) ()
               (call (c-expr ((int) -> int)
                             get_global_id)
                     (int 0))))

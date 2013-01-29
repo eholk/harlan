@@ -9,7 +9,6 @@
 
   ;; Variables related to danger
   (define danger-type 'int)
-  (define danger-vec-t `(vec ,danger-type))
   (define no-danger '(int 0))
   (define bounds-check '(int 1))
   (define allocation-failure '(int 2))
@@ -78,7 +77,7 @@
    (returnify-kernel `(kernel . ,body*))))
 
 (define-match returnify-kernel
-  ((kernel (vec ,t)
+  ((kernel (vec ,r ,t)
      ,r
      ,dims
      (((,x* ,tx*) (,[returnify-kernel-expr -> xe*] ,xet*) ,dim) ...)
@@ -88,40 +87,45 @@
          ;; N-dimensional kernels.
          (danger-vector (gensym 'danger_vector))
          (danger 'danger)
+         (danger-vec-t `(vec ,r ,danger-type))
          (i (gensym 'i))
          (vv (gensym 'vv))
          (id (gensym 'kern)))
-     `(let ((,id (vec ,t) (make-vector ,t ,r ,(car dims)))
+     `(let ((,id (vec ,r ,t) (make-vector ,t ,r ,(car dims)))
             (,danger-vector
+             ;; TODO: the danger vector should probably get its own region.
              ,danger-vec-t
-             (make-vector ,danger-type ,(var 'danger-region) ,(car dims))))
+             (make-vector ,danger-type ,r ,(car dims))))
         (begin
           ,@(if (null? (cdr dims))
                 `()
                 `((for (,i (int 0) ,(car dims) (int 1))
                        (let ((,vv ,t (make-vector ,(cadr t) ,(var 'region)
                                                   ,(cadr dims))))
-                         (set! (vector-ref ,t (var (vec ,t) ,id) (var int ,i))
+                         (set! (vector-ref ,t (var (vec ,r ,t) ,id)
+                                           (var int ,i))
                                (var ,t ,vv))))))
           (kernel
-           (vec ,t)
+           (vec ,r ,t)
            ,dims
-           ,(insert-retvars retvars (cons id retvars) 0 t
+           ,(insert-retvars r retvars (cons id retvars) 0 t
                             ;; Insert the danger vector as an argument
                             `(((,danger ,danger-type)
                                ((var ,danger-vec-t ,danger-vector)
                                 ,danger-vec-t) 0)
                               ((,x* ,tx*) (,xe* ,xet*) ,dim) ...))
-           ,((set-retval (shave-type (length dims) `(vec ,t))
+           ,((set-retval (shave-type (length dims) `(vec ,r ,t))
                          (car (reverse retvars))
                          danger)
              body))
-          ,(check-danger-vector danger-vector (car dims))
-          (var (vec ,t) ,id))))))
+          ,(check-danger-vector danger-vector r (car dims))
+          (var (vec ,r ,t) ,id))))))
 
-(define (check-danger-vector danger-vector len)
+(define (check-danger-vector danger-vector r len)
   (let ((i (gensym 'danger_i))
         (found-danger (gensym 'no_found_danger))
+        ;; FIXME: this is using a dummy region variable...
+        (danger-vec-t `(vec ,r ,danger-type))
         (di (gensym 'di)))
     `(let ((,found-danger bool (bool #t)))
        (begin
@@ -149,21 +153,22 @@
 
 ;; This is stupid
 (define (shave-type dim t)
-  (if (zero? dim) t (shave-type (- dim 1) (cadr t))))
+  (if (zero? dim) t (shave-type (- dim 1) (caddr t))))
 
 ;; This is the stupidest procedure I've ever written
-(define (insert-retvars retvars sources dim t arg*)
+(define (insert-retvars r retvars sources dim t arg*)
   (match arg*
     (() (guard (null? retvars)) `())
     (()
      (cons
       `((,(car retvars) ,t)
-        ((var (vec ,t) ,(car sources))
-         (vec ,t))
+        ((var (vec ,r ,t) ,(car sources))
+         (vec ,r ,t))
         ,dim)
       (if (null? (cdr retvars))
           `()
-          (insert-retvars (cdr retvars)
+          (insert-retvars r
+                          (cdr retvars)
                           (cdr sources)
                           (+ dim 1)
                           (cadr t)
@@ -172,18 +177,20 @@
      (if (<= dim d)
          (cons
           `((,(car retvars) ,t)
-            ((var (vec ,t) ,(car sources))
-             (vec ,t))
+            ((var (vec ,r ,t) ,(car sources))
+             (vec ,r ,t))
             ,dim)
           (if (null? (cdr retvars))
               arg*
-              (insert-retvars (cdr retvars)
+              (insert-retvars r
+                              (cdr retvars)
                               (cdr sources)
                               (+ dim 1)
                               (cadr t)
                               arg*)))
          (cons (car arg*)
-               (insert-retvars retvars
+               (insert-retvars r
+                               retvars
                                sources
                                dim
                                t

@@ -116,13 +116,13 @@
     ((if ,[test] ,[conseq] ,[altern])
      `(if ,test ,conseq ,altern))
     ((kernel
-      (vec ,inner-type)
+      (vec ,r ,inner-type)
       ,r
       (,[dim] ...)
       (((,x* ,t*) (,[xs*] ,ts*) ,d*) ...)
       ,[body])
      `(kernel
-       (vec ,inner-type)
+       (vec ,r ,inner-type)
        ,r
        ,dim
        (((,x* ,t*) (,xs* ,ts*) ,d*) ...) ,body))
