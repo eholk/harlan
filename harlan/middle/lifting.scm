@@ -68,10 +68,10 @@
                 (apply append binding*)
                 (map list x* t* e*)
                 liftable))))
-    ((let-region (,r) ,[body bindings])
+    ((let-region (,r ...) ,[body bindings])
      ;; FIXME: This is overly conservative, many bindings can be
      ;; lifted beyond this.
-     (values `(let-region (,r) ,(make-let bindings body))
+     (values `(let-region (,r ...) ,(make-let bindings body))
              '()))
     ((let ((,x* ,t*) ...) ,[body bindings])
      (values `(let ((,x* ,t*) ...) ,(make-let bindings body))

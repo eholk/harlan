@@ -51,7 +51,7 @@
    `(for (,i ,start ,stop ,step) ,body))
   ((let ((,x ,t ,[returnify-kernel-expr -> e]) ...) ,[stmt])
    `(let ((,x ,t ,e) ...) ,stmt))
-  ((let-region (,r) ,[body]) `(let-region (,r) ,body))
+  ((let-region (,r ...) ,[body]) `(let-region (,r ...) ,body))
   ((do ,[returnify-kernel-expr -> expr]) `(do ,expr)))
 
 (define-match returnify-kernel-expr

@@ -123,7 +123,7 @@
     x
     (lambda (x)
        (lift-expr e (lambda (e^) `(set! ,x ,e^))))))
-  ((let-region (,r) ,[body]) `(let-region (,r) ,body))
+  ((let-region (,r ...) ,[body]) `(let-region (,r ...) ,body))
   ((let () ,[stmt]) stmt)
   ((let ((,x ,t ,e) . ,rest) ,stmt)
    (Expr e

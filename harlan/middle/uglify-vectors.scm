@@ -111,11 +111,9 @@
   ((let ,b ,[s r*])
    (let-values (((ans ar*) ((uglify-let s) b)))
      (values ans (append r* ar*))))
-  ((let-region (,r) ,[stmt r*])
+  ((let-region (,r ...) ,[stmt r*])
    (values
-    (if (memq r r*)
-        `(let-region (,r) ,stmt)
-        stmt)
+    `(let-region (,r ...) ,stmt)
     r*))
   ((begin ,[stmt* r**] ...)
    (values (make-begin stmt*)

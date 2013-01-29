@@ -35,7 +35,7 @@
   (define-match expand-prim-stmt
     ((let ((,x* ,t* ,[expand-prim-expr -> e*]) ...) ,[body])
      `(let ((,x* ,t* ,e*) ...) ,body))
-    ((let-region (,r) ,[body]) `(let-region (,r) ,body))
+    ((let-region (,r ...) ,[body]) `(let-region (,r ...) ,body))
     ((set! ,[expand-prim-expr -> lhs] ,[expand-prim-expr -> rhs])
      `(set! ,lhs ,rhs))
     ((if ,[expand-prim-expr -> test] ,[conseq] ,[altern])

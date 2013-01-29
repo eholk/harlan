@@ -39,7 +39,7 @@
 (define-match (Stmt k)
   ((let ((,x ,t ,[(Expr k) -> e]) ...) ,[stmt])
    `(let ((,x ,t ,e) ...) ,stmt))
-  ((let-region (,r) ,[body]) `(let-region (,r) ,body))
+  ((let-region (,r ...) ,[body]) `(let-region (,r ...) ,body))
   ((begin ,[stmt*] ...) (make-begin stmt*))
   ((error ,x) `(error ,x))
   ((for ,b ,[stmt]) `(for ,b ,stmt))

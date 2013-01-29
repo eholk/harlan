@@ -21,7 +21,7 @@
   ((error ,x) `(error ,x))
   ((let ,b ,[s])
    (lower-lifted-expr b s))
-  ((let-region (,r) ,[s]) `(let-region (,r) ,s))
+  ((let-region (,r ...) ,[s]) `(let-region (,r ...) ,s))
   ((begin ,[stmt*] ...)
    (make-begin stmt*))
   ((if ,t ,[c])

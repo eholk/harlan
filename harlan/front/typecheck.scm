@@ -371,6 +371,7 @@
     ((begin ,[e*] ...) (apply union e*))
     ((let ((,x ,[free-regions-type -> t] ,[e])) ,[b])
      (apply union b t e))
+    ((if ,[t] ,[c] ,[a]) (union t c a))
     ((return ,[e]) e))
 
   (define-match free-regions-type

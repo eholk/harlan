@@ -17,7 +17,7 @@
    `(let ((,x ,t ,e) ...) ,stmt))
   ((let ((,x ,t) ...) ,[stmt])
    `(let ((,x ,t) ...) ,stmt))
-  ((let-region (,r) ,[stmt]) `(let-region (,r) ,stmt))
+  ((let-region (,r ...) ,[stmt]) `(let-region (,r ...) ,stmt))
   ((begin ,[stmt*] ...)
    (make-begin stmt*))
   ((kernel ,t ,dims (((,x* ,t*)
