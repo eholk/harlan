@@ -27,14 +27,14 @@
         (expr (gensym 'expr))) ;; this is unused
     (assert (= (length dims) 1))
     `(let ((,expr ,t ,(car dims)))
-       (let ((,kernelfor (vec ,t) (make-vector ,t ,r
-                                               (var ,t ,expr))))
+       (let ((,kernelfor (vec ,r ,t) (make-vector ,t ,r
+                                                  (var ,t ,expr))))
          (begin
            (for (,i (int 0) (var ,t ,expr) (int 1))
                 (let ,(map (kernel-arg->binding i) x* t* xs*)
                   ,((remove-global-id-stmt i)
-                    ((set-kernel-return t kernelfor i) e))))
-           (var (vec ,t) ,kernelfor))))))
+                    ((set-kernel-return t r kernelfor i) e))))
+           (var (vec ,r ,t) ,kernelfor))))))
 
 (define-match (Stmt k)
   ((let ((,x ,t ,[(Expr k) -> e]) ...) ,[stmt])
@@ -84,13 +84,13 @@
   ((make-vector ,t ,r ,[e]) `(make-vector ,t ,r ,e))
   ((vector ,t ,r ,[e*] ...) `(vector ,t ,r . ,e*)))
 
-(define-match (set-kernel-return t x i)
+(define-match (set-kernel-return t r x i)
   ((begin ,stmt* ... ,[expr])
    `(begin ,@stmt* ,expr))
   ((let ,b ,[expr])
    `(let ,b ,expr))
   (,else
-   `(set! (vector-ref ,t (var (vec ,t) ,x) (var int ,i))
+   `(set! (vector-ref ,t (var (vec ,r ,t) ,x) (var int ,i))
           ,else)))
 
 (define-match (remove-global-id-stmt i)
