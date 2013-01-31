@@ -136,7 +136,11 @@
      `(,op ,lhs ,rhs)))
 
   (define-match type-of
-    ((var ,t ,_) t))
+    ((var ,t ,_) t)
+    ((vector-ref ,t ,v ,i) t)
+    ((let ((,x ,t ,e) ...) ,[b]) b)
+    ((begin ,e* ... ,[e]) e))
+  
   
   ;; end library
   )

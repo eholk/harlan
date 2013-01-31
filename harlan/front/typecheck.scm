@@ -150,6 +150,8 @@
      (match e
        ((int ,n)
         (return `(int ,n) 'int))
+       ((float ,f)
+        (return `(float ,f) 'float))
        ((num ,n)
         ;; TODO: We actually need to add a numerically-constrained type
         ;; that is grounded later.
@@ -162,6 +164,9 @@
        ((var ,x)
         (let ((t (lookup x env)))
           (return `(var ,t ,x) t)))
+       ((int->float ,e)
+        (do* (((e _) (require-type e env 'int)))
+             (return `(int->float ,e) 'float)))
        ((return)
         (unify-return-type
          'void
@@ -347,6 +352,7 @@
         ((str ,s) `(str ,s))
         ((bool ,b) `(bool ,b))
         ((var ,[ground-type -> t] ,x) `(var ,t ,x))
+        ((int->float ,[e]) `(int->float ,e))
         ((,op ,[ground-type -> t] ,[e1] ,[e2])
          (guard (or (relop? op) (binop? op)))
          `(,op ,t ,e1 ,e2))
@@ -382,6 +388,7 @@
     ((char ,c) '())
     ((bool ,b) '())
     ((str ,s) '())
+    ((int->float ,[e]) e)
     ((assert ,[e]) e)
     ((print ,[free-regions-type -> t] ,[e]) (union t e))
     ((println ,[free-regions-type -> t] ,[e]) (union t e))
