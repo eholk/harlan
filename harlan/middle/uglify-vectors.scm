@@ -151,7 +151,7 @@
      (free-vars . ,fv*)
      ,[stmt sr*])
    (let ((regions (remove-dups
-                   (apply append
+                   (apply append sr*
                           (map extract-regions
                                (map cadr fv*))))))
      (values
