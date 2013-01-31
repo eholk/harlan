@@ -287,6 +287,12 @@
           (do* (((e* t*) (infer-expr* e* env))
                 ((_  __) (require-type `(var ,f) env `(,t* -> ,t))))
                (return `(call (var (,t* -> ,t) ,f) ,e* ...) t))))
+       ((write-pgm ,name ,image)
+        (let ((r1 (make-rvar (gensym 'rpgm1)))
+              (r2 (make-rvar (gensym 'rpgm2))))
+          (do* (((name _) (require-type name env 'str))
+                ((image _) (require-type image env `(vec ,r1 (vec ,r2 int)))))
+               (return `(write-pgm ,name ,image) 'void))))
        )))
   
   (define infer-body infer-expr)
@@ -397,6 +403,7 @@
         ((if ,[t] ,[c] ,[a]) `(if ,t ,c ,a))
         ((return ,[e]) `(return ,e))
         ((call ,[f] ,[e*] ...) `(call ,f ,e* ...))
+        ((write-pgm ,[name] ,[image]) `(write-pgm ,name ,image))
         )))
 
   (define-match free-regions-expr
@@ -433,6 +440,7 @@
     ((while ,[t] ,[e]) (union t e))
     ((if ,[t] ,[c] ,[a]) (union t c a))
     ((call ,[e*] ...) (apply union e*))
+    ((write-pgm ,[name] ,[image]) (union name image))
     ((return ,[e]) e))
 
   (define-match free-regions-type

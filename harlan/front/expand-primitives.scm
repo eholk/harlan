@@ -160,7 +160,9 @@
     (let ((p (gensym 'p))
           (f (gensym 'file))
           (i (gensym 'i))
-          (stream (gensym 'stream)))
+          (stream (gensym 'stream))
+          (inner-t (match data
+                     ((var (vec ,r ,t) ,x) t))))
       (add-externs 'write-pgm)
       `(let ((,f str ,file))
          (let ((,stream (ptr ofstream)
@@ -172,7 +174,7 @@
              (print (str "255\n") (var ofstream ,stream))
              (for (,i (int 0) (* (int 1024) (int 1024)) (int 1))
                   (let ((,p int (vector-ref int
-                                            (vector-ref (vec int)
+                                            (vector-ref ,inner-t
                                                         ,data
                                                         (/ (var int ,i) (int 1024)))
                                             (mod (var int ,i) (int 1024)))))
