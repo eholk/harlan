@@ -50,11 +50,11 @@
      `(for (,x ,start ,stop ,step) ,body))
     ((begin ,[stmt*] ...)
      `(begin . ,stmt*))
-    ((print (vec ,t) ,[expand-prim-expr -> e]
+    ((print (vec ,r ,t) ,[expand-prim-expr -> e]
             ,[expand-prim-expr -> stream])
-     (expand-print t e stream))
-    ((print (vec ,t) ,[expand-prim-expr -> e])
-     (expand-print t e))
+     (expand-print r t e stream))
+    ((print (vec ,r ,t) ,[expand-prim-expr -> e])
+     (expand-print r t e))
     ((print ,t ,[expand-prim-expr -> e] ...)
      `(print . ,e))
     ((println ,t . ,expr)
@@ -136,13 +136,13 @@
      (guard (or (relop? op) (binop? op)))
      `(,op ,lhs ,rhs)))
 
-  (define (expand-print t e . stream)
+  (define (expand-print r t e . stream)
     (let ((v (gensym 'v)) 
           (i (gensym 'i)))
-      `(let ((,v (vec ,t) ,e))
+      `(let ((,v (vec ,r ,t) ,e))
          (begin
            (print (str "[") . ,stream)
-           (for (,i (int 0) (length (var (vec ,t) ,v)) (int 1))
+           (for (,i (int 0) (length (var (vec ,r ,t) ,v)) (int 1))
                 (begin
                   ,(if (scalar-type? t)
                        `(if (> (var int ,i) (int 0))
@@ -152,7 +152,7 @@
                   ,(expand-prim-stmt
                     `(print ,t
                             (vector-ref ,t
-                                        (var (vec ,t) ,v) (var int ,i))
+                                        (var (vec ,r ,t) ,v) (var int ,i))
                             . ,stream))))
            (print (str "]") . ,stream)))))
 
@@ -217,26 +217,26 @@
                (var (vec ,t) ,res)))))))
 
   (define (expand-vec-comparison t r lhs rhs)
-    (let ((l (gensym 'lhs))
-          (r (gensym 'rhs))
+    (let ((lv (gensym 'lhs))
+          (rv (gensym 'rhs))
           (len (gensym 'len))
           (i (gensym 'i))
           (res (gensym 'res))
           (lhsi (gensym 'lhsi))
           (rhsi (gensym 'rhsi)))
-      `(let ((,l (vec ,r ,t) ,lhs)
-             (,r (vec ,r ,t) ,rhs))
-         (let ((,len int (length (var (vec ,r ,t) ,l)))
+      `(let ((,lv (vec ,r ,t) ,lhs)
+             (,rv (vec ,r ,t) ,rhs))
+         (let ((,len int (length (var (vec ,r ,t) ,lv)))
                (,res bool (bool #t)))
            (begin
              (if (= (var int ,len)
-                    (length (var (vec ,r ,t) ,r)))
+                    (length (var (vec ,r ,t) ,rv)))
                  (for (,i (int 0) (var int ,len) (int 1))
                       (let ((,lhsi ,t
-                                   (vector-ref ,t (var (vec ,r ,t) ,l)
+                                   (vector-ref ,t (var (vec ,r ,t) ,lv)
                                                (var int ,i)))
                             (,rhsi ,t
-                                   (vector-ref ,t (var (vec ,r ,t) ,r)
+                                   (vector-ref ,t (var (vec ,r ,t) ,rv)
                                                (var int ,i))))
                         (if (= ,(expand-prim-expr
                                  `(= ,t (var ,t ,lhsi) (var ,t ,rhsi)))

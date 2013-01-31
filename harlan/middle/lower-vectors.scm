@@ -63,6 +63,8 @@
                     . ,(loop (cdr e*) (+ 1 i)))))
           ,rest)))
     (((,x ,t ,e) . ,[rest])
+     ;;(display `(,x ,t ,e)) (newline)
+     (assert (not (and (pair? e) (eq? (car e) 'vector))))
      `(let ((,x ,t ,e)) ,rest))
     (((,x ,t) . ,[rest])
      `(let ((,x ,t)) ,rest))))
