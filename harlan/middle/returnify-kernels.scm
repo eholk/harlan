@@ -99,12 +99,16 @@
         (begin
           ,@(if (null? (cdr dims))
                 `()
-                `((for (,i (int 0) ,(car dims) (int 1))
-                       (let ((,vv ,t (make-vector ,(cadr t) ,(var 'region)
+                (match t
+                  ((vec ,r^ ,t^)
+                   `((for (,i (int 0) ,(car dims) (int 1))
+                          (let ((,vv (vec ,r^ ,t^)
+                                     (make-vector ,t^ ,r^
                                                   ,(cadr dims))))
-                         (set! (vector-ref ,t (var (vec ,r ,t) ,id)
-                                           (var int ,i))
-                               (var ,t ,vv))))))
+                            (set! (vector-ref (vec ,r^ ,t^)
+                                              (var (vec ,r ,t) ,id)
+                                              (var int ,i))
+                                  (var (vec ,r^ ,t^) ,vv))))))))
           (kernel
            (vec ,r ,t)
            ,dims
@@ -171,7 +175,7 @@
                           (cdr retvars)
                           (cdr sources)
                           (+ dim 1)
-                          (cadr t)
+                          (caddr t)
                           arg*))))
     ((((,x ,tx) (,xs ,ts) ,d) . ,rest)
      (if (<= dim d)
@@ -182,12 +186,14 @@
             ,dim)
           (if (null? (cdr retvars))
               arg*
-              (insert-retvars r
-                              (cdr retvars)
-                              (cdr sources)
-                              (+ dim 1)
-                              (cadr t)
-                              arg*)))
+              (match t
+                ((vec ,r ,t)
+                 (insert-retvars r
+                                 (cdr retvars)
+                                 (cdr sources)
+                                 (+ dim 1)
+                                 t
+                                 arg*)))))
          (cons (car arg*)
                (insert-retvars r
                                retvars

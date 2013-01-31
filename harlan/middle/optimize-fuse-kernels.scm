@@ -154,7 +154,7 @@
                 lenxs varxs)
              ,@(map
                 (lambda (lenrow varx)
-                  `(,lenrow int (length (vector-ref ,(cadadr varx) ,varx (int 0)))))
+                  `(,lenrow int (length (vector-ref ,(car (cddadr varx)) ,varx (int 0)))))
                 lenrows varxs))
          (begin
            ,@(map
@@ -162,7 +162,8 @@
                 `(if (var bool ,res) 
                      (for (,i (int 1) (var int ,lenx) (int 1))
                           (if (= (= (var int ,lenrow)
-                                    (length (vector-ref ,(cadadr varx) ,varx (var int ,i))))
+                                    (length (vector-ref ,(car (cddadr varx))
+                                                        ,varx (var int ,i))))
                                  (bool #f))
                               (begin
                                 (set! (var bool ,res) (bool #f))
@@ -176,7 +177,7 @@
                  (kernel
                   ,t ,r
                   (,@dims
-                   (length (vector-ref ,(cadadr (car varxs)) ,(car varxs) (int 0))))
+                   (length (vector-ref ,(car (cddadr (car varxs))) ,(car varxs) (int 0))))
                   (,@iters
                    ,@(map incr-dimension iters^))
                   ,(incr-dim-expr body^)))

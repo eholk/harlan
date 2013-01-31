@@ -99,6 +99,7 @@
       (append r* rr*))))
   (((,x ,t ,[uglify-expr -> e er*])
     . ,[(uglify-let finish) -> rest rr*])
+   (assert (not (and (pair? e) (eq? (car e) 'make-vector))))
    (values `(let ((,x ,(remove-regions t) ,e))
               ,rest)
            (append er* rr*)))
