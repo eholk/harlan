@@ -1,6 +1,6 @@
 (library
   (harlan front typecheck)
-  (export typecheck)
+  (export typecheck free-regions-type)
   (import
     (rnrs)
     (only (chezscheme) make-parameter parameterize
@@ -418,7 +418,11 @@
       ((fn ,name (,var ...)
            ,[(lambda (t) (ground-type t s)) -> t]
            ,[(lambda (e) (ground-expr e s)) -> body])
-       `(fn ,name (,var ...) ,t (let-region ,(free-regions-expr body) ,body)))))
+       (let* ((region-params
+              (apply union (map free-regions-type `(,body . ,t))))
+              (body-regions (free-regions-expr body))
+              (local-regions (difference body-regions region-params)))
+       `(fn ,name (,var ...) ,t (let-region ,local-regions ,body))))))
 
   (define (region-name r)
     (if (rvar? r)

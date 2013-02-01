@@ -6,6 +6,7 @@
     uglify-expr)
   (import
     (rnrs)
+    (only (harlan front typecheck) free-regions-type)
     (elegant-weapons helpers)
     (elegant-weapons sets))
 
@@ -42,14 +43,7 @@
      (var (ptr region) ,region)
      ,e)))
 
-(define (extract-regions t)
-  (match t
-    ((vec ,r ,[r*])
-     (cons r r*))
-    (((,[r**] ...) -> ,[r*])
-     (apply append r* r**))
-    ((ptr ,[t]) t)
-    (,t `())))
+(define extract-regions free-regions-type)
 
 (define (remove-regions t)
   (match t
@@ -62,18 +56,16 @@
   ((module ,[uglify-decl -> decl*] ...)
    `(module . ,decl*)))
 
-;; TODO: impose the region calling convention, either here or earlier
-;; in the compiler.
 (define-match uglify-decl
   ((fn ,name ,args (,arg-t -> ,rt)
        ,[uglify-stmt -> s sr*])
-   (let ((all-in '()));;(apply append in-r)))
+   (let ((all-regions (apply union (map free-regions-type `(,rt . ,arg-t))))
+         (arg-t (map remove-regions arg-t))
+         (rt (remove-regions rt)))
      `(fn ,name
-          (,@args);; ,@out-r ,@all-in)
+          (,@args ,@all-regions)
           ((,@arg-t
-            ;;,@(map (lambda (_) `(ref (ptr region))) all-in)
-            ;;,@(map (lambda (_) `(ref (ptr region))) out-r)
-            )
+            ,@(map (lambda (_) `(ptr region)) all-regions))
            -> ,rt)
           ,s)))
   ((extern ,name ,args -> ,t)

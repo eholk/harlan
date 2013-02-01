@@ -1,8 +1,5 @@
 ;; Test case for Issue #68
 
-(%testspec
- (%tags xfail))
-
 (module
  (define (id A) A)
 
