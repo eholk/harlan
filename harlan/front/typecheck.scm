@@ -193,7 +193,10 @@
        ((return)
         (unify-return-type
          'void
-         (lambda () (return `(return) (make-tvar (gensym 'bottom))))))
+         ;; Returning a free type variable is better so we can return
+         ;; from any context, but that gives us problems with free
+         ;; type variables at the end.
+         (lambda () (return `(return) 'void #;(make-tvar (gensym 'bottom))))))
        ((return ,e)
         (bind (infer-expr e env)
               (lambda (e t)
@@ -406,8 +409,8 @@
     (cdr (assq x e)))
 
   (define (ground-module m s)
-    (if (verbose) (begin (pretty-print m) (newline)))
-    ;;(display s) (newline)
+    (if (verbose) (begin (pretty-print m) (newline) (display s) (newline)))
+    
     (match m
       ((module ,[(lambda (d) (ground-decl d s)) -> decl*] ...)
        `(module ,decl* ...))))
@@ -491,6 +494,7 @@
         ((begin ,[e*] ...) `(begin ,e* ...))
         ((if ,[t] ,[c] ,[a]) `(if ,t ,c ,a))
         ((if ,[t] ,[c]) `(if ,t ,c))
+        ((return) `(return))
         ((return ,[e]) `(return ,e))
         ((call ,[f] ,[e*] ...) `(call ,f ,e* ...))
         ((write-pgm ,[name] ,[image]) `(write-pgm ,name ,image))
@@ -539,6 +543,7 @@
     ((do ,[e]) e)
     ((let-region (,r* ...) ,[e])
      (difference e r*))
+    ((return) '())
     ((return ,[e]) e))
 
   (define-match free-regions-type
