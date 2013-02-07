@@ -421,8 +421,7 @@
       ((fn ,name (,var ...)
            ,[(lambda (t) (ground-type t s)) -> t]
            ,[(lambda (e) (ground-expr e s)) -> body])
-       (let* ((region-params
-              (apply union (map free-regions-type `(,body . ,t))))
+       (let* ((region-params (free-regions-type t))
               (body-regions (free-regions-expr body))
               (local-regions (difference body-regions region-params)))
        `(fn ,name (,var ...) ,t (let-region ,local-regions ,body))))))
@@ -549,5 +548,7 @@
   (define-match free-regions-type
     ((vec ,r ,[t]) (set-add t r))
     (((,[t*] ...) -> ,[t]) (union t (apply union t*)))
-    (,else '()))
+    ((ptr ,[t]) t)
+    (() '())
+    (,else (guard (symbol? else)) '()))
 )

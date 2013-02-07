@@ -247,6 +247,18 @@ void command_queue::execute2d(kernel &k, size_t dim1, size_t dim2, size_t local_
 void command_queue::executeND(kernel &k, size_t dimensions,
                               size_t global_size[], size_t local_size[])
 {
+    //cout << "Enqueuing " << dimensions << "-D kernel: (" << global_size[0];
+    //for(int i = 1; i < dimensions; ++i)
+    //    cout << ", " << global_size[i];
+    //cout << ")" << endl;
+
+    // If any dimensions are 0, don't do anything. This may not be the
+    // best behavior, because it usually means something else went
+    // wrong in the calling program.
+    for(int i = 0; i < dimensions; ++i)
+        if(0 == global_size[i])
+            return;
+
 	cl_event e;
     uint64_t start = nanotime();
 	CL_CHECK(clEnqueueNDRangeKernel(queue, k.k, dimensions, NULL,
@@ -366,7 +378,7 @@ void cl::handle_error(const char *code, cl_int e)
     HANDLE(CL_INVALID_DEVICE_TYPE);
     HANDLE(CL_INVALID_EVENT_WAIT_LIST);
     HANDLE(CL_INVALID_GLOBAL_OFFSET);
-    //HANDLE(CL_INVALID_GLOBAL_WORK_SIZE);
+    HANDLE(CL_INVALID_GLOBAL_WORK_SIZE);
     HANDLE(CL_INVALID_IMAGE_SIZE);
     HANDLE(CL_INVALID_MEM_OBJECT);
     HANDLE(CL_INVALID_KERNEL);

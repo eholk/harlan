@@ -1,7 +1,7 @@
 ;; Breadth first search
 
 (%testspec
- (%tags xfail bench))
+ (%tags bench))
 
 (module
   (extern rand () -> int)
@@ -45,11 +45,43 @@
   ;; function calls from kernels first.
   ;;(define (make-graph edge_factor N)
   ;;  (kernel ((i (iota N))) (choose_edges edge_factor N)))
+
+  (define (iterate-colors graph colors)
+    (println "iterate")
+    (let ((new-colors
+           (kernel ((i (iota (length graph))) (c colors))
+             (if (= c 2)
+                 2
+                 (if (= c 1)
+                     2
+                     ;; else, C had better be 0
+                     (if (< 0 (reduce + (kernel ((j (vector-ref graph i)))
+                                          (if (= (vector-ref colors j) 1)
+                                              1
+                                              0))))
+                         1
+                         0))))))
+      (if (= new-colors colors)
+          colors
+          (begin
+            (println new-colors)
+            (iterate-colors graph new-colors)))))
+
+  (define (bfs graph start)
+    ;; Initialize the color vector. 0 = white, 1 = gray, 2 = black.
+    (let ((colors (kernel ((i (iota (length graph))))
+                    (if (= i start)
+                        1
+                        0))))
+      (println colors)
+      (iterate-colors graph colors)))
   
   (define (main)
     ;; Just kidding, this isn't actually BFS. It's testing if we can
     ;; generate random numbers.
-    (println (make-graph 3 10))
+    (let ((graph (make-graph 4 10)))
+      (println graph)
+      (println (bfs graph 0)))
     (return 0))
   
   )
