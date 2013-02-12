@@ -9,15 +9,19 @@
 
   (define-match expand-include
     ((module . ,decls)
-     `(module . ,(expand-decls (cons '(import core) decls)))))
+     `(module . ,(expand-decls (cons '(import core) decls) '()))))
 
-  (define-match expand-decls
-    (((import ,name) . ,rest)
-     (expand-decls (append (load-include (string-append
-                                          (symbol->string name) ".kfc"))
-                           rest)))
-    ((,a . ,[d]) `(,a . ,d))
-    (() '()))
+  (define (expand-decls decls libs)
+    (match decls
+      (((import ,name) . ,rest)
+       (if (memq name libs)
+           (expand-decls rest libs)
+           (expand-decls (append (load-include (string-append
+                                                (symbol->string name) ".kfc"))
+                                 rest)
+                         (cons name libs))))
+      ((,a . ,[d]) `(,a . ,d))
+      (() '())))
 
   (define (load-include name)
     (let-values (((source _)
