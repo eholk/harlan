@@ -6,14 +6,6 @@
      (let ((x e))
        (let* ((x* e*) ...) b ...))))
   
-  (define-macro cond (else)
-    ((_ (else body))
-     body)
-    ((_ (test body))
-     (if test body))
-    ((_ (test body) rest ...)
-     (if test body (cond rest ...))))
-  
   (define (main)
     (let* ((x 5)
            (y (+ x 1))

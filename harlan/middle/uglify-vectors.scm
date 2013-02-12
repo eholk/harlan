@@ -59,7 +59,7 @@
 (define-match uglify-decl
   ((fn ,name ,args (,arg-t -> ,rt)
        ,[uglify-stmt -> s sr*])
-   (let ((all-regions (apply union (map free-regions-type `(,rt . ,arg-t))))
+   (let ((all-regions (free-regions-type `(,arg-t -> ,rt)))
          (arg-t (map remove-regions arg-t))
          (rt (remove-regions rt)))
      `(fn ,name

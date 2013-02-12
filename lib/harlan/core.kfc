@@ -2,4 +2,36 @@
 
 (module
 
+  (extern open_outfile (str) -> (ptr ofstream))
+  (extern close_outfile ((ptr ofstream)) -> void)
+
+  (define-macro cond (else)
+    ((_ (else body))
+     body)
+    ((_ (test body))
+     (if test body))
+    ((_ (test body) rest ...)
+     (if test body (cond rest ...))))
+  
+  (define (write-pgm file data)
+    (let ((stream (open_outfile file))
+          (rows (length data))
+          (cols (length (vector-ref data 0))))
+      (print "P2\n" stream)
+      (print rows stream)
+      (print " " stream)
+      (print cols stream)
+      (print "\n" stream)
+      (print "255\n" stream)
+      (for (i 0 rows 1)
+        (for (j 0 cols 1)
+          (let ((p (vector-ref (vector-ref data i) j)))
+            (print (cond
+                     ((< p 0)   0)
+                     ((> p 255) 255)
+                     (else p))
+                   stream)
+            (print " " stream))))
+      (close_outfile stream)))
+  
   )

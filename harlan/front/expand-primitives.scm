@@ -11,20 +11,9 @@
   ;; This pass macro-expands primitives. It also inserts fresh region
   ;; variables.
   
-  (define externs (make-parameter '()))
-
-  (define (add-externs prim)
-    (case prim
-      ((write-pgm)
-       (externs
-        (append
-         `((extern open_outfile (str) -> (ptr ofstream))
-           (extern close_outfile ((ptr ofstream)) -> void))
-         (externs))))))
-
   (define-match expand-primitives
     ((module ,[expand-prim-decl -> decl*] ...)
-     `(module ,(externs) ... ,decl* ...)))
+     `(module ,decl* ...)))
   
   (define-match expand-prim-decl
     ((fn ,name ,args ,t ,[expand-prim-stmt -> stmt])
@@ -67,9 +56,7 @@
     ((return ,[expand-prim-expr -> e])
      `(return ,e))
     ((do ,[expand-prim-expr -> e])
-     `(do ,e))
-    ((write-pgm ,file ,data)
-     (expand-write-pgm file data)))
+     `(do ,e)))
   
   (define-match expand-prim-expr
     ((,t ,v) (guard (scalar-type? t)) `(,t ,v))
@@ -155,39 +142,6 @@
                                         (var (vec ,r ,t) ,v) (var int ,i))
                             . ,stream))))
            (print (str "]") . ,stream)))))
-
-  (define (expand-write-pgm file data)
-    (let ((p (gensym 'p))
-          (f (gensym 'file))
-          (i (gensym 'i))
-          (stream (gensym 'stream))
-          (inner-t (match data
-                     ((var (vec ,r ,t) ,x) t))))
-      (add-externs 'write-pgm)
-      `(let ((,f str ,file))
-         (let ((,stream (ptr ofstream)
-                        (call (var ((str) -> (ptr ofstream)) open_outfile)
-                              (var str ,f))))
-           (begin
-             (print (str "P2\n") (var ofstream ,stream))
-             (print (str "1024 1024\n") (var ofstream ,stream))
-             (print (str "255\n") (var ofstream ,stream))
-             (for (,i (int 0) (* (int 1024) (int 1024)) (int 1))
-                  (let ((,p int (vector-ref int
-                                            (vector-ref ,inner-t
-                                                        ,data
-                                                        (/ (var int ,i) (int 1024)))
-                                            (mod (var int ,i) (int 1024)))))
-                    (begin
-                      (if (< (var int ,p) (int 0))
-                          (set! (var int ,p) (int 0))
-                          (if (> (var int ,p) (int 255))
-                              (set! (var int ,p) (int 255))))
-                      (print (var int ,p)
-                             (var ofstream ,stream))
-                      (print (str " ") (var ofstream ,stream)))))
-             (do (call (var (((ptr ofstream)) -> void) close_outfile)
-                       (var (ptr ofstream) ,stream))))))))
 
   (define (expand-vec-addition t lhs rhs)
     (let ((l (gensym 'lhs))

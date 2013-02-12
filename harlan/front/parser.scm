@@ -60,9 +60,6 @@
    `(print . ,e))
   ((println ,[(parse-expr env) -> e] ...)
    `(println . ,e))
-  ((write-pgm ,[(parse-expr env) -> file]
-     ,[(parse-expr env) -> data])
-   `(write-pgm ,file ,data))
   ((return) `(return))
   ((return ,[(parse-expr env) -> e])
    `(return ,e))
