@@ -3,6 +3,7 @@
   (export compile-harlan-frontend)
   (import
     (rnrs)
+    (harlan front expand-include)
     (harlan front expand-macros)
     (harlan front parser)
     (harlan front returnify)
@@ -18,6 +19,7 @@
   
   (define compile-harlan-frontend
     (passes
+     (expand-include)
      (expand-macros)
      (parse-harlan verify-parse-harlan)
      (returnify verify-returnify)

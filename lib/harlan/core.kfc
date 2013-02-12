@@ -1,0 +1,5 @@
+;; This is the core module. It is loaded into every Harlan program.
+
+(module
+
+  )
