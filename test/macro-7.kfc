@@ -1,0 +1,26 @@
+(module
+
+  (define-macro let* ()
+    ((_ () b ...) (begin b ...))
+    ((_ ((x e) (x* e*) ...) b ...)
+     (let ((x e))
+       (let* ((x* e*) ...) b ...))))
+  
+  (define-macro cond (else)
+    ((_ (else body))
+     body)
+    ((_ (test body))
+     (if test body))
+    ((_ (test body) rest ...)
+     (if test body (cond rest ...))))
+  
+  (define (main)
+    (let* ((x 5)
+           (y (+ x 1))
+           (z "hello")
+           (w (vector "world")))
+      (cond
+        ((= x 6) (println "x"))
+        ((= y 5) (println "y"))
+        (else (println "else"))))
+    (return 0)))
