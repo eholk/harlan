@@ -210,7 +210,7 @@
        ((print ,e ,f)
         (do* (((e t) (infer-expr e env))
               ((f _) (require-type f env '(ptr ofstream))))
-             (return `(print ,t ,e ,f) 'voide)))
+             (return `(print ,t ,e ,f) 'void)))
        ((println ,e)
         (do* (((e t) (infer-expr e env)))
              (return `(println ,t ,e) 'void)))
