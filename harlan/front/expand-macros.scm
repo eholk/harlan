@@ -130,22 +130,35 @@
        (cons (reify (expand-one e env)) e*))
       (() '())))
        
-  (define (expand-let e)
-    (match-pat
-     '()
-     `(_ ((x e)) . b)
-     e
-     (lambda (env)
-       (let ((x (cdr (assq 'x env)))
-             (e (cdr (assq 'e env)))
-             (b (cdr (assq 'b env))))
-         (let ((let (gensym 'let))
-               (x^ (gensym x)))
-           (putprop let 'rename 'let)
-           `(,let ((,x^ ,e))
-              ,@(map (lambda (b) `(subst ,b (,x . ,x^))) b)))))
-     (lambda () (error 'expand-let "invalid syntax" e))))
+(define (expand-let e)
+  (match-pat
+   '()
+   `(_ ((x e) ...) b ...)
+   e
+   (lambda (env)
+     (let ((x (get-... 'x env))
+           (e (get-... 'e env))
+           (b (get-... 'b env)))
+       (let ((let (gensym 'let))
+             (x^ (map gensym x)))
+         (putprop let 'rename 'let)
+         (match #t
+           (#t
+            `(,let ((,x^ ,e) ...)
+               (subst (begin ,b ...) (,x . ,x^) ...)))))))
+   (lambda () (error 'expand-let "invalid syntax" e))))
 
+(define (get-... x env)
+  (match env
+    (() '())
+    (((... . ,env) . ,rest)
+     (let ((env (map (lambda (e) (assq x e)) env)))
+       (if (ormap (lambda (x) x) env)
+           (map cdr env)
+           (get-... x rest))))
+    ((,a . ,d)
+     (get-... x d))))
+       
   ;;(subst y (x . x^))       => y
   ;;(subst x (x . x^))       => (subst x^ (x . x^))
   ;;(subst (e ...) (x . x^)) => ((subst e x x^) ...)
