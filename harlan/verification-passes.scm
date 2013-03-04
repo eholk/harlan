@@ -120,7 +120,10 @@
     (Start Module)
     (Decl
       (extern Var (Type *) -> Type)
+      (define-datatype Var TPattern *)
       (fn Var (Var *) Stmt))
+    (TPattern
+     (Var Var *))
     (Stmt
       (let ((Var Expr) *) Stmt)
       (let-region (RegionVar) Stmt)
@@ -160,9 +163,14 @@
       (length Expr)
       (int->float Expr)
       (make-vector Expr Expr)
+      (match Expr EPattern *)
       (Binop Expr Expr)
       (Relop Expr Expr)
-      (call Var Expr *)))
+      (call Var Expr *))
+    (EPattern
+     (MPattern Expr))
+    (MPattern
+     (Var Var *)))
 
   (returnify (%inherits Module)
     (Start Module)

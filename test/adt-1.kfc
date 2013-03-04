@@ -1,0 +1,16 @@
+(%testspec
+ (%tags xfail))
+
+(module
+
+  (define-datatype point3
+    (point3 float float float))
+    
+  (define (main)
+    (let ((p (point3 1.0 2.0 3.0)))
+      (match p
+        ((point3 a b c)
+         (println a)
+         (println b)
+         (println c))))
+    (return 0)))

@@ -24,6 +24,9 @@
      (unless (symbol? name)
        (error 'parse-harlan "invalid extern name, expected symbol" name))
      `(extern ,name . ,t)))
+  ((define-datatype ,name
+     (,tag ,[parse-type -> t] ...) ...)
+   `(define-datatype ,name (,tag ,t ...) ...))
   ((define (,name . ,args) . ,stmt*)
    (begin
      (unless (symbol? name)
@@ -166,6 +169,23 @@
      (unless (reduceop? op)
        (error 'parse-expr "invalid operation in reduction" op))
      `(reduce ,op ,e)))
+  ((match ,[e]
+     ((,tag ,x* ...) ,s* ... ,e*) ...)
+   (guard (and (andmap ident? tag)
+               (andmap (lambda (x*) (andmap ident? x*)) x*)))
+   (let-values (((x* e*)
+                 (let ((x*^ (map (lambda (x) (map gensym x)) x*)))
+                   (values
+                    x*^
+                    (map (lambda (x* x*^ s* e*)
+                           (let ((env (append (map cons x* x*^))))
+                             (make-begin
+                              (append
+                               (map (lambda (s) ((parse-stmt env) s)) s*)
+                               (list ((parse-expr env) e*))))))
+                         x* x*^ s* e*)))))
+     `(match ,e
+        ((,tag ,x* ...) ,e*) ...)))
   ((,op ,[lhs] ,[rhs])
    (guard (or (binop? op) (relop? op)))
    `(,op ,lhs ,rhs))
