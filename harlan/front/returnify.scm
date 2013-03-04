@@ -13,6 +13,8 @@
 (define-match returnify-decl
   ((fn ,name ,args ,[returnify-stmt -> stmt])
    `(fn ,name ,args ,stmt))
+  ((define-datatype . ,whatever)
+   `(define-datatype . ,whatever))
   ((extern ,name ,args -> ,rtype)
    `(extern ,name ,args -> ,rtype)))
 

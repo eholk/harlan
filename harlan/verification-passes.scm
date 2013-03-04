@@ -172,10 +172,11 @@
     (MPattern
      (Var Var *)))
 
-  (returnify (%inherits Module)
+  (returnify (%inherits Module TPattern EPattern MPattern)
     (Start Module)
     (Decl
       (fn Var (Var *) Body)
+      (define-datatype Var TPattern *)
       (extern Var (Type *) -> Type))
     (Body
       (begin Stmt * Body)
@@ -223,6 +224,7 @@
       (length Expr)
       (int->float Expr)
       (make-vector Expr Expr)
+      (match Expr EPattern *)
       (Binop Expr Expr)
       (Relop Expr Expr)
       (call Var Expr *)))
