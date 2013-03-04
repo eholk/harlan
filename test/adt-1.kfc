@@ -12,5 +12,6 @@
         ((point3 a b c)
          (println a)
          (println b)
-         (println c))))
+         (println c)
+         0)))
     (return 0)))

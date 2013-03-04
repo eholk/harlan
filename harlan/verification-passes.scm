@@ -56,6 +56,7 @@
       Type)
     (Rho-Type
      harlan-type
+     Var
      (vec Var Rho-Type)
      (ptr Rho-Type)
      ((Rho-Type *) -> Rho-Type))
@@ -123,7 +124,7 @@
       (define-datatype Var TPattern *)
       (fn Var (Var *) Stmt))
     (TPattern
-     (Var Var *))
+     (Var Type *))
     (Stmt
       (let ((Var Expr) *) Stmt)
       (let-region (RegionVar) Stmt)
@@ -233,6 +234,7 @@
     (Start Module)
     (Decl
       (extern Var (Type *) -> Type)
+      (define-datatype Var (Var Rho-Type *) *)
       (fn Var (Var *) Rho-Type Body))
     (Body
       (begin Stmt * Body)
@@ -280,6 +282,7 @@
       (length Expr)
       (int->float Expr)
       (make-vector Rho-Type Expr Expr)
+      (match Rho-Type Expr ((Var Var *) Expr) *)
       (Binop Rho-Type Expr Expr)
       (Relop Rho-Type Expr Expr)
       (call Expr Expr *)))

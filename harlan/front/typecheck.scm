@@ -18,6 +18,8 @@
   (define-record-type tvar (fields name))
   (define-record-type rvar (fields name))
 
+  (define type-tag (gensym 'type))
+  
   ;; Walks type and region variables in a substitution
   (define (walk x s)
     (let ((x^ (assq x s)))
@@ -34,15 +36,7 @@
               
   (define (walk-type t s)
     (match t
-      (int   'int)
-      (u64   'u64)
-      (float 'float)
-      (bool  'bool)
-      (char  'char)
-      (void  'void)
-      (str   'str)
-      (Numeric 'Numeric)
-      (ofstream 'ofstream)
+      (,t (guard (symbol? t)) t)
       ((vec ,r ,[t]) `(vec ,(walk r s) ,t))
       ((ptr ,[t]) `(ptr ,t))
       (((,[t*] ...) -> ,[t]) `((,t* ...) -> ,t))
@@ -196,7 +190,7 @@
          ;; Returning a free type variable is better so we can return
          ;; from any context, but that gives us problems with free
          ;; type variables at the end.
-         (lambda () (return `(return) 'void #;(make-tvar (gensym 'bottom))))))
+         (lambda () (return `(return) 'void))))
        ((return ,e)
         (bind (infer-expr e env)
               (lambda (e t)
@@ -356,18 +350,55 @@
        ((do ,e)
         (do* (((e t) (infer-expr e env)))
              (return `(do ,e) t)))
-       )))
+       ((match ,e
+          ((,tag ,x* ...) ,e*) ...)
+        ;; This might be a little tricky, depending on how much
+        ;; information we have to start with. If the type of e is
+        ;; known at this point, it's easy. However, if we don't know
+        ;; if yet (for example, the value was passed in as a
+        ;; parameter), we might have to infer the type based on the
+        ;; constructors given.
+        (match (lookup-type-tags tag env)
+          ((,te . ,typedef)
+           (do* (((e _) (require-type e env te))
+                 ((e* t)
+                  (let check-arms ((tag tag)
+                                   (x* x*)
+                                   (e* e*)
+                                   (typedef typedef))
+                    (match `(,tag ,x* ,e*)
+                      (((,tag . ,tag*) (,x* . ,x**) (,e* . ,e**))
+                       (let-values (((constructor rest)
+                                     (partition (lambda (x)
+                                                  (eq? (car x) tag))
+                                                typedef)))
+                         (match constructor
+                           (((,_ ,t* ...))
+                            (do* (((e**^ t) (check-arms tag* x** e** rest))
+                                  ((e^ _) (require-type e* (append
+                                                            (map cons x* t*)
+                                                            env)
+                                                        t)))
+                                 (return (cons e^ e**^) t))))))
+                      ((() () ()) (return '() (make-tvar (gensym 'tmatch))))))))
+                (return `(match ,t ,e ((,tag ,x* ...) ,e*) ...) t)))))
+        )))
   
   (define infer-body infer-expr)
 
   (define (make-top-level-env decls)
-    (map (lambda (d)
-           (match d
-             ((fn ,name (,[make-tvar -> var*] ...) ,body)
-              `(,name . ((,var* ...) -> ,(make-tvar name))))
-             ((extern ,name . ,t)
-              (cons name t))))
-         decls))
+    (apply append
+           (map (lambda (d)
+                  (match d
+                    ((fn ,name (,[make-tvar -> var*] ...) ,body)
+                     `((,name . ((,var* ...) -> ,(make-tvar name)))))
+                    ((define-datatype ,t
+                       (,c ,t* ...) ...)
+                     `((,type-tag ,t (,c ,t* ...) ...)
+                       (,c (,t* ...) -> ,(map (lambda (_) t) c)) ...))
+                    ((extern ,name . ,t)
+                     (list (cons name t)))))
+                decls)))
 
   (define (infer-module m)
     (match m
@@ -387,6 +418,8 @@
     (match d
       ((extern . ,whatever)
        (values `(extern . ,whatever) s))
+      ((define-datatype . ,whatever)
+       (values `(define-datatype . ,whatever) s))
       ((fn ,name (,var* ...) ,body)
        ;; find the function definition in the environment, bring the
        ;; parameters into scope.
@@ -402,6 +435,25 @@
   (define (lookup x e)
     (cdr (assq x e)))
 
+  (define (lookup-type t e)
+    (match e
+      (((,tag ,name . ,t) . e^)
+       (guard (and (eq? tag type-tag) (eq? name t)))
+       t)
+      ((,e . ,e^)
+       (lookup-type t e^))
+      (() (error 'lookup-type "Type not found" t))))
+
+  (define (lookup-type-tags tags e)
+    (match e
+       (()
+        (error 'lookup-type-tags "Could not find type from constructors" tags))
+       (((,tag ,name (,tag* . ,t) ...) . ,rest)
+        (guard (and (eq? tag type-tag)
+                    (set-equal? tags tag*)))
+        `(,name (,tag* . ,t) ...))
+       ((,e . ,e*) (lookup-type-tags tags e*))))
+  
   (define (ground-module m s)
     (if (verbose) (begin (pretty-print m) (newline) (display s) (newline)))
     
@@ -412,6 +464,7 @@
   (define (ground-decl d s)
     (match d
       ((extern . ,whatever) `(extern . ,whatever))
+      ((define-datatype . ,whatever) `(define-datatype . ,whatever))
       ((fn ,name (,var ...)
            ,[(lambda (t) (ground-type t s)) -> t]
            ,[(lambda (e) (ground-expr e s)) -> body])
@@ -492,6 +545,9 @@
         ((call ,[f] ,[e*] ...) `(call ,f ,e* ...))
         ((do ,[e]) `(do ,e))
         ((let-region (,r* ...) ,[e]) `(let-region (,r* ...) ,e))
+        ((match ,[ground-type -> t] ,[e]
+                ((,tag . ,x) ,[e*]) ...)
+         `(match ,t ,e ((,tag . ,x) ,e*) ...))
         )))
 
   (define-match free-regions-expr
@@ -534,6 +590,9 @@
     ((do ,[e]) e)
     ((let-region (,r* ...) ,[e])
      (difference e r*))
+    ((match ,[free-regions-type -> t] ,[e]
+            (,p ,[e*]) ...)
+     (apply union `(,t ,e . ,e*)))
     ((return) '())
     ((return ,[e]) e))
 
