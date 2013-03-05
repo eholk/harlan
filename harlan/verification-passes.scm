@@ -323,6 +323,7 @@
       (vector Rho-Type RegionVar Expr +)
       (iota Expr)
       (iota-r RegionVar Expr)
+      (match Rho-Type Expr ((Var Var *) Expr) *)
       (Binop Expr Expr)
       (Relop Expr Expr)
       (call Expr Expr *)))

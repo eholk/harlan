@@ -18,6 +18,7 @@
   (define-match expand-prim-decl
     ((fn ,name ,args ,t ,[expand-prim-stmt -> stmt])
      `(fn ,name ,args ,t ,stmt))
+    ((define-datatype . ,whatever) `(define-datatype . ,whatever))
     ((extern ,name ,args -> ,rtype)
      `(extern ,name ,args -> ,rtype)))
 
@@ -119,6 +120,8 @@
      (expand-vec-addition t lhs rhs))
     ((= (vec ,r ,t) ,[lhs] ,[rhs])
      (expand-vec-comparison t r lhs rhs))
+    ((match ,t ,[e] (,p ,[e*]) ...)
+     `(match ,t ,e (,p ,e*) ...))
     ((,op ,t ,[lhs] ,[rhs])
      (guard (or (relop? op) (binop? op)))
      `(,op ,lhs ,rhs)))
