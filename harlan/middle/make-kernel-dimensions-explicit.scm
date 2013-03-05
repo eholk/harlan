@@ -14,6 +14,7 @@
   (define-match Decl
     ((fn ,name ,args ,t ,[Stmt -> stmt])
      `(fn ,name ,args ,t ,stmt))
+    ((typedef ,name ,t) `(typedef ,name ,t))
     ((extern ,name ,args -> ,rtype)
      `(extern ,name ,args -> ,rtype)))
 
@@ -79,6 +80,9 @@
      `(let ((,x* ,t* ,e*) ...) ,e))
     ((begin ,[Stmt -> s*] ... ,[e])
      `(begin ,s* ... ,e))
+    ((field ,[e] ,x)
+     `(field ,e x))
+    ((c-expr . ,_) `(c-expr . ,_))
     ((,op ,[lhs] ,[rhs])
      (guard (or (relop? op) (binop? op)))
      `(,op ,lhs ,rhs)))

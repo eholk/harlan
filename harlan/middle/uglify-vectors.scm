@@ -68,6 +68,7 @@
             ,@(map (lambda (_) `(ptr region)) all-regions))
            -> ,rt)
           ,s)))
+  ((typedef ,name ,t) `(typedef ,name ,t))
   ((extern ,name ,args -> ,t)
    `(extern ,name ,args -> ,t)))
 

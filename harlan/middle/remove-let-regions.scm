@@ -20,6 +20,7 @@
 (define-match remove-decl
   ((fn ,name ,args ,t ,[remove-stmt -> s])
    `(fn ,name ,args ,t ,s))
+  ((typedef ,name ,t) `(typedef ,name ,t))
   ((extern ,name ,args -> ,t)
    `(extern ,name ,args -> ,t)))
 

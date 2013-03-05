@@ -21,6 +21,7 @@
      (unless (null? fv*)
        (error 'annotate-decl "unbound variables" fv*))
      `(fn ,name ,args ,type ,stmt)))
+  ((typedef ,name ,t) `(typedef ,name ,t))
   ((extern ,name ,arg-types -> ,type)
    `(extern ,name ,arg-types -> ,type))
   ((global ,name ,type ,[expr-fv -> e _])

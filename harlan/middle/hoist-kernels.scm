@@ -15,6 +15,8 @@
    (values `(fn ,name ,args ,type ,stmt) kernel*))
   ((extern ,name ,arg-types -> ,t)
    (values `(extern ,name ,arg-types -> ,t) '()))
+  ((typedef ,name ,t)
+   (values `(typedef ,name ,t) '()))
   ((global ,type ,name ,e)
    (values `(global ,type ,name ,e) '())))
 

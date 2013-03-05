@@ -25,3 +25,5 @@ typedef struct region_ {
 // This gives us a pointer to something in a region.
 #define get_region_ptr(r, i) (((char __global *)r) + i)
 
+// Extract the tag from an ADT
+#define extract_tag(x) ((x).tag)

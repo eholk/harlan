@@ -6,6 +6,7 @@
     verify-returnify
     verify-typecheck
     verify-expand-primitives
+    verify-desugar-match
     verify-remove-danger
     verify-make-kernel-dimensions-explicit
     verify-make-work-size-explicit
@@ -41,10 +42,13 @@
 
   (%static
     (Type
+      Var
       harlan-type
       (vec Type)
       (ptr Type)
       (ref Type)
+      (struct (Var Type) *)
+      (union (Var Type) *)
       ((Type *) -> Type))
     (C-Type
       harlan-c-type
@@ -55,8 +59,8 @@
       ((C-Type *) -> C-Type)
       Type)
     (Rho-Type
-     harlan-type
      Var
+     harlan-type
      (vec Var Rho-Type)
      (ptr Rho-Type)
      ((Rho-Type *) -> Rho-Type))
@@ -328,6 +332,38 @@
       (Relop Expr Expr)
       (call Expr Expr *)))
 
+  (desugar-match
+   (%inherits Module Body Stmt Ret-Stmt)
+    (Start Module)
+    (Decl
+      (extern Var (Type *) -> Type)
+      (typedef Var Type)
+      (fn Var (Var *) Rho-Type Body))
+    (Expr
+      (char Char)
+      (int Integer)
+      (u64 Number)
+      (float Float)
+      (str String)
+      (bool Boolean)
+      (var Rho-Type Var)
+      (if Expr Expr Expr)
+      (let ((Var Rho-Type Expr) *) Expr)
+      (begin Stmt * Expr)
+      (vector-ref Rho-Type Expr Expr)
+      (kernel Rho-Type RegionVar (((Var Rho-Type) (Expr Rho-Type)) +) Expr)
+      (length Expr)
+      (int->float Expr)
+      (make-vector Rho-Type RegionVar Expr)
+      (vector Rho-Type RegionVar Expr +)
+      (iota Expr)
+      (iota-r RegionVar Expr)
+      (Binop Expr Expr)
+      (Relop Expr Expr)
+      (field Expr Var)
+      (c-expr C-Type Var)
+      (call Expr Expr *)))
+  
   (make-kernel-dimensions-explicit
     (%inherits Module Decl Body Stmt Ret-Stmt)
     (Start Module)
@@ -354,6 +390,7 @@
       (Binop Expr Expr)
       (Relop Expr Expr)
       (c-expr C-Type Var)
+      (field Expr Var)
       (call Expr Expr *)))
 
   (make-work-size-explicit
@@ -380,6 +417,7 @@
       (Binop Expr Expr)
       (Relop Expr Expr)
       (c-expr C-Type Var)
+      (field Expr Var)
       (call Expr Expr *)))
 
   (optimize-lift-lets
@@ -671,6 +709,7 @@
     (Decl
       (extern Var (Type *) -> Type)
       (global Var Type Expr)
+      (typedef Var Type)
       (fn Var (Var *) Type Body))
     (Body
       (begin Stmt * Body)
@@ -805,6 +844,7 @@
       (gpu-module Kernel *)
       (fn Var (Var *) ((Type *) -> Type) Body)
       (global Var Type Expr)
+      (typedef Var Type)
       (extern Var (Type *) -> Type))
     (Kernel
       (kernel Var ((Var Type) *) Stmt))
@@ -876,6 +916,7 @@
       (gpu-module Kernel *)
       (func Type Var ((Var Type) *) Body)
       (global Var Type Expr)
+      (typedef Var Type)
       (extern Type Var (Type *)))
     (Stmt
       (print Expr)
@@ -922,6 +963,7 @@
       (gpu-module Kernel *)
       (func C-Type Var ((Var C-Type) *) Body)
       (global C-Type Var Expr)
+      (typedef Var C-Type)
       (extern C-Type Var (C-Type *))) 
     (Kernel
       (kernel Var ((Var Type) *) Stmt))

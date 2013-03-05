@@ -20,6 +20,7 @@
 (define-match returnify-kernel-decl
   ((fn ,name ,args ,type ,[returnify-kernel-stmt -> stmt])
    `(fn ,name ,args ,type ,stmt))
+  ((typedef ,name ,t) `(typedef ,name ,t))
   ((extern ,name ,args -> ,type)
    `(extern ,name ,args -> ,type)))
 
@@ -73,6 +74,7 @@
    `(,op ,lhs ,rhs))
   ((c-expr ,t ,x) `(c-expr ,t ,x))
   ((call ,[fn] ,[arg*] ...) `(call ,fn . ,arg*))
+  ((field ,[e] ,x) e)
   ((kernel . ,body*)
    (returnify-kernel `(kernel . ,body*))))
 

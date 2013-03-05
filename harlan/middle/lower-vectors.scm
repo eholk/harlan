@@ -14,6 +14,7 @@
 (define-match lower-decl
   ((fn ,name ,info ... ,[lower-stmt -> s])
    `(fn ,name ,info ... ,s))
+  ((typedef ,name ,t) `(typedef ,name ,t))
   ((extern ,name ,args -> ,t)
    `(extern ,name ,args -> ,t)))
 

@@ -18,6 +18,8 @@
    `(func ,rtype ,name ,(map list x* t*) ,stmt))
   ((global ,name ,[convert-type -> t] ,[convert-expr -> e])
    `(global ,t ,name ,e))
+  ((typedef ,name ,[convert-type -> t])
+   `(typedef ,name ,t))
   ((extern ,[convert-type -> t] ,name (,[convert-type -> t*] ...))
    `(extern ,t ,name ,t*)))
 
@@ -108,8 +110,11 @@
   ((ptr (vec ,[t])) `(ptr ,t))
   ((ptr ,[scalar]) `(ptr ,scalar))
   ((vec ,[t]) 'region_ptr)
+  ((struct (,x ,[t]) ...) `(struct (,x ,t) ...))
+  ((union (,x ,[t]) ...) `(union (,x ,t) ...))
   (((,[t*] ...) -> ,[t])
-   `(,t* -> ,t)))
+   `(,t* -> ,t))
+  (,x (guard (symbol? x)) x))
 
 ;; end library
 )

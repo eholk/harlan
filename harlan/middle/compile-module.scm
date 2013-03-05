@@ -16,6 +16,7 @@
    `(extern ,rtype ,name ,arg-types))
   ((global ,type ,name ,[(compile-expr #f) -> e])
    `(global ,type ,name ,e))
+  ((typedef ,name ,t) `(typedef ,name ,t))
   ((gpu-module ,[compile-kernel -> kernel*] ...)
    `(gpu-module . ,kernel*)))
 

@@ -43,6 +43,7 @@
   (define-match Decl
     ((extern . ,_)
      `(extern . ,_))
+    ((typedef ,name ,t) `(typedef ,name ,t))
     ((fn ,name ,args ,type ,[Stmt -> body bindings])
      `(fn ,name ,args ,type
           ,(make-let bindings body))))
@@ -168,6 +169,7 @@
     ((if ,[t] ,[c] ,[a])
      (union t c a))
     ((c-expr ,t ,v) `(c-expr ,t ,v))
+    ((field ,[e] ,x) e)
     ((begin ,[free-vars-Stmt -> s*] ... ,[e])
      (apply union e s*)))
 
@@ -218,6 +220,7 @@
     ((vector-ref ,t ,[x] ,[i])
      (and x i))
     ((iota ,[e]) e)
+    ((field ,[e] ,x) e)
     ((kernel
        ,t
        (,dims ...)

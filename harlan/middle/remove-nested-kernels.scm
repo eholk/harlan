@@ -14,6 +14,7 @@
 (define-match Decl
   ((fn ,name ,args ,type ,[(Stmt #f) -> stmt])
    `(fn ,name ,args ,type ,stmt))
+  ((typedef ,name ,t) `(typedef ,name ,t))
   ((extern . ,rest)
    `(extern . ,rest)))
 
@@ -81,6 +82,7 @@
   ((,op ,[lhs] ,[rhs])
    (guard (or (binop? op) (relop? op)))
    `(,op ,lhs ,rhs))
+  ((field ,[e] ,x) `(field ,e ,x))
   ((make-vector ,t ,r ,[e]) `(make-vector ,t ,r ,e))
   ((vector ,t ,r ,[e*] ...) `(vector ,t ,r . ,e*)))
 
