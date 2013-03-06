@@ -12,7 +12,7 @@
 
 (define-match annotate-decl*
   (((,tag* ,name* . ,rest*) ...)
-   (map (annotate-decl name*)
+   (map (annotate-decl (append name* '(sqrt)))
         `((,tag* ,name* . ,rest*) ...))))
 
 (define-match (annotate-decl globals)

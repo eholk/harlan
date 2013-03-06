@@ -29,7 +29,8 @@
                                 ,src-tmp "-x none"
                                 ,(string-append (HARLAND) "/rt/libharlanrt.a")
                                 ,(string-append "-I" (HARLAND) "/rt")
-                                "-o" ,outfile)
+                                "-o" ,outfile
+                                "-lm")
                               (get-cflags)
                               args))))
       (if (verbose)

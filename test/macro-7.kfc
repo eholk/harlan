@@ -1,10 +1,4 @@
-(module
-
-  (define-macro let* ()
-    ((_ () b ...) (begin b ...))
-    ((_ ((x e) (x* e*) ...) b ...)
-     (let ((x e))
-       (let* ((x* e*) ...) b ...))))
+(module  
   
   (define (main)
     (let* ((x 5)

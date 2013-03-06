@@ -387,18 +387,21 @@
   (define infer-body infer-expr)
 
   (define (make-top-level-env decls)
-    (apply append
-           (map (lambda (d)
-                  (match d
-                    ((fn ,name (,[make-tvar -> var*] ...) ,body)
-                     `((,name . ((,var* ...) -> ,(make-tvar name)))))
-                    ((define-datatype ,t
-                       (,c ,t* ...) ...)
-                     `((,type-tag ,t (,c ,t* ...) ...)
-                       (,c (,t* ...) -> ,(map (lambda (_) t) c)) ...))
-                    ((extern ,name . ,t)
-                     (list (cons name t)))))
-                decls)))
+    (append
+     (apply append
+            (map (lambda (d)
+                   (match d
+                     ((fn ,name (,[make-tvar -> var*] ...) ,body)
+                      `((,name . ((,var* ...) -> ,(make-tvar name)))))
+                     ((define-datatype ,t
+                        (,c ,t* ...) ...)
+                      `((,type-tag ,t (,c ,t* ...) ...)
+                        (,c (,t* ...) -> ,(map (lambda (_) t) c)) ...))
+                     ((extern ,name . ,t)
+                      (list (cons name t)))))
+                decls))
+     ;; Add some primitives
+     '((sqrt (float) -> float))))
 
   (define (infer-module m)
     (match m

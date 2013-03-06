@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <string.h>
+#include <cmath>
 
 #ifdef __APPLE__
 #include <OpenCL/opencl.h>

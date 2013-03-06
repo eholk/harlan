@@ -27,11 +27,11 @@
         (i (gensym 'i))
         (expr (gensym 'expr))) ;; this is unused
     (assert (= (length dims) 1))
-    `(let ((,expr ,t ,(car dims)))
+    `(let ((,expr int ,(car dims)))
        (let ((,kernelfor (vec ,r ,t) (make-vector ,t ,r
-                                                  (var ,t ,expr))))
+                                                  (var int ,expr))))
          (begin
-           (for (,i (int 0) (var ,t ,expr) (int 1))
+           (for (,i (int 0) (var int ,expr) (int 1))
                 (let ,(map (kernel-arg->binding i) x* t* xs*)
                   ,((remove-global-id-stmt i)
                     ((set-kernel-return t r kernelfor i) e))))

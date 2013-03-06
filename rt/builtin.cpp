@@ -57,3 +57,7 @@ uint64_t get_kernel_time() {
 void reset_kernel_time() {
     g_queue.reset_kernel_time();
 }
+
+float sqrt(float x) {
+    return sqrtf(x);
+}

@@ -12,6 +12,12 @@
      (if test body))
     ((_ (test body) rest ...)
      (if test body (cond rest ...))))
+
+  (define-macro let* ()
+    ((_ () b ...) (begin b ...))
+    ((_ ((x e) (x* e*) ...) b ...)
+     (let ((x e))
+       (let* ((x* e*) ...) b ...))))
   
   (define (write-pgm file data)
     (let ((stream (open_outfile file))

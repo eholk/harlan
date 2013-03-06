@@ -178,7 +178,7 @@
                    (values
                     x*^
                     (map (lambda (x* x*^ s* e*)
-                           (let ((env (append (map cons x* x*^))))
+                           (let ((env (append (map cons x* x*^) env)))
                              (make-begin
                               (append
                                (map (lambda (s) ((parse-stmt env) s)) s*)
