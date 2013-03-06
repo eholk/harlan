@@ -1,0 +1,16 @@
+;; make sure we can use ADTs from kernels.
+
+(module
+
+  (define-datatype point3-t
+    (point3 float float float))
+    
+  (define (main)
+    (let ((x (vector (point3 1.0 2.0 3.0)
+                     (point3 2.0 2.0 2.0)
+                     (point3 3.0 2.0 1.0)
+                     (point3 4.0 2.0 0.0))))
+      (println (kernel ((x x))
+                 (match x
+                   ((point3 a b c) (+ (+ a b) c))))))
+    (return 0)))

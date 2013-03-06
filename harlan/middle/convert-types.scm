@@ -26,7 +26,8 @@
 (define-match convert-kernel
   ((kernel ,k ((,x* ,[convert-type -> t*]) ...)
      ,[convert-stmt -> stmt*] ...)
-   `(kernel ,k ,(map list x* t*) . ,stmt*)))
+   `(kernel ,k ,(map list x* t*) . ,stmt*))
+  (,else (convert-decl else)))
 
 (define-match convert-stmt
   ((begin ,[stmt*] ...)

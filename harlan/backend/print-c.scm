@@ -26,7 +26,8 @@
        (,[format-arg -> arg*] ...)
        ,[format-stmt -> stmt])
      (string-append
-       "__kernel void " name "(" (join ", " arg*) ") " stmt)))
+       "__kernel void " name "(" (join ", " arg*) ") " stmt))
+    (,else (harlan-format-decl else)))
 
   (define (build-kernel-programs kernel*)
     `(global cl::program g_prog

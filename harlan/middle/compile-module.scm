@@ -22,7 +22,8 @@
 
 (define-match compile-kernel
   ((kernel ,name ,args ,[(compile-stmt #t) -> stmt])
-   `(kernel ,name ,args ,stmt)))
+   `(kernel ,name ,args ,stmt))
+  (,else (compile-decl else)))
 
 (define-match (compile-stmt in-kernel?)
   ((begin ,[stmt*] ...)

@@ -855,13 +855,16 @@
   (hoist-kernels (%inherits Module Body Ret-Stmt)
     (Start Module)
     (Decl
+      CommonDecl
       (gpu-module Kernel *)
-      (fn Var (Var *) ((Type *) -> Type) Body)
-      (global Var Type Expr)
-      (typedef Var Type)
-      (extern Var (Type *) -> Type))
+      (global Var Type Expr))
     (Kernel
+      CommonDecl
       (kernel Var ((Var Type) *) Stmt))
+    (CommonDecl
+     (fn Var (Var *) ((Type *) -> Type) Body)
+     (typedef Var Type)
+     (extern Var (Type *) -> Type))
     (Stmt 
       (print Expr)
       (print Expr Expr)
@@ -904,7 +907,7 @@
       (Binop Expr Expr)))
 
   (generate-kernel-calls
-    (%inherits Module Kernel Decl Expr Body Ret-Stmt)
+    (%inherits Module Kernel Decl Expr Body Ret-Stmt CommonDecl)
     (Start Module)
     (Stmt
       (error Var)
@@ -927,12 +930,16 @@
     (Start Module)
     (Module (Decl *))
     (Decl
+      CommonDecl
       (include String)
       (gpu-module Kernel *)
-      (func Type Var ((Var Type) *) Body)
       (global Var Type Expr)
-      (typedef Var Type)
-      (extern Type Var (Type *)))
+      (typedef Var Type))
+    (CommonDecl
+     (func Type Var ((Var Type) *) Body)
+     (typedef Var Type)
+     (extern Type Var (Type *))
+     (extern Var (Type *) -> Type))
     (Stmt
       (print Expr)
       (print Expr Expr)
@@ -975,13 +982,16 @@
   (convert-types (%inherits Module Stmt Body Ret-Stmt)
     (Start Module)
     (Decl
+      CommonDecl
       (include String)
       (gpu-module Kernel *)
-      (func C-Type Var ((Var C-Type) *) Body)
-      (global C-Type Var Expr)
-      (typedef Var C-Type)
-      (extern C-Type Var (C-Type *))) 
+      (global C-Type Var Expr))
+    (CommonDecl
+     (func C-Type Var ((Var C-Type) *) Body)
+     (typedef Var C-Type)
+     (extern C-Type Var (C-Type *)))
     (Kernel
+      CommonDecl
       (kernel Var ((Var Type) *) Stmt))
     (Expr
       (bool Boolean)

@@ -253,6 +253,7 @@
   ((vector ,t ,r ,[e] ...) `(vector ,t ,r ,e ...))
   ((call ,[e] ...) `(call ,e ...))
   ((c-expr . ,c) `(c-expr . ,c))
+  ((field ,[e] ,x) `(field ,e ,x))
   ((,op ,[lhs] ,[rhs]) (guard (or (relop? op) (binop? op)))
    `(,op ,lhs ,rhs)))
 

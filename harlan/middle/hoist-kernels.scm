@@ -1,14 +1,83 @@
 (library
   (harlan middle hoist-kernels)
   (export hoist-kernels)
-  (import (rnrs) (except (elegant-weapons helpers) ident?)
-    (harlan helpers))
+  (import
+   (rnrs)
+   (except (elegant-weapons helpers) ident?)
+   (elegant-weapons sets)
+   (harlan helpers))
 
 (define-match hoist-kernels
   ((module ,[hoist-decl -> decl* kernel*] ...)
-   `(module
-      (gpu-module . ,(apply append kernel*))
-      . ,decl*)))
+   (let* ((kernel* (apply append kernel*))
+          (syms (gather-symbols (apply union (map decl-symbols kernel*))
+                                decl*))
+          (gpu-decls ((extract-symbols syms) decl*)))
+     `(module
+        (gpu-module ,@gpu-decls . ,kernel*)
+        . ,decl*))))
+
+(define-match type-symbols
+  (((,[t] ...) -> ,[t^]) (union t^ (apply union t)))
+  ((vec ,[t]) t)
+  ((ptr ,[t]) t)
+  ((struct (,name ,[type-symbols -> t]) ...)
+   (apply union t))
+  ((union (,name ,[type-symbols -> t]) ...)
+   (apply union t))
+  (,x (guard (symbol? x)) (list x)))
+
+(define-match stmt-symbols
+  ((let ,x ,[type-symbols -> t] ,[expr-symbols -> e])
+   (union t e))
+  ((set! ,[expr-symbols -> e] ,[expr-symbols -> v])
+   (union e v))
+  ((begin ,[s] ...) (apply union s)))
+
+(define-match expr-symbols
+  ((int ,n) '())
+  ((var ,[type-symbols -> t] ,x) (set-add t x))
+  ((deref ,[e]) e)
+  ((call ,[e] ...) (apply union e))
+  ((c-expr ,[type-symbols -> t] ,x) (set-add t x))
+  ((field ,[e] ,x) e)
+  ((addressof ,[e]) e)
+  ((vector-ref ,[type-symbols -> t] ,[v] ,[i])
+   (union t v i))
+  ((region-ref ,[type-symbols -> t] ,[r] ,[i])
+   (union t r i))
+  ((sizeof ,[type-symbols -> t]) t)
+  ((cast ,[type-symbols -> t] ,[e]) (union t e))
+  ((,op ,[a] ,[b]) (guard (or (binop? op) (relop? op)))
+   (union a b)))
+
+(define-match decl-symbols
+  ((typedef ,name ,[type-symbols -> t]) t)
+  ((kernel ,name ,args ,[stmt-symbols -> stmt]) stmt))
+
+(define (gather-symbols syms decls)
+  ((filter-decls syms
+                 (lambda (d rest)
+                   (union (decl-symbols d) rest))
+                 syms)
+   decls))
+  
+;; Extracts the symbol definitions from a set of decls
+(define-match (filter-decls syms f zero)
+  (() zero)
+  (((fn ,name . ,_) . ,[rest])
+   (guard (member name syms))
+   (f `(fn ,name . ,_) rest))
+  (((typedef ,name . ,_) . ,[rest])
+   (guard (member name syms))
+   (f `(typedef ,name . ,_) rest))
+  (((extern ,name . ,_) . ,[rest])
+   (guard (member name syms))
+   (f `(extern ,name . ,_) rest))
+  ((,a . ,[d]) d))
+
+(define (extract-symbols syms)
+  (filter-decls syms cons '()))
 
 (define-match hoist-decl
   ((fn ,name ,args ,type ,[hoist-stmt -> stmt kernel*])

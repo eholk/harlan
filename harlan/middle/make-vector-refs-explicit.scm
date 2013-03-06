@@ -168,6 +168,7 @@
   ((length ,[(replace-vec-refs-expr x*) -> e])
    `(length ,e))
   ((c-expr ,t ,v) `(c-expr ,t ,v))
+  ((field ,[e] ,x) `(field ,e ,x))
   ((,op ,[(replace-vec-refs-expr x*) -> e1]
         ,[(replace-vec-refs-expr x*) -> e2])
    (guard (or (binop? op) (relop? op)))
