@@ -31,7 +31,7 @@
   (define (build-kernel-programs kernel*)
     `(global cl::program g_prog
        (call
-         (field g_ctx createAndBuildProgramFromSource)
+         (field (var g_ctx) createAndBuildProgramFromSource)
          (str
            ,(string-append
               "#include \"rt/gpu_common.h\"\n\n"
