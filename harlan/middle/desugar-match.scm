@@ -49,7 +49,9 @@
                                                          (number->string j))))
                                        (var ,t ,x))
                                 (loop (+ 1 j) t* x*)))
-                              ((() ()) '()))))))
+                              ((() ())
+                               `((set! (field (var ,name ,tmp) tag)
+                                       (int ,id)))))))))
                    (return (var ,name ,tmp)))))))))
     
   (define-match desugar-match
@@ -184,6 +186,10 @@
         (else (loop (+ id 1) (cdr typedef))))))
 
   (define-match type-of
+    ((call ,[f] . ,_)
+     (match f
+       ((,_ -> ,t) t)
+       (,else (error 'type-of "Illegal function type" else))))
     ((var ,t ,x) t))
   
   )

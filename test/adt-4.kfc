@@ -1,0 +1,16 @@
+;; make sure we can use ADTs from kernels.
+
+(module
+
+  (define-datatype IntFloat
+    (Int int)
+    (Float float))
+    
+  (define (main)
+    (assert (match (Int 5)
+              ((Int x) #t)
+              ((Float f) #f)))
+    (assert (match (Float 5)
+              ((Int x) #f)
+              ((Float f) #t)))
+    (return 0)))
