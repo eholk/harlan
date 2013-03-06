@@ -35,12 +35,22 @@
   ((if ,[expr-symbols -> t] ,[c]) (union t c))
   ((set! ,[expr-symbols -> e] ,[expr-symbols -> v])
    (union e v))
+  ((for (,i ,[expr-symbols -> start]
+            ,[expr-symbols -> stop]
+            ,[expr-symbols -> step])
+     ,[s])
+   (union start stop step s))
+  ((while ,[expr-symbols -> t] ,[s])
+   (union t s))
   ((return) '())
+  ((error ,x) '())
   ((return ,[expr-symbols -> e]) e)
   ((begin ,[s] ...) (apply union s)))
 
 (define-match expr-symbols
   ((int ,n) '())
+  ((bool ,b) '())
+  ((float ,f) '())
   ((var ,[type-symbols -> t] ,x) (set-add t x))
   ((deref ,[e]) e)
   ((call ,[e] ...) (apply union e))
@@ -54,6 +64,7 @@
   ((sizeof ,[type-symbols -> t]) t)
   ((cast ,[type-symbols -> t] ,[e]) (union t e))
   ((empty-struct) '())
+  ((alloc ,[r] ,[s]) (union r s))
   ((,op ,[a] ,[b]) (guard (or (binop? op) (relop? op)))
    (union a b)))
 
@@ -64,6 +75,7 @@
   ((kernel ,name ,args ,[stmt-symbols -> stmt]) stmt))
 
 (define (gather-symbols syms decls)
+  ;; TODO: this really needs to iterate to a fix point
   ((filter-decls syms
                  (lambda (d rest)
                    (union (decl-symbols d) rest))
