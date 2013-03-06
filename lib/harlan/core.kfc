@@ -33,5 +33,12 @@
                    stream)
             (print " " stream))))
       (close_outfile stream)))
-  
+
+  (define-macro reduce ()
+    ((_ op e)
+     (let ((x e))
+       (let ((t (vector-ref x 0)))
+         (for (i 1 (length x))
+           (set! t (op t (vector-ref x i))))
+         t))))
   )
