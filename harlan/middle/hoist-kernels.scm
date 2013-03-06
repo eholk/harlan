@@ -30,8 +30,13 @@
 (define-match stmt-symbols
   ((let ,x ,[type-symbols -> t] ,[expr-symbols -> e])
    (union t e))
+  ((let ,x ,[type-symbols -> t]) t)
+  ((if ,[expr-symbols -> t] ,[c] ,[a]) (union t c a))
+  ((if ,[expr-symbols -> t] ,[c]) (union t c))
   ((set! ,[expr-symbols -> e] ,[expr-symbols -> v])
    (union e v))
+  ((return) '())
+  ((return ,[expr-symbols -> e]) e)
   ((begin ,[s] ...) (apply union s)))
 
 (define-match expr-symbols
@@ -48,11 +53,14 @@
    (union t r i))
   ((sizeof ,[type-symbols -> t]) t)
   ((cast ,[type-symbols -> t] ,[e]) (union t e))
+  ((empty-struct) '())
   ((,op ,[a] ,[b]) (guard (or (binop? op) (relop? op)))
    (union a b)))
 
 (define-match decl-symbols
   ((typedef ,name ,[type-symbols -> t]) t)
+  ((fn ,name ,args ,[type-symbols -> t] ,[stmt-symbols -> b])
+   (union t b))
   ((kernel ,name ,args ,[stmt-symbols -> stmt]) stmt))
 
 (define (gather-symbols syms decls)

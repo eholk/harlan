@@ -16,7 +16,7 @@
         `((,tag* ,name* . ,rest*) ...))))
 
 (define-match (annotate-decl globals)
-  ((fn ,name ,args ,type ,[annotate-stmt -> stmt fv*])
+  ((fn ,name ,args ,type ,[(annotate-stmt globals) -> stmt fv*])
    (let ((fv* (fold-right remove/var fv* (append globals args))))
      (unless (null? fv*)
        (error 'annotate-decl "unbound variables" fv*))
@@ -27,12 +27,13 @@
   ((global ,name ,type ,[expr-fv -> e _])
    `(global ,name ,type ,e)))
 
-(define-match annotate-stmt
+(define-match (annotate-stmt globals)
   ((begin ,[stmt* fv**] ...)
    (values `(begin . ,stmt*)
      (apply union/var fv**)))
   ((kernel ,type ,dims ,[stmt fv*])
-   (let ((fv-expr (map (lambda (p) `(,(caddr p) ,(cadr p))) fv*)))
+   (let* ((fv-expr (fold-right remove/var fv* globals))
+          (fv-expr (map (lambda (p) `(,(caddr p) ,(cadr p))) fv-expr)))
      (values `(kernel ,type ,dims (free-vars . ,fv-expr) ,stmt)
              (apply union/var fv* (map expr-fv dims)))))
   ((error ,x) (values `(error ,x) `()))

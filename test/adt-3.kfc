@@ -1,0 +1,17 @@
+;; make sure we can use ADTs from kernels.
+
+(module
+
+  (define-datatype even-odd
+    (even)
+    (odd))
+    
+  (define (main)
+    (let ((x (iota 10)))
+      ;; We'd really like to print this result, but we aren't
+      ;; generating print functions yet.
+      (kernel ((i x))
+        (if (= 0 (mod i 2))
+            (even)
+            (odd))))
+    (return 0)))
