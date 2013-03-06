@@ -119,17 +119,19 @@
   
   (define (bind-fields tag x e typedef)
     (let* ((id (tag-id tag typedef))
-           (t* (cdr (list-ref (cdr typedef) id))))
-      (let loop ((j 0)
-                 (t* t*)
-                 (x* x))
-        (match `(,x* ,t*)
-          (((,x . ,x*) (,t . ,t*))
-           (cons `(,x ,t (field (field (field ,e data) ,(car typedef))
-                                ,(string->symbol
-                                  (string-append "f" (number->string j)))))
-                 (loop (+ 1 j) t* x*)))
-          ((() ()) '())))))
+           (t* (list-ref (cdr typedef) id)))
+      (match t*
+        ((,tag . ,t*)
+         (let loop ((j 0)
+                    (t* t*)
+                    (x* x))
+           (match `(,x* ,t*)
+             (((,x . ,x*) (,t . ,t*))
+              (cons `(,x ,t (field (field (field ,e data) ,tag)
+                                   ,(string->symbol
+                                     (string-append "f" (number->string j)))))
+                    (loop (+ 1 j) t* x*)))
+             ((() ()) '())))))))
                                                         
   
   (define (tag-id tag typedef)

@@ -81,7 +81,7 @@
     ((begin ,[Stmt -> s*] ... ,[e])
      `(begin ,s* ... ,e))
     ((field ,[e] ,x)
-     `(field ,e x))
+     `(field ,e ,x))
     ((c-expr . ,_) `(c-expr . ,_))
     ((,op ,[lhs] ,[rhs])
      (guard (or (relop? op) (binop? op)))

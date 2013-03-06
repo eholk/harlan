@@ -197,6 +197,8 @@
      (values (vector-length-field e (car r*)) r*)))
   ((addressof ,[expr r*])
    (values `(addressof ,expr) r*))
+  ((field ,[e r] ,x)
+   (values `(field ,e ,x) r))
   ((deref ,[expr r*])
    (values `(deref ,expr) r*)))
 

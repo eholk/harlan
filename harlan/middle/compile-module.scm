@@ -64,8 +64,6 @@
   ((vector-ref ,t ,[v] ,[i]) `(vector-ref ,v ,i))
   ((if ,[test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
-  ((field (var ,t ,obj) ,x) `(field ,obj ,x))
-  ((field (var ,t ,obj) ,x ,t) `(field ,obj ,x ,t))
   ((sizeof ,t) `(sizeof ,t))
   ((deref ,[e]) `(deref ,e))
   ((addressof ,[e]) `(addressof ,e))
@@ -75,6 +73,8 @@
    (guard (or (binop? op) (relop? op)))
    `(,op ,e1 ,e2))
   ((time) '(nanotime))
+  ((field ,[e] ,x) `(field ,e ,x))
+  ((field ,[obj] ,x ,t) `(field ,obj ,x ,t))
   ((call ,[f] ,[a*] ...) `(call ,f . ,a*)))
 
 ;; end library

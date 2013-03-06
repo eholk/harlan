@@ -3,7 +3,7 @@
 
 (module
 
-  (define-datatype point3
+  (define-datatype point3-t
     (point3 float float float))
     
   (define (main)

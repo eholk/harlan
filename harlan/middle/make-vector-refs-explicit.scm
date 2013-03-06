@@ -72,6 +72,7 @@
    (guard (or (binop? op) (relop? op)))
    `(,op ,lhs ,rhs))
   ((c-expr ,t ,x) `(c-expr ,t ,x))
+  ((field ,[e] ,x) `(field ,e ,x))
   ((call ,[fn] ,[arg*] ...) `(call ,fn . ,arg*)))
 
 ;; This enforces the let* semantics of kernel arguments.

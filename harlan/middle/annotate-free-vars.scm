@@ -99,6 +99,7 @@
   ((,op ,[lfv*] ,[rfv*])
    (guard (or (binop? op) (relop? op)))
    (union/var lfv* rfv*))
+  ((field ,[e] ,x) e)
   ((vector-ref ,t ,[vfv*] ,[ifv*])
    (union/var vfv* ifv*)))
 

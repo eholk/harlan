@@ -74,7 +74,7 @@
    `(,op ,lhs ,rhs))
   ((c-expr ,t ,x) `(c-expr ,t ,x))
   ((call ,[fn] ,[arg*] ...) `(call ,fn . ,arg*))
-  ((field ,[e] ,x) e)
+  ((field ,[e] ,x) `(field ,e ,x))
   ((kernel . ,body*)
    (returnify-kernel `(kernel . ,body*))))
 
