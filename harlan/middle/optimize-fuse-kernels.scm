@@ -79,6 +79,7 @@
     ((begin ,[Stmt -> s*] ... ,[e])
      `(begin ,s* ... ,e))
     ((field ,[e] ,x) `(field ,e ,x))
+    ((empty-struct) '(empty-struct))
     ((,op ,[lhs] ,[rhs])
      (guard (or (relop? op) (binop? op)))
      `(,op ,lhs ,rhs)))

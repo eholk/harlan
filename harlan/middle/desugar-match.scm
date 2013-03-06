@@ -23,13 +23,34 @@
     (cons 'union
           (map list names types)))
 
-  (define (make-constructor name)
-    (lambda (tag types)
-      (let ((args (map (lambda (_) (gensym tag)) types))
-            (tmp (gensym 'result)))
-        `(fn ,tag ,args (,types -> ,name)
-             (begin (assert (bool #f))
-                    (return))))))
+  (define (make-constructor typedef)
+    (let ((name (car typedef)))
+      (lambda (tag types)
+        (let ((args (map (lambda (_) (gensym tag)) types))
+              (tmp (gensym 'result)))
+          `(fn ,tag ,args (,types -> ,name)
+               (let ((,tmp ,name (empty-struct)))
+                 (begin
+                   ,@(let* ((id (tag-id tag typedef))
+                            (t* (list-ref (cdr typedef) id)))
+                       (match t*
+                         ((,tag . ,t*)
+                          (let loop ((j 0)
+                                     (t* t*)
+                                     (x* args))
+                            (match `(,x* ,t*)
+                              (((,x . ,x*) (,t . ,t*))
+                               (cons
+                                `(set! (field
+                                        (field (field (var ,name ,tmp) data)
+                                               ,tag)
+                                        ,(string->symbol
+                                          (string-append "f"
+                                                         (number->string j))))
+                                       (var ,t ,x))
+                                (loop (+ 1 j) t* x*)))
+                              ((() ()) '()))))))
+                   (return (var ,name ,tmp)))))))))
     
   (define-match desugar-match
     ((module . ,decls)
@@ -46,7 +67,8 @@
                               tag
                               (map make-anonymous-struct
                                    type)))))
-            . ,(map (make-constructor name) tag type)))
+            . ,(map (make-constructor `(,name (,tag ,type ...) ...))
+                    tag type)))
          ((extern . ,whatever)
           `((extern . ,whatever)))
          ((fn ,name ,args ,type ,[desugar-stmt -> body])

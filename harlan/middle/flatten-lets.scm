@@ -77,6 +77,7 @@
   ((,op ,[e1] ,[e2]) (guard (relop? op))
    `(,op ,e1 ,e2))
   ((field ,[e] ,x) `(field ,e ,x))
+  ((empty-struct) '(empty-struct))
   ((call ,[expr] ,[expr*] ...)
    `(call ,expr . ,expr*)))
 

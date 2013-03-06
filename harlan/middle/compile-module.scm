@@ -66,6 +66,7 @@
    `(if ,test ,conseq ,alt))
   ((sizeof ,t) `(sizeof ,t))
   ((deref ,[e]) `(deref ,e))
+  ((empty-struct) '(empty-struct))
   ((addressof ,[e]) `(addressof ,e))
   ((cast ,t ,[e]) `(cast ,t ,e))
   ((not ,[e]) `(not ,e))

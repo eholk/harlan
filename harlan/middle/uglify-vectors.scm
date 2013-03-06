@@ -199,6 +199,7 @@
    (values `(addressof ,expr) r*))
   ((field ,[e r] ,x)
    (values `(field ,e ,x) r))
+  ((empty-struct) (values '(empty-struct) '()))
   ((deref ,[expr r*])
    (values `(deref ,expr) r*)))
 

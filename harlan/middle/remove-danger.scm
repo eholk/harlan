@@ -133,6 +133,7 @@
      `(begin ,s* ... ,e))
     ((c-expr . ,whatever) `(c-expr . ,whatever))
     ((field ,[e] ,x) `(field ,e ,x))
+    ((empty-struct) '(empty-struct))
     ((,op ,[lhs] ,[rhs])
      (guard (or (relop? op) (binop? op)))
      `(,op ,lhs ,rhs)))

@@ -75,6 +75,7 @@
   ((c-expr ,t ,x) `(c-expr ,t ,x))
   ((call ,[fn] ,[arg*] ...) `(call ,fn . ,arg*))
   ((field ,[e] ,x) `(field ,e ,x))
+  ((empty-struct) '(empty-struct))
   ((kernel . ,body*)
    (returnify-kernel `(kernel . ,body*))))
 

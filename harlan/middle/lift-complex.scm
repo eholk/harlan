@@ -59,6 +59,7 @@
              (finish `(length ,e^)))))
       ((field ,e ,x)
        (lift-expr e (lambda (e) (finish `(field ,e ,x)))))
+      ((empty-struct) (finish '(empty-struct)))
       ((c-expr ,t ,v) (finish `(c-expr ,t ,v)))
       ((,op ,e1 ,e2) (guard (or (binop? op) (relop? op)))
        (lift-expr

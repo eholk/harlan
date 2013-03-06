@@ -82,6 +82,7 @@
   ((,op ,[lhs] ,[rhs])
    (guard (or (binop? op) (relop? op)))
    `(,op ,lhs ,rhs))
+  ((empty-struct) '(empty-struct))
   ((field ,[e] ,x) `(field ,e ,x))
   ((make-vector ,t ,r ,[e]) `(make-vector ,t ,r ,e))
   ((vector ,t ,r ,[e*] ...) `(vector ,t ,r . ,e*)))
