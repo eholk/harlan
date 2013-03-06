@@ -1,5 +1,3 @@
-(%testspec
- (%tags xfail))
 (module
   (define (map_add1 X)
     (kernel ((x X)) (+ x 1)))
