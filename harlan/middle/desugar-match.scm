@@ -64,7 +64,7 @@
          ((define-datatype ,name (,tag ,type ...) ...)
           `((typedef ,name
                      (struct
-                      (tag int)
+                      (tag cl_int)
                       (data ,(make-named-union
                               tag
                               (map make-anonymous-struct

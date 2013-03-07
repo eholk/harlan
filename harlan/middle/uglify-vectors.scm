@@ -28,11 +28,15 @@
      (+ ,e ,vector-length-offset))
     ,i))
 
+(define-match region-allocated?
+  ((vec ,r ,t) #t)
+  (,else #f))
+
 (define (uglify-let-vec t n region)
-  (let ((t (if (scalar-type? t) t `region_ptr)))
+  (let ((t (if (region-allocated? t) `region_ptr (remove-regions t))))
     `(alloc
-       (var (ptr region) ,region)
-       (+ (* (sizeof ,t) ,n)
+      (var (ptr region) ,region)
+      (+ (* (sizeof ,t) ,n)
          ;; sizeof int for the length field.
          ,vector-length-offset))))
 
@@ -68,7 +72,7 @@
             ,@(map (lambda (_) `(ptr region)) all-regions))
            -> ,rt)
           ,s)))
-  ((typedef ,name ,t) `(typedef ,name ,t))
+  ((typedef ,name ,t) `(typedef ,name ,(remove-regions t)))
   ((extern ,name ,args -> ,t)
    `(extern ,name ,args -> ,t)))
 
@@ -164,7 +168,7 @@
   ((error ,x) (values `(error ,x) '()))
   ((,t ,n)
    (guard (scalar-type? t))
-   (values `(,t ,n) `()))
+   (values `(,(remove-regions t) ,n) `()))
   ((var ,tx ,x)
    (values `(var ,(remove-regions tx) ,x)
            (extract-regions tx)))
@@ -176,7 +180,7 @@
                   . ,(map (lambda (r) `(var (ptr region) ,r)) nr*))
            (apply append nr* ar**)))
   ((c-expr ,t ,name)
-   (values `(c-expr ,t ,name) `()))
+   (values `(c-expr ,(remove-regions t) ,name) `()))
   ((if ,[test tr*] ,[conseq cr*] ,[alt ar*])
    (values `(if ,test ,conseq ,alt)
            (append tr* cr* ar*)))

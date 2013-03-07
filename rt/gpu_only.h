@@ -17,3 +17,5 @@ region_ptr alloc_in_region(region __global *r, unsigned int size)
 
 // 2 means allocation failure
 #define harlan_error(code) { *danger = 2; return; }
+
+typedef int cl_int;

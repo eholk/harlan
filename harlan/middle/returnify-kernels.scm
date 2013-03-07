@@ -143,6 +143,11 @@
                                      (var int ,i))))
                 (if (not (= ,no-danger (var ,danger-type ,di)))
                     (begin
+                      (do (call (c-expr ((void str int) -> void) fprintf)
+                                (c-expr void stderr)
+                                (str "Kernel lane %d encountered DANGER!!!!!\n")
+                                (var int ,i)))
+                      
                       (if (= (var ,danger-type ,di) ,bounds-check)
                           (do (call (c-expr ((void str int) -> void) fprintf)
                                     (c-expr void stderr)
