@@ -17,7 +17,7 @@
     (remove-dups (cdr ls)))
    (else (cons (car ls) (remove-dups (cdr ls))))))
 
-(define vector-length-offset '(sizeof int))
+(define vector-length-offset '(int 8))
 
 (define (uglify-vector-ref t e i region)
   `(vector-ref
