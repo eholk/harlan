@@ -11,5 +11,6 @@
              (reduce +
                (kernel ((row Rows))
                  (reduce + (kernel ((x row)) x))))))
+        (println total)
         (assert (= total 78))
         (return 0)))))

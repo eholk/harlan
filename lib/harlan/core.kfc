@@ -47,7 +47,7 @@
        (let ((t (let ((x (vector-ref x 0))
                       (x* (vector-ref x* 0)) ...)
                   b)))
-         (for (reduce-index 0 (length x))
+         (for (reduce-index 1 (length x))
               (set! t (op t (let ((x (vector-ref x reduce-index))
                                   (x* (vector-ref x* reduce-index)) ...)
                               b))))

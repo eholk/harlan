@@ -98,7 +98,7 @@
   (bool 'bool)
   (char 'char)
   (u64 'uint64_t)
-  (float 'float)
+  (float 'double)
   (void 'void)
   (ofstream 'std::ofstream)
   (str '(const-ptr char))

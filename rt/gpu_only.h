@@ -1,3 +1,4 @@
+#pragma OPENCL EXTENSION cl_khr_fp64: enable
 
 region_ptr alloc_in_region(region __global *r, unsigned int size);
 region_ptr alloc_in_region(region __global *r, unsigned int size)
