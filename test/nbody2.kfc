@@ -56,7 +56,7 @@
       (print "Computed ")
       (print (length forces))
       (print " forces in ")
-      (print (/ (- stop start) 1000))
+      (print (/ (- stop start) 1000000))
       (println "ms"))
     (return 0))
   
