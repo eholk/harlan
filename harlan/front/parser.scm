@@ -82,11 +82,11 @@
      (unless (symbol? x)
        (error 'parse-stmt "invalid for syntax, expected symbol" x))
      (let* ((x^ (gensym x))
-            (env (cons `(,x . ,x^) env)))
+            (env^ (cons `(,x . ,x^) env)))
        (let ((start ((parse-expr env) start))
              (end ((parse-expr env) end))
              (step ((parse-expr env) step))
-             (stmt* (map (parse-stmt env) stmt*)))
+             (stmt* (map (parse-stmt env^) stmt*)))
          `(for (,x^ ,start ,end ,step) ,(make-begin stmt*))))))
   ((while ,[(parse-expr env) -> test]
           ,[(parse-stmt env) -> stmt*] ...)
