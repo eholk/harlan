@@ -95,7 +95,7 @@
 
 (define-match convert-type
   (int 'int)
-  (bool 'bool)
+  (bool 'bool_t)
   (char 'char)
   (u64 'uint64_t)
   (float 'double)

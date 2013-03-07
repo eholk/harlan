@@ -7,6 +7,10 @@
 
 typedef unsigned int region_ptr;
 
+// We use our own bool type because OpenCL doesn't let you pass bools
+// between host and kernel code.q
+typedef int bool_t;
+
 // This is mostly opaque to the GPU.
 typedef struct region_ {
     unsigned int magic;
