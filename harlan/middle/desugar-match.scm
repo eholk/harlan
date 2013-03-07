@@ -9,16 +9,22 @@
    (elegant-weapons helpers))
 
   (define (make-anonymous-struct types)
-    (cons 'struct
-          (let loop ((i 0)
-                     (types types))
-            (if (null? types)
-                '()
-                (cons (list (string->symbol
-                             (string-append "f" (number->string i)))
-                            (car types))
-                      (loop (+ 1 i) (cdr types)))))))
-
+    (let ((types
+           ;; NVidia OpenCL doesn't like empty structs, so create a
+           ;; dummy field in that case.
+           (if (null? types)
+               '(int)
+               types)))
+      (cons 'struct
+            (let loop ((i 0)
+                       (types types))
+              (if (null? types)
+                  '()
+                  (cons (list (string->symbol
+                               (string-append "f" (number->string i)))
+                              (car types))
+                        (loop (+ 1 i) (cdr types))))))))
+    
   (define (make-named-union names types)
     (cons 'union
           (map list names types)))
