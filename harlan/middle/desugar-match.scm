@@ -138,7 +138,9 @@
           (let* ((tag-var (gensym 'tag))
                  (e-var (gensym 'm))
                  (tag-type (type-of e))
-                 (typedef (assq tag-type typedefs)))
+                 (typedef (assq (match tag-type
+                                  ((adt ,t . ,_) t))
+                                typedefs)))
             `(let ((,e-var ,tag-type ,e))
                (let ((,tag-var int (call (c-expr
                                           ((,tag-type) -> int) extract_tag)

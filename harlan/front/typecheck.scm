@@ -39,12 +39,15 @@
       (,t (guard (symbol? t)) t)
       ((vec ,r ,[t]) `(vec ,(walk r s) ,t))
       ((ptr ,[t]) `(ptr ,t))
+      ((adt ,[t]) `(adt ,t))
+      ((adt ,[t] ,r) `(adt ,t ,r))
       (((,[t*] ...) -> ,[t]) `((,t* ...) -> ,t))
       (,x (guard (tvar? x))
           (let ((x^ (walk x s)))
             (if (equal? x x^)
                 x
-                (walk-type x^ s))))))
+                (walk-type x^ s))))
+      (,else (error 'walk-type "Unknown type" else))))
   
   ;; Unifies types a and b. s is an a-list containing substitutions
   ;; for both type and region variables. If the unification is
@@ -76,6 +79,12 @@
          (and s (if (eq? ra rb)
                     s
                     `((,ra . ,rb) . ,s)))))
+
+      (((adt ,ta ,ra) (adt ,tb ,rb))
+       (let ((s (unify-types ta tb s)))
+         (and s (if (eq? ra rb)
+                    s
+                    `((,ra . ,rb) . ,s)))))
       ((((,a* ...) -> ,a) ((,b* ...) -> ,b))
        (let loop ((a* a*)
                   (b* b*))
@@ -103,11 +112,11 @@
 
   (define (unify a b seq)
     (lambda (e r s)
-      (let ((s (unify-types a b s)))
+      (let ((s^ (unify-types a b s)))
         ;;(printf "Unifying ~a and ~a => ~a\n" a b s)
-        (if s
-            ((seq) e r s)
-            (type-error e a b)))))
+        (if s^
+            ((seq) e r s^)
+            (type-error e (walk-type a s) (walk-type b s))))))
 
   (define (== a b)
     (unify a b (lambda () (return #f a))))
@@ -395,14 +404,21 @@
                       `((,name . ((,var* ...) -> ,(make-tvar name)))))
                      ((define-datatype ,t
                         (,c ,t* ...) ...)
-                      `((,type-tag ,t (,c ,t* ...) ...)
-                        (,c (,t* ...) -> ,(map (lambda (_) t) c)) ...))
+                      (let ((end (if (recursive-adt? t t*)
+                                     (list (make-rvar (gensym t)))
+                                     '())))
+                        `((,type-tag (adt ,t . ,end) (,c ,t* ...) ...)
+                          (,c (,t* ...)
+                              -> ,(map (lambda (_) `(adt ,t . ,end)) c)) ...)))
                      ((extern ,name . ,t)
                       (list (cons name t)))))
                 decls))
      ;; Add some primitives
      '((sqrt (float) -> float))))
 
+  (define (recursive-adt? name tags)
+    (ormap (lambda (c) (ormap (lambda (t) (eq? name t)) c)) tags))
+  
   (define (infer-module m)
     (match m
       ((module . ,decls)
@@ -438,23 +454,14 @@
   (define (lookup x e)
     (cdr (assq x e)))
 
-  (define (lookup-type t e)
-    (match e
-      (((,tag ,name . ,t) . e^)
-       (guard (and (eq? tag type-tag) (eq? name t)))
-       t)
-      ((,e . ,e^)
-       (lookup-type t e^))
-      (() (error 'lookup-type "Type not found" t))))
-
   (define (lookup-type-tags tags e)
     (match e
        (()
         (error 'lookup-type-tags "Could not find type from constructors" tags))
-       (((,tag ,name (,tag* . ,t) ...) . ,rest)
+       (((,tag (adt ,name . ,end) (,tag* . ,t) ...) . ,rest)
         (guard (and (eq? tag type-tag)
                     (set-equal? tags tag*)))
-        `(,name (,tag* . ,t) ...))
+        `((adt ,name . ,end) (,tag* . ,t) ...))
        ((,e . ,e*) (lookup-type-tags tags e*))))
   
   (define (ground-module m s)
@@ -495,6 +502,8 @@
             (,prim (guard (symbol? prim)) prim)
             ((vec ,r ,t) `(vec ,(region-name r) ,(ground-type t s)))
             ((ptr ,t) `(ptr ,(ground-type t s)))
+            ((adt ,t) `(adt ,(ground-type t s)))
+            ((adt ,t ,r) `(adt ,(ground-type t s) ,(region-name r)))
             (((,[(lambda (t) (ground-type t s)) -> t*] ...) -> ,t)
              `((,t* ...) -> ,(ground-type t s)))
             (,else (error 'ground-type "unsupported type" else))))))
@@ -601,6 +610,8 @@
 
   (define-match free-regions-type
     ((vec ,r ,[t]) (set-add t r))
+    ((adt ,[t] ,r) (set-add t r))
+    ((adt ,[t]) t)
     (((,[t*] ...) -> ,[t]) (union t (apply union t*)))
     ((ptr ,[t]) t)
     (() '())

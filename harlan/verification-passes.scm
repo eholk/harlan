@@ -47,6 +47,7 @@
       (vec Type)
       (ptr Type)
       (ref Type)
+      (adt Type)
       (struct (Var Type) *)
       (union (Var Type) *)
       ((Type *) -> Type))
@@ -63,6 +64,8 @@
      harlan-type
      (vec Var Rho-Type)
      (ptr Rho-Type)
+     (adt Rho-Type Var)
+     (adt Rho-Type)
      ((Rho-Type *) -> Rho-Type))
     (Var ident)
     (Integer integer)

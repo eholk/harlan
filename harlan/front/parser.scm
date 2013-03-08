@@ -56,7 +56,7 @@
   (str 'str)
   (float 'float)
   (ofstream 'ofstream)
-  (,t (guard (member t type-env)) t)
+  (,t (guard (member t type-env)) `(adt ,t))
   ((ptr ,[t]) `(ptr ,t))
   ((vec ,n ,[t])
    (guard (integer? n))
