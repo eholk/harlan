@@ -15,17 +15,24 @@
         (check-idents (cdr x*)))))
 
 (define-match parse-harlan
-  ((module ,[parse-decl -> decl*] ...)
-   `(module . ,decl*)))
+  ((module ,decl* ...)
+   (let ((type-env (apply append
+                          (map (lambda (d)
+                                 (match d
+                                   ((define-datatype ,name . ,_)
+                                    (list name))
+                                   (,else '())))
+                               decl*))))
+     `(module . ,(map (parse-decl type-env) decl*)))))
 
-(define-match parse-decl
-  ((extern ,name . ,[parse-type -> t])
+(define-match (parse-decl type-env)
+  ((extern ,name . ,[(parse-type type-env) -> t])
    (begin
      (unless (symbol? name)
        (error 'parse-harlan "invalid extern name, expected symbol" name))
      `(extern ,name . ,t)))
   ((define-datatype ,name
-     (,tag ,[parse-type -> t] ...) ...)
+     (,tag ,[(parse-type type-env) -> t] ...) ...)
    `(define-datatype ,name (,tag ,t ...) ...))
   ((define (,name . ,args) . ,stmt*)
    (begin
@@ -42,13 +49,14 @@
             (env (map cons args args^)))
        `(fn ,name ,args^ ,(make-begin (map (parse-stmt env) stmt*)))))))
 
-(define-match parse-type
+(define-match (parse-type type-env)
   (void 'void)
   (int 'int)
   (u64 'u64)
   (str 'str)
   (float 'float)
   (ofstream 'ofstream)
+  (,t (guard (member t type-env)) t)
   ((ptr ,[t]) `(ptr ,t))
   ((vec ,n ,[t])
    (guard (integer? n))
