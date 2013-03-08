@@ -52,6 +52,7 @@
 (define (remove-regions t)
   (match t
     ((vec ,r ,[t]) `(vec ,t))
+    ((adt ,n ,r) `(adt ,n))
     (((,[t*] ...) -> ,[t]) `(,t* -> ,t))
     ((ptr ,[t]) `(ptr ,t))
     (,else else)))
@@ -204,6 +205,13 @@
   ((field ,[e r] ,x)
    (values `(field ,e ,x) r))
   ((empty-struct) (values '(empty-struct) '()))
+  ((box ,r ,t)
+   (values `(alloc (var (ptr region) ,r) (sizeof ,(remove-regions t)))
+           (list r)))
+  ((unbox ,t ,r ,[e r*])
+   (values
+    `(deref (region-ref (ptr ,(remove-regions t)) (var (ptr region) ,r) ,e))
+    (cons r r*)))
   ((deref ,[expr r*])
    (values `(deref ,expr) r*)))
 

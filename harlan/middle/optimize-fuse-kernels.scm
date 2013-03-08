@@ -60,6 +60,8 @@
      `(make-vector ,t ,r ,e))
     ((vector ,t ,r ,[e] ...)
      `(vector ,t ,r . ,e))
+    ((box ,r ,t ,[e]) `(box ,r ,t ,e))
+    ((unbox ,t ,r ,[e]) `(unbox ,t ,r ,e))
     ((c-expr ,t ,v)
      `(c-expr ,t ,v))
     ((vector-ref ,t ,[v] ,[i])

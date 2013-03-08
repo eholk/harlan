@@ -62,6 +62,8 @@
      `(length ,e))
     ((call ,[f] ,[args] ...)
      `(call ,f . ,args))
+    ((box ,r ,t ,[e]) `(box ,r ,t ,e))
+    ((unbox ,t ,r ,[e]) `(unbox ,t ,r ,e))
     ((if ,[t] ,[c] ,[a]) `(if ,t ,c ,a))
     ((if ,[t] ,[c]) `(if ,t ,c))
     ((kernel ,kt ,r (((,x ,xt) (,[e] ,et)) ...) ,[body])

@@ -1,0 +1,20 @@
+;; Linked lists!
+
+(%testspec
+ (%tags xfail))
+
+(module
+
+  (define-datatype List
+    (null)
+    (cons int List))
+
+  (define (car ls)
+    (match ls
+      ((null) (assert #f) -1)
+      ((cons n _) n)))
+
+  (define (main)
+    (let ((ls (cons 5 (null))))
+      (println (car ls)))
+    (return 0)))

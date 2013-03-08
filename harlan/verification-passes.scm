@@ -237,6 +237,7 @@
     (Start Module)
     (Decl
       (extern Var (Type *) -> Type)
+      (define-datatype (Var Var) (Var Rho-Type *) *)
       (define-datatype Var (Var Rho-Type *) *)
       (fn Var (Var *) Rho-Type Body))
     (Body
@@ -360,6 +361,11 @@
       (Binop Expr Expr)
       (Relop Expr Expr)
       (field Expr Var)
+      ;; Evaluates an expression and sticks it in a box in the region
+      ;; given in Var.
+      (box Var Rho-Type Expr)
+      ;; Reads an expression out of the box.
+      (unbox Rho-Type Var Expr)
       (c-expr C-Type Var)
       (call Expr Expr *)))
   
@@ -375,6 +381,8 @@
       (bool Boolean)
       (var Rho-Type Var)
       (empty-struct)
+      (box Var Rho-Type Expr)
+      (unbox Rho-Type Var Expr)
       (if Expr Expr Expr)
       (let ((Var Rho-Type Expr) *) Expr)
       (begin Stmt * Expr)
@@ -405,6 +413,8 @@
       (bool Boolean)
       (var Rho-Type Var)
       (empty-struct)
+      (box Var Rho-Type Expr)
+      (unbox Rho-Type Var Expr)
       (if Expr Expr Expr)
       (let ((Var Rho-Type Expr) *) Expr)
       (begin Stmt * Expr)
@@ -480,7 +490,9 @@
       (str String)
       (bool Boolean)
       (var Rho-Type Var)
-    (empty-struct)  
+      (empty-struct)  
+      (box Var Rho-Type Expr)
+      (unbox Rho-Type Var Expr)
       (if Expr Expr Expr)
       (let ((Var Rho-Type Expr) *) Expr)
       (begin Stmt * Expr)
@@ -528,6 +540,7 @@
     (Lifted-Expr
       (make-vector Rho-Type RegionVar Triv)
       (vector Rho-Type RegionVar Triv +)
+      (box Var Rho-Type Triv)
       Triv)
     (Triv
       (if Triv Triv Triv)
@@ -541,7 +554,8 @@
       (str String)
       (bool Boolean)
       (var Rho-Type Var)
-    (empty-struct)  
+      (empty-struct)  
+      (unbox Rho-Type Var Triv)
       (c-expr C-Type Var)
       (vector-ref Rho-Type Triv Triv)
       (not Triv)
@@ -580,7 +594,9 @@
       (float Float)
       (str String)
       (var Rho-Type Var)
-    (empty-struct)  
+      (empty-struct)  
+      (box Var Rho-Type Triv)
+      (unbox Rho-Type Var Triv)
       (int->float Triv)
       (length Triv)
       (addressof Triv)
@@ -621,6 +637,7 @@
     (Start Module)
     (Lifted-Expr
      (make-vector Rho-Type RegionVar Triv)
+     (box RegionVar Rho-Type)
      Triv))
 
   (insert-let-regions (%inherits Module Body Lifted-Expr Triv Ret-Stmt)

@@ -57,6 +57,14 @@
        (lift-expr
          e (lambda (e^)
              (finish `(length ,e^)))))
+      ((box ,r ,t ,e)
+       (let ((box (gensym 'box)))
+         (lift-expr
+          e
+          (lambda (e)
+            `(let ((,box region_ptr (box ,r ,t ,e)))
+               ,(finish `(var region_ptr ,box)))))))
+      ((unbox ,t ,r ,e) (lift-expr e (lambda (e) (finish `(unbox ,t ,r ,e)))))
       ((field ,e ,x)
        (lift-expr e (lambda (e) (finish `(field ,e ,x)))))
       ((empty-struct) (finish '(empty-struct)))

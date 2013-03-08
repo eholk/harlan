@@ -97,6 +97,8 @@
   ((if ,[tfv*] ,[cfv*] ,[afv*])
    (union/var tfv* cfv* afv*))
   ((sizeof ,t) `())
+  ((box ,r ,t ,[e]) e)
+  ((unbox ,t ,r ,[e]) e)
   ((,op ,[lfv*] ,[rfv*])
    (guard (or (binop? op) (relop? op)))
    (union/var lfv* rfv*))

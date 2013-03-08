@@ -55,6 +55,8 @@
   ((do ,[returnify-kernel-expr -> expr]) `(do ,expr)))
 
 (define-match returnify-kernel-expr
+  ((box ,r ,t ,[e]) `(box ,r ,t ,e))
+  ((unbox ,t ,r ,[e]) `(unbox ,t ,r ,e))
   ((begin ,[returnify-kernel-stmt -> stmt*] ... ,[expr])
    `(begin ,@stmt* ,expr))
   ((let ((,x ,t ,[e]) ...) ,[expr])

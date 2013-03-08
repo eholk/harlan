@@ -4,11 +4,11 @@
   (export desugar-match)
   (import
    (rnrs)
-   (only (chezscheme) trace-define)
+   (only (chezscheme) trace-define pretty-print)
    (elegant-weapons match)
    (elegant-weapons helpers))
 
-  (define (make-anonymous-struct types)
+  (define (make-adt-struct name types)
     (let ((types
            ;; NVidia OpenCL doesn't like empty structs, so create a
            ;; dummy field in that case.
@@ -22,7 +22,10 @@
                   '()
                   (cons (list (string->symbol
                                (string-append "f" (number->string i)))
-                              (car types))
+                              (match (car types)
+                                ((adt ,n . ,_) (guard (eq? n name))
+                                 'region_ptr)
+                                (,else else)))
                         (loop (+ 1 i) (cdr types))))))))
     
   (define (make-named-union names types)
@@ -30,12 +33,15 @@
           (map list names types)))
 
   (define (make-constructor typedef)
-    (let ((name (car typedef)))
+    (let* ((name (car typedef))
+           (type (match name
+                   ((,name ,r) `(adt ,name ,r))
+                   (,name `(adt ,name)))))
       (lambda (tag types)
         (let ((args (map (lambda (_) (gensym tag)) types))
               (tmp (gensym 'result)))
-          `(fn ,tag ,args (,types -> ,name)
-               (let ((,tmp ,name (empty-struct)))
+          `(fn ,tag ,args (,types -> ,type)
+               (let ((,tmp ,type (empty-struct)))
                  (begin
                    ,@(let* ((id (tag-id tag typedef))
                             (t* (list-ref (cdr typedef) id)))
@@ -48,35 +54,47 @@
                               (((,x . ,x*) (,t . ,t*))
                                (cons
                                 `(set! (field
-                                        (field (field (var ,name ,tmp) data)
+                                        (field (field (var ,type ,tmp) data)
                                                ,tag)
                                         ,(string->symbol
                                           (string-append "f"
                                                          (number->string j))))
-                                       (var ,t ,x))
+                                       ,(if (equal? type t)
+                                            `(box ,(match t
+                                                     ((adt ,_ ,r) r))
+                                                  ,t
+                                                  (var ,t ,x))
+                                            `(var ,t ,x)))
                                 (loop (+ 1 j) t* x*)))
                               ((() ())
-                               `((set! (field (var ,name ,tmp) tag)
+                               `((set! (field (var ,type ,tmp) tag)
                                        (int ,id)))))))))
-                   (return (var ,name ,tmp)))))))))
+                   (return (var ,type ,tmp)))))))))
     
   (define-match desugar-match
     ((module . ,decls)
-     (let ((typedefs (map cdr (filter (lambda (d)
-                                        (eq? (car d) 'define-datatype))
-                                      decls))))
+     (let ((typedefs (map (lambda (d)
+                            (match d
+                              ((define-datatype (,t ,r) . ,c)
+                               `(,t . ,c))
+                              ((define-datatype ,t . ,c)
+                               `(,t . ,c))))
+                          (filter (lambda (d)
+                                    (eq? (car d) 'define-datatype))
+                                  decls))))
 
        (define-match desugar-decl
-         ((define-datatype ,name (,tag ,type ...) ...)
-          `((typedef ,name
-                     (struct
-                      (tag cl_int)
-                      (data ,(make-named-union
-                              tag
-                              (map make-anonymous-struct
-                                   type)))))
-            . ,(map (make-constructor `(,name (,tag ,type ...) ...))
-                    tag type)))
+         ((define-datatype ,name^ (,tag ,type ...) ...)
+          (let ((name (match name^ ((,name ,r) name) (,name name))))
+            `((typedef ,name
+                       (struct
+                        (tag cl_int)
+                        (data ,(make-named-union
+                                tag
+                                (map (lambda (t) (make-adt-struct name t))
+                                     type)))))
+              . ,(map (make-constructor `(,name^ (,tag ,type ...) ...))
+                      tag type))))
          ((extern . ,whatever)
           `((extern . ,whatever)))
          ((fn ,name ,args ,type ,[desugar-stmt -> body])
@@ -139,11 +157,13 @@
                  (e-var (gensym 'm))
                  (tag-type (type-of e))
                  (typedef (assq (match tag-type
-                                  ((adt ,t . ,_) t))
+                                  ((adt ,t . ,_) (pretty-print typedefs) t))
                                 typedefs)))
             `(let ((,e-var ,tag-type ,e))
                (let ((,tag-var int (call (c-expr
-                                          ((,tag-type) -> int) extract_tag)
+                                          ;; use _ as the type. It's
+                                          ;; never observed anyway.
+                                          ((_) -> int) extract_tag)
                                          (var ,tag-type ,e-var))))
                  ,(let loop ((tag tag)
                              (x x)
@@ -169,7 +189,18 @@
   
   (define (bind-fields tag x e typedef)
     (let* ((id (tag-id tag typedef))
-           (t* (list-ref (cdr typedef) id)))
+           (t* (list-ref (cdr typedef) id))
+           (maybe-unbox (lambda (t e)
+                          (match t
+                            ((adt ,n ,r)
+                             (guard (eq? (match (car typedef)
+                                           ((,name ,r) name)
+                                           (,name name))
+                                         n))
+                             (match (type-of e)
+                               ((adt ,_ ,r)
+                                `(unbox ,t ,r ,e))))
+                            (,else e)))))
       (match t*
         ((,tag . ,t*)
          (let loop ((j 0)
@@ -177,9 +208,12 @@
                     (x* x))
            (match `(,x* ,t*)
              (((,x . ,x*) (,t . ,t*))
-              (cons `(,x ,t (field (field (field ,e data) ,tag)
+              (cons `(,x ,t
+                         ,(maybe-unbox
+                           t
+                           `(field (field (field ,e data) ,tag)
                                    ,(string->symbol
-                                     (string-append "f" (number->string j)))))
+                                     (string-append "f" (number->string j))))))
                     (loop (+ 1 j) t* x*)))
              ((() ()) '())))))))
                                                         
@@ -198,6 +232,7 @@
      (match f
        ((,_ -> ,t) t)
        (,else (error 'type-of "Illegal function type" else))))
+    ((field ,[e] ,x) e)
     ((var ,t ,x) t))
   
   )

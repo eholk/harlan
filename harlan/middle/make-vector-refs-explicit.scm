@@ -61,6 +61,8 @@
   ((var ,t ,x) `(var ,t ,x))
   ((if ,[t] ,[c] ,[a])
    `(if ,t ,c ,a))
+  ((box ,r ,t ,[e]) `(box ,r ,t ,e))
+  ((unbox ,t ,r ,[e]) `(unbox ,t ,r ,e))
   ((vector-ref ,t ,[v] ,[i])
    `(vector-ref ,t ,v ,i))
   ((length ,[e]) `(length ,e))

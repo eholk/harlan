@@ -97,6 +97,8 @@
       (,else #f)))
 
   (define (type-error e expected found)
+    ;;(pretty-print expected)
+    ;;(pretty-print found)
     (error 'typecheck
            "Could not unify types"
            e expected found))
@@ -404,9 +406,16 @@
                       `((,name . ((,var* ...) -> ,(make-tvar name)))))
                      ((define-datatype ,t
                         (,c ,t* ...) ...)
-                      (let ((end (if (recursive-adt? t t*)
-                                     (list (make-rvar (gensym t)))
-                                     '())))
+                      (let* ((end (if (recursive-adt? t t*)
+                                      (list (make-rvar (gensym t)))
+                                      '()))
+                             (t* (map (lambda (t*)
+                                        (map (lambda (t*)
+                                               (match t*
+                                                 ((adt ,t^) (guard (eq? t^ t))
+                                                  `(adt ,t^ . ,end))
+                                                 (,else else))) t*))
+                                      t*)))
                         `((,type-tag (adt ,t . ,end) (,c ,t* ...) ...)
                           (,c (,t* ...)
                               -> ,(map (lambda (_) `(adt ,t . ,end)) c)) ...)))
@@ -417,7 +426,13 @@
      '((sqrt (float) -> float))))
 
   (define (recursive-adt? name tags)
-    (ormap (lambda (c) (ormap (lambda (t) (eq? name t)) c)) tags))
+    (ormap (lambda (c) (ormap (lambda (t)
+                           (match t
+                             ((adt ,name^) (guard (eq? name name^))
+                              #t)
+                             (,else #f)))
+                         c))
+           tags))
   
   (define (infer-module m)
     (match m
@@ -437,8 +452,20 @@
     (match d
       ((extern . ,whatever)
        (values `(extern . ,whatever) s))
-      ((define-datatype . ,whatever)
-       (values `(define-datatype . ,whatever) s))
+      ((define-datatype ,t (,c ,t* ...) ...)
+       (values
+        (if (recursive-adt? t t*)
+            (let* ((r (make-rvar (gensym t)))
+                   (t* (map (lambda (t*)
+                              (map (lambda (t*)
+                                     (match t*
+                                       ((adt ,t^) (guard (eq? t^ t))
+                                        `(adt ,t^ ,r))
+                                       (,else else))) t*))
+                            t*)))
+              `(define-datatype (,t ,r) (,c ,t* ...)))
+            `(define-datatype ,t (,c ,t* ...)))
+        s))
       ((fn ,name (,var* ...) ,body)
        ;; find the function definition in the environment, bring the
        ;; parameters into scope.
@@ -474,7 +501,20 @@
   (define (ground-decl d s)
     (match d
       ((extern . ,whatever) `(extern . ,whatever))
-      ((define-datatype . ,whatever) `(define-datatype . ,whatever))
+      ((define-datatype (,t ,r) (,c ,t* ...) ...)
+       `(define-datatype (,t ,(rvar-name r))
+          . ,(car (map (lambda (c t*)
+                         (map (lambda (c t*)
+                                `(,c . ,(map (lambda (t) (ground-type t s)) t*)))
+                              c t*)) c t*))))
+      ((define-datatype ,t (,c ,t* ...) ...)
+       `(define-datatype ,t
+          . ,(car (map (lambda (c t*)
+                         (map (lambda (c t*)
+                                `(,c . ,(map (lambda (t) (ground-type t s)) t*)))
+                              c t*)) c t*))))
+      ;;((define-datatype ,t (,c ,t* ...) ...)
+      ;; `(define-datatype ,t (,c ,t* ...) ...))
       ((fn ,name (,var ...)
            ,[(lambda (t) (ground-type t s)) -> t]
            ,[(lambda (e) (ground-expr e s)) -> body])
