@@ -1,5 +1,3 @@
-(%testspec (%tags xfail))
-
 (module
   (define (main)
     (let ((x (kernel ((i (iota 5))) (vector i))))
