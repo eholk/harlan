@@ -1,4 +1,7 @@
-;; Linked lists!
+;; Linked lists of linked lists
+
+(%testspec
+ (%tags xfail))
 
 (module
 
@@ -6,6 +9,10 @@
     (null)
     (cons int List))
 
+  (define-datatype List2
+    (null2)
+    (cons2 List List2))
+  
   (define (car ls)
     (match ls
       ((null) (assert #f) -1)
@@ -13,5 +20,6 @@
 
   (define (main)
     (let ((ls (cons 5 (null))))
-      (println (car ls)))
+      (let ((ls2 (cons2 ls (null2))))
+        (println "hi")))
     (return 0)))
