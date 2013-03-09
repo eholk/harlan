@@ -13,14 +13,65 @@
   
   (define-match expand-primitives
     ((module ,[expand-prim-decl -> decl*] ...)
-     `(module ,decl* ...)))
+     `(module ,(apply append decl*) ...)))
   
   (define-match expand-prim-decl
     ((fn ,name ,args ,t ,[expand-prim-stmt -> stmt])
-     `(fn ,name ,args ,t ,stmt))
-    ((define-datatype . ,whatever) `(define-datatype . ,whatever))
+     `((fn ,name ,args ,t ,stmt)))
+    ((define-datatype ,t (,c ,t* ...) ...)
+     ;; For now we guard for simple enum types. The region calling
+     ;; convention doesn't work very well with print the way it
+     ;; currently works.
+     (guard (symbol? t))
+     (let ((adt (gensym 'adt))
+           (out (gensym 'out))
+           (type (match t
+                   ((,n ,r) `(adt ,n ,r))
+                   (,n `(adt ,n)))))
+       `((define-datatype ,t (,c ,t* ...) ...)
+         (fn print (,adt ,out) ((,type (ptr ofstream)) -> void)
+             (begin
+               (do (match int (var ,type ,adt)
+                     ,@(map (lambda (c t*)
+                              (let ((x* (map (lambda (_) (gensym 'x)) t*))
+                                    )
+                                `((,c ,x* ...)
+                                  (begin
+                                    (print (str ,(string-append
+                                                  "("
+                                                  (symbol->string c)))
+                                           (var (ptr ofstream) ,out))
+                                    ,@(let ((out (map (lambda (_)
+                                                        `(var (ptr ofstream)
+                                                              ,out))
+                                                      t*)))
+                                        `((begin (print (str " ")
+                                                        ,out)
+                                                 (print (var ,t* ,x*)
+                                                        ,out)) ...))
+                                    (print (str ")") (var (ptr ofstream) ,out))
+                                    (int 0)))))
+                            c t*)))
+               (return)))
+         (fn print (,adt) ((,type) -> void)
+             (begin
+               (do (match int (var ,type ,adt)
+                     ,@(map (lambda (c t*)
+                              (let ((x* (map (lambda (_) (gensym 'x)) t*))
+                                    )
+                                `((,c ,x* ...)
+                                  (begin
+                                    (print (str ,(string-append
+                                                  "("
+                                                  (symbol->string c))))
+                                    (begin (print (str " "))
+                                           (print (var ,t* ,x*))) ...
+                                    (print (str ")"))
+                                    (int 0)))))
+                            c t*)))
+               (return))))))
     ((extern ,name ,args -> ,rtype)
-     `(extern ,name ,args -> ,rtype)))
+     `((extern ,name ,args -> ,rtype))))
 
   (define-match expand-prim-stmt
     ((let ((,x* ,t* ,[expand-prim-expr -> e*]) ...) ,[body])

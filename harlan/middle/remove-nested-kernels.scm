@@ -84,6 +84,7 @@
    `(,op ,lhs ,rhs))
   ((empty-struct) '(empty-struct))
   ((field ,[e] ,x) `(field ,e ,x))
+  ((unbox ,t ,r ,[e]) `(unbox ,t ,r ,e))
   ((make-vector ,t ,r ,[e]) `(make-vector ,t ,r ,e))
   ((vector ,t ,r ,[e*] ...) `(vector ,t ,r . ,e*)))
 

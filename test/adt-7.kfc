@@ -1,0 +1,10 @@
+;; Linked lists!
+
+(module
+
+  (define-datatype Point3
+    (point3 float float float))
+
+  (define (main)
+    (println (point3 1 2 3))
+    (return 0)))

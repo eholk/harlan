@@ -157,7 +157,7 @@
                  (e-var (gensym 'm))
                  (tag-type (type-of e))
                  (typedef (assq (match tag-type
-                                  ((adt ,t . ,_) (pretty-print typedefs) t))
+                                  ((adt ,t . ,_) t))
                                 typedefs)))
             `(let ((,e-var ,tag-type ,e))
                (let ((,tag-var int (call (c-expr

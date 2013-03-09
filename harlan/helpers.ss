@@ -17,7 +17,7 @@
 
   (define (reserved-word? x)
     (memq x
-     '(kernel for while print vector vector-ref reduce
+     '(kernel for while vector vector-ref reduce
        let assert set! iota make-vector length)))
   
   (define (ident? x)
