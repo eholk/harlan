@@ -23,7 +23,7 @@
                   (cons (list (string->symbol
                                (string-append "f" (number->string i)))
                               (match (car types)
-                                ((adt ,n . ,_) (guard (eq? n name))
+                                ((adt ,n . ,_) (guard (not (null? _)))
                                  'region_ptr)
                                 (,else else)))
                         (loop (+ 1 i) (cdr types))))))))
@@ -59,12 +59,13 @@
                                         ,(string->symbol
                                           (string-append "f"
                                                          (number->string j))))
-                                       ,(if (equal? type t)
-                                            `(box ,(match t
-                                                     ((adt ,_ ,r) r))
-                                                  ,t
-                                                  (var ,t ,x))
-                                            `(var ,t ,x)))
+                                       ,(match t
+                                          ((adt ,t ,r)
+                                           `(box ,(match type
+                                                    ((adt ,_ ,r) r))
+                                                 ,t
+                                                 (var ,t ,x)))
+                                          (,else `(var ,t ,x))))
                                 (loop (+ 1 j) t* x*)))
                               ((() ())
                                `((set! (field (var ,type ,tmp) tag)

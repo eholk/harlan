@@ -40,7 +40,7 @@
       ((vec ,r ,[t]) `(vec ,(walk r s) ,t))
       ((ptr ,[t]) `(ptr ,t))
       ((adt ,[t]) `(adt ,t))
-      ((adt ,[t] ,r) `(adt ,t ,r))
+      ((adt ,[t] ,r) `(adt ,t ,(walk r s)))
       (((,[t*] ...) -> ,[t]) `((,t* ...) -> ,t))
       (,x (guard (tvar? x))
           (let ((x^ (walk x s)))
@@ -397,7 +397,7 @@
   
   (define infer-body infer-expr)
 
-  (define (make-top-level-env decls)
+  (define (make-top-level-env decls adt-graph)
     (append
      (apply append
             (map (lambda (d)
@@ -406,13 +406,16 @@
                       `((,name . ((,var* ...) -> ,(make-tvar name)))))
                      ((define-datatype ,t
                         (,c ,t* ...) ...)
-                      (let* ((end (if (recursive-adt? t t*)
+                      (let* ((end (if (recursive-adt? t adt-graph)
                                       (list (make-rvar (gensym t)))
                                       '()))
                              (t* (map (lambda (t*)
                                         (map (lambda (t*)
                                                (match t*
-                                                 ((adt ,t^) (guard (eq? t^ t))
+                                                 ((adt ,t^)
+                                                  (guard
+                                                   (recursive-adt? t^
+                                                                   adt-graph))
                                                   `(adt ,t^ . ,end))
                                                  (,else else))) t*))
                                       t*)))
@@ -425,41 +428,65 @@
      ;; Add some primitives
      '((sqrt (float) -> float))))
 
-  (define (recursive-adt? name tags)
-    (ormap (lambda (c) (ormap (lambda (t)
-                           (match t
-                             ((adt ,name^) (guard (eq? name name^))
-                              #t)
-                             (,else #f)))
-                         c))
-           tags))
+  (define (recursive-adt? name graph)
+    (let loop ((path (list name)))
+      (let ((node (assq (car path) graph)))
+        (if node
+            (ormap (lambda (n)
+                     (or (memq n path)
+                         (loop (cons n path))))
+                   (cdr node))
+            #f))))
+
+  ;; A graph of which types are referenced by each adt. Used by
+  ;; recursive-adt?
+  (define (make-adt-graph decl*)
+    (apply append
+           (map (lambda (d)
+                  (match d
+                    ((define-datatype ,t (,c ,t* ...) ...)
+                     `((,t . ,(apply union
+                                     (map
+                                      (lambda (t)
+                                        (map (lambda (t)
+                                               (match t
+                                                 ((adt ,t) t)
+                                                 (,else else)))
+                                             t))
+                                        t*)))))
+                    (,else '())))
+                decl*)))
   
   (define (infer-module m)
     (match m
       ((module . ,decls)
-       (let ((env (make-top-level-env decls)))
-         (infer-decls decls env)))))
+       (let* ((adt-graph (make-adt-graph decls))
+              ;;(_ (pretty-print adt-graph))
+              (env (make-top-level-env decls adt-graph)))
+         ;;(pretty-print env)
+         (infer-decls decls env adt-graph)))))
 
-  (define (infer-decls decls env)
+  (define (infer-decls decls env adt-graph)
     (match decls
       (() (values '() '()))
       ((,d . ,d*)
-       (let-values (((d* s) (infer-decls d* env)))
-         (let-values (((d s) (infer-decl d env s)))
+       (let-values (((d* s) (infer-decls d* env adt-graph)))
+         (let-values (((d s) (infer-decl d env s adt-graph)))
            (values (cons d d*) s))))))
 
-  (define (infer-decl d env s)
+  (define (infer-decl d env s adt-graph)
     (match d
       ((extern . ,whatever)
        (values `(extern . ,whatever) s))
       ((define-datatype ,t (,c ,t* ...) ...)
        (values
-        (if (recursive-adt? t t*)
+        (if (recursive-adt? t adt-graph)
             (let* ((r (make-rvar (gensym t)))
                    (t* (map (lambda (t*)
                               (map (lambda (t*)
                                      (match t*
-                                       ((adt ,t^) (guard (eq? t^ t))
+                                       ((adt ,t^)
+                                        (guard (recursive-adt? t^ adt-graph))
                                         `(adt ,t^ ,r))
                                        (,else else))) t*))
                             t*)))

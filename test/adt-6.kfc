@@ -1,8 +1,5 @@
 ;; Linked lists of linked lists
 
-(%testspec
- (%tags xfail))
-
 (module
 
   (define-datatype List
