@@ -479,7 +479,10 @@
              s)))))))
 
   (define (lookup x e)
-    (cdr (assq x e)))
+    (let ((t (assq x e)))
+      (if t
+          (cdr t)
+          (error 'lookup "Variable not found" x e))))
 
   (define (lookup-type-tags tags e)
     (match e

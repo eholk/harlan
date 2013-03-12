@@ -35,20 +35,24 @@
     (match p
       ((point3 a b c)
        (sqrt (+ (* a a) (+ (* b b) (* c c)))))))
+
+  (define (nbody bodies)
+    (kernel ((i bodies))
+      (reduce point-add
+        (kernel ((j bodies))
+          (let* ((diff (point-diff i j))
+                 (d (point-mag diff)))
+            (if (< 0 d)
+                (point-div diff (* (* d d) d))
+                (point3 0 0 0)))))))
   
   (define (main)
     (let* ((bodies (make-points 1000))
            ;;(bodies (vector (point3 1 2 3) (point3 3 2 1)))
            (start (nanotime))
-           (forces (kernel ((i bodies))
-                     (reduce point-add
-                       (kernel ((j bodies))
-                         (let* ((diff (point-diff i j))
-                                (d (point-mag diff)))
-                           (if (< 0 d)
-                               (point-div diff (* (* d d) d))
-                               (point3 0 0 0)))))))
+           (forces (nbody bodies))
            (stop (nanotime)))
+      ;;(println forces)
       (print "Computed ")
       (print (length forces))
       (print " forces in ")

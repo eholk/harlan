@@ -70,6 +70,9 @@
                                     (int 0)))))
                             c t*)))
                (return))))))
+    ;; Fallback for datatypes we don't generate print for.
+    ((define-datatype ,t (,c ,t* ...) ...)
+     `((define-datatype ,t (,c ,t* ...) ...)))
     ((extern ,name ,args -> ,rtype)
      `((extern ,name ,args -> ,rtype))))
 
