@@ -46,12 +46,15 @@
   ((return) '())
   ((error ,x) '())
   ((return ,[expr-symbols -> e]) e)
+  ((print ,[expr-symbols -> e]) e)
+  ((do ,[expr-symbols -> e]) e)
   ((begin ,[s] ...) (apply union s)))
 
 (define-match expr-symbols
   ((int ,n) '())
   ((bool ,b) '())
   ((float ,f) '())
+  ((str ,s) '())
   ((var ,[type-symbols -> t] ,x) (set-add t x))
   ((deref ,[e]) e)
   ((call ,[e] ...) (apply union e))

@@ -261,6 +261,8 @@
   ((call ,[e] ...) `(call ,e ...))
   ((c-expr . ,c) `(c-expr . ,c))
   ((field ,[e] ,x) `(field ,e ,x))
+  ((unbox ,t ,r ,[e]) `(unbox ,t ,r ,e))
+  ((box ,r ,t ,[e]) `(box ,r ,t ,e))
   ((,op ,[lhs] ,[rhs]) (guard (or (relop? op) (binop? op)))
    `(,op ,lhs ,rhs)))
 

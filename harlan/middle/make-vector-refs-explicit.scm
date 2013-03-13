@@ -171,6 +171,8 @@
    `(length ,e))
   ((c-expr ,t ,v) `(c-expr ,t ,v))
   ((field ,[e] ,x) `(field ,e ,x))
+  ((unbox ,t ,r ,[e]) `(unbox ,t ,r ,e))
+  ((box ,r ,t ,[e]) `(box ,r ,t ,e))
   ((,op ,[(replace-vec-refs-expr x*) -> e1]
         ,[(replace-vec-refs-expr x*) -> e2])
    (guard (or (binop? op) (relop? op)))

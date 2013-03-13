@@ -229,6 +229,7 @@
      (match f
        ((,_ -> ,t) t)
        (,else (error 'type-of "Illegal function type" else))))
+    ((kernel ,t . ,_) t)
     ((field ,[e] ,x) e)
     ((var ,t ,x) t))
   

@@ -144,6 +144,7 @@
     ((var ,t ,_) t)
     ((vector-ref ,t ,v ,i) t)
     ((let ((,x ,t ,e) ...) ,[b]) b)
+    ((kernel ,t . ,_) t)
     ((begin ,e* ... ,[e]) e))
   
   
