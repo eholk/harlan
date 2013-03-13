@@ -13,25 +13,13 @@
     (empty-env)
     (extended-env Value Env))
 
-  (define (lookup x e)
-    (match e
-      ((empty-env) (error))
-      ((extended-env v e)
-       (if (= 0 x)
-           v
-           (lookup x e)))))
-  
-  (define (value-of e env)
-    (match e
-      ((variable x) (lookup x env))
-      ((lambda b) (closure b env))
-      ((app e1 e2)
-       (let ((e1 (value-of e1 env))
-             (e2 (value-of e2 env)))
-         (match e1
-           ((error) (error))
-           ((closure b env)
-            (value-of b (extended-env e2 env))))))))
+  (define-datatype Cont
+    (initial-k)
+    (eval-k Expr Env Cont)
+    (lookup-k int Env Cont)
+    (rator-k Expr Env Cont)
+    (rand-k Value Cont)
+    (final-k Value))
 
   (define (print-val v)
     (match v
@@ -45,9 +33,44 @@
        (print ")")
        0)))
   
+  (define (apply-k k v)
+    (match k
+      ((eval-k e env k)
+       (match e
+         ((variable x) (lookup-k x env k))
+         ((lambda b) (apply-k k (closure b env)))
+         ((app e1 e2)
+          (eval-k e1 env (rator-k e2 env k)))))
+      ((lookup-k x e k)
+       (match e
+         ((empty-env) (final-k (error)))
+         ((extended-env v e)
+          (if (= 0 x)
+              (apply-k k v)
+              (lookup-k (- x 1) e k)))))
+      ((rator-k e2 env k)
+       (eval-k e2 env (rand-k v k)))
+      ((rand-k v k)
+       (match v
+         ((error) (final-k (error)))
+         ((closure b e)
+          (eval-k b (extended-env v e) k))))
+      ((initial-k) (print-val v) (println "") (final-k v))
+      ((final-k v) (final-k v))))
+  
   (define (main)
     (let ((e (app (lambda (variable 0)) (lambda (variable 0)))))
-      (print-val (value-of e (empty-env)))
-      (println ""))
+      (let* ((k (eval-k e (empty-env) (initial-k)))
+             (k (apply-k k (error)))
+             (k (apply-k k (error)))
+             (k (apply-k k (error)))
+             (k (apply-k k (error)))
+             (k (apply-k k (error)))
+             (k (apply-k k (error)))
+             (k (apply-k k (error)))
+             (k (apply-k k (error))))
+        0))
+      ;;(print-val (value-of e (empty-env)))
+      ;;(println ""))
     (return 0))
   )
