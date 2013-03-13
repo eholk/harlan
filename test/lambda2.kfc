@@ -1,0 +1,53 @@
+(module
+
+  (define-datatype Expr
+    (variable int)
+    (lambda Expr)
+    (app Expr Expr))
+
+  (define-datatype Value
+    (error)
+    (closure Expr Env))
+
+  (define-datatype Env
+    (empty-env)
+    (extended-env Value Env))
+
+  (define (lookup x e)
+    (match e
+      ((empty-env) (error))
+      ((extended-env v e)
+       (if (= 0 x)
+           v
+           (lookup x e)))))
+  
+  (define (value-of e env)
+    (match e
+      ((variable x) (lookup x env))
+      ((lambda b) (closure b env))
+      ((app e1 e2)
+       (let ((e1 (value-of e1 env))
+             (e2 (value-of e2 env)))
+         (match e1
+           ((error) (error))
+           ((closure b env)
+            (value-of b (extended-env e2 env))))))))
+
+  (define (print-val v)
+    (match v
+      ((error) (print "(error)") 0)
+      ((closure b e)
+       (print "(closure ")
+       ;;(print-expr b)
+       ;;(print " ")
+       ;;(print-env e)
+       (print " ...")
+       (print ")")
+       0)))
+  
+  (define (main)
+    (let ((e (app (lambda (variable 0)) (lambda (variable 0)))))
+      (print-val (value-of e (empty-env)))
+      (println ""))
+    (return 0))
+  )

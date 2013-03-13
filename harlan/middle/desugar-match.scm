@@ -194,10 +194,6 @@
            (maybe-unbox (lambda (t e)
                           (match t
                             ((adt ,n ,r)
-                             (guard (eq? (match (car typedef)
-                                           ((,name ,r) name)
-                                           (,name name))
-                                         n))
                              (match (type-of e)
                                ((adt ,_ ,r)
                                 `(unbox ,t ,r ,e))))

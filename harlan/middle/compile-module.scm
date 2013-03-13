@@ -5,20 +5,24 @@
     (harlan helpers))
 
 (define-match compile-module
-  ((module ,[compile-decl -> decl*] ...)
-   `((include "harlan.hpp") . ,decl*)))
+  ((module ,[compile-decl -> typedef* decl*] ...)
+   `((include "harlan.hpp") ,@(apply append typedef*)
+     . ,(apply append decl*))))
 
+;; This also lifts the typedefs to the top, so that we can construct
+;; mutually recursive structures.
 (define-match compile-decl
   ((fn ,name ,args (,arg-types -> ,ret-type)
      ,[(compile-stmt #f) -> stmt])
-   `(func ,ret-type ,name ,(map list args arg-types) ,stmt))
+   (values '() `((func ,ret-type ,name ,(map list args arg-types) ,stmt))))
   ((extern ,name ,arg-types -> ,rtype)
-   `(extern ,rtype ,name ,arg-types))
+   (values '() `((extern ,rtype ,name ,arg-types))))
   ((global ,type ,name ,[(compile-expr #f) -> e])
-   `(global ,type ,name ,e))
-  ((typedef ,name ,t) `(typedef ,name ,t))
+   (values '() `((global ,type ,name ,e))))
+  ((typedef ,name ,t)
+   (values `((typedef ,name ,t)) '()))
   ((gpu-module ,[compile-kernel -> kernel*] ...)
-   `(gpu-module . ,kernel*)))
+   (values '() `((gpu-module . ,kernel*)))))
 
 (define-match compile-kernel
   ((kernel ,name ,args ,[(compile-stmt #t) -> stmt])
