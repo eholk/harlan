@@ -1,0 +1,69 @@
+(%testspec
+ (%tags xfail))
+
+(module
+
+  (define-datatype Expr
+    (variable int)
+    (lambda Expr)
+    (app Expr Expr))
+
+  (define-datatype Value
+    (error)
+    (closure Expr Env))
+
+  (define-datatype Env
+    (empty-env)
+    (extended-env Value Env))
+
+  (define-datatype Cont
+    (final-k)
+    (rator-k Expr Env Cont)
+    (rand-k Value Cont))
+  
+  (define (apply-k k v)
+    (match k
+      ((final-k) v)
+      ((rator-k e env k)
+       (value-of e env (rand-k v k)))
+      ((rand-k f k)
+       (match f
+         ((error) (apply-k k (error)))
+         ((closure e env)
+          (value-of e (extended-env v env) k))))))
+  
+  
+  (define (lookup x e k)
+    (match e
+      ((empty-env) (error))
+      ((extended-env v e)
+       (if (= 0 x)
+           (apply-k k v)
+           (lookup x e k)))))
+  
+  (define (value-of e env k)
+    (match e
+      ((variable x) (lookup x env k))
+      ((lambda b) (apply-k k (closure b env)))
+      ((app e1 e2)
+       (value-of e1 env
+                 (rator-k e2 env k)))))
+
+  (define (print-val v)
+    (match v
+      ((error) (print "(error)") 0)
+      ((closure b e)
+       (print "(closure ")
+       ;;(print-expr b)
+       ;;(print " ")
+       ;;(print-env e)
+       (print " ...")
+       (print ")")
+       0)))
+  
+  (define (main)
+    (let ((e (app (lambda (variable 0)) (lambda (variable 0)))))
+      (print-val (value-of e (empty-env) (final-k)))
+      (println ""))
+    (return 0))
+  )
