@@ -48,6 +48,7 @@
   ((return ,[expr-symbols -> e]) e)
   ((print ,[expr-symbols -> e]) e)
   ((do ,[expr-symbols -> e]) e)
+  ((assert ,[expr-symbols -> e]) e)
   ((begin ,[s] ...) (apply union s)))
 
 (define-match expr-symbols
@@ -69,6 +70,7 @@
   ((cast ,[type-symbols -> t] ,[e]) (union t e))
   ((empty-struct) '())
   ((alloc ,[r] ,[s]) (union r s))
+  ((not ,[e]) e)
   ((,op ,[a] ,[b]) (guard (or (binop? op) (relop? op)))
    (union a b)))
 
