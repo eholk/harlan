@@ -82,11 +82,16 @@
 
 (define (gather-symbols syms decls)
   ;; TODO: this really needs to iterate to a fix point
-  ((filter-decls syms
-                 (lambda (d rest)
-                   (union (decl-symbols d) rest))
-                 syms)
-   decls))
+  (let loop ((syms syms))
+    (let ((syms^
+           ((filter-decls syms
+                          (lambda (d rest)
+                            (union (decl-symbols d) rest))
+                          syms)
+            decls)))
+      (if (set-equal? syms syms^)
+          syms
+          (loop syms^)))))
   
 ;; Extracts the symbol definitions from a set of decls
 (define-match (filter-decls syms f zero)
