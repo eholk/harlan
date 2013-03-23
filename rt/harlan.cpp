@@ -54,7 +54,7 @@ int get_default_region_size()
   if(cfg)
       return atoi(cfg);
   //else return 8192;
-  else return 16 << 20; // 16 megs
+  else return 8 << 20; // 8 megs
 }
 
 void finalize_buffer(region *r)
