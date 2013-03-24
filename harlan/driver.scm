@@ -19,7 +19,7 @@
                          (string-append outfile ".cpp")
                          "-"))
            (command
-            (join " " (append `("clang++"
+            (join " " (append `("g++"
                                 ,(if (generate-debug) "-g" "")
                                 ,(if (make-shared-object) "-shared" "")
                                 "-Wno-unused-value"
