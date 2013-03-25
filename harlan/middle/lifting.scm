@@ -66,8 +66,7 @@
      (let-values (((liftable pinned) ((split-bindings x*) bindings)))
        (values (make-let pinned body)
                (append
-                (apply append binding*)
-                (map list x* t* e*)
+                (map list x* t* (map make-let binding* e*))
                 liftable))))
     ((let-region (,r ...) ,[body bindings])
      ;; FIXME: This is overly conservative, many bindings can be
@@ -211,9 +210,9 @@
     ((vector-r ,t ,r . ,e*) #f)
     ((make-vector ,t ,r ,[e]) #f)
     ((length ,[e]) e)
-    ;; Don't lift function calls.
     ((if ,[t] ,[c] ,[a])
      (and t c a))
+    ;; Don't lift function calls.
     ((call ,fn ,arg* ...) #f)
     ((addressof ,[e]) e)
     ((deref ,[e]) e)

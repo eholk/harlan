@@ -6,24 +6,24 @@
 (module
   (extern nanotime () -> u64)
 
-  (define (dot len)
+  (define (dot X Y)
+    (reduce + (kernel ((x X) (y Y))
+                (* x y))))
+  
+  (define (do-dot len)
     (let ((X (make-vector len 1))
           (Y (make-vector len 1)))
       (let ((start (nanotime)))
-        (let ((dot (reduce + (kernel ((x X) (y Y))
-                               (* x y)))))
+        (let ((d (dot X Y)))
           (let ((stop (nanotime)))
-            (assert (= dot len))
+            (assert (= d len))
             (- stop start))))))
   
   (define (bench_length len)
-    (let ((iters 10)
-          (ttime 0))
-      (for (k 0 iters)
-        (set! ttime (+ ttime (dot len))))
+    (let ((time (do-dot len)))
       (print len)
       (print "\t")
-      (print (/ (/ ttime 1000) iters))
+      (print (/ time 1000))
       (print "\n")))
   
   (define (main)
