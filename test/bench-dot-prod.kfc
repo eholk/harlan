@@ -27,7 +27,7 @@
       (print "\n")))
   
   (define (main)
-    (for (i 1 100)
-      (bench_length (* i 100000)))
+    (for (i 1 21)
+      (bench_length (* i 1000000)))
     (return 0)))
 
