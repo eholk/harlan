@@ -13,7 +13,7 @@ using namespace std;
 
 void check_region(region *r) {
     CHECK_MAGIC(r);
-    assert(r->cl_buffer);
+    //assert(r->cl_buffer);
 }
 
 void print(bool b, std::ostream *f) {
@@ -57,12 +57,6 @@ int get_default_region_size()
   else return 8 << 20; // 8 megs
 }
 
-void finalize_buffer(region *r)
-{
-    check_region(r);
-    CL_CHECK(clReleaseMemObject((cl_mem)r->cl_buffer));
-}
-
 region *create_region(int size)
 {
     if(size == -1) size = get_default_region_size();
@@ -72,33 +66,11 @@ region *create_region(int size)
     // void *ptr = GC_MALLOC(size);
     void *ptr = malloc(size);
 
-    cl_int status = 0;
-    cl_mem buffer = clCreateBuffer(g_ctx,
-                                   CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
-                                   size,
-                                   ptr,
-                                   &status);
-    CL_CHECK(status);
-
-    // Make the buffer accessible to the CPU
-    clEnqueueMapBuffer(g_queue,
-                       (cl_mem)buffer,
-                       CL_TRUE, // blocking
-                       CL_MAP_READ | CL_MAP_WRITE,
-                       0,
-                       size,
-                       0,
-                       NULL,
-                       NULL,
-                       &status);
-    CL_CHECK(status);
-
     region *header = (region *)ptr;
     header->magic = ALLOC_MAGIC;
     header->size = size;
     header->alloc_ptr = sizeof(region);
-    header->cl_buffer = buffer;
-    assert(header->cl_buffer);
+    header->cl_buffer = NULL;
 
     check_region(header);
 
@@ -107,36 +79,47 @@ region *create_region(int size)
 
 void free_region(region *r)
 {
-  finalize_buffer(r);
   free(r);
 }
 
 void map_region(region *header)
 {
     cl_int status = 0;
-    check_region(header);
-    clEnqueueMapBuffer(g_queue,
-                       (cl_mem)header->cl_buffer,
-                       CL_TRUE, // blocking
-                       CL_MAP_READ | CL_MAP_WRITE,
-                       0,
-                       header->size,
-                       0,
-                       NULL,
-                       NULL,
-                       &status);
+
+    assert(header->cl_buffer);
+
+    cl_mem buffer = (cl_mem)header->cl_buffer;
+
+    // TODO: As an optimization, we may read just the header and then
+    // only up to the allocation pointer.
+    status = clEnqueueReadBuffer(g_queue,
+                                 buffer,
+                                 CL_TRUE,
+                                 0,
+                                 header->size,
+                                 header,
+                                 0,
+                                 NULL,
+                                 NULL);
     CL_CHECK(status);
+
+    CL_CHECK(clReleaseMemObject(buffer));
+    assert(!header->cl_buffer);
+    check_region(header);
 }
 
 void unmap_region(region *header)
 {
     check_region(header);
-    clEnqueueUnmapMemObject(g_queue,
-                            (cl_mem)header->cl_buffer,
-                            header,
-                            0,
-                            NULL,
-                            NULL);
+
+    cl_int status = 0;
+    cl_mem buffer = clCreateBuffer(g_ctx,
+                                   CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                   header->size,
+                                   header,
+                                   &status);
+    header->cl_buffer = buffer;
+    CL_CHECK(status);
 }
 
 region_ptr alloc_in_region(region **r, unsigned int size)
@@ -148,8 +131,6 @@ region_ptr alloc_in_region(region **r, unsigned int size)
     // If this fails, we allocated too much memory and need to resize
     // the region.
     while((*r)->alloc_ptr > (*r)->size) {
-        // Free the OpenCL backing buffer
-        finalize_buffer(*r);
         unsigned int new_size = (*r)->size * 2;
 		// As long as we stick with power of two region sizes, this
 		// will let us get up to 4GB regions. It's a big of a hacky
@@ -166,31 +147,6 @@ region_ptr alloc_in_region(region **r, unsigned int size)
 		assert(*r != NULL);
 
         (*r)->size = new_size;
-
-        //printf("resized region %p with size %d to %p with size %d\n",
-        //       old, old_size, *r, new_size);
-
-        cl_int status = 0;
-        (*r)->cl_buffer = clCreateBuffer(g_ctx,
-                                         CL_MEM_READ_WRITE
-                                         | CL_MEM_USE_HOST_PTR,
-                                         (*r)->size,
-                                         *r,
-                                         &status);
-        CL_CHECK(status);
-        
-        // Make the buffer accessible to the CPU
-        clEnqueueMapBuffer(g_queue,
-                           (cl_mem)(*r)->cl_buffer,
-                           CL_TRUE, // blocking
-                           CL_MAP_READ | CL_MAP_WRITE,
-                           0,
-                           (*r)->size,
-                           0,
-                           NULL,
-                           NULL,
-                           &status);
-        CL_CHECK(status);    
     }
 
     return p;
