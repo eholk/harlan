@@ -6,6 +6,13 @@
 (module
   (extern nanotime () -> u64)
 
+  ;;(define (dot X Y)
+  ;;  (vector-ref
+  ;;   (kernel ((_ (iota 1)))
+  ;;     (reduce + (kernel ((x X) (y Y))
+  ;;                 (* x y))))
+  ;;   0))
+
   (define (dot X Y)
     (reduce + (kernel ((x X) (y Y))
                 (* x y))))
