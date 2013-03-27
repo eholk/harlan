@@ -104,7 +104,6 @@ void map_region(region *header)
     CL_CHECK(status);
 
     CL_CHECK(clReleaseMemObject(buffer));
-    assert(!header->cl_buffer);
     check_region(header);
 }
 
@@ -114,11 +113,22 @@ void unmap_region(region *header)
 
     cl_int status = 0;
     cl_mem buffer = clCreateBuffer(g_ctx,
-                                   CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                   CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
                                    header->size,
-                                   header,
+                                   NULL,
                                    &status);
     header->cl_buffer = buffer;
+    CL_CHECK(status);
+
+    status = clEnqueueWriteBuffer(g_queue,
+                                  buffer,
+                                  CL_TRUE,
+                                  0,
+                                  header->alloc_ptr,
+                                  header,
+                                  0,
+                                  NULL,
+                                  NULL);
     CL_CHECK(status);
 }
 

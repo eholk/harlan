@@ -263,10 +263,13 @@ void command_queue::executeND(kernel &k, size_t dimensions,
     uint64_t start = nanotime();
 	CL_CHECK(clEnqueueNDRangeKernel(queue, k.k, dimensions, NULL,
                                     global_size, local_size, 0, 0, &e));
-	CL_CHECK(clEnqueueBarrier(queue));
+	//CL_CHECK(clEnqueueBarrier(queue));
 	CL_CHECK(clWaitForEvents(1, &e));
     uint64_t stop = nanotime();
 	CL_CHECK(clReleaseEvent(e));
+
+    //fprintf(stderr, "Kernel took %f seconds\n",
+    //        float(stop - start) / 1e9);
 
     kernel_time += (stop - start);
 }

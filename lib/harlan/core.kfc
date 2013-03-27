@@ -60,11 +60,12 @@
          t))))
   
   (define-macro reduce (kernel)
+    ;; Comment out this next clause to enable faster reduction.
     ((_ op e)
      (small-reduce op e))
     ((_ op (kernel ((x e) (x* e*) ...) b))
      (let ((x e)
-           (stride 1024))
+           (stride 4096))
        (if (< (length x) stride)
            (small-reduce op (kernel ((x x) (x* e*) ...) b))
            (small-reduce
@@ -81,7 +82,7 @@
                   t)))))))
     ((_ op e)
      (let ((x e)
-           (stride 64))
+           (stride 4096))
        (if (< (length x) stride)
            (small-reduce op x)
            (small-reduce
