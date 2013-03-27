@@ -25,7 +25,7 @@
 (define (kernel->for t r dims x* t* xs* ts* d* e)
   (let ((kernelfor (gensym 'x))
         (i (gensym 'i))
-        (expr (gensym 'expr))) ;; this is unused
+        (expr (gensym 'expr)))
     (assert (= (length dims) 1))
     `(let ((,expr int ,(car dims)))
        (let ((,kernelfor (vec ,r ,t) (make-vector ,t ,r
@@ -48,12 +48,12 @@
   ((if ,test ,[conseq]) `(if ,test ,conseq))
   ((if ,test ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
-  ((set! ,lhs ,rhs) `(set! ,lhs ,rhs))
+  ((set! ,[(Expr k) -> lhs] ,[(Expr k) -> rhs]) `(set! ,lhs ,rhs))
   ((do ,[(Expr k) -> e]) `(do ,e))
   ((print . ,e*) `(print . ,e*))
   ((assert ,e) `(assert ,e))
   ((return) `(return))
-  ((return ,e) `(return ,e)))
+  ((return ,[(Expr k) -> e]) `(return ,e)))
 
 (define-match (Expr k)
   ((let ((,x ,t ,[e]) ...) ,[expr])
@@ -85,6 +85,7 @@
   ((empty-struct) '(empty-struct))
   ((field ,[e] ,x) `(field ,e ,x))
   ((unbox ,t ,r ,[e]) `(unbox ,t ,r ,e))
+  ((box ,r ,t ,[e]) `(box ,r ,t ,e))
   ((make-vector ,t ,r ,[e]) `(make-vector ,t ,r ,e))
   ((vector ,t ,r ,[e*] ...) `(vector ,t ,r . ,e*)))
 

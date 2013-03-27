@@ -40,7 +40,7 @@
             (print " " stream))))
       (close_outfile stream)))
 
-  (define-macro small-reduce (kernel)
+  (define-macro inner-reduce (kernel)
     ;; This first one fuses reduce of a kernel.
     ((_ op (kernel ((x e) (x* e*) ...) b))
      (let ((x e) (x* e*) ...)
@@ -61,14 +61,14 @@
   
   (define-macro reduce (kernel)
     ;; Comment out this next clause to enable faster reduction.
-    ((_ op e)
-     (small-reduce op e))
+    ;;((_ op e)
+    ;; (inner-reduce op e))
     ((_ op (kernel ((x e) (x* e*) ...) b))
      (let ((x e)
            (stride 4096))
        (if (< (length x) stride)
-           (small-reduce op (kernel ((x x) (x* e*) ...) b))
-           (small-reduce
+           (inner-reduce op (kernel ((x x) (x* e*) ...) b))
+           (inner-reduce
             op
             (let ((x e) (x* e*) ...)
               (kernel ((i--- (iota stride)))
@@ -84,12 +84,11 @@
      (let ((x e)
            (stride 4096))
        (if (< (length x) stride)
-           (small-reduce op x)
-           (small-reduce
-            op
-            (kernel ((i--- (iota stride)))
-              (let ((tmp--- (vector-ref x i---)))
-                (for (j--- (+ i--- stride) (length x) stride)
-                  (set! tmp--- (op tmp--- (vector-ref x j---))))
-                tmp---)))))))
+           (inner-reduce op x)
+           (let ((t--- (kernel ((i--- (iota stride)))
+                         (let ((tmp--- (vector-ref x i---)))
+                           (for (j--- (+ i--- stride) (length x) stride)
+                             (set! tmp--- (op tmp--- (vector-ref x j---))))
+                           tmp---))))
+             (inner-reduce op t---))))))
   )
