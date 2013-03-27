@@ -65,7 +65,7 @@
     ;; (inner-reduce op e))
     ((_ op (kernel ((x e) (x* e*) ...) b))
      (let ((x e)
-           (stride 4096))
+           (stride 65536))
        (if (< (length x) stride)
            (inner-reduce op (kernel ((x x) (x* e*) ...) b))
            (inner-reduce
@@ -82,7 +82,7 @@
                   t)))))))
     ((_ op e)
      (let ((x e)
-           (stride 4096))
+           (stride 65536))
        (if (< (length x) stride)
            (inner-reduce op x)
            (let ((t--- (kernel ((i--- (iota stride)))
