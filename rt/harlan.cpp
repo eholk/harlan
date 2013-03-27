@@ -79,7 +79,10 @@ region *create_region(int size)
 
 void free_region(region *r)
 {
-  free(r);
+    if(r->cl_buffer) {
+        clReleaseMemObject((cl_mem)r->cl_buffer);
+    }
+    free(r);
 }
 
 void map_region(region *header)
@@ -104,12 +107,18 @@ void map_region(region *header)
     CL_CHECK(status);
 
     CL_CHECK(clReleaseMemObject(buffer));
+    assert(!header->cl_buffer);
     check_region(header);
 }
 
 void unmap_region(region *header)
 {
     check_region(header);
+    
+    // Don't unmap the region twice...
+    // TODO: we might want to report a warning in this case.
+    if(header->cl_buffer) return;
+    //assert(!header->cl_buffer);
 
     cl_int status = 0;
     cl_mem buffer = clCreateBuffer(g_ctx,
@@ -117,7 +126,6 @@ void unmap_region(region *header)
                                    header->size,
                                    NULL,
                                    &status);
-    header->cl_buffer = buffer;
     CL_CHECK(status);
 
     status = clEnqueueWriteBuffer(g_queue,
@@ -130,6 +138,8 @@ void unmap_region(region *header)
                                   NULL,
                                   NULL);
     CL_CHECK(status);
+
+    header->cl_buffer = buffer;
 }
 
 region_ptr alloc_in_region(region **r, unsigned int size)
@@ -164,5 +174,6 @@ region_ptr alloc_in_region(region **r, unsigned int size)
 
 cl_mem get_cl_buffer(region *r) 
 {
+    assert(r->cl_buffer);
     return (cl_mem)r->cl_buffer;
 }

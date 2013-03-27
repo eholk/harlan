@@ -22,13 +22,17 @@
 (define-match generate-stmt
   ((apply-kernel ,k ,dims ,arg* ...)
    (let ((kernel (gensym k))
-         (region* (filter region? arg*)))
+         (region* (filter region? arg*))
+         (dim-names (map (lambda (_) (gensym 'dim)) dims)))
      `(begin
         (let ,kernel cl::kernel
              (call
               (field (var cl::program g_prog)
                      createKernel)
               (str ,(symbol->string k))))
+        ,@(map (lambda (n d)
+                 `(let ,n int ,d))
+               dim-names dims)
         ,@(map (lambda (region)
                  `(do (call
                         (c-expr (((ptr region)) -> void)
@@ -49,22 +53,23 @@
         ,(if (null? (cdr dims))
              `(do (call (field (var cl::queue g_queue) execute)
                         (var cl::kernel ,kernel)
-                        ,(car dims) ;; global size
+                        (var int ,(car dim-names)) ;; global size
                         ;;(int 1) ;; local size
                         ))
              (begin
                (assert (= (length dims) 2))
              `(do (call (field (var cl::queue g_queue) execute2d)
                         (var cl::kernel ,kernel)
-                        ,(car dims) ;; global size
-                        ,(cadr dims)
+                        (var int ,(car dim-names)) ;; global size
+                        (var int ,(cadr dim-names))
                         (int 1)))))
-        ,@(map (lambda (region)
-                 `(do (call
-                        (c-expr (((ptr region)) -> void)
-                          map_region)
-                        ,region)))
-            region*)))) ;; local size
+        ;;,@(map (lambda (region)
+        ;;         `(do (call
+        ;;                (c-expr (((ptr region)) -> void)
+        ;;                  map_region)
+        ;;                ,region)))
+        ;;    region*)
+        ))) ;; local size
   ((begin ,[stmt*] ...)
    `(begin . ,stmt*))
   ((for (,i ,start ,end ,step) ,[stmt])

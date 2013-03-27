@@ -1,5 +1,9 @@
 #pragma OPENCL EXTENSION cl_khr_fp64: enable
 
+// This gives us a pointer to something in a region.
+#define get_region_ptr(r, i) (((char __global *)r) + i)
+
+
 region_ptr alloc_in_region(region __global *r, unsigned int size);
 region_ptr alloc_in_region(region __global *r, unsigned int size)
 {

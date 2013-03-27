@@ -55,3 +55,11 @@ cl_mem get_cl_buffer(region *r);
 void harlan_error(const char *msg);
 
 #define __global
+
+inline void *get_region_ptr(region *r, region_ptr i) {
+    if(r->cl_buffer) {
+        map_region(r);
+    }
+
+    return (((char __global *)r) + i);
+}
