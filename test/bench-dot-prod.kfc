@@ -18,12 +18,12 @@
                 (* x y))))
   
   (define (do-dot len)
-    (let ((X (make-vector len 1))
-          (Y (make-vector len 1)))
+    (let ((X (make-vector len 1.0))
+          (Y (make-vector len 1.0)))
       (let ((start (nanotime)))
         (let ((d (dot X Y)))
           (let ((stop (nanotime)))
-            (assert (= d len))
+            (assert (= d (int->float len)))
             (- stop start))))))
   
   (define (bench_length len)

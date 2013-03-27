@@ -93,14 +93,25 @@ void map_region(region *header)
 
     cl_mem buffer = (cl_mem)header->cl_buffer;
 
-    // TODO: As an optimization, we may read just the header and then
-    // only up to the allocation pointer.
+    // Read just the header
     status = clEnqueueReadBuffer(g_queue,
                                  buffer,
                                  CL_TRUE,
                                  0,
-                                 header->size,
+                                 sizeof(region),
                                  header,
+                                 0,
+                                 NULL,
+                                 NULL);
+    CL_CHECK(status);
+
+    // Now read the contents
+    status = clEnqueueReadBuffer(g_queue,
+                                 buffer,
+                                 CL_TRUE,
+                                 sizeof(region),
+                                 header->size - sizeof(region),
+                                 ((char *)header) + sizeof(region),
                                  0,
                                  NULL,
                                  NULL);
