@@ -72,13 +72,16 @@
             op
             (let ((x e) (x* e*) ...)
               (kernel ((i--- (iota stride)))
-                (let ((t (let ((x (vector-ref x i---))
-                               (x* (vector-ref x* i---)) ...)
+                (let ((t (let ((x (unsafe-vector-ref x i---))
+                               (x* (unsafe-vector-ref x* i---)) ...)
                            b)))
                   (for (reduce-index (+ i--- stride) (length x) stride)
-                    (set! t (op t (let ((x (vector-ref x reduce-index))
-                                        (x* (vector-ref x* reduce-index)) ...)
-                                    b))))
+                    (set!
+                     t
+                     (op t
+                         (let ((x (unsafe-vector-ref x reduce-index))
+                               (x* (unsafe-vector-ref x* reduce-index)) ...)
+                           b))))
                   t)))))))
     ((_ op e)
      (let ((x e)
@@ -86,9 +89,10 @@
        (if (< (length x) stride)
            (inner-reduce op x)
            (let ((t--- (kernel ((i--- (iota stride)))
-                         (let ((tmp--- (vector-ref x i---)))
+                         (let ((tmp--- (unsafe-vector-ref x i---)))
                            (for (j--- (+ i--- stride) (length x) stride)
-                             (set! tmp--- (op tmp--- (vector-ref x j---))))
+                             (set! tmp---
+                                   (op tmp--- (unsafe-vector-ref x j---))))
                            tmp---))))
              (inner-reduce op t---))))))
   )

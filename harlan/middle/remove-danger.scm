@@ -108,6 +108,8 @@
             (if (>= (var int ,i-var) (length (var ,vt ,v-var)))
                 (error ,(gensym 'vector-length-error)))
             (vector-ref ,t (var ,vt ,v-var) (var int ,i-var))))))
+    ((unsafe-vector-ref ,t ,[v] ,[i])
+     `(vector-ref ,t ,v ,i))
     ((length ,[e])
      `(length ,e))
     ((vector ,t ,r ,[e*] ...)

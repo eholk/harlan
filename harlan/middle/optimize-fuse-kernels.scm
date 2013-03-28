@@ -66,6 +66,8 @@
      `(c-expr ,t ,v))
     ((vector-ref ,t ,[v] ,[i])
      `(vector-ref ,t ,v ,i))
+    ((unsafe-vector-ref ,t ,[v] ,[i])
+     `(unsafe-vector-ref ,t ,v ,i))
     ((length ,[e])
      `(length ,e))
     ((call ,[f] ,[args] ...)

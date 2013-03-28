@@ -143,6 +143,8 @@
    `(iota-r ,r ,e))
   ((vector-ref ,[v] ,[i])
    `(vector-ref ,v ,i))
+  ((unsafe-vector-ref ,[v] ,[i])
+   `(unsafe-vector-ref ,v ,i))
   ((length ,[e])
    `(length ,e))
   ((int->float ,[e]) `(int->float ,e))

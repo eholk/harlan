@@ -58,6 +58,8 @@
      `(vector ,t ,r . ,e))
     ((vector-ref ,t ,[v] ,[i])
      `(vector-ref ,t ,v ,i))
+    ((unsafe-vector-ref ,t ,[v] ,[i])
+     `(unsafe-vector-ref ,t ,v ,i))
     ((length ,[e])
      `(length ,e))
     ((call ,[f] ,[args] ...)
