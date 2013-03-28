@@ -14,7 +14,18 @@
 (define-match (compile-decl in-kernel?)
   ((fn ,name ,args (,arg-types -> ,ret-type)
      ,[(compile-stmt in-kernel?) -> stmt])
-   (values '() `((func ,ret-type ,name ,(map list args arg-types) ,stmt))))
+   (let ((arg-types (if in-kernel?
+                        arg-types
+                        (map (lambda (t) (if (equal? t '(ptr region))
+                                        '(ref (ptr region))
+                                        t))
+                             arg-types)))
+         (ret-type (if in-kernel?
+                       ret-type
+                       (if (equal? ret-type '(ptr region))
+                           '(ref (ptr region))
+                           ret-type))))
+     (values '() `((func ,ret-type ,name ,(map list args arg-types) ,stmt)))))
   ((extern ,name ,arg-types -> ,rtype)
    (values '() `((extern ,rtype ,name ,arg-types))))
   ((global ,type ,name ,[(compile-expr in-kernel?) -> e])

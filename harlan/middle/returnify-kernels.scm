@@ -3,15 +3,16 @@
   (export returnify-kernels)
   (import
    (rnrs)
+   (only (chezscheme) trace-lambda)
    (except (elegant-weapons helpers) ident?)
    (harlan helpers)
    (cKanren mk))
 
   ;; Variables related to danger
-  (define danger-type 'int)
-  (define no-danger '(int 0))
-  (define bounds-check '(int 1))
-  (define allocation-failure '(int 2))
+  (define danger-type 'bool)
+  (define bounds-check '(int 0))
+  (define allocation-failure '(int 1))
+  (define num-danger '(int 2))
   
 (define-match returnify-kernels
   ((module ,[returnify-kernel-decl -> fn*] ...)
@@ -88,10 +89,7 @@
      (((,x* ,tx*) (,[returnify-kernel-expr -> xe*] ,xet*) ,dim) ...)
      ,body)
    (let ((retvars (map (lambda (_) (gensym 'retval)) dims))
-         ;; FIXME: we actually need N-dimensional danger vectors for
-         ;; N-dimensional kernels.
          (danger-vector (gensym 'danger_vector))
-         (danger 'danger)
          (danger-vec-t `(vec ,r ,danger-type))
          (i (gensym 'i))
          (vv (gensym 'vv))
@@ -100,8 +98,14 @@
             (,danger-vector
              ;; TODO: the danger vector should probably get its own region.
              ,danger-vec-t
-             (make-vector ,danger-type ,r ,(car dims))))
+             (make-vector ,danger-type ,r ,num-danger)))
         (begin
+          (for (,i (int 0) ,num-danger (int 1))
+            (set! (vector-ref
+                   ,danger-type
+                   (var ,danger-vec-t ,danger-vector)
+                   (var int ,i))
+                  (bool #f)))
           ,@(if (null? (cdr dims))
                 `()
                 (match t
@@ -119,15 +123,14 @@
            ,dims
            ,(insert-retvars r retvars (cons id retvars) 0 t
                             ;; Insert the danger vector as an argument
-                            `(((,danger ,danger-type)
-                               ((var ,danger-vec-t ,danger-vector)
-                                ,danger-vec-t) 0)
-                              ((,x* ,tx*) (,xe* ,xet*) ,dim) ...))
+                            `(((,x* ,tx*) (,xe* ,xet*) ,dim) ...))
            ,((set-retval (shave-type (length dims) `(vec ,r ,t))
                          (car (reverse retvars))
-                         danger)
-             body))
-          ,(check-danger-vector danger-vector r (car dims))
+                         (lambda (d) `(vector-ref ,danger-type
+                                             (var ,danger-vec-t ,danger-vector)
+                                             ,d)))
+              body))
+          ,(check-danger-vector danger-vector r num-danger)
           (var (vec ,r ,t) ,id))))))
 
 (define (check-danger-vector danger-vector r len)
@@ -139,31 +142,16 @@
     `(let ((,found-danger bool (bool #t)))
        (begin
          (for (,i (int 0) ,len (int 1))
-              (let ((,di ,danger-type
-                         (vector-ref ,danger-type
-                                     (var ,danger-vec-t ,danger-vector)
-                                     (var int ,i))))
-                (if (not (= ,no-danger (var ,danger-type ,di)))
-                    (begin
-                      (do (call (c-expr ((void str int) -> void) fprintf)
-                                (c-expr void stderr)
-                                (str "Kernel lane %d encountered DANGER!!!!!\n")
-                                (var int ,i)))
-                      
-                      (if (= (var ,danger-type ,di) ,bounds-check)
-                          (do (call (c-expr ((void str int) -> void) fprintf)
-                                    (c-expr void stderr)
-                                    (str "Kernel lane %d encountered bounds check danger!\n")
-                                    (var int ,i))))
-                      (if (= (var ,danger-type ,di) ,allocation-failure)
-                          (do (call (c-expr ((void str int) -> void) fprintf)
-                                    (c-expr void stderr)
-                                    (str "Kernel lane %d encountered allocation failure danger!\n")
-                                    (var int ,i))))
-                      (set! (var bool ,found-danger) (bool #f))))))
+           (if (vector-ref ,danger-type
+                           (var ,danger-vec-t ,danger-vector)
+                           (var int ,i))
+               (begin
+                 (do (call (c-expr ((void str int) -> void) fprintf)
+                           (c-expr void stderr)
+                           (str "Kernel encounter danger type %d!\n")
+                           (var int ,i)))
+                 (set! (var bool ,found-danger) (bool #f)))))
          (assert (var bool ,found-danger))))))
-                
-             
 
 ;; This is stupid
 (define (shave-type dim t)
@@ -217,7 +205,7 @@
 (define-match (rewrite-errors-stmt danger)
   ((error ,e)
    `(begin
-      (set! (var ,danger-type ,danger) ,bounds-check)
+      (set! ,(danger bounds-check) (bool #t))
       (return)))
   ((for (,x ,[(rewrite-errors-expr danger) -> start]
             ,[(rewrite-errors-expr danger) -> stop]
@@ -238,7 +226,7 @@
   ((if ,[(rewrite-errors-expr danger) -> t] ,[c])
    `(if ,t ,c)))
 
-(define-match (rewrite-errors-expr danger)
+(define-match (rewrite-errors-expr^ danger)
   ((int ,i) `(int ,i))
   ((float ,f) `(float ,f))
   ((bool ,b) `(bool ,b))
@@ -248,7 +236,7 @@
    `(vector-ref ,t ,v ,i))
   ((error ,e)
    `(begin
-      (set! (var ,danger-type ,danger) ,bounds-check)
+      (set! ,(danger bounds-check) (bool #t))
       (return)))
   ((let ((,x ,t ,[e]) ...) ,[body])
    `(let ((,x ,t ,e) ...) ,body))
@@ -266,6 +254,11 @@
   ((,op ,[lhs] ,[rhs]) (guard (or (relop? op) (binop? op)))
    `(,op ,lhs ,rhs)))
 
+;;(define (rewrite-errors-expr danger)
+;;  (trace-lambda rewrite-errors-expr (e)
+;;                ((rewrite-errors-expr^ danger) e)))
+(define rewrite-errors-expr rewrite-errors-expr^)
+
 ;; Changes expressions in tail position to set!'s on the return value.
 (define-match (set-retval t retvar danger)
   ((begin ,[(rewrite-errors-stmt danger) -> stmt*] ...
@@ -276,7 +269,6 @@
    `(let ((,x ,t ,e) ...) ,((rewrite-errors-stmt danger) expr)))
   (,[(rewrite-errors-expr danger) -> else]
    `(begin
-      (set! (var ,danger-type ,danger) ,no-danger)
       (set! (var ,t ,retvar) ,else))))
 
 ;; end library

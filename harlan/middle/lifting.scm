@@ -155,6 +155,8 @@
     ((vector ,t ,r ,[e] ...) (apply union e))
     ((vector-ref ,t ,[x] ,[i])
      (union x i))
+    ((unsafe-vector-ref ,t ,[x] ,[i])
+     (union x i))
     ((kernel ,t (,[dfv**] ...) (((,x* ,t*) (,[fv**] ,ts*) ,d) ...) ,[e])
      (apply union
             (difference e x*)
