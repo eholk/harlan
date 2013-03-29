@@ -1,0 +1,67 @@
+(%testspec
+ (%tags bench))
+
+(module
+
+  (extern nanotime () -> u64)
+  
+  (define-datatype point3_t
+    (point3 float float float))
+
+  ;; The points don't really matter. This will just make a bunch.
+  (define (make-points N)
+    (kernel ((i (iota N)))
+      (point3 (int->float i)
+              (int->float i)
+              (int->float i))))
+
+  (define (point-diff x y)
+    (match x
+      ((point3 a b c)
+       (match y
+         ((point3 d e f)
+          (point3 (- a d) (- b e) (- c f)))))))
+
+  (define (point-add x y)
+    (match x
+      ((point3 a b c)
+       (match y
+         ((point3 x y z)
+          (point3 (+ a x) (+ b y) (+ c z)))))))
+  
+  (define (point-div a y)
+    (match a
+      ((point3 a b c)
+       (point3 (/ a y) (/ b y) (/ c y)))))
+
+  (define (point-mag p)
+    (match p
+      ((point3 a b c)
+       (sqrt (+ (* a a) (+ (* b b) (* c c)))))))
+
+  (define (nbody bodies)
+    (kernel ((i bodies))
+      (reduce point-add
+        (kernel ((j bodies))
+          (let* ((diff (point-diff i j))
+                 (d (point-mag diff)))
+            (if (< 0 d)
+                (point-div diff (* (* d d) d))
+                (point3 0 0 0)))))))
+
+  (define (bench-length len)
+    (let* ((bodies (make-points len))
+           (start (nanotime))
+           (forces (nbody bodies))
+           (stop (nanotime)))
+      (print len)
+      (print "\t")
+      (print (/ (- stop start) 1000))
+      (print "\n")))
+  
+  (define (main)
+    (for (i 1 21)
+      (bench-length (* i 1000)))
+    (return 0))
+  
+  )
