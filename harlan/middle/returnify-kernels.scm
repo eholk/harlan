@@ -122,7 +122,6 @@
            (vec ,r ,t)
            ,dims
            ,(insert-retvars r retvars (cons id retvars) 0 t
-                            ;; Insert the danger vector as an argument
                             `(((,x* ,tx*) (,xe* ,xet*) ,dim) ...))
            ,((set-retval (shave-type (length dims) `(vec ,r ,t))
                          (car (reverse retvars))
@@ -169,12 +168,14 @@
         ,dim)
       (if (null? (cdr retvars))
           `()
-          (insert-retvars r
-                          (cdr retvars)
-                          (cdr sources)
-                          (+ dim 1)
-                          (caddr t)
-                          arg*))))
+          (match t
+            ((vec ,r ,t)
+             (insert-retvars r
+                             (cdr retvars)
+                             (cdr sources)
+                             (+ dim 1)
+                             t
+                             arg*))))))
     ((((,x ,tx) (,xs ,ts) ,d) . ,rest)
      (if (<= dim d)
          (cons

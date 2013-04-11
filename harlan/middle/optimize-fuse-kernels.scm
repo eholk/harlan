@@ -252,6 +252,8 @@
      `(c-expr ,t ,v))
     ((vector-ref ,t ,[v] ,[i])
      `(vector-ref ,t ,v ,i))
+    ((unsafe-vector-ref ,t ,[v] ,[i])
+     `(unsafe-vector-ref ,t ,v ,i))
     ((length ,[e])
      `(length ,e))
     ((call (c-expr ,t get_global_id) (int ,n))

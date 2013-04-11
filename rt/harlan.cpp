@@ -93,6 +93,8 @@ void map_region(region *header)
 
     cl_mem buffer = (cl_mem)header->cl_buffer;
 
+    //printf("map_region: old alloc_ptr = %d\n", header->alloc_ptr);
+
     // Read just the header
     status = clEnqueueReadBuffer(g_queue,
                                  buffer,
@@ -105,12 +107,17 @@ void map_region(region *header)
                                  NULL);
     CL_CHECK(status);
 
+    //printf("map_region: new alloc_ptr = %d\n", header->alloc_ptr);
+
+    //printf("map_region: read %lu bytes, reading %lu more.\n",
+    //       sizeof(region), header->alloc_ptr - sizeof(region));
+
     // Now read the contents
     status = clEnqueueReadBuffer(g_queue,
                                  buffer,
                                  CL_TRUE,
                                  sizeof(region),
-                                 header->size - sizeof(region),
+                                 header->alloc_ptr - sizeof(region),
                                  ((char *)header) + sizeof(region),
                                  0,
                                  NULL,
@@ -155,6 +162,9 @@ void unmap_region(region *header)
 
 region_ptr alloc_in_region(region **r, unsigned int size)
 {
+    if((*r)->cl_buffer)
+        map_region(*r);
+
     // printf("allocating %d bytes from region %p\n", size, *r);
     region_ptr p = (*r)->alloc_ptr;
     (*r)->alloc_ptr += size;
