@@ -26,7 +26,6 @@
   ((print ,e ...) (make-begin `((print . ,e) (return))))
   ((println ,e ...) (make-begin `((println . ,e) (return))))
   ((assert ,e) (make-begin `((assert ,e) (return))))
-  ((for ,b ,s) (make-begin `((for ,b ,s) (return))))
   ((while ,e ,[returnify-stmt -> s]) `(while ,e ,s))
   ((return) `(return))
   ((return ,expr) `(return ,expr))

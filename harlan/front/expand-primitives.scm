@@ -88,10 +88,6 @@
      `(if ,test ,conseq))
     ((while ,[expand-prim-expr -> test] ,[body])
      `(while ,test ,body))
-    ((for (,x ,[expand-prim-expr -> start]
-              ,[expand-prim-expr -> stop]
-              ,[expand-prim-expr -> step]) ,[body])
-     `(for (,x ,start ,stop ,step) ,body))
     ((begin ,[stmt*] ...)
      `(begin . ,stmt*))
     ((print (vec ,r ,t) ,[expand-prim-expr -> e]

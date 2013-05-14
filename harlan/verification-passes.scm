@@ -102,14 +102,11 @@
       (write-pgm Value Value)
       (assert Value)
       (set! Var Value)
-      (for (Var Value Value) Value +)
-      (for (Var Value Value Value) Value +)
       (while Value Value +)
       (if Value Value)
       (if Value Value Value)
       (return)
       (return Value)
-      (var Var) ;; depricated, vars do not need tags
       (vector Value +)
       (vector-r RegionVar Value +)
       (vector-ref Value Value)
@@ -144,7 +141,6 @@
       (assert Expr)
       (set! Expr Expr)
       (do Expr)
-      (for (Var Expr Expr Expr) Stmt)
       (while Expr Stmt)
       (return)
       (return Expr))
@@ -206,7 +202,6 @@
       (assert Expr)
       (set! Expr Expr)
       (do Expr)
-      (for (Var Expr Expr Expr) Stmt)
       (while Expr Stmt)
       Ret-Stmt)
     (Expr
@@ -263,7 +258,6 @@
       (assert Expr)
       (set! Expr Expr)
       (do Expr)
-      (for (Var Expr Expr Expr) Stmt)
       (while Expr Stmt)
       (return Expr))
     (Expr
