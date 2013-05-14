@@ -1,0 +1,14 @@
+(module
+
+  (define-macro or ()
+    ((_ e1 e2)
+     (let ((t e1))
+       (if t t e2))))
+
+  (define (test t)
+    (or #f t))
+  
+  (define (main)
+    (println (test #t))
+    (assert (test #t))
+    (return 0)))
