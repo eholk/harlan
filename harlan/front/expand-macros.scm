@@ -182,7 +182,38 @@
            (#t
             `(,let-region (,r^ ...)
                (,substk (begin ,b ...) (,r . ,r^) ...)))))))
-   (lambda () (error 'expand-define "invalid syntax" e))))
+   (lambda () (error 'expand-let-region "invalid syntax" e))))
+
+(define (expand-match e)
+  (match-pat
+   '()
+   '(_ e arms ...)
+   e
+   (lambda (env)
+     (let ((arms (get-... 'arms env)))
+       `(,(rename-sym 'match) ,(lookup 'e env) . ,(map expand-match-arm arms))))
+   (lambda () (error 'expand-match "invalid syntax" e))))
+
+(define (expand-match-arm arm)
+  (match-pat
+   '()
+   '((tag x ...) b ...)
+   arm
+   (lambda (env)
+     (let* ((x (get-... 'x env))
+            (b (get-... 'b env))
+            (x^ (map gensym x))
+            (s* (map cons x x^)))
+       `((,(lookup 'tag env) . ,x^)
+         . ,(map (lambda (b)
+                   `(,substk ,b . ,s*))
+                 b))))
+   (lambda () (error 'expand-match-arm "invalid syntax" arm))))
+
+(define (rename-sym x)
+  (let ((x^ (gensym x)))
+    (putprop x^ 'rename x)
+    x^))
 
 (define (get-... x env)
   (match env
@@ -230,7 +261,8 @@
     
   (define primitive-env `((let . ,expand-let)
                           (define . ,expand-define)
-                          (let-region . ,expand-let-region)))
+                          (let-region . ,expand-let-region)
+                          (match . ,expand-match)))
     
   (define (expand-macros x)
     ;; Assume we got a (module decl ...) form
