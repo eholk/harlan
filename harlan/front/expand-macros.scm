@@ -167,6 +167,23 @@
                (,substk (begin ,b ...) (,x . ,x^) ...)))))))
    (lambda () (error 'expand-define "invalid syntax" e))))
 
+(define (expand-let-region e)
+  (match-pat
+   '()
+   `(_ (r ...) b ...)
+   e
+   (lambda (env)
+     (let ((r (get-... 'r env))
+           (b (get-... 'b env)))
+       (let ((let-region (gensym 'let-region))
+             (r^ (map gensym r)))
+         (putprop let-region 'rename 'let-region)
+         (match #t
+           (#t
+            `(,let-region (,r^ ...)
+               (,substk (begin ,b ...) (,r . ,r^) ...)))))))
+   (lambda () (error 'expand-define "invalid syntax" e))))
+
 (define (get-... x env)
   (match env
     (() '())
@@ -212,7 +229,8 @@
       (,x (guard (not (pair? x))) x)))
     
   (define primitive-env `((let . ,expand-let)
-                          (define . ,expand-define)))
+                          (define . ,expand-define)
+                          (let-region . ,expand-let-region)))
     
   (define (expand-macros x)
     ;; Assume we got a (module decl ...) form
