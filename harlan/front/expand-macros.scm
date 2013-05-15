@@ -13,6 +13,8 @@
   ;; wrong.
 
   (define-record-type ident (fields name binding marks))
+
+  (define substk (gensym 'subst))
   
 (define (match-pat kw* p e sk fk)
   (let ((e (expose e)))
@@ -145,7 +147,7 @@
          (match #t
            (#t
             `(,let ((,x^ ,e) ...)
-               (subst (begin ,b ...) (,x . ,x^) ...)))))))
+               (,substk (begin ,b ...) (,x . ,x^) ...)))))))
    (lambda () (error 'expand-let "invalid syntax" e))))
 
 (define (expand-define e)
@@ -162,7 +164,7 @@
          (match #t
            (#t
             `(,define (,(lookup 'f env) ,x^ ...)
-               (subst (begin ,b ...) (,x . ,x^) ...)))))))
+               (,substk (begin ,b ...) (,x . ,x^) ...)))))))
    (lambda () (error 'expand-define "invalid syntax" e))))
 
 (define (get-... x env)
@@ -187,23 +189,25 @@
   
   (define (expose e)
     (match e
-      ((subst ,x . ,s*)
-       (guard (symbol? x))
+      ((,subst ,x . ,s*)
+       (guard (and (symbol? x) (eq? subst substk)))
        (let ((match (assq x s*)))
          (if match
-             (expose `(subst ,(cdr match) . ,s*))
+             (expose `(,substk ,(cdr match) . ,s*))
              x)))
-      ((subst (subst ,e . ,s1) . ,s2)
-       (expose `(subst ,e . ,(append s1 s2))))
-      ((subst ,atom . ,s*)
-       (guard (not (pair? atom)))
+      ((,subst1 (,subst2 ,e . ,s1) . ,s2)
+       (guard (and (eq? subst1 substk) (eq? subst2 substk)))
+       (expose `(,substk ,e . ,(append s1 s2))))
+      ((,subst ,atom . ,s*)
+       (guard (and (eq? subst substk) (not (pair? atom))))
        atom)
-      ((subst (,e* ...) . ,s*)
+      ((,subst (,e* ...) . ,s*)
+       (guard (eq? subst substk))
        (map (lambda (e)
-              `(subst ,e . ,s*))
+              `(,substk ,e . ,s*))
             e*))
       ((,e . , e*)
-       (guard (not (eq? e 'subst)))
+       (guard (not (eq? e substk)))
        `(,e . ,e*))
       (,x (guard (not (pair? x))) x)))
     
