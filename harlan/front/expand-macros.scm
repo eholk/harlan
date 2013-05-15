@@ -150,6 +150,23 @@
                (,substk (begin ,b ...) (,x . ,x^) ...)))))))
    (lambda () (error 'expand-let "invalid syntax" e))))
 
+(define (expand-kernel e)
+  (match-pat
+   '()
+   `(_ ((x e) ...) b ...)
+   e
+   (lambda (env)
+     (let ((x (get-... 'x env))
+           (e (get-... 'e env))
+           (b (get-... 'b env)))
+       (let ((kernel (rename-sym 'kernel))
+             (x^ (map gensym x)))
+         (match #t
+           (#t
+            `(,kernel ((,x^ ,e) ...)
+               (,substk (begin ,b ...) (,x . ,x^) ...)))))))
+   (lambda () (error 'expand-kernel "invalid syntax" e))))
+
 (define (expand-define e)
   (match-pat
    '()
@@ -262,7 +279,8 @@
   (define primitive-env `((let . ,expand-let)
                           (define . ,expand-define)
                           (let-region . ,expand-let-region)
-                          (match . ,expand-match)))
+                          (match . ,expand-match)
+                          (kernel . ,expand-kernel)))
     
   (define (expand-macros x)
     ;; Assume we got a (module decl ...) form
