@@ -57,9 +57,9 @@
        (let ((t (let ((x (vector-ref x 0))
                       (x* (vector-ref x* 0)) ...)
                   b)))
-         (for (reduce-index 1 (length x))
-           (set! t (op t (let ((x (vector-ref x reduce-index))
-                               (x* (vector-ref x* reduce-index)) ...)
+         (for (i 1 (length x))
+           (set! t (op t (let ((x (vector-ref x i))
+                               (x* (vector-ref x* i)) ...)
                            b))))
          t)))
     ((_ op e)
@@ -81,11 +81,11 @@
            (inner-reduce
             op
             (let ((x e) (x* e*) ...)
-              (kernel ((i--- (iota stride)))
-                (let ((t (let ((x (unsafe-vector-ref x i---))
-                               (x* (unsafe-vector-ref x* i---)) ...)
+              (kernel ((i (iota stride)))
+                (let ((t (let ((x (unsafe-vector-ref x i))
+                               (x* (unsafe-vector-ref x* i)) ...)
                            b)))
-                  (for (reduce-index (+ i--- stride) (length x) stride)
+                  (for (reduce-index (+ i stride) (length x) stride)
                     (set!
                      t
                      (op t
@@ -98,14 +98,15 @@
            (stride 65536))
        (if (< (length x) stride)
            (inner-reduce op x)
-           (let ((t--- (kernel ((i--- (iota stride)))
-                         (let ((tmp--- (unsafe-vector-ref x i---)))
-                           (for (j--- (+ i--- stride) (length x) stride)
-                             (set! tmp---
-                                   (op tmp--- (unsafe-vector-ref x j---))))
-                           tmp---))))
-             (inner-reduce op t---))))))
+           (let ((t (kernel ((i (iota stride)))
+                         (let ((tmp (unsafe-vector-ref x i)))
+                           (for (j (+ i stride) (length x) stride)
+                             (set! tmp
+                                   (op tmp (unsafe-vector-ref x j))))
+                           tmp))))
+             (inner-reduce op t))))))
 
   (define-macro sqrt ()
     ((_ x) (harlan_sqrt x)))
+  
   )
