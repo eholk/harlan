@@ -42,7 +42,7 @@
       ((extended-env v e)
        (if (= 0 x)
            (apply-k-t k v)
-           (lookup-t x e k)))))
+           (lookup-t (- x 1) e k)))))
   
   (define (value-of e env k)
     (match e
