@@ -105,4 +105,7 @@
                                    (op tmp--- (unsafe-vector-ref x j---))))
                            tmp---))))
              (inner-reduce op t---))))))
+
+  (define-macro sqrt ()
+    ((_ x) (harlan_sqrt x)))
   )

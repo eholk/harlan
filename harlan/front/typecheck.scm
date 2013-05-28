@@ -426,7 +426,7 @@
                       (list (cons name t)))))
                 decls))
      ;; Add some primitives
-     '((sqrt (float) -> float))))
+     '((harlan_sqrt (float) -> float))))
 
   (define (recursive-adt? name graph)
     (let loop ((path (list name)))

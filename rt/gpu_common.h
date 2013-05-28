@@ -28,3 +28,6 @@ typedef struct region_ {
 
 // Extract the tag from an ADT
 #define extract_tag(x) ((x).tag)
+
+
+#define harlan_sqrt(x) (sqrt(((float)(x))))
