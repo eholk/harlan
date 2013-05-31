@@ -135,6 +135,8 @@
          (sk '()))
         ((and (memq p kw*) (ident? e) (eq? p (ident-name e)))
          (sk '()))
+        ((and (memq p kw*) (symbol? e) (eq? p e))
+         (sk '()))
         ((and (symbol? p) (not (memq p kw*)))
          (if (memq e kw*)
              (error 'match-pat "misplaced aux keyword" e)
@@ -168,6 +170,7 @@
        (cons (subst* (car p) bindings)
              (subst* (cdr p) bindings)))
       ((lookup-ident p bindings) => cdr)
+      ((assq p bindings) => cdr)
       (else p)))
 
   (define (snoc d a)
@@ -193,7 +196,7 @@
        #f)
       ((pair? ls)
        (or (mem* x (car ls)) (mem* x (cdr ls))))
-      (else (or (eq? x ls) (ident-equal? x ls)))))
+      (else (or (eq? x ls) (and (ident? x) (ident-equal? x ls))))))
 
   (define (apply-macro kw* patterns e)
     (if (null? patterns)
@@ -269,58 +272,6 @@
        (cons (expand-one (make-wrap e '() '()) env) e*))
       (() '())))
        
-  (define (expand-let e)
-    (match-pat
-     '()
-     `(_ ((x e) ...) b ...)
-     e
-     (lambda (env)
-       (let ((x (get-... 'x env))
-             (e (get-... 'e env))
-             (b (get-... 'b env)))
-         (let ((let (gensym 'let))
-               (x^ (map gen-ident x)))
-           (putprop let 'rename 'let)
-           (match #t
-             (#t
-              `(,let ((,x^ ,e) ...)
-                 ,(make-wrap `(begin ,b ...) '() (map cons x x^))))))))
-     (lambda () (error 'expand-let "invalid syntax" e))))
-
-  (define (expand-kernel e)
-    (match-pat
-     '()
-     `(_ ((x e) ...) b ...)
-     e
-     (lambda (env)
-       (let ((x (get-... 'x env))
-             (e (get-... 'e env))
-             (b (get-... 'b env)))
-         (let ((kernel (rename-sym 'kernel))
-               (x^ (map gen-ident x)))
-           (match #t
-             (#t
-              `(,kernel ((,x^ ,e) ...)
-                 ,(make-wrap `(begin ,b ...) '() (map cons x x^))))))))
-     (lambda () (error 'expand-kernel "invalid syntax" e))))
-
-  (define (expand-define e)
-    (match-pat
-     '()
-     `(_ (f x ...) b ...)
-     e
-     (lambda (env)
-       (let ((x (get-... 'x env))
-             (b (get-... 'b env)))
-         (let ((define (gensym 'define))
-               (x^ (map gen-ident x)))
-           (putprop define 'rename 'define)
-           (match #t
-             (#t
-              `(,define (,(lookup 'f env) ,x^ ...)
-                 ,(make-wrap `(begin ,b ...) '() (map cons x x^))))))))
-     (lambda () (error 'expand-define "invalid syntax" e))))
-
   (define (expand-let-region e)
     (match-pat
      '()
@@ -411,18 +362,113 @@
             (else e)))
         e))
     
-  (define primitive-env
-    (map (lambda (b)
-           (cons (make-ident (car b) '())
-                 (cdr b)))
-         `((let . ,expand-let)
-           (define . ,expand-define)
-           (let-region . ,expand-let-region)
-           (match . ,expand-match)
-           (kernel . ,expand-kernel))))
+  (define (subst-only e env)
+    (cond
+      ((symbol? e)
+       (let ((t (assq e env)))
+         (if (and t (symbol? (cdr t)))
+             (cdr t)
+             e)))
+      ((pair? e)
+       (cons (subst-only (car e) env)
+             (subst-only (cdr e) env)))
+      (else e)))
+  
+  ;; This is a macro expander inspired by a typical metacircular
+  ;; interpreter.
+  ;;
+  ;; The environment will either contain symbols, pairs or
+  ;; procedures. Procedures are syntax transformers. The define-macro
+  ;; transformer will be a special transformer that creates new
+  ;; transformers.
+  (define (expander x env)
+    (cond
+      ((symbol? x)
+       (let ((t (assq x env)))
+         (if t (cdr t) x)))
+      ((pair? x)
+       (let ((a (expander (car x) env)))
+         (if (procedure? a)
+             (expander (a (subst-only (cdr x) env) env) env)
+             (cons a (map (lambda (x) (expander x env)) (cdr x))))))
+      (else x)))
 
+  (define (expand-define x env)
+    (match x
+      (((,f . ,x*) . ,b)
+       (let* ((x*^ (map gensym x*))
+              (define (rename-sym 'define))
+              (env (append (map cons x* x*^)
+                           env)))
+         `(,define (,f . ,x*^) .
+            ,(map (lambda (b) (subst-only b env)) b))))))
+  
+  (define (expand-let x env)
+    (match x
+      ((((,x ,e) ...) . ,b)
+       (let* ((x^ (map gensym x))
+              (let (rename-sym 'let))
+              (env^ (append (map cons x x^) env)))
+         `(,let ,(map list x^ e)
+            . ,(map (lambda (b) (subst-only b env^)) b))))))
+
+  (define (expand-kernel x env)
+    (match x
+      ((((,x ,e) ...) . ,b)
+       (let* ((x^ (map gensym x))
+              (let (rename-sym 'kernel))
+              (env^ (append (map cons x x^) env)))
+         `(,let ,(map list x^ e)
+            . ,(map (lambda (b) (subst-only b env^)) b))))))
+
+  ;; These are all the macros that are brought into scope with the
+  ;; module form.
+  (define module-prelude
+    `((define . ,expand-define)
+      (let . ,expand-let)
+      (kernel . ,expand-kernel)))
+    
+  (define (expand-module x env)
+    (cons
+     (rename-sym 'module)
+     (let loop ((x x)
+                (env module-prelude))
+       (match x
+         (((define-macro ,name ,kw . ,patterns) . ,rest)
+          (loop rest (cons (cons name (make-expander kw patterns))
+                           env)))
+         ((,a . ,rest)
+          (cons (expander a env) (loop rest env)))
+         (() '())))))
+
+  ;; This is basically not right. We need to match the pattern, return
+  ;; the appropriate body, and then extend the environment and call
+  ;; expander again. This means our environment will need to allow
+  ;; ... and the expander will also need to support this.;
+  (define (make-expander kw* patterns)
+    (lambda (e env)
+      (let loop ((patterns patterns))
+        (if (null? patterns)
+            (error 'apply-macro "Invalid syntax")
+            (match-pat kw* (caar patterns) (cons '_ e)
+                       (lambda (bindings)
+                         (let ((template (cadar patterns)))
+                           (subst* template bindings)))
+                       (lambda ()
+                         (loop (cdr patterns))))))))
+
+  ;;(expand-macros '(module
+  ;;                  (define-macro or ()
+  ;;                    ((_ e1 e2) (let ((t e1)) (if t t e2))))
+  ;;                  (define (add a b)
+  ;;                    (or a b))))
+  ;;
+  ;;(expand-macros '(module
+  ;;                  (define-macro or ()
+  ;;                    ((_ e1 e2) (let ((t e1)) (if t t e2))))
+  ;;                  (define (add a b)
+  ;;                    (let ((if 5))
+  ;;                      (or if b)))))
+  
   (define (expand-macros x)
-    ;; Assume we got a (module decl ...) form
-    `(module . ,(reify-idents
-                 (expand-top (cdr x)
-                             '() #;primitive-env)))))
+    (reify (expander x `((module . ,expand-module))))))
