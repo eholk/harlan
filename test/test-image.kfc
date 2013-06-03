@@ -1,4 +1,6 @@
 (module
+  (import graphics)
+  
   (define (main)
     (let ((img (kernel ((i (iota 1024)))
                  (kernel ((j (iota 1024)))

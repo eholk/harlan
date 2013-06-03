@@ -1,6 +1,8 @@
 ;; A Mandelbrot written in a more modern Harlan.
 
 (module
+  (import graphics)
+
   (extern nanotime () -> u64)
 
   (define-datatype Complex

@@ -2,6 +2,8 @@
  (%tags))
 
 (module
+  (import graphics)
+
   (extern nanotime () -> u64)
   (define (main)
     (let ((start (nanotime)))
