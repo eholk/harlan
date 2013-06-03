@@ -9,7 +9,7 @@
 
   (define (match-pat kw* p e sk fk)
     (cond
-      ((and (pair? p) (pair? (cdr p)) (eq? '... (cadr p)))
+      ((and (pair? p) (pair? (cdr p)) (is-...? (cadr p)))
        (let loop ((e e)
                   (b '()))
          (if (null? e)
@@ -32,7 +32,8 @@
                   fk))
       ((eq? p '_)
        (sk '()))
-      ((and (memq p kw*) (symbol? e) (eq? p e))
+      ((and (memq p kw*) (or (and (symbol? e) (eq? p e))
+                             (and (ident? e) (eq? p (ident-symbol e)))))
        (sk '()))
       ((and (symbol? p) (not (memq p kw*)))
        (if (memq e kw*)
@@ -46,6 +47,8 @@
     (cond
       ((symbol? x)
        (eq? x '...))
+      ((ident? x)
+       (eq? (ident-symbol x) '...))
       (else #f)))
   
   (define (subst* p bindings)
@@ -64,7 +67,7 @@
       ((pair? p)
        (cons (subst* (car p) bindings)
              (subst* (cdr p) bindings)))
-      ((assq p bindings) => cdr)
+      ((and (ident? p) (assq (ident-symbol p) bindings)) => cdr)
       (else p)))
 
   (define (snoc d a)
@@ -101,7 +104,8 @@
        #f)
       ((pair? ls)
        (or (mem* x (car ls)) (mem* x (cdr ls))))
-      (else (or (eq? x ls)))))
+      (else (or (eq? x ls)
+                (and (ident? ls) (eq? x (ident-symbol ls)))))))
 
   ;; Record-case is pretty handy, we should probably move it over to
   ;; Elegant Weapons.
@@ -137,82 +141,57 @@
        (begin b ...))
       ((_ e) (void))))
 
-  ;; Mutable environments... this is horrible.
-  (define-record-type environ
-    (fields (mutable env)))
+  ;; This time, we start by marking all identifiers with a color. The
+  ;; idea is that once colored, any two identifiers that are eq?
+  ;; should lexically refer to the same variable.
 
-  (define (empty-env)
-    (make-environ '()))
+  (define-record-type ident (fields symbol id)
+    (protocol (let ((next-id 0))
+                (lambda (new)
+                  (lambda (x)
+                    (let ((id next-id))
+                      (set! next-id (+ 1 next-id))
+                      (new x id)))))))
 
-  (define (clone-env e)
-    (make-environ (environ-env e)))
-
-  (define (push-env e x v)
-    (environ-env-set! e (cons (cons x v)
-                              (environ-env e)))
-    e)
-
-  (define (extend-env e x v)
-    (record-case e
-      ((environ env)
-       (make-environ (cons (cons x v) env)))))
-
-  (define (extend-env* e extension)
-    (record-case e
-      ((environ env)
-       (make-environ (append extension env)))))
-  
-  (define-syntax lookup
-    (syntax-rules (else)
-      ((_ x e
-          (y => b)
-          (else er))
-       (let ((t (assq x (environ-env e))))
+  (define (color e env)
+    (cond
+      ((symbol? e)
+       (let ((t (assq e env)))
          (if t
-             (let ((y (cdr t))) b)
-             er)))))
+             (values (cdr t) env)
+             (let ((id (make-ident e)))
+               (values id (cons (cons e id) env))))))
+      ((ident? e) (values e env))
+      ((pair? e)
+       (match e
+         ((define-macro ,name . ,rest)
+          (let-values (((name env) (color name env)))
+            (let-values (((rest env^) (color rest env)))
+              (values `(define-macro ,name . ,rest)
+                      env))))
+         (,else
+          (let-values (((a env) (color (car e) env)))
+            (let-values (((d env) (color (cdr e) env)))
+              (values (cons a d) env))))))
+      (else (values e env))))
 
-  ;; Syntactic closures and identifiers.
-
-  (define-record-type sc (fields expr env))
-
-  (define-record-type ident (fields symbol env))
-
-  ;; Now, stuff to manipulate syntactic closures and such.
-
-  ;; Takes a syntactic object and transports it to a new environment.
-  (define (capture e env)
-    (record-case e
-      ((sc e env^)
-       (make-sc e env))
-      ((ident x env^)
-       (make-ident x env))
-      (else
-       (make-sc e env))))
-  
-  (define (expose e)
-    (record-case e
-      ((sc e env)
-       (cond
-         ((pair? e) (map expose e))
-         ((symbol? e) (make-ident e env))
-         ((sc? e) (expose e))
-         (else e)))
-      ((ident x env)
-       e)
+  (define (uncolor e)
+    (cond
+      ((pair? e)
+       (cons (uncolor (car e))
+             (uncolor (cdr e))))
+      ((ident? e)
+       (ident-symbol e))
       (else e)))
-
-  (define (reify e)
-    (record-case e
-      ((ident x e)
-       (lookup x e
-               (x => x)
-               (else x)))
-      (else
-       (cond
-         ((pair? e) (map reify e))
-         (else e)))))
     
+  ;; I think we'll want two environments. The color environment maps
+  ;; symbols onto identifiers. The macro environment will then map
+  ;; identifiers onto macros. Macro expanders will definitely need to
+  ;; capture the color environment, but I'm not sure about the macro
+  ;; environment.
+
+  
+  
   ;; This is a macro expander inspired by a typical metacircular
   ;; interpreter.
   ;;
@@ -220,101 +199,145 @@
   ;; procedures. Procedures are syntax transformers. The define-macro
   ;; transformer will be a special transformer that creates new
   ;; transformers.
-  (define (expander x env)
-    (record-case x
-      ((ident x env^)
-       (lookup x env^
-               (x => x)
-               (else x)))
-      ((sc x env^)
-       (expander (expose x) env^))
-      (else       
-       (cond
-         ((symbol? x)
-          (lookup x env
-                  (x => x)
-                  (else x)))
-         ((pair? x)
-          (let ((a (expander (car x) env)))
-            (if (procedure? a)
-                (a (cdr x) env)
-                (cons a (map (lambda (x) (expander x env)) (cdr x))))))
-         (else x)))))
+  (define (expander x colors macros)
+    (cond
+      ((pair? x)
+       (let ((a (car x)))
+         (cond
+           ((assq a macros) =>
+            (lambda (a)
+              ((cdr a) (cdr x) colors macros)))
+           (else (map (lambda (x) (expander x colors macros)) x)))))
+      (else x)))
 
-  (define (expand-define x env)
-    (match x
-      (((,f . ,x*) . ,b)
-       (let* ((x*^ (map gensym x*))
-              (env (extend-env* env (map cons x* x*^))))
-         `(define (,f . ,x*^) .
-            ,(map (lambda (b) (expander (capture b env) env)) b))))))
-  
-  (define (expand-let x env)
-    (match x
-      ((((,x ,e) ...) . ,b)
-       (let* ((x^ (map gensym x))
-              (env^ (extend-env* env (map cons x x^)))
-              (e (map (lambda (e) (expander (capture e env) env)) e)))
-         `(let ,(map list x^ e)
-            . ,(map (lambda (b) (expander (capture b env^) env^)) b))))))
-
-  (define (expand-kernel x env)
-    (match x
-      ((((,x ,e) ...) . ,b)
-       (let* ((x^ (map gensym x))
-              (env^ (extend-env* env (map cons x x^)))
-              (e (map (lambda (e) (expander (capture e env) env)) e)))
-         `(kernel ,(map list x^ e)
-            . ,(map (lambda (b) (expander (capture b env^) env^)) b))))))
-
-  ;; These are all the macros that are brought into scope with the
-  ;; module form.
-  (define module-prelude
-    (make-environ
-     `((define . ,expand-define)
-       (let . ,expand-let)
-       (kernel . ,expand-kernel))))
-    
-  (define (expand-module x env)
+  (define (expand-module x colors)
     (cons
      'module
-     (let loop ((x x)
-                (env module-prelude))
+     (let loop ((x (cdr x))
+                (macros '()))
        (match x
          (((define-macro ,name ,kw . ,patterns) . ,rest)
-          (loop rest (extend-env env name (make-expander kw patterns env))))
+          (guard ;(eq? define-macro (cdr (assq 'define-macro colors)))
+                 (ident? name))
+          (loop rest
+                (cons (cons name
+                            (make-expander kw patterns colors macros))
+                      macros)))
          ((,a . ,rest)
-          (cons (expander a env) (loop rest env)))
+          (cons (expander a colors macros) (loop rest macros)))
          (() '())))))
 
-  (define (make-expander kw* patterns env)
-    (lambda (e env^)
-      (let loop ((patterns patterns))
-        (if (null? patterns)
-            (error 'apply-macro "Invalid syntax")
-            (match-pat kw* (caar patterns) (cons '_ e)
-                       (lambda (bindings)
-                         (let* ((template (cadar patterns))
-                                (e (subst* template bindings)))
-                           (expander (make-sc e env) env^)))
-                       (lambda ()
-                         (loop (cdr patterns))))))))
+  (define (make-expander kw* patterns colors macros)
+    (let ((patterns (map (lambda (p)
+                           (cons (uncolor (car p))
+                                 (cdr p)))
+                         patterns))
+          (kw* (map ident-symbol kw*)))
+      ;;(pretty-print patterns) (newline)
+      ;;(display "colors ") (pretty-print colors) (newline)
+      (lambda (e colors^ macros^)
+        ;;(display "colors^ ") (pretty-print colors^) (newline)
+        ;;(display "matching pattern ")
+        ;;(pretty-print e)
+        (let loop ((patterns patterns))
+          (if (null? patterns)
+              (error 'apply-macro "Invalid syntax")
+              (match-pat kw* (caar patterns) (cons '_ e)
+                         (lambda (bindings)
+                           ;;(display bindings) (newline)
+                           (let* ((template (cadar patterns))
+                                  (e (subst* template bindings)))
+                             ;;(display "precolor ") (display e) (newline)
+                             (let-values
+                                 (((e colors) (color e colors)))
+                               ;;(display "postcolor ") (display e) (newline)
+                               (expander e colors macros^))))
+                         (lambda ()
+                           (loop (cdr patterns)))))))))
 
-  ;;(expand-macros '(module
-  ;;                  (define-macro or ()
-  ;;                    ((_ e1 e2) (let ((t e1)) (if t t e2))))
-  ;;                  (define (add a b)
-  ;;                    (or a b))))
+;;  (expand-macros '(module
+;;                    (define-macro or ()
+;;                      ((_ e1 e2) (let ((t e1)) (if t t e2))))
+;;                    (define (add a b)
+;;                      (or a b))))
+;;  
+;;  (expand-macros '(module
+;;                    (define-macro or ()
+;;                      ((_ e1 e2) (let ((t e1)) (if t t e2))))
+;;                    (define (add a b)
+;;                      (let ((if 5))
+;;                        (or if b)))))
   
-  ;;(expand-macros '(module
-  ;;                  (define-macro or ()
-  ;;                    ((_ e1 e2) (let ((t e1)) (if t t e2))))
-  ;;                  (define (add a b)
-  ;;                    (let ((if 5))
-  ;;                      (or if b)))))
-  
+  (define (reify x env)
+    (cond
+      ((pair? x)
+       (let ((a (reify (car x) env)))
+         (case a
+           ((define)
+            (match x
+              ((,define (,name ,x* ...) ,b* ...)
+               (let ((env^ (cons (cons name (ident-symbol name))
+                                 (append
+                                  (map (lambda (x)
+                                         (cons x
+                                               (gensym (ident-symbol x))))
+                                       x*)))))
+                 `(define (,(reify name env^)
+                           ,(reify x* env^) ...)
+                    ,(reify b* env^) ...)))))
+           ((let kernel)
+            (match x
+              ((,_ ((,x ,e) ...) ,b* ...)
+               (let ((e (map (lambda (e)
+                               (reify e env))
+                             e))
+                     (env (append (map (lambda (x)
+                                         (cons x
+                                               (gensym (ident-symbol x))))
+                                       x)
+                                  env)))
+                 `(,a ((,(reify x env) ,e) ...)
+                    ,(reify b* env) ...)))))
+           ((let-region)
+            (match x
+              ((,_ (,r ...) ,b ...)
+               (let ((env (append (map (lambda (x)
+                                         (cons x
+                                               (gensym (ident-symbol x))))
+                                       r)
+                                  env)))
+               `(let-region (,(reify r env) ...)
+                            ,(reify b env) ...)))))
+           ((match)
+            (match x
+              ((,_ ,e
+                   ((,tag ,x* ...) ,b ...) ...)
+               (let ((e (reify e env))
+                     (arms
+                      (map (lambda (tag x* b)
+                             (let ((env
+                                    (cons (cons tag (ident-symbol tag))
+                                          (append
+                                           (map (lambda (x)
+                                                  (cons x
+                                                        (gensym
+                                                         (ident-symbol x))))
+                                                x*)
+                                           env))))
+                               (reify `((,tag ,x* ...) ,b ...) env)))
+                           tag x* b)))
+                 `(match ,e . ,arms)))))
+           (else (cons a (reify (cdr x) env))))))
+      ((ident? x)
+       (let ((t (assq x env)))
+         (if t
+             (cdr t)
+             (ident-symbol x))))
+      (else x)))
+         
   (define (expand-macros x)
-    (reify (expander x (make-environ `((module . ,expand-module))))))
+    (let-values (((x colors) (color x '())))
+      (reify (expand-module x colors) '())))
 
   ;; end library
   )
