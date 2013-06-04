@@ -74,23 +74,6 @@
        (print ")")
        0)))
 
-  (define-macro on-gpu ()
-    ((_ e)
-     (vector-ref (kernel ((xxx (vector 0))) e) 0)))
-
-  ;; Weird, gpu-apply works, but (on-gpu (apply-thunk t)) causes a
-  ;; segmentation fault. Need to file bug.
-  (define-macro gpu-apply ()
-    ((_ f e)
-     (vector-ref (kernel ((xxx (vector e))) (f xxx)) 0)))
-  
-  (define (eval t)
-    (match t
-      ((final-t v) v)
-      ((value-of-t e env k) (eval (gpu-apply apply-thunk t)))
-      ((apply-k-t k v) (eval (gpu-apply apply-thunk t)))
-      ((lookup-t x env k) (eval (gpu-apply apply-thunk t)))))
-
   (define (eval-many exprs steps)
     (kernel ((e exprs))
       (let ((e e))
@@ -101,7 +84,7 @@
   (define (main)
     (let* ((Omega (app (lambda (app (variable 0) (variable 0)))
                        (lambda (app (variable 0) (variable 0)))))
-           (exprs (kernel ((_ (iota 100)))
+           (exprs (kernel ((_ (iota 1)))
                     (value-of-t Omega (empty-env) (final-k)))))
       (println "Evaluating expressions")
       (eval-many exprs 100))
