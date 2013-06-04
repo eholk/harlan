@@ -1,0 +1,109 @@
+(%testspec
+ (%tags bench))
+
+(module
+
+  (define-datatype Expr
+    (variable int)
+    (lambda Expr)
+    (app Expr Expr))
+
+  (define-datatype Value
+    (error)
+    (closure Expr Env))
+
+  (define-datatype Env
+    (empty-env)
+    (extended-env Value Env))
+
+  (define-datatype Cont
+    (final-k)
+    (rator-k Expr Env Cont)
+    (rand-k Value Cont))
+
+  (define-datatype Thunk
+    (final-t Value)
+    (value-of-t Expr Env Cont)
+    (apply-k-t Cont Value)
+    (lookup-t int Env Cont))
+  
+  (define (apply-k k v)
+    (match k
+      ((final-k) (final-t v))
+      ((rator-k e env k)
+       (value-of-t e env (rand-k v k)))
+      ((rand-k f k)
+       (match f
+         ((error) (apply-k-t k (error)))
+         ((closure e env)
+          (value-of-t e (extended-env v env) k))))))
+  
+  
+  (define (lookup x e k)
+    (match e
+      ((empty-env) (final-t (error)))
+      ((extended-env v e)
+       (if (= 0 x)
+           (apply-k-t k v)
+           (lookup-t (- x 1) e k)))))
+  
+  (define (value-of e env k)
+    (match e
+      ((variable x) (lookup-t x env k))
+      ((lambda b) (apply-k-t k (closure b env)))
+      ((app e1 e2)
+       (value-of-t e1 env
+                 (rator-k e2 env k)))))
+
+  (define (apply-thunk t)
+    (match t
+      ((final-t v) (final-t v))
+      ((value-of-t e env k) (value-of e env k))
+      ((apply-k-t k v) (apply-k k v))
+      ((lookup-t x env k) (lookup x env k))))
+  
+  (define (print-val v)
+    (match v
+      ((error) (print "(error)") 0)
+      ((closure b e)
+       (print "(closure ")
+       ;;(print-expr b)
+       ;;(print " ")
+       ;;(print-env e)
+       (print " ...")
+       (print ")")
+       0)))
+
+  (define-macro on-gpu ()
+    ((_ e)
+     (vector-ref (kernel ((xxx (vector 0))) e) 0)))
+
+  ;; Weird, gpu-apply works, but (on-gpu (apply-thunk t)) causes a
+  ;; segmentation fault. Need to file bug.
+  (define-macro gpu-apply ()
+    ((_ f e)
+     (vector-ref (kernel ((xxx (vector e))) (f xxx)) 0)))
+  
+  (define (eval t)
+    (match t
+      ((final-t v) v)
+      ((value-of-t e env k) (eval (gpu-apply apply-thunk t)))
+      ((apply-k-t k v) (eval (gpu-apply apply-thunk t)))
+      ((lookup-t x env k) (eval (gpu-apply apply-thunk t)))))
+
+  (define (eval-many exprs steps)
+    (kernel ((e exprs))
+      (let ((e e))
+        (for (_ 0 steps)
+          (set! e (apply-thunk e)))
+        e)))
+  
+  (define (main)
+    (let* ((Omega (app (lambda (app (variable 0) (variable 0)))
+                       (lambda (app (variable 0) (variable 0)))))
+           (exprs (kernel ((_ (iota 100)))
+                    (value-of-t Omega (empty-env) (final-k)))))
+      (println "Evaluating expressions")
+      (eval-many exprs 100))
+    (return 0))
+  )
