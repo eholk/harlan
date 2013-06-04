@@ -29,6 +29,13 @@
          body ...
          (set! i (+ i stepv))))))
 
+  (define-macro kernel* ()
+    ((_ ((x e)) b)
+     (kernel ((x e)) b))
+    ((_ ((x e) (x* e*) ...) b)
+     (kernel ((x e))
+       (kernel* ((x* e*) ...) b))))
+  
   (define-macro inner-reduce (kernel)
     ;; This first one fuses reduce of a kernel.
     ((_ op (kernel ((x e) (x* e*) ...) b))
