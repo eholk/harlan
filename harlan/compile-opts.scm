@@ -7,6 +7,7 @@
     verify
     generate-debug
     make-shared-object
+    no-kernels
     test-tags
     trace-pass
     untrace-pass
@@ -27,6 +28,7 @@
 (define generate-debug     (make-parameter #f))
 (define make-shared-object (make-parameter #f))
 (define optimize-level     (make-parameter 1))
+(define no-kernels         (make-parameter #f))
 (define test-tags  (make-parameter '((xfail . -) (bench . -))))
 
 (define trace-passes '())
@@ -78,6 +80,7 @@
     ((("--debug" "-g"))        (generate-debug #t))
     ((("--shared" "-s"))       (make-shared-object #t))
     ((("--quiet" "-q"))        (quiet #t))
+    ((("--no-kernels"))        (no-kernels #t))
     ((("--no-verify" "-V"))    (verify #f))
     ((("--time" "-t"))         (timing #t))
     ((("--tags" "-x") tags)    (parse-tags tags))))
