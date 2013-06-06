@@ -4,6 +4,7 @@
   (import
    (rnrs)
    (except (elegant-weapons helpers) ident?)
+   (harlan compile-opts)
    (harlan helpers)
    (cKanren mk))
 
@@ -63,7 +64,7 @@
   ((kernel (vec ,r ,t) ,r (,[dims] ...)
            (((,x* ,t*) (,[xs*] ,ts*) ,d*) ...)
            ,[(Expr #t) -> e])
-   (if k
+   (if (or (no-kernels) k)
        (kernel->for t r dims x* t* xs* ts* d* e)
        `(kernel (vec ,r ,t) ,r ,dims
                 (((,x* ,t*) (,xs* ,ts*) ,d*) ...)
