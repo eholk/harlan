@@ -193,13 +193,20 @@
   (define (bind-fields tag x e typedef)
     (let* ((id (tag-id tag typedef))
            (t* (list-ref (cdr typedef) id))
-           (maybe-unbox (lambda (t e)
-                          (match t
-                            ((adt ,n ,r)
-                             (match (type-of e)
-                               ((adt ,_ ,r)
-                                `(unbox ,t ,r ,e))))
-                            (,else e)))))
+           (maybe-unbox
+            (let ((outer-region
+                   (match (type-of e)
+                     ((adt ,_ ,r)
+                      r)
+                     (,else #f))))
+              (lambda (t e)
+                (match t
+                  ((adt ,n ,r)
+                   (match (type-of e)
+                     ((adt ,_ ,r)
+                      (assert outer-region)
+                      `(unbox ,t ,outer-region ,e))))
+                  (,else e))))))
       (match t*
         ((,tag . ,t*)
          (let loop ((j 0)

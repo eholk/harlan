@@ -79,6 +79,8 @@ region *create_region(int size)
 
 void free_region(region *r)
 {
+    fprintf(stderr, "freeing region %p. %d bytes allocated\n",
+            r, r->alloc_ptr);
     if(r->cl_buffer) {
         clReleaseMemObject((cl_mem)r->cl_buffer);
     }
@@ -93,7 +95,7 @@ void map_region(region *header)
 
     cl_mem buffer = (cl_mem)header->cl_buffer;
 
-    //printf("map_region: old alloc_ptr = %d\n", header->alloc_ptr);
+    printf("map_region: old alloc_ptr = %d\n", header->alloc_ptr);
 
     // Read just the header
     status = clEnqueueReadBuffer(g_queue,
@@ -107,7 +109,7 @@ void map_region(region *header)
                                  NULL);
     CL_CHECK(status);
 
-    //printf("map_region: new alloc_ptr = %d\n", header->alloc_ptr);
+    printf("map_region: new alloc_ptr = %d\n", header->alloc_ptr);
 
     //printf("map_region: read %lu bytes, reading %lu more.\n",
     //       sizeof(region), header->alloc_ptr - sizeof(region));
@@ -137,6 +139,9 @@ void unmap_region(region *header)
     // TODO: we might want to report a warning in this case.
     if(header->cl_buffer) return;
     //assert(!header->cl_buffer);
+
+    //fprintf(stderr, "unmap_region %p, alloc_ptr = %d\n",
+    //        header, header->alloc_ptr);
 
     cl_int status = 0;
     cl_mem buffer = clCreateBuffer(g_ctx,
