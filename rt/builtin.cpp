@@ -37,6 +37,13 @@ uint64_t nanotime() {
 #endif    
 }
 
+// () -> float
+//
+// Retuns the value of a timer in seconds.
+double time$s() {
+  return double(nanotime()) / 1e9;
+}
+
 // (str) -> (ptr ofstream)
 std::ofstream* open_outfile(const char *filename) {
     // TODO: This is leaking files
