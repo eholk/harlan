@@ -22,7 +22,7 @@ uint64_t nanotime();
 
 std::string device::name()
 {
-	char n[256];
+  char n[256] = {0};
 	clGetDeviceInfo(id, CL_DEVICE_NAME, sizeof(n), n, NULL);
 
 	return std::string(n);

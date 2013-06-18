@@ -3,6 +3,8 @@
 
 (module
 
+  (extern time-s () -> float)
+
   (define-datatype Expr
     (variable int)
     (lambda Expr)
@@ -84,9 +86,14 @@
   (define (main)
     (let* ((Omega (app (lambda (app (variable 0) (variable 0)))
                        (lambda (app (variable 0) (variable 0)))))
-           (exprs (kernel ((_ (iota 2)))
+           (exprs (kernel ((_ (iota 1000)))
                     (value-of-t Omega (empty-env) (final-k)))))
       (println "Evaluating expressions")
-      (println (length (eval-many exprs 100))))
-    (return 0))
+      (let* ((start (time-s))
+	     (result (eval-many exprs 200))
+	     (stop (time-s)))
+	(print (length result))
+	(print "\t")
+	(println (- stop start)))
+      (return 0)))
   )
