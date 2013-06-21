@@ -2,7 +2,7 @@
 
   (define-datatype Expr
     (variable int)
-    (lambda Expr)
+    (Lambda Expr)
     (app Expr Expr))
 
   (define-datatype Value
@@ -42,7 +42,7 @@
       ((eval-k e env k)
        (match e
          ((variable x) (k-t (lookup-k x env k)))
-         ((lambda b) (apply-k-t k (closure b env)))
+         ((Lambda b) (apply-k-t k (closure b env)))
          ((app e1 e2)
           (k-t (eval-k e1 env (rator-k e2 env k))))))
       ((lookup-k x e k)
@@ -71,7 +71,7 @@
      0))
   
   (define (main)
-    (let ((e (app (lambda (variable 0)) (lambda (variable 0)))))
+    (let ((e (app (Lambda (variable 0)) (Lambda (variable 0)))))
       (let* ((k (k-t (eval-k e (empty-env) (initial-k))))
              (k (apply-thunk k))
              (k (apply-thunk k))

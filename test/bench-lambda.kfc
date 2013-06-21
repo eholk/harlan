@@ -7,7 +7,7 @@
 
   (define-datatype Expr
     (variable int)
-    (lambda Expr)
+    (Lambda Expr)
     (app Expr Expr))
 
   (define-datatype Value
@@ -52,7 +52,7 @@
   (define (value-of e env k)
     (match e
       ((variable x) (lookup-t x env k))
-      ((lambda b) (apply-k-t k (closure b env)))
+      ((Lambda b) (apply-k-t k (closure b env)))
       ((app e1 e2)
        (value-of-t e1 env
                  (rator-k e2 env k)))))
@@ -84,8 +84,8 @@
         e)))
   
   (define (bench-step count)
-    (let* ((Omega (app (lambda (app (variable 0) (variable 0)))
-                       (lambda (app (variable 0) (variable 0)))))
+    (let* ((Omega (app (Lambda (app (variable 0) (variable 0)))
+                       (Lambda (app (variable 0) (variable 0)))))
 	   (exprs (kernel ((_ (iota count)))
 		    (value-of-t Omega (empty-env) (final-k))))
 	   (start (time-s))

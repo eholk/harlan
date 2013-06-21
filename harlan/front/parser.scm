@@ -135,6 +135,15 @@
   ((length ,[e])
    `(length ,e))
   ((int->float ,[e]) `(int->float ,e))
+  ((lambda (,x* ...) ,stmt* ... ,expr)
+   (begin
+     (check-idents x*)
+     ;; We don't need to rename things anymore because the macro
+     ;; expander renames things instead.
+     (let* ((env (map cons x* x*))
+            (stmt* (map (parse-stmt env) stmt*))
+            (expr ((parse-expr env) expr)))
+       `(lambda (,x* ...) ,stmt* ... ,expr))))
   ((let ((,x* ,[(parse-expr env) -> e*]) ...) ,stmt* ... ,expr)
    (begin
      (check-idents x*)
@@ -188,7 +197,9 @@
    `(,op ,lhs ,rhs))
   ((,rator ,[rand*] ...)
    (guard (symbol? rator))
-   `(call ,rator . ,rand*)))
+   (let ((rator (let ((t (assq rator env)))
+                  (if t (cdr t) rator))))
+     `(call ,rator . ,rand*))))
 
 ;; end library
 )

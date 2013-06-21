@@ -2,7 +2,7 @@
 
   (define-datatype Expr
     (variable int)
-    (lambda Expr)
+    (Lambda Expr)
     (app Expr Expr))
 
   (define-datatype Value
@@ -47,7 +47,7 @@
   (define (value-of e env k)
     (match e
       ((variable x) (lookup-t x env k))
-      ((lambda b) (apply-k-t k (closure b env)))
+      ((Lambda b) (apply-k-t k (closure b env)))
       ((app e1 e2)
        (value-of-t e1 env
                  (rator-k e2 env k)))))
@@ -89,7 +89,7 @@
       ((lookup-t x env k) (eval (gpu-apply apply-thunk t)))))
   
   (define (main)
-    (let* ((e (app (lambda (variable 0)) (lambda (variable 0))))
+    (let* ((e (app (Lambda (variable 0)) (Lambda (variable 0))))
            (v (eval (value-of-t e (empty-env) (final-k)))))
       (print-val v)
       (println ""))

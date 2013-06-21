@@ -240,6 +240,14 @@
       ((pair? x)
        (let ((a (reify (car x) env)))
          (case a
+           ((lambda)
+            (match x
+              ((,_ (,x* ...) ,b* ...)
+               (let ((env (append (map (lambda (x)
+                                         (cons x (gensym (ident-symbol x))))
+                                       x*)
+                                  env)))
+                 `(lambda ,(reify x* env) . ,(reify b* env))))))
            ((define)
             (match x
               ((,define (,name ,x* ...) ,b* ...)

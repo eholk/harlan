@@ -1,0 +1,11 @@
+(%testspec
+ (%tags xfail))
+
+(module
+
+  (define (main)
+    (let ((add1 (lambda (x) (+ 1 x))))
+      (println (add1 5))
+      (assert (= 6 (add1 5))))
+    0)
+  )

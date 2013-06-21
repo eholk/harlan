@@ -2,7 +2,7 @@
 
   (define-datatype Expr
     (variable int)
-    (lambda Expr)
+    (Lambda Expr)
     (app Expr Expr))
 
   (define (subst e i v)
@@ -11,25 +11,25 @@
        (if (= n i)
            v
            (variable n)))
-      ((lambda e)
-       (lambda (subst e (+ 1 i) v)))
+      ((Lambda e)
+       (Lambda (subst e (+ 1 i) v)))
       ((app e1 e2)
        (app (subst e1 i v) (subst e2 i v)))))
 
   (define (stepe e)
     (match e
       ((variable n) (variable n))
-      ((lambda e) (lambda e))
+      ((Lambda e) (Lambda e))
       ((app e1 e2)
        (match e1
          ((variable n) (app (variable n) e2))
-         ((lambda e)
+         ((Lambda e)
           (subst e 0 e2))
          ((app e1 e2)
           (app (stepe e1) e2))))))
 
   (define (main)
-    (let ((e (app (lambda (variable 0)) (lambda (variable 0)))))
+    (let ((e (app (Lambda (variable 0)) (Lambda (variable 0)))))
       (stepe e))
     (return 0))
   )
