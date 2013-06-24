@@ -1,6 +1,8 @@
 (library
     (harlan middle remove-lambdas)
-  (export remove-lambdas M0 parse-M0 unparse-M0)
+  (export remove-lambdas
+          M0 parse-M0 unparse-M0
+          M1 parse-M1 unparse-M1)
   (import
    (rnrs)
    (nanopass)
@@ -53,13 +55,41 @@
      (let-region (r ...) e)
      (lambda ((x t) ...) e)
      (invoke e e* ...)
+     (call e e* ...)
      (op e1 e2)
      (var t x)))
 
-  (define-parser parse-M0 M0)
+  (define-language M1
+    (extends M0)
+    (entry Module)
+    (Expr
+     (e)
+     (- (lambda ((x t) ...) e)
+        (invoke e e* ...))))
   
+  (define-parser parse-M0 M0)
+  (define-parser parse-M1 M1)
+  
+  (define-pass np-remove-lambdas : M0 (m) -> M1 ()
+    (Expr : Expr (expr) -> Expr ()
+          ((lambda ((,x* ,t*) ...) ,e)
+           `(int 5))
+          ((invoke ,[e] ,[e*] ...)
+           `(call ,e ,e* ...))))
 
+  ;; I'm a horrible person for defining this.
+  (define-syntax ->
+    (syntax-rules ()
+      ((_ e) e)
+      ((_ e (x a ...) e* ...)
+       (-> (x e a ...) e* ...))
+      ((_ e x e* ...)
+       (-> (x e) e* ...))))
+  
   (define (remove-lambdas module)
-    (unparse-M0 (parse-M0 module)))
+    (-> module
+        parse-M0
+        np-remove-lambdas
+        unparse-M1))
   )
 
