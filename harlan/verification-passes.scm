@@ -41,7 +41,17 @@
 (grammar-transforms
 
   (%static
-    (Type
+   (SType
+      Var
+      harlan-type
+      (vec SType)
+      (ptr SType)
+      (ref SType)
+      (adt SType)
+      (struct (Var SType) *)
+      (union (Var SType) *)
+      ((SType *) -> SType))
+   (Type
       Var
       harlan-type
       (vec Type)
@@ -50,7 +60,7 @@
       (adt Type)
       (struct (Var Type) *)
       (union (Var Type) *)
-      ((Type *) -> Type))
+      (fn (Type *) -> Type))
     (C-Type
       harlan-c-type
       harlan-cl-type
@@ -67,7 +77,7 @@
      (adt Rho-Type Var)
      (adt Rho-Type)
      (closure Var (Rho-Type *) -> Rho-Type)
-     ((Rho-Type *) -> Rho-Type))
+     (fn (Rho-Type *) -> Rho-Type))
     (Var ident)
     (Integer integer)
     (Binop binop)
@@ -83,7 +93,7 @@
     (Start Module)
     (Module (module Decl +))
     (Decl
-      (extern Var (Type *) -> Type)
+      (extern Var (SType *) -> SType)
       (fn Var (Var *) Value +) ;; depricated, use define instead
       (define (Var Var *) Value +))
     (Value
@@ -123,11 +133,11 @@
   (parse-harlan (%inherits Module)
     (Start Module)
     (Decl
-      (extern Var (Type *) -> Type)
+      (extern Var (SType *) -> SType)
       (define-datatype Var TPattern *)
       (fn Var (Var *) Stmt))
     (TPattern
-     (Var Type *))
+     (Var SType *))
     (Stmt
       (let ((Var Expr) *) Stmt)
       (let-region (RegionVar) Stmt)
@@ -182,7 +192,7 @@
     (Decl
       (fn Var (Var *) Body)
       (define-datatype Var TPattern *)
-      (extern Var (Type *) -> Type))
+      (extern Var (SType *) -> SType))
     (Body
       (begin Stmt * Body)
       (let ((Var Expr) *) Body)
