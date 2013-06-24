@@ -6,6 +6,7 @@
     (harlan compile-opts)
     (harlan verification-passes)
     (harlan middle lifting)
+    (harlan middle remove-lambdas)
     (harlan middle desugar-match)
     (harlan middle make-kernel-dimensions-explicit)
     (harlan middle make-work-size-explicit)
@@ -31,6 +32,7 @@
 ;; to go here. This goes from TFC to something we can give to print-c.
 (define compile-harlan-middle
   (passes
+   (remove-lambdas)
    (desugar-match
     verify-desugar-match)
    (make-kernel-dimensions-explicit

@@ -7,3 +7,6 @@
 [submodule "external/cKanren"]
 	path = external/cKanren
 	url = https://github.com/calvis/cKanren.git
+[submodule "external/nanopass-framework"]
+	path = external/nanopass-framework
+	url = https://github.com/akeep/nanopass-framework.git

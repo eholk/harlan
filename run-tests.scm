@@ -1,5 +1,3 @@
-#! /usr/bin/env scheme-script
-
 ; run-tests.scm <filename-with-extension>
 ; For example,
 ;   ./run-tests.scm bench-add-vector.kfc

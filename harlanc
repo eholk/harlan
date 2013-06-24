@@ -1,6 +1,6 @@
 #!/bin/bash
 
 schemeScript="$0".scm
-dir=`dirname $schemeScript`
+dir=`dirname $schemeScript`:external/nanopass-framework
 
 petite --libdirs "$dir" --program "$schemeScript" $@
