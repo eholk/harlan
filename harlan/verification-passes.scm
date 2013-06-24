@@ -66,6 +66,7 @@
      (ptr Rho-Type)
      (adt Rho-Type Var)
      (adt Rho-Type)
+     (closure Var (Rho-Type *) -> Rho-Type)
      ((Rho-Type *) -> Rho-Type))
     (Var ident)
     (Integer integer)
@@ -157,7 +158,7 @@
       (if Expr Expr Expr)
       (vector-ref Expr Expr)
       (unsafe-vector-ref Expr Expr)
-      (lambda (Var *) Stmt * Expr)
+      (lambda (Var *) Expr)
       (let ((Var Expr) *) Expr)
       (kernel ((Var Expr) +) Expr)
       (kernel-r RegionVar ((Var Expr) +) Expr)
@@ -169,7 +170,8 @@
       (match Expr EPattern *)
       (Binop Expr Expr)
       (Relop Expr Expr)
-      (call Var Expr *))
+      (call Var Expr *)
+      (invoke Expr Expr *))
     (EPattern
      (MPattern Expr))
     (MPattern
@@ -218,7 +220,7 @@
       (if Expr Expr Expr)
       (vector-ref Expr Expr)
       (unsafe-vector-ref Expr Expr)
-      (lambda (Var *) Stmt * Expr)
+      (lambda (Var *) Expr)
       (let ((Var Expr) *) Expr)
       (kernel ((Var Expr) +) Expr)
       (kernel-r RegionVar ((Var Expr) +) Expr)
@@ -230,7 +232,8 @@
       (match Expr EPattern *)
       (Binop Expr Expr)
       (Relop Expr Expr)
-      (call Var Expr *)))
+      (call Var Expr *)
+      (invoke Expr Expr *)))
 
   (typecheck (%inherits Module Ret-Stmt)
     (Start Module)
@@ -287,7 +290,9 @@
       (match Rho-Type Expr ((Var Var *) Expr) *)
       (Binop Rho-Type Expr Expr)
       (Relop Rho-Type Expr Expr)
-      (call Expr Expr *)))
+      (call Expr Expr *)
+      (lambda ((Var Rho-Type) *) Expr)
+      (invoke Expr Expr *)))
 
   (expand-primitives
     (%inherits Module Decl Body Ret-Stmt)
@@ -329,7 +334,9 @@
       (match Rho-Type Expr ((Var Var *) Expr) *)
       (Binop Expr Expr)
       (Relop Expr Expr)
-      (call Expr Expr *)))
+      (call Expr Expr *)
+      (lambda ((Var Rho-Type) *) Expr)
+      (invoke Expr Expr *)))
 
   (desugar-match
    (%inherits Module Body Stmt Ret-Stmt)

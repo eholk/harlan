@@ -143,7 +143,7 @@
      (let* ((env (map cons x* x*))
             (stmt* (map (parse-stmt env) stmt*))
             (expr ((parse-expr env) expr)))
-       `(lambda (,x* ...) ,stmt* ... ,expr))))
+       `(lambda (,x* ...) ,(make-begin `(,@stmt* ,expr))))))
   ((let ((,x* ,[(parse-expr env) -> e*]) ...) ,stmt* ... ,expr)
    (begin
      (check-idents x*)
@@ -196,10 +196,13 @@
    (guard (or (binop? op) (relop? op)))
    `(,op ,lhs ,rhs))
   ((,rator ,[rand*] ...)
-   (guard (symbol? rator))
-   (let ((rator (let ((t (assq rator env)))
-                  (if t (cdr t) rator))))
-     `(call ,rator . ,rand*))))
+   ;; We don't put top-level identifiers in the environment for some
+   ;; reason, so here we take advantage of that fact to differentiate
+   ;; between call and invoke instructions.
+   (guard (and (symbol? rator) (not (assq rator env))))
+   `(call ,rator . ,rand*))
+  ((,[rator] ,[rand*] ...)
+   `(invoke ,rator . ,rand*)))
 
 ;; end library
 )

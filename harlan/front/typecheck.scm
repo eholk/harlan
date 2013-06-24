@@ -4,7 +4,7 @@
   (import
     (rnrs)
     (only (chezscheme) make-parameter parameterize
-          pretty-print printf trace-define trace-let)
+          pretty-print printf trace-define trace-let trace)
     (elegant-weapons match)
     (elegant-weapons helpers)
     (elegant-weapons sets)
@@ -18,6 +18,9 @@
   (define-record-type tvar (fields name))
   (define-record-type rvar (fields name))
 
+  (define (gen-tvar x) (make-tvar (gensym x)))
+  (define (gen-rvar x) (make-rvar (gensym x)))
+  
   (define type-tag (gensym 'type))
   
   ;; Walks type and region variables in a substitution
@@ -41,6 +44,8 @@
       ((ptr ,[t]) `(ptr ,t))
       ((adt ,[t]) `(adt ,t))
       ((adt ,[t] ,r) `(adt ,t ,(walk r s)))
+      ((closure ,r (,[t*] ...) -> ,[t])
+       `(closure ,(walk r s) ,t* -> ,t))
       (((,[t*] ...) -> ,[t]) `((,t* ...) -> ,t))
       (,x (guard (tvar? x))
           (let ((x^ (walk x s)))
@@ -85,6 +90,20 @@
          (and s (if (eq? ra rb)
                     s
                     `((,ra . ,rb) . ,s)))))
+      (((closure ,r1 ,a* -> ,a)
+        (closure ,r2 ,b* -> ,b))
+       (let loop ((a* a*)
+                  (b* b*))
+         (match `(,a* ,b*)
+           ((() ())
+            (let ((s (unify-types a b s)))
+              (and s (if (eq? r1 r2)
+                         s
+                         `((,r1 . ,r1) . ,s)))))
+           (((,a ,a* ...) (,b ,b* ...))
+            (let ((s (loop a* b*)))
+              (and s (unify-types a b s))))
+           (,else #f))))
       ((((,a* ...) -> ,a) ((,b* ...) -> ,b))
        (let loop ((a* a*)
                   (b* b*))
@@ -294,6 +313,25 @@
         (do* (((test tt) (require-type test env 'bool))
               ((c t) (require-type c env 'void)))
              (return `(if ,test ,c) t)))
+       ((lambda (,x* ...) ,body)
+        ;; Lambda is a little tricky because of regions in the free
+        ;; variables. First we infer the type based on the usual way
+        ;; of inferring lambda, but then we determine the regions for
+        ;; the free variables in the body. We create a new region
+        ;; variable and unify this with all of the regions of free
+        ;; variables.
+        (let* ((arg-types (map (lambda (x) (make-tvar (gensym x))) x*))
+               (env (append (map cons x* arg-types) env))
+               (r (gen-rvar 'lambda)))
+          (do* (((body tbody)
+                 (infer-expr body env)))
+               (return
+                `(lambda ((,x* ,arg-types) ...)
+                   ,body)
+                ;; This may be a good place to store free-variable
+                ;; information too, since the lambda-removal pass will
+                ;; need that information.
+                `(closure ,r ,arg-types -> ,tbody)))))
        ((let ((,x ,e) ...) ,body)
         (do* (((e t*) (infer-expr* e env))
               ((body t) (infer-expr body (append (map cons x t*) env))))
@@ -358,6 +396,13 @@
           (do* (((e* t*) (infer-expr* e* env))
                 ((_  __) (require-type `(var ,f) env `(,t* -> ,t))))
                (return `(call (var (,t* -> ,t) ,f) ,e* ...) t))))
+       ((invoke ,rator ,rand* ...)
+        (let ((t (gen-tvar 'invoke))
+              (r (gen-rvar 'invoke)))
+          (do* (((rand* randt*) (infer-expr* rand* env))
+                ((rator fty) (require-type rator env
+                                           `(closure ,r ,randt* -> ,t))))
+               (return `(invoke ,rator . ,rand*) t))))
        ((do ,e)
         (do* (((e t) (infer-expr e env)))
              (return `(do ,e) t)))
@@ -574,6 +619,8 @@
             ((ptr ,t) `(ptr ,(ground-type t s)))
             ((adt ,t) `(adt ,(ground-type t s)))
             ((adt ,t ,r) `(adt ,(ground-type t s) ,(region-name r)))
+            ((closure ,r (,[(lambda (t) (ground-type t s)) -> t*] ...) -> ,t)
+             `(closure ,(region-name r) ,t* -> ,(ground-type t s)))
             (((,[(lambda (t) (ground-type t s)) -> t*] ...) -> ,t)
              `((,t* ...) -> ,(ground-type t s)))
             (,else (error 'ground-type "unsupported type" else))))))
@@ -602,6 +649,8 @@
         ((iota ,[e]) `(iota ,e))
         ((make-vector ,[ground-type -> t] ,[len] ,[val])
          `(make-vector ,t ,len ,val))
+        ((lambda ((,x ,[ground-type -> t]) ...) ,[b])
+         `(lambda ((,x ,t) ...) ,b))
         ((let ((,x ,[ground-type -> t] ,[e]) ...) ,[b])
          `(let ((,x ,t ,e) ...) ,b))
         ((for (,x ,[start] ,[end] ,[step]) ,[body])
@@ -627,11 +676,13 @@
         ((return) `(return))
         ((return ,[e]) `(return ,e))
         ((call ,[f] ,[e*] ...) `(call ,f ,e* ...))
+        ((invoke ,[rator] ,[rand*] ...) `(invoke ,rator . ,rand*))
         ((do ,[e]) `(do ,e))
         ((let-region (,r* ...) ,[e]) `(let-region (,r* ...) ,e))
         ((match ,[ground-type -> t] ,[e]
                 ((,tag . ,x) ,[e*]) ...)
          `(match ,t ,e ((,tag . ,x) ,e*) ...))
+        (,else (error 'ground-expr "Unrecognized expression" else))
         )))
 
   (define-match free-regions-expr
@@ -664,6 +715,11 @@
     ((reduce ,[free-regions-type -> t] ,op ,[e]) (union t e))
     ((set! ,[x] ,[e]) (union x e))
     ((begin ,[e*] ...) (apply union e*))
+    ((lambda ((,x ,[free-regions-type -> t]) ...) ,b)
+     ;; The type inferencer is designed so that each lambda should
+     ;; have no free regions other than the type-inferencer supplied
+     ;; region.
+     (apply union t))
     ((let ((,x ,[free-regions-type -> t] ,[e]) ...) ,[b])
      (union b (apply union (append t e))))
     ((for (,x ,[start] ,[end] ,[step]) ,[body])
@@ -672,6 +728,7 @@
     ((if ,[t] ,[c] ,[a]) (union t c a))
     ((if ,[t] ,[c]) (union t c))
     ((call ,[e*] ...) (apply union e*))
+    ((invoke ,[e*] ...) (apply union e*))
     ((do ,[e]) e)
     ((let-region (,r* ...) ,[e])
      (difference e r*))
@@ -685,8 +742,10 @@
     ((vec ,r ,[t]) (set-add t r))
     ((adt ,[t] ,r) (set-add t r))
     ((adt ,[t]) t)
+    ((closure ,r (,[t*] ...) -> ,[t])
+     (set-add (apply union t t*) r))
     (((,[t*] ...) -> ,[t]) (union t (apply union t*)))
     ((ptr ,[t]) t)
     (() '())
     (,else (guard (symbol? else)) '()))
-)
+  )
