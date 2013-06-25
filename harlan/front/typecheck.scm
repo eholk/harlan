@@ -326,7 +326,8 @@
           (do* (((body tbody)
                  (infer-expr body env)))
                (return
-                `(lambda ((,x* ,arg-types) ...)
+                `(lambda (closure ,r ,arg-types -> ,tbody)
+                     ((,x* ,arg-types) ...)
                    ,body)
                 ;; This may be a good place to store free-variable
                 ;; information too, since the lambda-removal pass will
@@ -649,8 +650,8 @@
         ((iota ,[e]) `(iota ,e))
         ((make-vector ,[ground-type -> t] ,[len] ,[val])
          `(make-vector ,t ,len ,val))
-        ((lambda ((,x ,[ground-type -> t]) ...) ,[b])
-         `(lambda ((,x ,t) ...) ,b))
+        ((lambda ,[ground-type -> t0] ((,x ,[ground-type -> t]) ...) ,[b])
+         `(lambda ,t0 ((,x ,t) ...) ,b))
         ((let ((,x ,[ground-type -> t] ,[e]) ...) ,[b])
          `(let ((,x ,t ,e) ...) ,b))
         ((for (,x ,[start] ,[end] ,[step]) ,[body])
@@ -715,11 +716,12 @@
     ((reduce ,[free-regions-type -> t] ,op ,[e]) (union t e))
     ((set! ,[x] ,[e]) (union x e))
     ((begin ,[e*] ...) (apply union e*))
-    ((lambda ((,x ,[free-regions-type -> t]) ...) ,b)
+    ((lambda ,[free-regions-type -> t0]
+       ((,x ,[free-regions-type -> t]) ...) ,b)
      ;; The type inferencer is designed so that each lambda should
      ;; have no free regions other than the type-inferencer supplied
      ;; region.
-     (apply union t))
+     (apply union t0 t))
     ((let ((,x ,[free-regions-type -> t] ,[e]) ...) ,[b])
      (union b (apply union (append t e))))
     ((for (,x ,[start] ,[end] ,[step]) ,[body])

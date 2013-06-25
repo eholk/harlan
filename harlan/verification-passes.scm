@@ -301,7 +301,7 @@
       (Binop Rho-Type Expr Expr)
       (Relop Rho-Type Expr Expr)
       (call Expr Expr *)
-      (lambda ((Var Rho-Type) *) Expr)
+      (lambda Rho-Type ((Var Rho-Type) *) Expr)
       (invoke Expr Expr *)))
 
   (expand-primitives
@@ -345,7 +345,7 @@
       (Binop Expr Expr)
       (Relop Expr Expr)
       (call Expr Expr *)
-      (lambda ((Var Rho-Type) *) Expr)
+      (lambda Rho-Type ((Var Rho-Type) *) Expr)
       (invoke Expr Expr *)))
 
   (desugar-match
