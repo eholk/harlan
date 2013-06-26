@@ -297,6 +297,18 @@
             (if (type-compat? t any)
                 x0
                 (find-typename t rest)))))
+         (_ => #f)))
+
+      (define (find-dispatch t env)
+        (pair-case
+         env
+         ((c . rest)
+          (nanopass-case
+           (M3 ClosureGroup) c
+           ((,x0 ,x1 ,any ,ctag ...)
+            (if (type-compat? t any)
+                x1
+                (find-typename t rest)))))
          (_ => #f))))
 
     (Rho-Type
@@ -372,8 +384,17 @@
          (M2 Rho-Type) t
          ((closure ,r (,t* ...) ,-> ,t^)
           `(call (var _ ,x) ,e* ...)))))
-     ((invoke ,e ,e* ...)
-      `(int 5)))
+     ((invoke ,e ,[e*] ...)
+      (let ((t (nanopass-case
+                (M2 Expr) e
+                ((var ,t ,x) t)))
+            (e (Expr e env)))
+        (let ((dispatch (find-dispatch t env)))
+          `(call
+            (var (fn (,(cons (Rho-Type t env)
+                             (map (lambda _ '_) (cons e e*))) ...) -> _)
+                 ,dispatch)
+            ,(cons e e*) ...)))))
     
     (Module
      : Module (m env types dispatches) -> Module ()
