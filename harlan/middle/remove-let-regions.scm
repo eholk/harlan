@@ -31,11 +31,11 @@
   ((let-region () ,[stmt]) stmt)
   ((let-region (,r ...) ,stmt)
    (let ((br `((do (call
-                    (c-expr (((ptr region)) -> void) free_region)
+                    (c-expr (fn ((ptr region)) -> void) free_region)
                     (var (ptr region) ,r))) ...)))
      `(let ((,r (ptr region)
                 (call
-                 (c-expr ((int) -> (ptr region)) create_region)
+                 (c-expr (fn (int) -> (ptr region)) create_region)
                  (int ,(map (lambda (_) region-size) r)))) ...)
         ,(remove-stmt ((add-free br) stmt)))))
   ((begin ,[stmt*] ...)

@@ -12,7 +12,7 @@
 ;; This also lifts the typedefs to the top, so that we can construct
 ;; mutually recursive structures.
 (define-match (compile-decl in-kernel?)
-  ((fn ,name ,args (,arg-types -> ,ret-type)
+  ((fn ,name ,args (fn ,arg-types -> ,ret-type)
      ,[(compile-stmt in-kernel?) -> stmt])
    (let ((arg-types (if in-kernel?
                         arg-types

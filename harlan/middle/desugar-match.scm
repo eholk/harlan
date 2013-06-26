@@ -40,7 +40,7 @@
       (lambda (tag types)
         (let ((args (map (lambda (_) (gensym tag)) types))
               (tmp (gensym 'result)))
-          `(fn ,tag ,args (,types -> ,type)
+          `(fn ,tag ,args (fn ,types -> ,type)
                (let ((,tmp ,type (empty-struct)))
                  (begin
                    ,@(let* ((id (tag-id tag typedef))

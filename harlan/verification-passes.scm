@@ -897,7 +897,7 @@
       CommonDecl
       (kernel Var ((Var Type) *) Stmt))
     (CommonDecl
-     (fn Var (Var *) ((Type *) -> Type) Body)
+     (fn Var (Var *) (fn (Type *) -> Type) Body)
      (typedef Var Type)
      (extern Var (Type *) -> Type))
     (Stmt 

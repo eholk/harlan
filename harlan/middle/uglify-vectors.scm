@@ -28,6 +28,7 @@
      (+ ,e ,vector-length-offset))
     ,i))
 
+;; TODO: should this return true for region-allocated ADTs as well?
 (define-match region-allocated?
   ((vec ,r ,t) #t)
   (,else #f))
@@ -53,7 +54,7 @@
   (match t
     ((vec ,r ,[t]) `(vec ,t))
     ((adt ,n ,r) `(adt ,n))
-    (((,[t*] ...) -> ,[t]) `(,t* -> ,t))
+    ((fn (,[t*] ...) -> ,[t]) `(fn ,t* -> ,t))
     ((ptr ,[t]) `(ptr ,t))
     (,else else)))
 
@@ -62,14 +63,14 @@
    `(module . ,decl*)))
 
 (define-match uglify-decl
-  ((fn ,name ,args (,arg-t -> ,rt)
+  ((fn ,name ,args (fn ,arg-t -> ,rt)
        ,[uglify-stmt -> s sr*])
-   (let ((all-regions (free-regions-type `(,arg-t -> ,rt)))
+   (let ((all-regions (free-regions-type `(fn ,arg-t -> ,rt)))
          (arg-t (map remove-regions arg-t))
          (rt (remove-regions rt)))
      `(fn ,name
           (,@args ,@all-regions)
-          ((,@arg-t
+          (fn (,@arg-t
             ,@(map (lambda (_) `(ptr region)) all-regions))
            -> ,rt)
           ,s)))
