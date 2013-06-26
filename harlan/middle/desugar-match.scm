@@ -166,7 +166,7 @@
                (let ((,tag-var int (call (c-expr
                                           ;; use _ as the type. It's
                                           ;; never observed anyway.
-                                          ((_) -> int) extract_tag)
+                                          (fn (_) -> int) extract_tag)
                                          (var ,tag-type ,e-var))))
                  ,(let loop ((tag tag)
                              (x x)

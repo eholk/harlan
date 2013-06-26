@@ -54,6 +54,12 @@
      (let-region (r ...) body)
      (return)
      (return e))
+    (MatchBindings
+     (mbind)
+     (x x* ...))
+    (MatchArm
+     (arm)
+     (mbind e))
     (Expr
      (e)
      (int i)
@@ -67,6 +73,7 @@
      (lambda t0 ((x t) ...) e)
      (invoke e e* ...)
      (call e e* ...)
+     (match t e arm ...)
      (op e1 e2)
      (var t x)))
 
@@ -80,7 +87,7 @@
      (+ (closures (ctag ...) m)))
     (ClosureTag
      (ctag)
-     (+ (x t (x* t*) ...)))
+     (+ (x t (x0 ...) e (x* t*) ...)))
     (Expr
      (e)
      (- (lambda t0 ((x t) ...) e))
@@ -101,8 +108,8 @@
      (+ (x0 x1 t ctag ...)))
     (ClosureTag
      (ctag)
-     (- (x t (x* t*) ...))
-     (+ (x (x* t*) ...))))
+     (- (x t (x0 ...) e (x* t*) ...))
+     (+ (x (x0 ...) e (x* t*) ...))))
   
   (define-language M3
     (extends M2)
@@ -147,7 +154,8 @@
              (set! closure-defs
                    (cons (with-output-language
                           (M1 ClosureTag)
-                          `(,tag ,t (,fvx ,fvt) ...)) closure-defs))
+                          `(,tag ,t (,x* ...) ,e (,fvx ,fvt) ...))
+                         closure-defs))
              `(make-closure ,t ,tag ,(map (lambda (x)
                                             `(var ,(car x) ,(cadr x)))
                                           fv) ...))))
@@ -199,7 +207,7 @@
            (let-values (((a b) (select-closure-type t c*)))
              (nanopass-case
               (M1 ClosureTag) c
-              ((,x ,t^ (,x* ,t*) ...)
+              ((,x ,t^ (,x0 ...) ,e (,x* ,t*) ...)
                (if (type-compat? t t^)
                    (values (cons c a)
                            b)
@@ -212,15 +220,15 @@
           ((,c . ,c*)
            (nanopass-case
             (M1 ClosureTag) c
-            ((,x ,t (,x* ,t*) ...)
+            ((,x ,t (,x0 ...) ,e (,x* ,t*) ...)
              (let-values (((this rest)
                            (select-closure-type t c*)))
                `((,t ,c . ,this) . ,(sort-closures rest)))))))))
 
     (ClosureTag
      : ClosureTag (c) -> ClosureTag ()
-     ((,x ,t (,x* ,t*) ...)
-      `(,x (,x* ,t*) ...)))
+     ((,x ,t (,x0 ...) ,[e] (,x* ,t*) ...)
+      `(,x (,x0 ...) ,e (,x* ,t*) ...)))
 
     (Rho-Type : Rho-Type (t) -> Rho-Type ())
     
@@ -302,10 +310,17 @@
 
     (ClosureCase
      : ClosureTag (t env) -> AdtDeclPattern ()
-     ((,x (,x* ,[Rho-Type : t* env -> t*]) ...)
+     ((,x (,x0 ...) ,e (,x* ,[Rho-Type : t* env -> t*]) ...)
       `(,x ,t* ...)))
 
     (ClosureTag : ClosureTag (t env) -> ClosureTag ())
+
+    (ClosureMatch
+     : ClosureTag (t formals ftypes env) -> MatchArm ()
+     ((,x (,x0 ...) ,[e] (,x1 ,t1) ...)
+      `((,x ,x1 ...)
+        (let ((,x0 ,ftypes (var ,ftypes ,formals)) ...)
+          ,e))))
     
     (ClosureGroup
      : ClosureGroup (cgroup) -> ClosureGroup (typedef dispatch)
@@ -320,9 +335,25 @@
                  `(define-datatype ,x0 ,(map (lambda (t)
                                                (ClosureCase t cgroup))
                                              ctag) ...))
-                (with-output-language
-                 (M3 Decl)
-                 `(fn ,x1 () (fn () -> int) (return (int 5))))))))
+                (nanopass-case
+                 (M2 Rho-Type) t
+                 ((closure ,r (,t* ...) ,-> ,t)
+                  (with-output-language
+                   (M3 Decl)
+                   (let* ((formals (map (lambda _ (gensym 'formal)) t*))
+                          (t* (map (lambda (t) (Rho-Type t cgroup)) t*))
+                          (t (Rho-Type t cgroup))
+                          (x (gensym 'closure))
+                          (ctype (with-output-language
+                                  (M3 Rho-Type)
+                                  `(adt ,x0 ,r)))
+                          (arms (map (lambda (t)
+                                       (ClosureMatch t formals t* cgroup))
+                                     ctag)))
+                     `(fn ,x1 (,(cons x formals) ...)
+                          (fn (,(cons ctype t*) ...) -> ,t)
+                          (return (match ,t (var ,ctype ,x)
+                                    ,arms ...)))))))))))
 
     (Closures
      : Closures (x) -> Module ()
