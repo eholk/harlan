@@ -1,0 +1,13 @@
+;; Test if we can have two lambdas and they work correctly.
+
+(module
+
+  (define (main)
+    (let ((add1 (lambda (x) (+ 1 x)))
+          (add2 (lambda (x) (+ 2 x))))
+      (println (add1 5))
+      (println (add2 5))
+      (assert (= 6 (add1 5)))
+      (assert (= 7 (add2 5))))
+    0)
+  )
