@@ -1,0 +1,9 @@
+(module
+
+  (define (main)
+    (let* ((n 3)
+           (addn (lambda (x) (+ n x))))
+      (println (addn 5))
+      (assert (= 8 (addn 5))))
+    0)
+  )

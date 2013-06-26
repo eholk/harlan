@@ -8,6 +8,7 @@
    (only (chezscheme) pretty-print trace-define)
    (nanopass)
    (except (elegant-weapons match) ->)
+   (elegant-weapons sets)
    (only (elegant-weapons helpers) binop? scalar-type? relop? gensym andmap))
 
   (define variable? symbol?)
@@ -141,22 +142,33 @@
     (definitions
       (define closure-defs '())
 
+      (define (remove-vars x* fv*)
+        (let loop ((fv* fv*))
+          (pair-case
+           fv*
+           ((a . d)
+            (pair-case
+             a
+             ((x . t)
+              (if (member x x*)
+                  (loop d)
+                  (cons a (loop d))))
+             (_ => '())))
+           (_ => '()))))
+      
       (define (free-vars e)
         (nanopass-case
          (M1 Expr) e
-         
-         ((var ,t ,x) (list x t))
-
-         ;; TODO: We'll need to add lots more cases here.
-         
-         (else '()))))
+         ((var ,t ,x) (list (list x t)))
+         ((,op ,[e1] ,[e2])
+          (union e1 e2)))))
 
     (Module : Module (m) -> Module ())
     
     (Expr : Expr (expr) -> Expr ()
           ((lambda ,[t] ((,x* ,t*) ...) ,[e])
            (let* ((tag (gensym 'lambda))
-                  (fv (free-vars e))
+                  (fv (remove-vars x* (free-vars e)))
                   (fvx (map car fv))
                   (fvt (map cadr fv)))
              (set! closure-defs
@@ -165,7 +177,7 @@
                           `(,tag ,t (,x* ...) ,e (,fvx ,fvt) ...))
                          closure-defs))
              `(make-closure ,t ,tag ,(map (lambda (x)
-                                            `(var ,(car x) ,(cadr x)))
+                                            `(var ,(cadr x) ,(car x)))
                                           fv) ...))))
     ;; We need a body too, which defines ADTs and dispatch functions
     ;; for all the closures.
@@ -386,7 +398,7 @@
     
     (Expr
      : Expr (e env) -> Expr ()
-     ((make-closure ,t ,x ,e* ...)
+     ((make-closure ,t ,x ,[e*] ...)
       (let ((adt-name (find-typename t env)))
         (nanopass-case
          (M2 Rho-Type) t

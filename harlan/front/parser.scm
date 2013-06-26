@@ -140,7 +140,7 @@
      (check-idents x*)
      ;; We don't need to rename things anymore because the macro
      ;; expander renames things instead.
-     (let* ((env (map cons x* x*))
+     (let* ((env (append (map cons x* x*) env))
             (stmt* (map (parse-stmt env) stmt*))
             (expr ((parse-expr env) expr)))
        `(lambda (,x* ...) ,(make-begin `(,@stmt* ,expr))))))
