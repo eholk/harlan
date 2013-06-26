@@ -1,0 +1,12 @@
+;; can we return functions?
+
+(module
+
+  (define (main)
+    (let* ((make-adder (lambda (n)
+                         (lambda (x) (+ n x))))
+           (addn (make-adder 3)))
+      (println (addn 5))
+      (assert (= 8 (addn 5))))
+    0)
+  )

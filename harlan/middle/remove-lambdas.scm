@@ -158,19 +158,22 @@
       
       (define (free-vars e)
         (nanopass-case
-         (M1 Expr) e
+         (M0 Expr) e
          ((var ,t ,x) (list (list x t)))
+         ((lambda ,t ((,x* ,t*) ...) ,[e])
+          (remove-vars x* e))
          ((,op ,[e1] ,[e2])
           (union e1 e2)))))
 
     (Module : Module (m) -> Module ())
     
     (Expr : Expr (expr) -> Expr ()
-          ((lambda ,[t] ((,x* ,t*) ...) ,[e])
+          ((lambda ,[t] ((,x* ,t*) ...) ,e)
            (let* ((tag (gensym 'lambda))
                   (fv (remove-vars x* (free-vars e)))
                   (fvx (map car fv))
-                  (fvt (map cadr fv)))
+                  (fvt (map cadr fv))
+                  (e (Expr e)))
              (set! closure-defs
                    (cons (with-output-language
                           (M1 ClosureTag)
@@ -195,7 +198,8 @@
         (lang term) e1
         (p1 (nanopass-case
              (lang term) e2
-             (p2 b))) ...
+             (p2 b)
+             (else e))) ...
              (else e)))
       ((_ (lang term) (e1 e2)
           ((p1 p2) b) ...)
@@ -217,8 +221,19 @@
                    (env '()))
           (nanopass-case2
            (M1 Rho-Type) (a b)
+           (((closure ,r1 (,t1* ...) ,-> ,t1)
+             (closure ,r2 (,t2* ...) ,-> ,t2))
+            ;; TODO: This needs to consider region variables and
+            ;; renaming.
+            (andmap type-compat? (cons t1 t1*) (cons t2 t2*)))
            (((ptr ,t1) (ptr ,t2))
-            (loop t1 t2 env)))))
+            (loop t1 t2 env))
+           ((,bt1 ,bt2) (equal? bt1 bt2))
+           (else (begin
+                   (pretty-print "Failed Match!\n")
+                   (pretty-print a)
+                   (pretty-print b)
+                   #f)))))
 
       (define (select-closure-type t closures)
         (match closures
@@ -303,6 +318,7 @@
             (loop t1 t2 env))
            ((,bt1 ,bt2) (equal? bt1 bt2))
            (else (begin
+                   (pretty-print "Failed Match!")
                    (pretty-print a)
                    (pretty-print b)
                    #f)))))
@@ -359,6 +375,9 @@
      ((,x0 ,x1 ,t ,ctag ...)
       ;; There's a problem here. ClosureTag needs an environment, but
       ;; we generate the environment with ClosureTag...
+      ;;
+      ;; TODO: I think we can fix this by building the environment
+      ;; simply out of what we were passed in.
       (let ((cgroup `(,x0 ,x1 ,t ,(map (lambda (t) (ClosureTag t '()))
                                        ctag) ...)))
         (values cgroup
