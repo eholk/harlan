@@ -18,7 +18,7 @@
         . ,decl*))))
 
 (define-match type-symbols
-  (((,[t] ...) -> ,[t^]) (union t^ (apply union t)))
+  ((fn (,[t] ...) -> ,[t^]) (union t^ (apply union t)))
   ((adt ,t . ,_) (list t))
   ((vec ,[t]) t)
   ((ptr ,[t]) t)

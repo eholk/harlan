@@ -1,0 +1,9 @@
+;; Do lambdas work on the GPU?
+
+(module
+
+  (define (main)
+    (let ((add1 (lambda (x) (+ 1 x))))
+      (println (kernel ((i (iota 5))) (add1 i))))
+    0)
+  )

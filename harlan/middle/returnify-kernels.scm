@@ -145,7 +145,7 @@
                            (var ,danger-vec-t ,danger-vector)
                            (var int ,i))
                (begin
-                 (do (call (c-expr ((void str int) -> void) fprintf)
+                 (do (call (c-expr (fn (void str int) -> void) fprintf)
                            (c-expr void stderr)
                            (str "Kernel encounter danger type %d!\n")
                            (var int ,i)))

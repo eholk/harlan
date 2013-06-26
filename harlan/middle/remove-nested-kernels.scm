@@ -147,7 +147,7 @@
   ((vector ,t ,[e] ...)
    `(vector ,t . ,e))
   ((call
-    (c-expr ((int) -> int) get_global_id)
+    (c-expr (fn (int) -> int) get_global_id)
     ,n)
    `(var int ,i))
   ;; Don't go inside kernels, the get-global-id is out of scope.
