@@ -181,7 +181,22 @@
           (do* (((e* t) (require-all e* env t))
                 ((e  t) (require-type e env t)))
                (return `(,e . ,e*) t)))))
-           
+
+  ;; Here env is just a list of formal parameters and internally bound
+  ;; variables.
+  (define (free-var-types e env)
+    (match e
+      ((var ,t ,x)
+       (if (memq x env)
+           '()
+           (list (cons x t))))
+      ((lambda ,t ((,x* ,t*) ...) ,b)
+       (free-var-types b (append x* env)))
+      ((,op ,t ,[a] ,[b])
+       (guard (or (binop? op) (relop? op)))
+       (append a b))
+      (,else (error 'free-var-types
+                    "Unexpected expression" e))))
   
   (define-syntax do*
     (syntax-rules ()
@@ -189,6 +204,13 @@
        (bind e (lambda (x ...)
                  (do* (((x* ...) e*) ...) b))))
       ((_ () b) b)))
+
+  (define (unify-regions* r r*)
+    (if (null? r*)
+        (return '() '())
+        (do* (((a b) (unify-regions* r (cdr r*)))
+              ((a b) (== r (car r))))
+             (return a b))))
 
   (define (infer-expr e env)
     ;(display `(,e :: ,env)) (newline)
@@ -325,14 +347,17 @@
                (r (gen-rvar 'lambda)))
           (do* (((body tbody)
                  (infer-expr body env)))
-               (return
-                `(lambda (closure ,r ,arg-types -> ,tbody)
-                     ((,x* ,arg-types) ...)
-                   ,body)
-                ;; This may be a good place to store free-variable
-                ;; information too, since the lambda-removal pass will
-                ;; need that information.
-                `(closure ,r ,arg-types -> ,tbody)))))
+               (let* ((fv (free-var-types body x*))
+                      (regions (apply union
+                                      (map (lambda (x)
+                                             (free-regions-type (cdr x)))
+                                           fv))))
+                 (do* (((_ __) (unify-regions* r regions)))
+                      (return
+                       `(lambda (closure ,r ,arg-types -> ,tbody)
+                          ((,x* ,arg-types) ...)
+                          ,body)
+                       `(closure ,r ,arg-types -> ,tbody)))))))
        ((let ((,x ,e) ...) ,body)
         (do* (((e t*) (infer-expr* e env))
               ((body t) (infer-expr body (append (map cons x t*) env))))
@@ -741,6 +766,10 @@
     ((return ,[e]) e))
 
   (define-match free-regions-type
+    ;; This isn't fantastic... what if this later unifies to a type
+    ;; that contains a region? We might need some sort of lazy
+    ;; suspension thingy.
+    (,x (guard (tvar? x)) '())
     ((vec ,r ,[t]) (set-add t r))
     ((adt ,[t] ,r) (set-add t r))
     ((adt ,[t]) t)

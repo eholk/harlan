@@ -434,16 +434,21 @@
          ((closure ,r (,t* ...) ,-> ,t^)
           `(call (var _ ,x) ,e* ...)))))
      ((invoke ,e ,[e*] ...)
-      (let ((t (nanopass-case
-                (M2 Expr) e
-                ((var ,t ,x) t)))
-            (e (Expr e env)))
-        (let ((dispatch (find-dispatch t env)))
-          `(call
-            (var (fn (,(cons (Rho-Type t env)
-                             (map (lambda _ '_) (cons e e*))) ...) -> _)
-                 ,dispatch)
-            ,(cons e e*) ...)))))
+      (nanopass-case
+       (M2 Expr) e
+       ((var (closure ,r (,t* ...) ,-> ,t^) ,x)
+        (let ((e (Expr e env))
+              (t (with-output-language
+                  (M2 Rho-Type)
+                  `(closure ,r (,t* ...) ,-> ,t^))))
+          (let ((dispatch (find-dispatch t env))
+                (t (Rho-Type t env))
+                (t^ (Rho-Type t^ env))
+                (t* (map (lambda (t) (Rho-Type t env)) t*)))
+            `(call
+              (var (fn (,(cons t t*) ...) -> ,t^)
+                   ,dispatch)
+              ,(cons e e*) ...)))))))
     
     (Module
      : Module (m env types dispatches) -> Module ()
