@@ -9,7 +9,8 @@
    (nanopass)
    (except (elegant-weapons match) ->)
    (elegant-weapons sets)
-   (only (elegant-weapons helpers) binop? scalar-type? relop? gensym andmap))
+   (only (elegant-weapons helpers)
+         binop? scalar-type? relop? gensym andmap map-values))
 
   (define variable? symbol?)
   (define region-var? symbol?)
@@ -159,11 +160,13 @@
       (define (free-vars e)
         (nanopass-case
          (M0 Expr) e
+         ((int ,i) '())
          ((var ,t ,x) (list (list x t)))
          ((lambda ,t ((,x* ,t*) ...) ,[e])
           (remove-vars x* e))
          ((,op ,[e1] ,[e2])
-          (union e1 e2)))))
+          (union e1 e2))
+         (else (error 'free-vars "Unexpected expression" e)))))
 
     (Module : Module (m) -> Module ())
     
@@ -322,30 +325,27 @@
                    (pretty-print a)
                    (pretty-print b)
                    #f)))))
+
+      (define (find-env t env)
+        (pair-case
+         env
+         ((c . rest)
+          (match c
+            ((,x0 ,x1 ,t^)
+             (if (type-compat? t t^)
+                 `(,x0 ,x1 ,t^)
+                 (find-env t rest)))))
+         (_ => #f)))
       
       (define (find-typename t env)
-        (pair-case
-         env
-         ((c . rest)
-          (nanopass-case
-           (M3 ClosureGroup) c
-           ((,x0 ,x1 ,any ,ctag ...)
-            (if (type-compat? t any)
-                x0
-                (find-typename t rest)))))
-         (_ => #f)))
+        (match (find-env t env)
+          ((,x0 ,x1 ,t)
+           x0)))
 
       (define (find-dispatch t env)
-        (pair-case
-         env
-         ((c . rest)
-          (nanopass-case
-           (M3 ClosureGroup) c
-           ((,x0 ,x1 ,any ,ctag ...)
-            (if (type-compat? t any)
-                x1
-                (find-typename t rest)))))
-         (_ => #f))))
+        (match (find-env t env)
+          ((,x0 ,x1 ,t)
+           x1))))
 
     (Rho-Type
      : Rho-Type (t env) -> Rho-Type ()
@@ -369,22 +369,27 @@
       `((,x ,x1 ...)
         (let ((,x0 ,ftypes (var ,ftypes ,formals)) ...)
           ,e))))
+
+    (MakeEnv
+     : ClosureGroup (cgroup) -> * ()
+     ((,x0 ,x1 ,t ,ctag ...)
+      `(,x0 ,x1 ,t)))
     
     (ClosureGroup
-     : ClosureGroup (cgroup) -> ClosureGroup (typedef dispatch)
+     : ClosureGroup (cgroup env) -> ClosureGroup (typedef dispatch)
      ((,x0 ,x1 ,t ,ctag ...)
       ;; There's a problem here. ClosureTag needs an environment, but
       ;; we generate the environment with ClosureTag...
       ;;
       ;; TODO: I think we can fix this by building the environment
       ;; simply out of what we were passed in.
-      (let ((cgroup `(,x0 ,x1 ,t ,(map (lambda (t) (ClosureTag t '()))
+      (let* ((cgroup `(,x0 ,x1 ,t ,(map (lambda (t) (ClosureTag t env))
                                        ctag) ...)))
         (values cgroup
                 (with-output-language
                  (M3 Decl)
                  `(define-datatype ,x0 ,(map (lambda (t)
-                                               (ClosureCase t cgroup))
+                                               (ClosureCase t env))
                                              ctag) ...))
                 (nanopass-case
                  (M2 Rho-Type) t
@@ -392,14 +397,14 @@
                   (with-output-language
                    (M3 Decl)
                    (let* ((formals (map (lambda _ (gensym 'formal)) t*))
-                          (t* (map (lambda (t) (Rho-Type t cgroup)) t*))
-                          (t (Rho-Type t cgroup))
+                          (t* (map (lambda (t) (Rho-Type t env)) t*))
+                          (t (Rho-Type t env))
                           (x (gensym 'closure))
                           (ctype (with-output-language
                                   (M3 Rho-Type)
                                   `(adt ,x0 ,r)))
                           (arms (map (lambda (t)
-                                       (ClosureMatch t formals t* cgroup))
+                                       (ClosureMatch t formals t* env))
                                      ctag)))
                      `(fn ,x1 (,(cons x formals) ...)
                           (fn (,(cons ctype t*) ...) -> ,t)
@@ -408,8 +413,13 @@
 
     (Closures
      : Closures (x) -> Module ()
-     ((closures (,[cgroup types dispatches] ...) ,m)
-      (Module m cgroup types dispatches)))
+     ((closures (,cgroup ...) ,m)
+      (let ((env (map MakeEnv cgroup)))
+        (let-values (([cgroup types dispatches]
+                      (map-values (lambda (g)
+                                    (ClosureGroup g env))
+                                  cgroup )))
+          (Module m env types dispatches)))))
 
     (Body : Body (b env) -> Body ())
 
