@@ -46,7 +46,7 @@ RUN_TEST = $(1)
 
 .phony: check
 check : test.bin rt/libharlanrt.a update-submodules
-	@./run-tests.scm
+	@./run-tests
 	@echo $(ECHO_ESCAPE) "\033[32mAll tests succeeded.\033[39m"
 
 # Shorthands:
