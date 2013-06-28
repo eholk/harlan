@@ -1,0 +1,14 @@
+;; can we return functions?
+
+(module
+
+  (define (main)
+    (let* ((make-adder (lambda (n)
+                         (lambda (x) (+ n x))))
+           (adders (kernel ((i (iota 10)))
+                     (make-adder i)))
+           (numbers (kernel ((p adders) (i (iota 10)))
+                      (p i))))
+      (println numbers))
+    0)
+  )

@@ -192,6 +192,8 @@
            (list (cons x t))))
       ((lambda ,t ((,x* ,t*) ...) ,b)
        (free-var-types b (append x* env)))
+      ((vector-ref ,t ,[x] ,[i])
+       (append x i))
       ((,op ,t ,[a] ,[b])
        (guard (or (binop? op) (relop? op)))
        (append a b))
@@ -209,7 +211,7 @@
     (if (null? r*)
         (return '() '())
         (do* (((a b) (unify-regions* r (cdr r*)))
-              ((a b) (== r (car r))))
+              ((a b) (== r (car r*))))
              (return a b))))
 
   (define (infer-expr e env)

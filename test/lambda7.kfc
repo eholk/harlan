@@ -1,0 +1,11 @@
+;; can we return functions?
+
+(module
+
+  (define (main)
+    (let* ((xs (vector 1 2 3 4))
+           (get (lambda (i) (vector-ref xs i))))
+      (println (get 2))
+      (assert (= (get 2) 3)))
+    0)
+  )
