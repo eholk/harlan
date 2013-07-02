@@ -76,6 +76,8 @@
      (ptr Rho-Type)
      (adt Rho-Type Var)
      (adt Rho-Type)
+     (struct (Var Rho-Type) *)
+     (union (Var Rho-Type) *)
      (closure Var (Rho-Type *) -> Rho-Type)
      (fn (Rho-Type *) -> Rho-Type))
     (Var ident)
@@ -353,7 +355,7 @@
     (Start Module)
     (Decl
       (extern Var (Type *) -> Type)
-      (typedef Var Type)
+      (typedef Var Rho-Type)
       (fn Var (Var *) Rho-Type Body))
     (Expr
       (char Char)

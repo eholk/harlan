@@ -56,6 +56,10 @@
     ((adt ,n ,r) `(adt ,n))
     ((fn (,[t*] ...) -> ,[t]) `(fn ,t* -> ,t))
     ((ptr ,[t]) `(ptr ,t))
+    ((struct (,x* ,[t*]) ...)
+     `(struct (,x* ,t*) ...))
+    ((union (,x* ,[t*]) ...)
+     `(union (,x* ,t*) ...))
     (,else else)))
 
 (define-match uglify-vectors

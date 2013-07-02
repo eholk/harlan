@@ -5,7 +5,6 @@
   (define-datatype point3_t
     (point3 float float float))
 
-  ;; The points don't really matter. This will just make a bunch.
   (define (make-points N)
     (kernel ((i (iota N)))
       (point3 (int->float i)
@@ -48,16 +47,12 @@
   
   (define (main)
     (let* ((bodies (make-points 1000))
-           ;;(bodies (vector (point3 1 2 3) (point3 3 2 1)))
            (start (nanotime))
            (forces (nbody bodies))
            (stop (nanotime)))
-      ;;(println forces)
       (print "Computed ")
       (print (length forces))
       (print " forces in ")
       (print (/ (- stop start) 1000000))
       (println "ms"))
-    (return 0))
-  
-  )
+    (return 0)))

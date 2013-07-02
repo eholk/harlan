@@ -45,7 +45,7 @@
     (Decl
      (decl)
      (extern name (t* ...) -> t)
-     (define-datatype x r pt ...)
+     (define-datatype (x r) pt ...)
      (define-datatype x pt ...)
      (fn name (x ...) t body))
     (AdtDeclPattern
@@ -67,6 +67,7 @@
      (e)
      (int i)
      (str str-t)
+     (vector t r e* ...)
      (print e)
      (print e1 e2)
      (begin e e* ...)
@@ -164,27 +165,31 @@
          ((var ,t ,x) (list (list x t)))
          ((lambda ,t ((,x* ,t*) ...) ,[e])
           (remove-vars x* e))
+         ((vector-ref ,t ,[e0] ,[e1])
+          (union e0 e1))
          ((,op ,[e1] ,[e2])
           (union e1 e2))
          (else (error 'free-vars "Unexpected expression" e)))))
 
     (Module : Module (m) -> Module ())
+
+    (Rho-Type : Rho-Type (t) -> Rho-Type ())
     
     (Expr : Expr (expr) -> Expr ()
           ((lambda ,[t] ((,x* ,t*) ...) ,e)
            (let* ((tag (gensym 'lambda))
                   (fv (remove-vars x* (free-vars e)))
                   (fvx (map car fv))
-                  (fvt (map cadr fv))
+                  (fvt (map (lambda (t) (Rho-Type (cadr t))) fv))
                   (e (Expr e)))
              (set! closure-defs
                    (cons (with-output-language
                           (M1 ClosureTag)
                           `(,tag ,t (,x* ...) ,e (,fvx ,fvt) ...))
                          closure-defs))
-             `(make-closure ,t ,tag ,(map (lambda (x)
-                                            `(var ,(cadr x) ,(car x)))
-                                          fv) ...))))
+             `(make-closure ,t ,tag ,(map (lambda (x t)
+                                            `(var ,t ,x))
+                                          fvx fvt) ...))))
     ;; We need a body too, which defines ADTs and dispatch functions
     ;; for all the closures.
     (with-output-language
@@ -265,7 +270,7 @@
 
     (ClosureTag
      : ClosureTag (c) -> ClosureTag ()
-     ((,x ,t (,x0 ...) ,[e] (,x* ,t*) ...)
+     ((,x ,t (,x0 ...) ,[e] (,x* ,[t*]) ...)
       `(,x (,x0 ...) ,e (,x* ,t*) ...)))
 
     (Rho-Type : Rho-Type (t) -> Rho-Type ())
@@ -378,22 +383,17 @@
     (ClosureGroup
      : ClosureGroup (cgroup env) -> ClosureGroup (typedef dispatch)
      ((,x0 ,x1 ,t ,ctag ...)
-      ;; There's a problem here. ClosureTag needs an environment, but
-      ;; we generate the environment with ClosureTag...
-      ;;
-      ;; TODO: I think we can fix this by building the environment
-      ;; simply out of what we were passed in.
       (let* ((cgroup `(,x0 ,x1 ,t ,(map (lambda (t) (ClosureTag t env))
                                        ctag) ...)))
-        (values cgroup
-                (with-output-language
-                 (M3 Decl)
-                 `(define-datatype ,x0 ,(map (lambda (t)
-                                               (ClosureCase t env))
-                                             ctag) ...))
-                (nanopass-case
-                 (M2 Rho-Type) t
-                 ((closure ,r (,t* ...) ,-> ,t)
+        (nanopass-case
+         (M2 Rho-Type) t
+         ((closure ,r (,t* ...) ,-> ,t)
+          (values cgroup
+                  (with-output-language
+                   (M3 Decl)
+                   `(define-datatype (,x0 ,r) ,(map (lambda (t)
+                                                    (ClosureCase t env))
+                                                  ctag) ...))
                   (with-output-language
                    (M3 Decl)
                    (let* ((formals (map (lambda _ (gensym 'formal)) t*))
@@ -409,7 +409,8 @@
                      `(fn ,x1 (,(cons x formals) ...)
                           (fn (,(cons ctype t*) ...) -> ,t)
                           (return (match ,t (var ,ctype ,x)
-                                    ,arms ...)))))))))))
+                                         ,arms ...))))))))
+        )))
 
     (Closures
      : Closures (x) -> Module ()
@@ -432,7 +433,7 @@
         (nanopass-case
          (M2 Rho-Type) t
          ((closure ,r (,t* ...) ,-> ,t^)
-          `(call (var _ ,x) ,e* ...)))))
+          `(call (var (fn (_) -> (adt ,adt-name ,r)) ,x) ,e* ...)))))
      ((invoke ,e ,[e*] ...)
       (nanopass-case
        (M2 Expr) e
