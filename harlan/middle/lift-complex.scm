@@ -191,6 +191,9 @@
    lhs)
   ((let ,b ,[e]) e)
   ((begin ,s* ... ,[e]) e)
+  ((call ,[e] ,e* ...)
+   (match e
+     ((fn ,args -> ,t) t)))
   ((,op ,lhs ,rhs)
    (guard (relop? op))
    rhs))

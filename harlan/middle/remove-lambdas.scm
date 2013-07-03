@@ -67,6 +67,9 @@
      (e)
      (int i)
      (str str-t)
+     ;; The do form should really be a Stmt, but I'd rather not have
+     ;; that in the grammar.
+     (do e)
      (vector t r e* ...)
      (print e)
      (print e1 e2)
@@ -157,6 +160,12 @@
                   (cons a (loop d))))
              (_ => '())))
            (_ => '()))))
+
+      (define (remove-duplicate-vars fv)
+        (match fv
+          (() '())
+          (((,x ,t) . ,rest)
+           `((,x ,t) . ,(remove-duplicate-vars (remove-vars (list x) rest))))))
       
       (define (free-vars e)
         (nanopass-case
@@ -167,6 +176,16 @@
           (remove-vars x* e))
          ((vector-ref ,t ,[e0] ,[e1])
           (union e0 e1))
+         ((call (var ,t ,x) ,[e*] ...)
+          (apply union e*))
+         ((invoke ,[e] ,[e*] ...)
+          (apply union e e*))
+         ((match ,t ,[e]
+                 ((,x0 ,x* ...) ,[e*]) ...)
+          (apply union e
+                 (map (lambda (x e)
+                        (remove-vars x e))
+                      x* e*)))
          ((,op ,[e1] ,[e2])
           (union e1 e2))
          (else (error 'free-vars "Unexpected expression" e)))))
@@ -178,7 +197,7 @@
     (Expr : Expr (expr) -> Expr ()
           ((lambda ,[t] ((,x* ,t*) ...) ,e)
            (let* ((tag (gensym 'lambda))
-                  (fv (remove-vars x* (free-vars e)))
+                  (fv (remove-vars x* (remove-duplicate-vars (free-vars e))))
                   (fvx (map car fv))
                   (fvt (map (lambda (t) (Rho-Type (cadr t))) fv))
                   (e (Expr e)))
@@ -236,6 +255,8 @@
             (andmap type-compat? (cons t1 t1*) (cons t2 t2*)))
            (((ptr ,t1) (ptr ,t2))
             (loop t1 t2 env))
+           (((adt ,x1 ,r1) (adt ,x2 ,r2))
+            (eq? x1 x2))
            ((,bt1 ,bt2) (equal? bt1 bt2))
            (else (begin
                    (pretty-print "Failed Match!\n")
@@ -324,6 +345,8 @@
             (andmap type-compat? (cons t1 t1*) (cons t2 t2*)))
            (((ptr ,t1) (ptr ,t2))
             (loop t1 t2 env))
+           (((adt ,x1 ,r1) (adt ,x2 ,r2))
+            (eq? x1 x2))
            ((,bt1 ,bt2) (equal? bt1 bt2))
            (else (begin
                    (pretty-print "Failed Match!")
@@ -424,6 +447,8 @@
 
     (Body : Body (b env) -> Body ())
 
+    (MatchArm : MatchArm (arm env) -> MatchArm ())
+    
     (Decl : Decl (d env) -> Decl ())
     
     (Expr

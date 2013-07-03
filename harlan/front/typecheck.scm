@@ -138,11 +138,14 @@
       s))
 
   (define (type-error e expected found)
-    ;;(pretty-print expected)
-    ;;(pretty-print found)
+    (display "In expression...\n")
+    (pretty-print e)
+    (display "Expected type...\n")
+    (pretty-print expected)
+    (display "But found...\n")
+    (pretty-print found)
     (error 'typecheck
-           "Could not unify types"
-           e expected found))
+           "Could not unify types"))
 
   (define (return e t)
     (lambda (_ r s)
@@ -216,6 +219,14 @@
        (free-var-types b (append x* env)))
       ((vector-ref ,t ,[x] ,[i])
        (append x i))
+      ((match ,t ,[e]
+         ((,tag ,x ...) ,b) ...)
+       (apply append e
+              (map (lambda (x b) (free-var-types b (append x env))) x b)))
+      ((call ,[e*] ...)
+       (apply append e*))
+      ((invoke ,[e*] ...)
+       (apply append e*))
       ((,op ,t ,[a] ,[b])
        (guard (or (binop? op) (relop? op)))
        (append a b))

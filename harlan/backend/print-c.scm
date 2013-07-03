@@ -16,6 +16,7 @@
   (import
     (rnrs)
     (elegant-weapons print-c)
+    (elegant-weapons insert-prototypes)
     (elegant-weapons match)
     (elegant-weapons compat)
     (elegant-weapons helpers))
@@ -37,7 +38,7 @@
            ,(string-append
               "#include \"rt/gpu_common.h\"\n\n"
               "#include \"rt/gpu_only.h\"\n\n"
-              (join "\n" (map compile-kernel kernel*)))))))
+              (join "\n" (map compile-kernel (insert-prototypes kernel*))))))))
   
   (define (harlan-decl decl ft)
     (match decl
