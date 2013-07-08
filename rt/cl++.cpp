@@ -64,6 +64,13 @@ device_list::device_list(cl_device_type type)
         num_ids += n_dev;
         break;
     }
+
+    cerr << "found " << num_ids << " devices" << endl;
+
+    // We seem to get errors by assigning a program to too many
+    // devices, so to prevent these, we arbitrarily restrict ourself
+    // to one device here.
+    num_ids = 1;
   
     // Allocate memory, gather information about all the devices.
     devices = new cl_device_id[num_ids];
@@ -77,8 +84,6 @@ device_list::device_list(cl_device_type type)
         CL_CHECK(status);
         offset += n_dev;
     }
-
-    cerr << "found " << num_ids << " devices" << endl;
 
     delete [] platforms;
 }
