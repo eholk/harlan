@@ -1,0 +1,58 @@
+;; CPS lambda calculus interpreter using Harlan lambdas.
+;;
+;; This one is trampolined
+
+
+(module
+
+  (define-datatype Expr
+    (variable int)
+    (Lambda Expr)
+    (app Expr Expr))
+
+  (define-datatype Value
+    (error)
+    (closure Expr Env))
+  
+  (define-datatype Env
+    (empty-env)
+    (extended-env Value Env))
+
+  (define-datatype Trampoline
+    (cont (closure () -> Trampoline))
+    (stop Value))
+
+  (define-macro bounce ()
+    ((_ e)
+     (cont (lambda () e))))
+  
+  (define (lookup i env k)
+    (match env
+      ((empty-env) (bounce (k (error))))
+      ((extended-env v env)
+       (if (= 0 i)
+           (bounce (k v))
+           (bounce (lookup (- i 1) env k))))))
+  
+  (define (eval e env k)
+    (match e
+      ((variable i) (bounce (lookup i env k)))
+      ((Lambda b)
+       (bounce (k (closure b env))))
+      ((app e1 e2)
+       (bounce (eval e1 env
+                     (lambda (e1)
+                       (eval e2 env
+                             (lambda (e2)
+                               (match e1
+                                 ((error) (bounce (k (error))))
+                                 ((closure e env)
+                                  (bounce (eval e
+                                                (extended-env e2 env)
+                                                k))))))))))))
+
+  (define (main)
+    (let ((e (app (Lambda (variable 0)) (Lambda (variable 0)))))
+      (eval e (empty-env) (lambda (x) (stop x))))
+    (return 0))
+  )

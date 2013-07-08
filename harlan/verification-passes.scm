@@ -50,6 +50,7 @@
       (adt SType)
       (struct (Var SType) *)
       (union (Var SType) *)
+      (closure (SType *) -> SType)
       ((SType *) -> SType))
    (Type
       Var

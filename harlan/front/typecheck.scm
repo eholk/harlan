@@ -211,6 +211,7 @@
   ;; variables.
   (define (free-var-types e env)
     (match e
+      ((num ,i) '())
       ((var ,t ,x)
        (if (memq x env)
            '()
@@ -231,7 +232,7 @@
        (guard (or (binop? op) (relop? op)))
        (append a b))
       (,else (error 'free-var-types
-                    "Unexpected expression" e))))
+                    "Unexpected expression" else))))
   
   (define-syntax do*
     (syntax-rules ()
@@ -518,6 +519,10 @@
                              (t* (map (lambda (t*)
                                         (map (lambda (t*)
                                                (match t*
+                                                 ((vec ,[t])
+                                                  `(vec ,@end ,t))
+                                                 ((closure (,[t*] ...) -> ,[t])
+                                                  `(closure ,@end ,t* -> ,t))
                                                  ((adt ,t^)
                                                   (guard
                                                    (recursive-adt? t^
@@ -591,6 +596,8 @@
                    (t* (map (lambda (t*)
                               (map (lambda (t*)
                                      (match t*
+                                       ((closure (,[t*] ...) -> ,[t])
+                                        `(closure ,r ,t* -> ,t))
                                        ((adt ,t^)
                                         (guard (recursive-adt? t^ adt-graph))
                                         `(adt ,t^ ,r))

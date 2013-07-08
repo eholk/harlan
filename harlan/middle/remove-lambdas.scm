@@ -143,7 +143,7 @@
      (t)
      (- (closure r (t* ...) -> t))))
   
-  (trace-define-pass uncover-lambdas : M0 (m) -> M1 ()
+  (define-pass uncover-lambdas : M0 (m) -> M1 ()
     (definitions
       (define closure-defs '())
 
@@ -238,7 +238,7 @@
   (define (map^2 f ls)
     (map (lambda (x) (map f x)) ls))
   
-  (trace-define-pass sort-closures : M1 (m) -> M2 ()
+  (define-pass sort-closures : M1 (m) -> M2 ()
     (definitions
       ;; Returns whether types are equivalent up to renaming of region
       ;; variables.
@@ -252,7 +252,8 @@
              (closure ,r2 (,t2* ...) ,-> ,t2))
             ;; TODO: This needs to consider region variables and
             ;; renaming.
-            (andmap type-compat? (cons t1 t1*) (cons t2 t2*)))
+            (and (eq? (length t1*) (length t2*))
+                 (andmap type-compat? (cons t1 t1*) (cons t2 t2*))))
            (((ptr ,t1) (ptr ,t2))
             (loop t1 t2 env))
            (((adt ,x1 ,r1) (adt ,x2 ,r2))
@@ -342,7 +343,8 @@
              (closure ,r2 (,t2* ...) ,-> ,t2))
             ;; TODO: This needs to consider region variables and
             ;; renaming.
-            (andmap type-compat? (cons t1 t1*) (cons t2 t2*)))
+            (and (eq? (length t1*) (length t2*))
+                 (andmap type-compat? (cons t1 t1*) (cons t2 t2*))))
            (((ptr ,t1) (ptr ,t2))
             (loop t1 t2 env))
            (((adt ,x1 ,r1) (adt ,x2 ,r2))
@@ -500,13 +502,20 @@
        (-> (x e a ...) e* ...))
       ((_ e x e* ...)
        (-> (x e) e* ...))))
+
+  (define (trace x s)
+    (pretty-print s)
+    x)
   
   (define (remove-lambdas module)
     (-> module
         parse-M0
         uncover-lambdas
+        (trace "uncovered lambdas")
         sort-closures
+        (trace "sorted closures")
         remove-closures
+        (trace "removed closures")
         unparse-M3))
   )
 

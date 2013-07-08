@@ -61,6 +61,8 @@
   ((vec ,n ,[t])
    (guard (integer? n))
    `(vec ,n ,t))
+  ((closure (,[t*] ...) -> ,[t])
+   `(closure ,t* -> ,t))
   (((,[t*] ...) -> ,[t])
    `(,t* -> ,t)))
 
