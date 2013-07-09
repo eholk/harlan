@@ -84,8 +84,8 @@
         e)))
   
   (define (bench-step count)
-    (let* ((Omega (app (Lambda (app (variable 0) (variable 0)))
-                       (Lambda (app (variable 0) (variable 0)))))
+    (let* ((Omega (app (lambda (app (variable 0) (variable 0)))
+                       (lambda (app (variable 0) (variable 0)))))
 	   (exprs (kernel ((_ (iota count)))
 		    (value-of-t Omega (empty-env) (final-k))))
 	   (start (time-s))
