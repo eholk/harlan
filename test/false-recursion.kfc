@@ -1,0 +1,16 @@
+(%testspec
+ (%tags xfail))
+
+;; This test illustrates the issue of false recursion. Because add2
+;; calls add1, and both closures have the same type, the dispatch
+;; function ends up being recursive. Since we call this from a kernel,
+;; the whole world blows up.
+
+(module
+
+  (define (main)
+    (let* ((add1 (lambda (x) (+ 1 x)))
+           (add2 (lambda (x) (add1 (add1 x)))))
+      (kernel ((i (iota 1)))
+        (add1 i)))
+    0))
