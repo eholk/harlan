@@ -1,7 +1,7 @@
 Harlan
 ==========
 
-Harlan is declarative, domain specific language for programming
+Harlan is a declarative, domain specific language for programming
 GPUs. This project serves primarily as a testbed for implementation
 and optimization techniques. The language is intentionally small, in
 order to simplify the process of exploring new analyses and
