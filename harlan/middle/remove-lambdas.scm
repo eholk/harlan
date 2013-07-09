@@ -8,6 +8,7 @@
    (only (chezscheme) pretty-print trace-define)
    (nanopass)
    (except (elegant-weapons match) ->)
+   (harlan compile-opts)
    (elegant-weapons sets)
    (only (elegant-weapons helpers)
          binop? scalar-type? relop? gensym andmap map-values))
@@ -27,6 +28,9 @@
      (region-var (r))
      (arrow (->))
      (integer (i))
+     (flonum (f))
+     (boolean (b))
+     (char (c))
      (string (str-t))
      (variable (x name)))
     (Module
@@ -53,8 +57,16 @@
      (x t* ...))
     (Body
      (body)
-     (begin e ... body)
+     (begin body* ... body)
      (let-region (r ...) body)
+     (let ((x* t* e*) ...) body)
+     (if e body1 body2)
+     (print e)
+     (print e1 e2)
+     (do e)
+     (while e1 e2)
+     (assert e)
+     (set! e1 e2)
      (return)
      (return e))
     (MatchBindings
@@ -66,11 +78,12 @@
     (Expr
      (e)
      (int i)
+     (float f)
+     (bool b)
+     (char c)
      (str str-t)
-     ;; The do form should really be a Stmt, but I'd rather not have
-     ;; that in the grammar.
-     (do e)
      (vector t r e* ...)
+     (do e)
      (print e)
      (print e1 e2)
      (begin e e* ...)
@@ -79,15 +92,20 @@
      (let-region (r ...) e)
      (kernel t r (((x0 t0) (e1 t1)) ...) e)
      (iota-r r e)
+     (make-vector t r e)
      (for (x e0 e1 e2) e)
      (lambda t0 ((x t) ...) e)
      (invoke e e* ...)
      (call e e* ...)
      (match t e arm ...)
      (vector-ref t e0 e1)
+     (unsafe-vector-ref t e0 e1)
      (length e)
+     (int->float e)
      (if e0 e1)
      (if e0 e1 e2)
+     (set! e1 e2)
+     (while e1 e2)
      (op e1 e2)
      (var t x)))
 
@@ -305,7 +323,6 @@
          (let ((c-types (map (lambda (_) (gensym 'lambda-type)) t))
                (dispatch (map (lambda (_) (gensym 'dispatch)) t))
                (c (map^2 ClosureTag c)))
-           (pretty-print c)
            (with-output-language
             (M2 Closures)
             `(closures
@@ -442,9 +459,11 @@
      ((closures (,cgroup ...) ,m)
       (let ((env (map MakeEnv cgroup)))
         (let-values (([cgroup types dispatches]
-                      (map-values (lambda (g)
-                                    (ClosureGroup g env))
-                                  cgroup )))
+                      (if (null? cgroup)
+                          (values '() '() '())
+                          (map-values (lambda (g)
+                                        (ClosureGroup g env))
+                                      cgroup ))))
           (Module m env types dispatches)))))
 
     (Body : Body (b env) -> Body ())
@@ -481,7 +500,6 @@
     (Module
      : Module (m env types dispatches) -> Module ()
      ((module ,[decl env -> decl] ...)
-      (pretty-print env)
       `(module ,(append types dispatches decl) ...)))
         
      )
@@ -504,7 +522,7 @@
        (-> (x e) e* ...))))
 
   (define (trace x s)
-    (pretty-print s)
+    (if (verbose) (pretty-print s))
     x)
   
   (define (remove-lambdas module)

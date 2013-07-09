@@ -29,7 +29,7 @@
                    ((,n ,r) `(adt ,n ,r))
                    (,n `(adt ,n)))))
        `((define-datatype ,t (,c ,t* ...) ...)
-         (fn print (,adt ,out) ((,type (ptr ofstream)) -> void)
+         (fn print (,adt ,out) (fn (,type (ptr ofstream)) -> void)
              (begin
                (do (match int (var ,type ,adt)
                      ,@(map (lambda (c t*)
@@ -53,7 +53,7 @@
                                     (int 0)))))
                             c t*)))
                (return)))
-         (fn print (,adt) ((,type) -> void)
+         (fn print (,adt) (fn (,type) -> void)
              (begin
                (do (match int (var ,type ,adt)
                      ,@(map (lambda (c t*)
@@ -128,11 +128,14 @@
        `(let ((,len int ,size))
           (let ((,v (vec ,r ,t) (make-vector ,t ,r (var int ,len))))
             (begin
-              (for (,i (int 0) (var int ,len) (int 1))
-                   (set! (vector-ref ,t
-                                     (var (vec ,r ,t) ,v)
-                                     (var int ,i))
-                         ,init))
+              (let ((,i int (int 0)))
+                (while (< (var int ,i) (var int ,len))
+                  (begin
+                    (set! (vector-ref ,t
+                                      (var (vec ,r ,t) ,v)
+                                      (var int ,i))
+                          ,init)
+                    (set! (var int ,i) (+ (var int ,i) (int 1))))))
               (var (vec ,r ,t) ,v))))))
     ((vector-ref ,t ,[v] ,[i])
      `(vector-ref ,t ,v ,i))
@@ -150,20 +153,6 @@
      `(if ,test ,conseq ,altern))
     ((if ,[test] ,[conseq])
      `(if ,test ,conseq))
-    ((reduce (vec ,r ,t) ,op ,[e])
-     (let ((i (gensym 'i))
-           (v (gensym 'v))
-           (x (gensym 'x)))
-       `(let ((,v (vec ,r ,t) ,e))
-          (let ((,x ,t (vector-ref ,t (var (vec ,r ,t) ,v) (int 0))))
-            (begin
-              (for (,i (int 1) (length (var (vec ,r ,t) ,v)) (int 1))
-                   (set! (var int ,x)
-                         (,op (var int ,x)
-                              (vector-ref ,t
-                                          (var (vec ,r ,t) ,v)
-                                          (var int ,i)))))
-              (var int ,x))))))
     ((kernel ,ktype (((,x ,t) (,[xs] ,ts)) ...) ,[body])
      `(kernel ,ktype ,(var 'region) (((,x ,t) (,xs ,ts)) ...) ,body))
     ((kernel-r ,ktype ,r (((,x ,t) (,[xs] ,ts)) ...) ,[body])
@@ -184,22 +173,26 @@
 
   (define (expand-print r t e . stream)
     (let ((v (gensym 'v)) 
-          (i (gensym 'i)))
+          (i (gensym 'i))
+          (len (gensym 'len)))
       `(let ((,v (vec ,r ,t) ,e))
          (begin
            (print (str "[") . ,stream)
-           (for (,i (int 0) (length (var (vec ,r ,t) ,v)) (int 1))
-                (begin
-                  ,(if (scalar-type? t)
-                       `(if (> (var int ,i) (int 0))
-                            (print (str " ") . ,stream))
-                       `(if (> (var int ,i) (int 0))
-                            (print (str " \n ") . ,stream)))
-                  ,(expand-prim-stmt
-                    `(print ,t
-                            (vector-ref ,t
-                                        (var (vec ,r ,t) ,v) (var int ,i))
-                            . ,stream))))
+           (let ((,i int (int 0))
+                 (,len int (length (var (vec ,r ,t) ,v))))
+             (while (< (var int ,i) (var int ,len))
+               (begin
+                 ,(if (scalar-type? t)
+                      `(if (> (var int ,i) (int 0))
+                           (print (str " ") . ,stream))
+                      `(if (> (var int ,i) (int 0))
+                           (print (str " \n ") . ,stream)))
+                 ,(expand-prim-stmt
+                   `(print ,t
+                           (vector-ref ,t
+                                       (var (vec ,r ,t) ,v) (var int ,i))
+                            . ,stream))
+                 (set! (var int ,i) (+ (var int ,i) (int 1))))))
            (print (str "]") . ,stream)))))
 
   (define (expand-vec-addition t lhs rhs)

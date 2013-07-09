@@ -236,7 +236,7 @@
   (define-match type-of
     ((call ,[f] . ,_)
      (match f
-       ((,_ -> ,t) t)
+       ((fn ,_ -> ,t) t)
        (,else (error 'type-of "Illegal function type" else))))
     ((kernel ,t . ,_) t)
     ((field ,[e] ,x) e)

@@ -60,7 +60,7 @@
   ;; this functions returns #f.
   (define (unify-types a b s)
     (define (maybe-subst a b s)
-      (let ((t (or (tvar? a) (rvar? b))))
+      (let ((t (or (tvar? a) (rvar? a))))
         (if t
             (and s `((,a . ,b) . ,s))
             (error 'maybe-subst
