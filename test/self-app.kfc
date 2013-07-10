@@ -1,0 +1,16 @@
+(%testspec
+ (%tags xfail))
+
+(module
+
+  (define-datatype box-t
+    (box (closure (box-t) -> int)))
+
+  (define (unbox b)
+    (match b
+      ((box x) x)))
+  
+  (define (main)
+    (let ((U (lambda (x) ((unbox x) x))))
+      (print (U (box (lambda (x) 5))))
+      0)))

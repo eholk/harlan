@@ -48,7 +48,10 @@
      (var (ptr region) ,region)
      ,e)))
 
-(define extract-regions free-regions-type)
+(define-match extract-regions
+  ;;((fn (,[t*] ...) -> ,[t])
+  ;; (append (apply append t*) t))
+  (,else (free-regions-type else)))
 
 (define (remove-regions t)
   (match t

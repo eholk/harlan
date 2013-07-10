@@ -171,6 +171,8 @@
      (union t c a))
     ((c-expr ,t ,v) `(c-expr ,t ,v))
     ((field ,[e] ,x) e)
+    ((box ,t ,r ,[e]) e)
+    ((unbox ,t ,r ,[e]) e)
     ((begin ,[free-vars-Stmt -> s*] ... ,[e])
      (apply union e s*)))
 
@@ -222,6 +224,8 @@
      (and x i))
     ((iota ,[e]) e)
     ((field ,[e] ,x) e)
+    ((box ,t ,r ,[e]) e)
+    ((unbox ,t ,r ,[e]) e)
     ((kernel
        ,t
        (,dims ...)

@@ -558,12 +558,26 @@
                     ((define-datatype ,t (,c ,t* ...) ...)
                      `((,t . ,(apply union
                                      (map
-                                      (lambda (t)
-                                        (map (lambda (t)
-                                               (match t
+                                      (lambda (t^)
+                                        (map (lambda (t^)
+                                               (match t^
+                                                 ;; if we contain a
+                                                 ;; vector or closure,
+                                                 ;; then the type is
+                                                 ;; always
+                                                 ;; recursive. We
+                                                 ;; trick the type
+                                                 ;; checker into
+                                                 ;; thinking this by
+                                                 ;; putting in a
+                                                 ;; self-link if we
+                                                 ;; encounter one of
+                                                 ;; these types.
+                                                 ((vec . ,_) t)
+                                                 ((closure . ,_) t)
                                                  ((adt ,t) t)
                                                  (,else else)))
-                                             t))
+                                             t^))
                                         t*)))))
                     (,else '())))
                 decl*)))

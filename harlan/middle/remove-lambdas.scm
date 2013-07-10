@@ -495,6 +495,20 @@
             `(call
               (var (fn (,(cons t t*) ...) -> ,t^)
                    ,dispatch)
+              ,(cons e e*) ...))))
+       ((call (var (fn (,t*^ ...) ,->^ (closure ,r (,t* ...) ,-> ,t^)) ,x)
+              ,e** ...)
+        (let ((e (Expr e env))
+              (t (with-output-language
+                  (M2 Rho-Type)
+                  `(closure ,r (,t* ...) ,-> ,t^))))
+          (let ((dispatch (find-dispatch t env))
+                (t (Rho-Type t env))
+                (t^ (Rho-Type t^ env))
+                (t* (map (lambda (t) (Rho-Type t env)) t*)))
+            `(call
+              (var (fn (,(cons t t*) ...) -> ,t^)
+                   ,dispatch)
               ,(cons e e*) ...)))))))
     
     (Module
