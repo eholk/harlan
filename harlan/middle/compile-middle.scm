@@ -7,6 +7,7 @@
     (harlan verification-passes)
     (harlan middle lifting)
     (harlan middle remove-lambdas)
+    (harlan middle remove-recursion)
     (harlan middle desugar-match)
     (harlan middle make-kernel-dimensions-explicit)
     (harlan middle make-work-size-explicit)
@@ -33,6 +34,7 @@
 (define compile-harlan-middle
   (passes
    (remove-lambdas)
+   (remove-recursion)
    (desugar-match
     verify-desugar-match)
    (make-kernel-dimensions-explicit

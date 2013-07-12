@@ -2,13 +2,16 @@
     (harlan middle remove-lambdas)
   (export remove-lambdas
           M0 unparse-M0 parse-M0
-          M1 unparse-M1)
+          M1 unparse-M1
+          M2 unparse-M2
+          M3 unparse-M3)
   (import
    (rnrs)
    (only (chezscheme) pretty-print trace-define)
    (nanopass)
    (except (elegant-weapons match) ->)
    (harlan compile-opts)
+   (harlan helpers)
    (elegant-weapons sets)
    (only (elegant-weapons helpers)
          binop? scalar-type? relop? gensym andmap map-values))
@@ -22,7 +25,7 @@
   ;; The first language in the middle end.
   (define-language M0
     (terminals
-     (any (any))
+     (any (any ?))
      (scalar-type (bt))
      (operator (op))
      (region-var (r))
@@ -526,28 +529,14 @@
     ;; make-closure and invoke.
   ;;)
 
-  ;; I'm a horrible person for defining this.
-  (define-syntax ->
-    (syntax-rules ()
-      ((_ e) e)
-      ((_ e (x a ...) e* ...)
-       (-> (x e a ...) e* ...))
-      ((_ e x e* ...)
-       (-> (x e) e* ...))))
-
-  (define (trace x s)
-    (if (verbose) (pretty-print s))
-    x)
-  
   (define (remove-lambdas module)
-    (-> module
-        parse-M0
-        uncover-lambdas
-        (trace "uncovered lambdas")
-        sort-closures
-        (trace "sorted closures")
-        remove-closures
-        (trace "removed closures")
-        unparse-M3))
+    (>::> module
+          parse-M0
+          uncover-lambdas
+          (trace-message "uncovered lambdas")
+          sort-closures
+          (trace-message "sorted closures")
+          remove-closures
+          (trace-message "removed closures")))
   )
 
