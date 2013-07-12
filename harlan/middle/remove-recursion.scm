@@ -7,7 +7,9 @@
    (only (chezscheme) pretty-print trace-define)
    (only (harlan middle remove-lambdas) M3 unparse-M3)
    (harlan helpers)
+   (harlan compile-opts)
    (elegant-weapons sets)
+   (elegant-weapons graphviz)
    (nanopass))
 
   ;; This is the set of passes that transforms recursive functions
@@ -80,6 +82,11 @@
      : Module (m) -> CallGraph ()
      ((module ,[decl] ...)
       (new-node! '_)
+      (if (dump-call-graph)
+          (begin
+            (if (file-exists? "call-graph.dot")
+                (delete-file "call-graph.dot"))
+            (write-dot cgraph (open-output-file "call-graph.dot"))))
       `(call-graph ,cgraph (module ,decl ...)))))
 
   (define-pass remove-callgraph : M4 (m) -> M3 ()

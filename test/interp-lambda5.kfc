@@ -51,8 +51,13 @@
                                                 (extended-env e2 env)
                                                 k))))))))))))
 
+  (define (trampoline t)
+    (match t
+      ((cont k) (trampoline (k)))
+      ((stop x) x)))
+  
   (define (main)
     (let ((e (app (Lambda (variable 0)) (Lambda (variable 0)))))
-      (eval e (empty-env) (lambda (x) (stop x))))
+      (trampoline (eval e (empty-env) (lambda (x) (stop x)))))
     (return 0))
   )

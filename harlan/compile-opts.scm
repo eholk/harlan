@@ -14,6 +14,7 @@
     parse-args
     use-doubles
     quiet
+    dump-call-graph
     timing)
   (import
     (rnrs)
@@ -31,7 +32,8 @@
 (define optimize-level     (make-parameter 1))
 (define no-kernels         (make-parameter #f))
 (define use-doubles        (make-parameter #f))
-(define test-tags  (make-parameter '((xfail . -) (bench . -))))
+(define test-tags          (make-parameter '((xfail . -) (bench . -))))
+(define dump-call-graph    (make-parameter #f))
 
 (define trace-passes '())
 
@@ -86,7 +88,8 @@
     ((("--no-kernels"))        (no-kernels #t))
     ((("--no-verify" "-V"))    (verify #f))
     ((("--time" "-t"))         (timing #t))
-    ((("--tags" "-x") tags)    (parse-tags tags))))
+    ((("--tags" "-x") tags)    (parse-tags tags))
+    ((("--dump-call-graph"))   (dump-call-graph #t))))
 
 (define (string-search needle haystack)
   (let loop ((i 0))
