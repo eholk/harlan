@@ -2,6 +2,7 @@
   (harlan middle convert-types)
   (export convert-types convert-type)
   (import (rnrs) (except (elegant-weapons helpers) ident?)
+          (harlan compile-opts)
     (harlan helpers))
   
 ;; This pass converts Harlan types into C types.
@@ -98,7 +99,7 @@
   (bool 'bool_t)
   (char 'char)
   (u64 'uint64_t)
-  (float 'double)
+  (float (if (use-doubles) 'double 'float))
   (void 'void)
   (ofstream 'std::ofstream)
   (str '(const-ptr char))

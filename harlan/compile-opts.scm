@@ -12,6 +12,7 @@
     trace-pass
     untrace-pass
     parse-args
+    use-doubles
     quiet
     timing)
   (import
@@ -29,6 +30,7 @@
 (define make-shared-object (make-parameter #f))
 (define optimize-level     (make-parameter 1))
 (define no-kernels         (make-parameter #f))
+(define use-doubles        (make-parameter #f))
 (define test-tags  (make-parameter '((xfail . -) (bench . -))))
 
 (define trace-passes '())
@@ -78,6 +80,7 @@
     ((("--no-optimize" "-O0")) (optimize-level 0))
     ((("--verbose" "-v"))      (verbose #t))
     ((("--debug" "-g"))        (generate-debug #t))
+    ((("--enable-double"))     (use-doubles #t))
     ((("--shared" "-s"))       (make-shared-object #t))
     ((("--quiet" "-q"))        (quiet #t))
     ((("--no-kernels"))        (no-kernels #t))
