@@ -9,6 +9,7 @@
    (harlan helpers)
    (harlan compile-opts)
    (elegant-weapons sets)
+   (elegant-weapons graphs)
    (elegant-weapons graphviz)
    (nanopass))
 
@@ -86,7 +87,9 @@
           (begin
             (if (file-exists? "call-graph.dot")
                 (delete-file "call-graph.dot"))
-            (write-dot cgraph (open-output-file "call-graph.dot"))))
+            (write-dot cgraph
+                       (strongly-connected-components cgraph)
+                       (open-output-file "call-graph.dot"))))
       `(call-graph ,cgraph (module ,decl ...)))))
 
   (define-pass remove-callgraph : M4 (m) -> M3 ()
