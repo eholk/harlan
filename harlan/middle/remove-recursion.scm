@@ -5,7 +5,7 @@
    (rnrs)
    (rnrs mutable-pairs)
    (only (chezscheme) pretty-print trace-define)
-   (only (harlan middle remove-lambdas) M3 unparse-M3)
+   (harlan middle languages)
    (harlan helpers)
    (harlan compile-opts)
    (elegant-weapons sets)
@@ -42,13 +42,6 @@
   ;; it can be called once we enter the kernel. Perhaps this can
   ;; happen in remove-nested-kernels or in one of the passes that
   ;; handles functions in a gpu-module.
-
-  (define-language M4
-    (extends M3)
-    (entry CallGraph)
-    (CallGraph
-     (cg)
-     (+ (call-graph ? m))))
 
   (trace-define-pass extract-callgraph : M3 (m) -> M4 ()
     (definitions
