@@ -31,7 +31,7 @@
     (harlan middle convert-types))
 
 ;; The "middle end" of a compiler. No one ever knows what's supposed
-;; to go here. This goes from TFC to something we can give to print-c.
+;; to go here.
 (define compile-harlan-middle
   (passes
    (nanopasses
@@ -40,9 +40,8 @@
    (desugar-match
     verify-desugar-match)
    (nanopasses
-    (make-kernel-dimensions-explicit : M5 -> M6))
-   (make-work-size-explicit
-    verify-make-work-size-explicit)
+    (make-kernel-dimensions-explicit : M5 -> M6)
+    (make-work-size-explicit : M6 -> M7))
    (optimize-lift-lets
     verify-optimize-lift-lets
     1)
@@ -66,10 +65,6 @@
     verify-annotate-free-vars)
    (lower-vectors
     verify-lower-vectors)
-   ;;(insert-let-regions
-   ;; verify-insert-let-regions)
-   ;;(infer-regions
-   ;; verify-infer-regions)
    (uglify-vectors
     verify-uglify-vectors)
    (remove-let-regions

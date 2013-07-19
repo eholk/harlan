@@ -8,7 +8,8 @@
           M3 unparse-M3 parse-M3
           M4 unparse-M4
           M5 unparse-M5 parse-M5
-          M6 unparse-M6)
+          M6 unparse-M6
+          M7 unparse-M7)
   (import
    (rnrs)
    (nanopass)
@@ -206,8 +207,18 @@
      (+ (kernel t r i (((x0 t0) (e1 t1) i*) ...) e)
         (kernel t r i (e* ...) (((x0 t0) (e1 t1) i*) ...) e))))
 
-    (define-parser parse-M0 M0)
-    (define-parser parse-M3 M3)
-    (define-parser parse-M5 M5)
+  (define-language M7
+    (extends M6)
+    (entry Module)
+
+    (Expr
+     (e)
+     (- (kernel t r i (((x0 t0) (e1 t1) i*) ...) e)
+        (kernel t r i (e* ...) (((x0 t0) (e1 t1) i*) ...) e))
+     (+ (kernel t r (e* ...) (((x0 t0) (e1 t1) i*) ...) e))))
+
+  (define-parser parse-M0 M0)
+  (define-parser parse-M3 M3)
+  (define-parser parse-M5 M5)
 
   )
