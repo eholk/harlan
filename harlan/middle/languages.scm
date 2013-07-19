@@ -5,8 +5,10 @@
   (export M0 unparse-M0 parse-M0
           M1 unparse-M1
           M2 unparse-M2
-          M3 unparse-M3
-          M4 unparse-M4)
+          M3 unparse-M3 parse-M3
+          M4 unparse-M4
+          M5 unparse-M5 parse-M5
+          M6 unparse-M6)
   (import
    (rnrs)
    (nanopass)
@@ -108,8 +110,6 @@
      (op e1 e2)
      (var t x)))
 
-  (define-parser parse-M0 M0)
-
   (define-language M1
     (extends M0)
     (entry Closures)
@@ -166,4 +166,48 @@
     (CallGraph
      (cg)
      (+ (call-graph ? m))))
+
+  ;; After desugar-match
+  (define-language M5
+    (extends M3)
+
+    (entry Module)
+    
+    (Decl
+     (decl)
+     (- (define-datatype (x r) pt ...)
+        (define-datatype x pt ...))
+     (+ (typedef x t)))
+    
+    (Rho-Type
+     (t)
+     (+ (struct (x t) ...)
+        (union  (x t) ...)))
+
+    (Expr
+     (e)
+     (- (match t e arm ...))
+     (+ (c-expr t x)
+        (empty-struct)
+        (unbox t r e)
+        (box   r t e)
+        (field e x))))
+  
+  ;; After make-kernel-dimensions-explicit
+  (define-language M6
+    (extends M5)
+
+    (entry Module)
+    
+    (Expr
+     (e)
+     (- (kernel t r (((x0 t0) (e1 t1)) ...) e)
+        (iota-r r e))
+     (+ (kernel t r i (((x0 t0) (e1 t1) i*) ...) e)
+        (kernel t r i (e* ...) (((x0 t0) (e1 t1) i*) ...) e))))
+
+    (define-parser parse-M0 M0)
+    (define-parser parse-M3 M3)
+    (define-parser parse-M5 M5)
+
   )

@@ -20,7 +20,7 @@
     (rnrs)
     (util color)
 ;;    (harlan helpers)
-    (only (chezscheme) pretty-print make-parameter time))
+    (only (chezscheme) pretty-print make-parameter time trace-define-syntax))
   
 (define verbose            (make-parameter #f))
 (define verify             (make-parameter #t))
@@ -153,7 +153,9 @@
       (newline))))
 
 (define-syntax single-pass
-  (syntax-rules ()
+  (syntax-rules (nanopasses)
+    ((_ (nanopasses . passes))
+     (do-nanopasses . passes))
     ((_ (pass-name))
      (lambda (expr)
        (do-trace-pass 'pass-name pass-name expr)))
@@ -169,6 +171,44 @@
        (if (<= olevel (optimize-level))
            ((single-pass (pass-name verify-pass)) expr)
            expr)))))
+
+(define-syntax do-nanopasses
+  (syntax-rules (: ->)
+    ((_) (lambda (e) e))
+    ((_ (pass : input -> output) . rest)
+     (lambda (expr)
+       ((np-middle-passes output (pass : input -> output) . rest)
+        ((np-entry input) expr))))))
+
+(define-syntax np-entry
+  (lambda (x)
+    (syntax-case x ()
+      ((_ input)
+       (let* ((parser (string->symbol
+                       (string-append "parse-" (symbol->string
+                                                (syntax->datum #'input)))))
+              (parser (datum->syntax #'input parser)))
+         #`(lambda (expr)
+             (#,parser expr)))))))
+
+(define-syntax np-exit
+  (lambda (x)
+    (syntax-case x ()
+      ((_ output)
+       (let* ((unparser (string->symbol
+                         (string-append "unparse-" (symbol->string
+                                                    (syntax->datum #'output)))))
+              (unparser (datum->syntax #'output unparser)))
+         #`(lambda (expr)
+             (#,unparser expr)))))))
+
+(define-syntax np-middle-passes
+  (syntax-rules (: ->)
+    ((_ output)
+     (np-exit output))
+    ((_ output^ (pass : input -> output) . rest)
+     (lambda (expr)
+       ((np-middle-passes output . rest) (pass expr))))))
 
 (define-syntax passes
   (syntax-rules ()

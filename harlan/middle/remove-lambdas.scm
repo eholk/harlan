@@ -379,7 +379,6 @@
 
   (define (remove-lambdas module)
     (>::> module
-          parse-M0
           uncover-lambdas
           (trace-message "uncovered lambdas")
           sort-closures

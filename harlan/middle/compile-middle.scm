@@ -5,6 +5,7 @@
     (rnrs)
     (harlan compile-opts)
     (harlan verification-passes)
+    (harlan middle languages)
     (harlan middle lifting)
     (harlan middle remove-lambdas)
     (harlan middle remove-recursion)
@@ -33,12 +34,13 @@
 ;; to go here. This goes from TFC to something we can give to print-c.
 (define compile-harlan-middle
   (passes
-   (remove-lambdas)
-   (remove-recursion)
+   (nanopasses
+    (remove-lambdas : M0 -> M3)
+    (remove-recursion : M3 -> M3))
    (desugar-match
     verify-desugar-match)
-   (make-kernel-dimensions-explicit
-    verify-make-kernel-dimensions-explicit)
+   (nanopasses
+    (make-kernel-dimensions-explicit : M5 -> M6))
    (make-work-size-explicit
     verify-make-work-size-explicit)
    (optimize-lift-lets
