@@ -9,7 +9,8 @@
           M4 unparse-M4
           M5 unparse-M5 parse-M5
           M6 unparse-M6
-          M7 unparse-M7)
+          M7 unparse-M7
+          M8 unparse-M8 parse-M8)
   (import
    (rnrs)
    (nanopass)
@@ -217,8 +218,72 @@
         (kernel t r i (e* ...) (((x0 t0) (e1 t1) i*) ...) e))
      (+ (kernel t r (e* ...) (((x0 t0) (e1 t1) i*) ...) e))))
 
+  ;; after hoist-kernels
+  (define-language M8
+    (extends M7)
+
+    (entry Module)
+    
+    (Decl
+     (decl)
+     (+ (gpu-module k* ...)
+        (global x t e)
+        cdecl)
+     (- (fn name (x ...) t body)))
+
+    (CommonDecl
+     (cdecl)
+     (+ (fn x (x* ...) t stmt)
+        (typedef x t)
+        (extern x (t* ...) -> t)))
+
+    (Kernel
+     (k)
+     (+ (kernel x ((x* t*) ...) stmt)
+        cdecl))
+
+    (Stmt
+     (stmt)
+     (+ (print e)
+        (print e1 e2)
+        (assert e)
+        (set! e1 e2)
+        (apply-kernel x (e1* ...) e* ...)
+        (let x t e)
+        (let x t)
+        (begin stmt ...)
+        (if e stmt)
+        (if e stmt1 stmt2)
+        (for (x e1 e2 e3) stmt)
+        (while e stmt)
+        (do e)
+        (error x)
+        rstmt))
+
+    (RetStmt
+     (rstmt)
+     (+ (return e)
+        (return)))
+
+    (Expr
+     (e)
+     (+ (cast t e)
+        (sizeof t)
+        (alloc e1 e2)
+        (addressof e)
+        (deref e)
+        (region-ref t e1 e2)))
+
+    (Rho-Type
+     (t)
+     (+ (vec t))
+     (- (vec r t)
+        (adt x r)))
+    )
+  
   (define-parser parse-M0 M0)
   (define-parser parse-M3 M3)
   (define-parser parse-M5 M5)
+  (define-parser parse-M8 M8)
 
   )

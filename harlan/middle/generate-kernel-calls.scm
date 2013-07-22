@@ -1,12 +1,23 @@
 (library
   (harlan middle generate-kernel-calls)
   (export generate-kernel-calls)
-  (import (rnrs) (except (elegant-weapons helpers) ident?)
-    (harlan helpers))
+  (import
+   (rnrs)
+   (only (chezscheme) pretty-print)
+   (nanopass)
+   (except (elegant-weapons helpers) ident?)
+   (harlan middle languages)
+   (harlan helpers))
   
-(define-match generate-kernel-calls
+(define-match generate-kernel-calls^
   ((module ,[generate-decl -> decl*] ...)
    `(module . ,decl*)))
+
+(define (generate-kernel-calls m)
+  (begin
+    ;;(pretty-print (language->s-expression M8))
+    (parse-M8 m)
+    (generate-kernel-calls^ m)))
 
 (define-match generate-decl
   ((fn ,name ,args ,type ,[generate-stmt -> stmt])

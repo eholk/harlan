@@ -43,7 +43,7 @@
   ;; happen in remove-nested-kernels or in one of the passes that
   ;; handles functions in a gpu-module.
 
-  (trace-define-pass extract-callgraph : M3 (m) -> M4 ()
+  (define-pass extract-callgraph : M3 (m) -> M4 ()
     (definitions
 
       (define current-node '())
