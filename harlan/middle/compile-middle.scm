@@ -73,8 +73,8 @@
     verify-flatten-lets)
    (hoist-kernels
     verify-hoist-kernels)
-   (generate-kernel-calls
-    verify-generate-kernel-calls)
+   (nanopasses
+    (generate-kernel-calls : M8 -> M9))
    (compile-module
     verify-compile-module)
    (convert-types
