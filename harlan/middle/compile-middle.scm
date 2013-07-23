@@ -35,8 +35,7 @@
 (define compile-harlan-middle
   (passes
    (nanopasses
-    (remove-lambdas : M0 -> M3)
-    (remove-recursion : M3 -> M3))
+    (remove-lambdas : M0 -> M3))
    (desugar-match
     verify-desugar-match)
    (nanopasses
@@ -74,7 +73,8 @@
    (hoist-kernels
     verify-hoist-kernels)
    (nanopasses
-    (generate-kernel-calls : M8 -> M9))
+    (generate-kernel-calls : M8 -> M9)
+    (remove-recursion : M9 -> M10))
    (compile-module
     verify-compile-module)
    (convert-types

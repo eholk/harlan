@@ -43,7 +43,7 @@
   ;; happen in remove-nested-kernels or in one of the passes that
   ;; handles functions in a gpu-module.
 
-  (define-pass extract-callgraph : M3 (m) -> M4 ()
+  (define-pass extract-callgraph : M9 (m) -> M9.1 ()
     (definitions
 
       (define current-node '())
@@ -57,24 +57,12 @@
       (define (add-call! name)
         (set-cdr! current-node (set-add (cdr current-node) name))))
     
-    (Body : Body (b) -> Body ())
+    (Stmt : Stmt (b) -> Stmt ())
     
     (Decl
      : Decl (decl) -> Decl ()
 
-     ((fn ,name (,x ...) ,[t] ,body)
-      (new-node! name)
-      `(fn ,name (,x ...) ,t ,(Body body))))
-
-    (Expr
-     : Expr (e) -> Expr ()
-     ((call (var ,[t] ,x) ,[e*] ...)
-      (add-call! x)
-      `(call (var ,t ,x) ,e* ...)))
-    
-    (Module
-     : Module (m) -> CallGraph ()
-     ((module ,[decl] ...)
+     ((gpu-module ,[k*] ...)
       (new-node! '_)
       (if (dump-call-graph)
           (begin
@@ -83,20 +71,27 @@
             (write-dot cgraph
                        (strongly-connected-components cgraph)
                        (open-output-file "call-graph.dot"))))
-      `(call-graph ,cgraph (module ,decl ...)))))
+      `(gpu-module (call-graph ,cgraph) ,k* ...))
+     ((fn ,name (,x ...) ,[t] ,stmt)
+      (new-node! name)
+      `(fn ,name (,x ...) ,t ,(Stmt stmt))))
 
-  (define-pass remove-callgraph : M4 (m) -> M3 ()
+    (Expr
+     : Expr (e) -> Expr ()
+     ((call (var ,[t] ,x) ,[e*] ...)
+      (add-call! x)
+      `(call (var ,t ,x) ,e* ...))))
 
-    (CallGraph
-     : CallGraph (cg) -> Module ()
+  (define-pass remove-callgraph : M9.1 (m) -> M10 ()
 
-     ((call-graph ,? ,[m])
-      m)))
+    (Decl
+     : Decl (d) -> Decl ()
+     ((gpu-module ,cg ,[k*] ...)
+      `(gpu-module ,k* ...))))
   
   (define (remove-recursion module)
     (>::> module
           extract-callgraph
-          remove-callgraph
-          unparse-M3))
+          remove-callgraph))
   
   )

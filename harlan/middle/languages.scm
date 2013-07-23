@@ -6,12 +6,13 @@
           M1 unparse-M1
           M2 unparse-M2
           M3 unparse-M3 parse-M3
-          M4 unparse-M4
           M5 unparse-M5 parse-M5
           M6 unparse-M6
           M7 unparse-M7
           M8 unparse-M8 parse-M8
-          M9 unparse-M9)
+          M9 unparse-M9
+          M9.1 unparse-M9.1
+          M10 unparse-M10)
   (import
    (rnrs)
    (nanopass)
@@ -161,14 +162,7 @@
      (+ (x0 x1 any ctag ...)))
     (Rho-Type
      (t)
-     (- (closure r (t* ...) -> t))))  
-  
-  (define-language M4
-    (extends M3)
-    (entry CallGraph)
-    (CallGraph
-     (cg)
-     (+ (call-graph ? m))))
+     (- (closure r (t* ...) -> t))))
 
   ;; After desugar-match
   (define-language M5
@@ -289,7 +283,23 @@
     (Stmt
      (stmt)
      (- (apply-kernel x (e1* ...) e* ...))))
+  
+  (define-language M9.1
+    (extends M9)
+    (entry Module)
 
+    (Decl
+     (decl)
+     (- (gpu-module k* ...))
+     (+ (gpu-module cg k* ...)))
+    
+    (CallGraph
+     (cg)
+     (+ (call-graph ?))))
+
+  (define-language M10
+    (extends M9))
+  
   (define-parser parse-M0 M0)
   (define-parser parse-M3 M3)
   (define-parser parse-M5 M5)
