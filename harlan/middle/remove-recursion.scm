@@ -110,7 +110,8 @@
      : Kernel (k) -> Kernel ()
 
      ((fn ,name (,x* ...) (fn (,[t*] ...) ,-> ,[t]) ,stmt)
-      (guard (recursive? name))
+      (guard (parameterize ((current-labels (find-scc name)))
+               (recursive? name)))
       (let ((x** (map gensym x*)))
         (parameterize ((current-labels (find-scc name)))
           `(fn ,name (,x** ...) (fn (,t* ...) -> ,t)
