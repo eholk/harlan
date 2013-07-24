@@ -12,6 +12,8 @@
           M8 unparse-M8 parse-M8
           M9 unparse-M9
           M9.1 unparse-M9.1
+          M9.2 unparse-M9.2
+          M9.3 unparse-M9.3
           M10 unparse-M10)
   (import
    (rnrs)
@@ -295,8 +297,65 @@
     
     (CallGraph
      (cg)
-     (+ (call-graph ?))))
+     (+ (call-graph ?0 ?1))))
 
+  (define-language M9.2
+    (extends M9.1)
+    (entry Module)
+
+    (Decl
+     (decl)
+     (+ (gpu-module k* ...))
+     (- (gpu-module cg k* ...)))
+    
+    (CommonDecl
+     (cdecl)
+     (- (fn x (x* ...) t stmt))
+     (+ (fn x (x* ...) t body)))
+
+    (LabeledBlock
+     (lbl)
+     (+ (name ((x t) ...) stmt*)))
+
+    (Stmt
+     (stmt)
+     (+ (call-label name e* ...)))
+
+    (Expr
+     (e)
+     (+ (call-label name e* ...)))
+    
+    (Body
+     (body)
+     (+ (with-labels (lbl ...) stmt)
+        stmt)
+     (- (begin body* ... body)
+        (let-region (r ...) body)
+        (let ([x* t* e*] ...) body)
+        (if e body1 body2)
+        (print e)
+        (print e1 e2)
+        (do e)
+        (while e1 e2)
+        (assert e)
+        (set! e1 e2)
+        (return)
+        (return e))))
+
+  (define-language M9.3
+    (extends M9.2)
+    (entry Module)
+
+    (Body
+     (body)
+     (- (with-labels (lbl ...) stmt)))
+
+    (Stmt
+     (stmt)
+     (- (call-label name e* ...))
+     (+ (goto name)
+        (label name))))
+  
   (define-language M10
     (extends M9))
   

@@ -1,0 +1,16 @@
+;; A very simple program that makes recursive calls in a kernel.
+;;
+;; Used to help develop the passes to make recursion work.
+
+(%testspec
+ (%tags xfail))
+
+(module
+  (define (fact n)
+    (if (= 0 n)
+        1
+        (* n (fact (- n 1)))))
+
+  (define (main)
+    (kernel ((i (vector 5))) (fact i))
+    0))

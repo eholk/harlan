@@ -964,7 +964,7 @@
       Ret-Stmt))
 
   (compile-module
-    (%inherits Kernel Body Ret-Stmt)
+    (%inherits Kernel Ret-Stmt)
     (Start Module)
     (Module (Decl *))
     (Decl
@@ -978,6 +978,12 @@
      (typedef Var Type)
      (extern Type Var (Type *))
      (extern Var (Type *) -> Type))
+    (Body
+      (begin Stmt * Body)
+      (if Expr Body)
+      (if Expr Body Body)
+      Stmt
+      Ret-Stmt)
     (Stmt
       (print Expr)
       (print Expr Expr)
@@ -990,6 +996,8 @@
       (for (Var Expr Expr Expr) Stmt)
       (while Expr Stmt)
       (do Expr)
+      (goto Var)
+      (label Var)
       Ret-Stmt)
     (Expr
       (bool Boolean)

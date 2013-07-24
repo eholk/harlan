@@ -66,6 +66,8 @@
    `(apply-kernel ,k . ,e*))
   ((do ,[convert-expr -> e])
    `(do ,e))
+  ((goto ,name) `(goto ,name))
+  ((label ,name) `(label ,name))
   ((return) `(return))
   ((return ,[convert-expr -> expr])
    `(return ,expr)))

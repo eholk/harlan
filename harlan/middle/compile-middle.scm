@@ -74,7 +74,7 @@
     verify-hoist-kernels)
    (nanopasses
     (generate-kernel-calls : M8 -> M9)
-    (remove-recursion : M9 -> M10))
+    (remove-recursion : M9 -> M9.3))
    (compile-module
     verify-compile-module)
    (convert-types

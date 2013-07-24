@@ -4,9 +4,10 @@
   (import
    (rnrs)
    (rnrs mutable-pairs)
-   (only (chezscheme) pretty-print trace-define)
+   (only (chezscheme) pretty-print trace-define make-parameter parameterize)
    (harlan middle languages)
    (harlan helpers)
+   (only (elegant-weapons helpers) gensym)
    (harlan compile-opts)
    (elegant-weapons sets)
    (elegant-weapons graphs)
@@ -15,33 +16,6 @@
 
   ;; This is the set of passes that transforms recursive functions
   ;; called from kernels so that they are no longer recursive.
-  ;;
-  ;; There are several steps. First, we need to identify the recursive
-  ;; functions, which involves looking for cycles in the call
-  ;; graph. This is simpler at this point, because lambdas have been
-  ;; removed.
-  ;;
-  ;; Secondly, we need to find the functions that are reachable from
-  ;; kernels. This isn't strictly necessary, but for code that's
-  ;; running on the CPU, we might as well use C's support for
-  ;; recursion instead.
-  ;;
-  ;; Next, the functions that have been identified as recursive and
-  ;; kernel-reachable need to be transformed to CPS. We will probably
-  ;; do this by defining a new continuation form, which is sort of
-  ;; like lambda, but will be removed later. We'll probably also want
-  ;; to generate wrapper functions at this point which supply the
-  ;; initial continuation, so that callers don't need to worry about
-  ;; the CPS functions.
-  ;;
-  ;; Finally, we need to build trampolines.
-
-  ;; We may want to split functions with kernels into a host and
-  ;; device version. The host version can keep the kernel form while
-  ;; the device version replaces the kernel with a for loop, so that
-  ;; it can be called once we enter the kernel. Perhaps this can
-  ;; happen in remove-nested-kernels or in one of the passes that
-  ;; handles functions in a gpu-module.
 
   (define-pass extract-callgraph : M9 (m) -> M9.1 ()
     (definitions
@@ -64,14 +38,15 @@
 
      ((gpu-module ,[k*] ...)
       (new-node! '_)
-      (if (dump-call-graph)
-          (begin
-            (if (file-exists? "call-graph.dot")
-                (delete-file "call-graph.dot"))
-            (write-dot cgraph
-                       (strongly-connected-components cgraph)
-                       (open-output-file "call-graph.dot"))))
-      `(gpu-module (call-graph ,cgraph) ,k* ...))
+      (let ((sccs (strongly-connected-components cgraph)))
+        (if (dump-call-graph)
+            (begin
+              (if (file-exists? "call-graph.dot")
+                  (delete-file "call-graph.dot"))
+              (write-dot cgraph
+                         sccs
+                         (open-output-file "call-graph.dot"))))
+        `(gpu-module (call-graph ,cgraph ,sccs) ,k* ...)))
      ((fn ,name (,x ...) ,[t] ,stmt)
       (new-node! name)
       `(fn ,name (,x ...) ,t ,(Stmt stmt))))
@@ -82,16 +57,129 @@
       (add-call! x)
       `(call (var ,t ,x) ,e* ...))))
 
-  (define-pass remove-callgraph : M9.1 (m) -> M10 ()
+  ;; Okay, now we have our call graph. We'll use this to build a
+  ;; with-labels form, which is basically a letrec.
+  (define-pass insert-labels : M9.1 (m) -> M9.2 ()
+    (definitions
+      (define call-graph (make-parameter '()))
+      (define sccs (make-parameter '()))
+      (define current-labels (make-parameter '()))
+      (define gpu-module (make-parameter '()))
+      (define in-kernel (make-parameter #f))
 
+      (define (scc-code)
+        (filter (lambda (f)
+                  (nanopass-case
+                   (M9.1 Kernel) f
+                   ((fn ,name (,x* ...) ,t ,stmt)
+                    (memq name (current-labels)))
+                   (else #f)))
+                (gpu-module)))
+      
+      (define (find-scc name)
+        (let loop ((sccs (sccs)))
+          (if (null? sccs)
+              '() ;; This really shouldn't happen...
+              (if (memq name (car sccs))
+                  (car sccs)
+                  (loop (cdr sccs))))))
+      
+      (define (recursive? name)
+        (or (memq name (cdr (assq name (call-graph))))
+            (> 1 (length (find-scc name))))))
+
+    (Stmt
+     : Stmt (stmt) -> Stmt ()
+     ((return (call (var ,t ,x) ,[e*] ...))
+      (guard (memq x (current-labels)))
+      `(call-label ,x ,e* ...)))
+
+    (Expr
+     : Expr (e) -> Expr ()
+     ((call (var ,[t] ,x) ,[e*] ...)
+      (guard (memq x (current-labels)))
+      `(call-label ,x ,e* ...)))
+          
+    
+    (Fn->CodeBlock
+     : CommonDecl (cdecl) -> LabeledBlock ()
+     ((fn ,name (,x* ...) (fn (,[t*] ...) ,-> ,[t]) ,[stmt])
+      `(,name ((,x* ,t*) ...) ,stmt)))
+    
+    (Kernel
+     : Kernel (k) -> Kernel ()
+
+     ((fn ,name (,x* ...) (fn (,[t*] ...) ,-> ,[t]) ,stmt)
+      (guard (recursive? name))
+      (let ((x** (map gensym x*)))
+        (parameterize ((current-labels (find-scc name)))
+          `(fn ,name (,x** ...) (fn (,t* ...) -> ,t)
+               (with-labels (,(map Fn->CodeBlock (scc-code)) ...)
+                            (call-label ,name (var ,t* ,x**) ...)))))))
+    
     (Decl
-     : Decl (d) -> Decl ()
-     ((gpu-module ,cg ,[k*] ...)
-      `(gpu-module ,k* ...))))
+     : Decl (decl) -> Decl ()
+     ((gpu-module (call-graph ,?0 ,?1) ,k* ...)
+      (parameterize ((call-graph ?0)
+                     (sccs ?1)
+                     (gpu-module k*)
+                     (in-kernel #t))
+        `(gpu-module ,(map Kernel k*) ...)))))
+
+  ;; Transforms the lower-labels form into something that's pretty
+  ;; close to C.
+  (define-pass lower-labels : M9.2 (m) -> M9.3 ()
+    (definitions
+      (define (arg-types name)
+        (let loop ((names (label-names))
+                   (args  (label-args))
+                   (types (label-types)))
+          (if (null? names)
+              (values '() '())
+              (if (eq? (car names) name)
+                  (values (car args) (car types))
+                  (loop (cdr names) (cdr args) (cdr types))))))
+      
+      (define label-names (make-parameter '()))
+      (define label-args  (make-parameter '()))
+      (define label-types (make-parameter '())))
+    
+    (Stmt
+     : Stmt (stmt) -> Stmt ()
+     ((call-label ,name ,[e*] ...)
+      (let-values (((x* t*) (arg-types name)))
+        (let ((x*^ (map gensym x*)))
+          (let ((temps (map (lambda (x t e)
+                              `(let ,x ,t ,e))
+                            x*^ t* e*))
+                (set-args (map (lambda (x x^ t)
+                                 `(set! (var ,t ,x) (var ,t ,x^)))
+                               x* x*^ t*)))
+            `(begin ,(append temps set-args (list `(goto ,name))) ...))))))
+
+    (Body
+     : Body (body) -> Body ()
+     ((with-labels ((,name ((,x* ,[t*]) ...) ,stmt*) ...) ,stmt)
+      (parameterize ((label-names name)
+                     (label-args  x*)
+                     (label-types t*))
+        (let ((arg-defs
+               (map (lambda (x t)
+                      `(let ,x ,t))
+                    (apply append x*) (apply append t*)))
+              (labels
+               (apply append
+                      (map (lambda (name stmt)
+                             (list `(label ,name)
+                                   (Stmt stmt)))
+                           name stmt*)))
+              (start (Stmt stmt)))
+          `(begin ,(append arg-defs (list start) labels) ...))))))
   
   (define (remove-recursion module)
     (>::> module
           extract-callgraph
-          remove-callgraph))
+          insert-labels
+          lower-labels))
   
   )

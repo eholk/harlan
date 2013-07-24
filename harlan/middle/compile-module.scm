@@ -66,6 +66,8 @@
      ,[stmt*] ...)
    `(for (,i ,start ,end ,step) . ,stmt*))
   ((error ,x) `(do (call (var harlan_error) (str ,(symbol->string x)))))
+  ((goto ,name) `(goto ,name))
+  ((label ,name) `(label ,name))
   ((do ,[(compile-expr in-kernel?) -> e]) `(do ,e)))
 
 (define-match (compile-expr in-kernel?)

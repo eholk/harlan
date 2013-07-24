@@ -1,0 +1,16 @@
+;; A very simple program that makes recursive calls in a kernel.
+;;
+;; Used to help develop the passes to make recursion work.
+;;
+;; This one uses an accumulator so all calls are in tail
+;; position. This case is easier to get correct.
+
+(module
+  (define (fact n acc)
+    (if (= 0 n)
+        acc
+        (fact (- n 1) (* acc n))))
+
+  (define (main)
+    (println (kernel ((i (vector 5))) (fact i 1)))
+    0))
