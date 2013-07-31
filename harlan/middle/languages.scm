@@ -13,6 +13,7 @@
           M9 unparse-M9
           M9.1 unparse-M9.1
           M9.2 unparse-M9.2
+          M9.2.1 unparse-M9.2.1
           M9.3 unparse-M9.3
           M10 unparse-M10)
   (import
@@ -221,6 +222,18 @@
 
     (entry Module)
     
+    (MatchArm
+     (arm)
+     (- (mbind e)))
+
+    (MatchBindings
+     (mbind)
+     (- (x x* ...)))
+
+    (AdtDeclPattern
+     (pt)
+     (- (x t* ...)))
+
     (Decl
      (decl)
      (+ (gpu-module k* ...)
@@ -269,7 +282,14 @@
         (alloc e1 e2)
         (addressof e)
         (deref e)
-        (region-ref t e1 e2)))
+        (region-ref t e1 e2))
+     (- (kernel t r (e* ...) (((x0 t0) (e1 t1) i*) ...) e)
+        (box r t e)
+        (unbox t r e)
+        (vector t r e* ...)
+        (do e)
+        (print e)
+        (print e1 e2)))
 
     (Rho-Type
      (t)
@@ -315,7 +335,7 @@
 
     (LabeledBlock
      (lbl)
-     (+ (name ((x t) ...) stmt*)))
+     (+ (name ((x t) ...) body)))
 
     (Stmt
      (stmt)
@@ -323,7 +343,7 @@
 
     (Expr
      (e)
-     (+ (call-label name e* ...)))
+     (+ (call-label name t e* ...)))
     
     (Body
      (body)
@@ -342,8 +362,22 @@
         (return)
         (return e))))
 
-  (define-language M9.3
+  (define-language M9.2.1
     (extends M9.2)
+    (entry Module)
+    
+    (Expr
+     (e)
+     (- (call-label name t e* ...))
+     (+ (call-label name t ((x* t*) ...) e* ...)))
+
+    (Stmt
+     (stmt)
+     (- (call-label name e* ...))
+     (+ (call-label name ((x* t*) ...) e* ...))))
+  
+  (define-language M9.3
+    (extends M9.2.1)
     (entry Module)
 
     (Body
@@ -352,7 +386,7 @@
 
     (Stmt
      (stmt)
-     (- (call-label name e* ...))
+     (- (call-label name ((x* t*) ...) e* ...))
      (+ (goto name)
         (label name))))
   
