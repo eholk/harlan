@@ -14,6 +14,7 @@
           M9.1 unparse-M9.1
           M9.2 unparse-M9.2
           M9.2.1 unparse-M9.2.1
+          M9.2.2 unparse-M9.2.2
           M9.3 unparse-M9.3
           M10 unparse-M10)
   (import
@@ -335,11 +336,7 @@
 
     (LabeledBlock
      (lbl)
-     (+ (name ((x t) ...) body)))
-
-    (Stmt
-     (stmt)
-     (+ (call-label name e* ...)))
+     (+ (name ((x t) ...) stmt)))
 
     (Expr
      (e)
@@ -369,26 +366,51 @@
     (Expr
      (e)
      (- (call-label name t e* ...))
-     (+ (call-label name t ((x* t*) ...) e* ...)))
+     (+ (call-label name t ((x* t*) ...) e* ...))))
 
+  (define-language M9.2.2
+    (extends M9.2.1)
+    (entry Module)
+
+    (Rho-Type
+     (t)
+     (+ (fixed-array t i)))
+    
     (Stmt
      (stmt)
-     (- (call-label name e* ...))
-     (+ (call-label name ((x* t*) ...) e* ...))))
+     (+ (push! e0 e1 t e2) ;; push e2 with type t onto e0 + e1
+        (pop! e0 e1 t e2)
+        (goto name)
+        (label name)))
+
+    (Body
+     (body)
+     ;; like begin, bit doesn't conflict with the existing
+     ;; (begin stmt* ... stmt)
+     (+ (seq stmt* ... body)))
+    
+    (Expr
+     (e)
+     (+ (call-label name e* ...))
+     (- (call-label name t ((x* t*) ...) e* ...))))
   
   (define-language M9.3
-    (extends M9.2.1)
+    (extends M9.2.2)
     (entry Module)
 
     (Body
      (body)
-     (- (with-labels (lbl ...) stmt)))
+     (- (with-labels (lbl ...) stmt)
+        (seq stmt* ... body)))
 
     (Stmt
      (stmt)
-     (- (call-label name ((x* t*) ...) e* ...))
-     (+ (goto name)
-        (label name))))
+     (- (push! e0 e1 t e2)
+        (pop! e0 e1 t e2)))
+    
+    (Expr
+     (e)
+     (- (call-label name e* ...))))
   
   (define-language M10
     (extends M9))

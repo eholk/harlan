@@ -89,12 +89,6 @@
         (or (memq name (cdr (assq name (call-graph))))
             (> 1 (length (find-scc name))))))
 
-    (Stmt
-     : Stmt (stmt) -> Stmt ()
-     ((return (call (var ,t ,x) ,[e*] ...))
-      (guard (memq x (current-labels)))
-      `(call-label ,x ,e* ...)))
-
     (Expr
      : Expr (e) -> Expr ()
      ((call (var (fn (,t* ...) ,-> ,[t]) ,x) ,[e*] ...)
@@ -117,7 +111,8 @@
         (parameterize ((current-labels (find-scc name)))
           `(fn ,name (,x** ...) (fn (,t* ...) -> ,t)
                (with-labels (,(map Fn->CodeBlock (scc-code)) ...)
-                            (call-label ,name (var ,t* ,x**) ...)))))))
+                            (return (call-label ,name ,t
+                                                (var ,t* ,x**) ...))))))))
     
     (Decl
      : Decl (decl) -> Decl ()
@@ -134,11 +129,12 @@
 
       (define (push-call! x t e)
         (label-calls
-         (cons
-          (with-output-language
-           (M9.2 Stmt)
-           `(let ,x ,t ,e))
-          (label-calls)))))
+         (with-output-language
+          (M9.2 Stmt)
+          (cons*
+           `(let ,x ,t)
+           `(set! (var ,t ,x) ,e)
+           (label-calls))))))
 
     (Body
      : Body (body) -> Body ()
@@ -191,7 +187,7 @@
   ;; lets by this point.
 
   ;; The next pass is detect-call-live
-  (trace-define-pass detect-call-live : M9.2 (m) -> M9.2.1 ()
+  (define-pass detect-call-live : M9.2 (m) -> M9.2.1 ()
     ;; This is basically a fold-right over sequences of statments. We
     ;; have a couple of cases.
     ;;
@@ -236,6 +232,11 @@
         (let-values (((x t) (union-live* x t)))
           (values e x t))))
 
+    (LabeledBlock
+     : LabeledBlock (lbl) -> LabeledBlock ()
+     ((,name ((,x ,[t]) ...) ,[stmt '() '() -> stmt live-x live-t])
+      `(,name ((,x ,t) ...) ,stmt)))
+    
     (Expr
      : Expr (e [live-x '()] [live-t '()]) -> Expr ('() '())
 
@@ -294,14 +295,9 @@
      : Kernel (k) -> Kernel ()
      ((kernel ,x ((,x* ,[t*]) ...) ,[stmt live-x live-t])
       `(kernel ,x ((,x* ,t*) ...) ,stmt)))
-    
+
     (Stmt
      : Stmt (stmt [live-x '()] [live-t '()]) -> Stmt (live-x live-t)
-
-     ((call-label ,name ,[e* x* t*] ...)
-      (let-values (((x* t*) (union-live* x* t*)))
-        (let-values (((x* t*) (union-live x* t* live-x live-t)))
-          (values `(call-label ,name ((,live-x ,live-t) ...) ,e* ...) x* t*))))
 
      ((begin ,stmt ...)
       (let-values (((stmt* live-x live-t)
@@ -309,10 +305,10 @@
                      ((stmt* '()) (live-x live-x) (live-t live-t)
                       <- (stmt stmt))
                      (begin
-                       (pretty-print (list "ABCDEF" (unparse-M9.2 stmt) live-x live-t))
+                       ;;(pretty-print (list "ABCDEF" (unparse-M9.2 stmt) live-x live-t))
                        (let-values (((stmt live-x live-t)
                                      (Stmt stmt live-x live-t)))
-                         (pretty-print (list "GHIJKL" live-x live-t))
+                         ;;(pretty-print (list "GHIJKL" live-x live-t))
                          (values (cons stmt stmt*) live-x live-t))))))
         (values `(begin ,stmt* ...) live-x live-t)))
      ((do ,[e x t])
@@ -366,8 +362,15 @@
       ;; obviously kills anything that comes after it.
       (values `(return ,e)
               x* t*))
-     (else (error 'Stmt "What is this?" (unparse-M9.2 stmt)))
-     )
+     ((let ,x ,t)
+      (let-values (((live-x live-t) (kill x live-x live-t)))
+        (values `(let ,x ,t) live-x live-t)))
+     ((print ,[e x t])
+      (union-live/e `(print ,e) x t live-x live-t))
+     ((while ,[e x t] ,[stmt live-x live-t -> stmt live-x live-t])
+      (union-live/e `(while ,e ,stmt) x t live-x live-t))
+     
+     (else (error 'Stmt "What is this?" (unparse-M9.2 stmt))))
 
     (Body
      : Body (body) -> Body ()
@@ -377,10 +380,130 @@
       (let-values (((stmt x t)
                     (Stmt stmt '() '())))
         stmt))))
+
+  ;; for non-tail labels, push all the call-lives to the stack, then
+  ;; the return address. Upon return, pop off the return value and the
+  ;; call-lives.
+  (define-pass apply-calling-conventions : M9.2.1 (m) -> M9.2.2 ()
+    (definitions
+
+      (define (type-of e)
+        (nanopass-case
+         (M9.2.2 Expr) e
+         ((int ,i) 'int)
+         ((var ,t ,x) t)
+         ((,op ,e1 ,e2) (type-of e1))
+         (else (error 'type-of "I don't know how to find this type"
+                      (unparse-M9.2.2 e)))))
+      
+      (define next-index (let ((i -1))
+                           (lambda ()
+                             (set! i (+ 1 i))
+                             i)))
+      (define dispatch-name (make-parameter #f))
+      (define stack-base (make-parameter #f))
+      (define stack-pointer (make-parameter #f))
+      (define new-labels (make-parameter '()))
+
+      (define (build-dispatch)
+        (with-output-language
+         (M9.2.2 LabeledBlock)
+         (let ((x (gensym 'x)))
+           `(,(dispatch-name) ((,x int))
+             ,(let loop ((lbl (new-labels)))
+                (if (null? lbl)
+                    `(do (int 42)) ;; badness ensues.
+                    `(if (= (var int ,x) (int ,(caar lbl)))
+                         (do (call-label ,(cdar lbl)))
+                         ,(loop (cdr lbl))))))))))
+
+    (Stmt
+     : Stmt (stmt) -> Stmt ()
+     ((return ,[e]) (guard (stack-base))
+      (let ((ra (gensym 'return_address)))
+      `(begin
+         (let ,ra int)
+         (pop! ,(stack-base) ,(stack-pointer) int (var int ,ra))
+         (push! ,(stack-base) ,(stack-pointer) ,(type-of e) ,e)
+         (do (call-label ,(dispatch-name) (var int ,ra))))))
+     ((return) (guard (stack-base))
+      (let ((ra (gensym 'return_address)))
+      `(begin
+         (let ,ra int)
+         (pop! ,(stack-base) ,(stack-pointer) int (var int ,ra))
+         (do (call-label ,(dispatch-name) (var int ,ra))))))
+     ((set! ,[e] (call-label ,name ,[t] ((,x* ,[t*]) ...) ,[e*] ...))
+      `(begin
+         ,(let loop ((x* x*)
+                     (t* t*)
+                     (k '()))
+            (if (null? x*)
+                (let ((i (next-index))
+                      (lbl (gensym 'return)))
+                  (new-labels (cons (cons i lbl)
+                                    (new-labels)))
+                  (cons*
+                   ;; push the return location
+                   `(push! ,(stack-base) ,(stack-pointer) int (int ,i))
+                   ;; call the label
+                   `(do (call-label ,name ,e* ...))
+                   ;; The return location
+                   `(label ,lbl)
+                   ;; pop the return value
+                   `(pop! ,(stack-base) ,(stack-pointer)
+                          ,t
+                          ,e)
+                   k))
+                (let ((x (car x*))
+                      (t (car t*)))
+                  (cons `(push! ,(stack-base) ,(stack-pointer)
+                                ,t (var ,t ,x))
+                        (loop (cdr x*)
+                              (cdr t*)
+                              (cons `(pop! ,(stack-base)
+                                           ,(stack-pointer)
+                                           ,t
+                                           (var ,t ,x))
+                                    k)))))) ...)))
+
+    (Body
+     : Body (body) -> Body ()
+     ((with-labels ((,name ((,x* ,[t*]) ...) ,stmt*) ...) ,stmt)
+      (let ((stack (gensym 'stack))
+            (sp (gensym 'sp))
+            (stack-size 8192))
+        (parameterize ((new-labels '())
+                       (dispatch-name (gensym 'dispatch))
+                       (stack-base (with-output-language
+                                    (M9.2.2 Expr)
+                                    ;; TODO: make the stack size
+                                    ;; controllable.
+                                    `(var (fixed-array char ,stack-size)
+                                          ,stack)))
+                       (stack-pointer (with-output-language
+                                       (M9.2.2 Expr)
+                                       `(var int ,sp))))
+          ;; TODO: Still need to generate dispatch function and insert
+          ;; calls to it.
+          (let* ((stmt* (map Stmt stmt*))
+                 (lbls (with-output-language
+                        (M9.2.2 Body)
+                        ;; Why do I get an invalid pattern if I put
+                        ;; this inline.
+                        `(with-labels (,(build-dispatch)
+                                       (,name ((,x* ,t*) ...) ,stmt*) ...)
+                                      ,(Stmt stmt))))
+                 (stuff (list
+                         `(let ,stack (fixed-array char ,stack-size)
+                               (empty-struct))
+                         `(let ,sp int (int 0)))))
+            `(seq
+              ,stuff ...
+              ,lbls)))))))
   
-  ;; Transforms the lower-labels form into something that's pretty
+  ;; Transforms the with-labels form into something that's pretty
   ;; close to C.
-  (define-pass lower-labels : M9.2.1 (m) -> M9.3 ()
+  (define-pass lower-labels : M9.2.2 (m) -> M9.3 ()
     (definitions
       (define (arg-types name)
         (let loop ((names (label-names))
@@ -398,7 +521,16 @@
     
     (Stmt
      : Stmt (stmt) -> Stmt ()
-     ((call-label ,name ((,x* ,t*) ...) ,[e*] ...)
+     ((push! ,[e0] ,[e1] ,[t] ,[e2])
+      `(begin
+         (set! (deref (cast (ptr ,t) (+ ,e0 ,e1))) ,e2)
+         (set! ,e1 (+ ,e1 (sizeof ,t)))))
+     ((pop! ,[e0] ,[e1] ,[t] ,[e2])
+      `(begin
+         (set! ,e1 (+ ,e1 (sizeof ,t)))
+         (set! ,e2 (deref (cast (ptr ,t) (+ ,e0 ,e1))))))
+      
+     ((do (call-label ,name ,[e*] ...))
       (let-values (((x* t*) (arg-types name)))
         (let ((x*^ (map gensym x*)))
           (let ((temps (map (lambda (x t e)
@@ -411,6 +543,8 @@
 
     (Body
      : Body (body) -> Body ()
+     ((seq ,[stmt] ... ,[body])
+      `(begin ,stmt ... ,body))
      ((with-labels ((,name ((,x* ,[t*]) ...) ,stmt*) ...) ,stmt)
       (parameterize ((label-names name)
                      (label-args  x*)
@@ -434,6 +568,7 @@
           insert-labels
           lift-call-label
           detect-call-live
+          apply-calling-conventions
           lower-labels))
   
   )

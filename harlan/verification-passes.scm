@@ -59,6 +59,7 @@
       (ptr Type)
       (ref Type)
       (adt Type)
+      (fixed-array Type Integer)
       (struct (Var Type) *)
       (union (Var Type) *)
       (fn (Type *) -> Type))

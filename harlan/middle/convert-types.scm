@@ -110,6 +110,7 @@
   (cl::kernel 'cl::kernel)
   (cl_mem 'cl_mem)
   ((adt ,[t]) t)
+  ((fixed-array ,[t] ,i) `(fixed-array ,t ,i))
   ((cl::buffer ,[t]) `(cl::buffer ,t))
   ((cl::buffer_map ,[t]) `(cl::buffer_map ,t))
   ((ref ,[t]) `(ref ,t))
