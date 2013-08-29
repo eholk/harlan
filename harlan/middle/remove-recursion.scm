@@ -186,7 +186,6 @@
   ;; still live, but this is about as hard given that we've unnested
   ;; lets by this point.
 
-  ;; The next pass is detect-call-live
   (define-pass detect-call-live : M9.2 (m) -> M9.2.1 ()
     ;; This is basically a fold-right over sequences of statments. We
     ;; have a couple of cases.
@@ -323,11 +322,12 @@
                     x t
                     live-x live-t))
 
-     ((set! (var ,[t] ,x) ,[e x* t*])
+     ((set! (var ,[t] ,x) ,e)
       (let-values (((live-x live-t) (kill x live-x live-t)))
-        (let-values (((x* t*) (union-live x* t* live-x live-t)))
-          (values `(set! (var ,t ,x) ,e)
-                  x* t*))))
+        (let-values (([e x* t*] (Expr e live-x live-t)))
+          (let-values (((x* t*) (union-live x* t* live-x live-t)))
+            (values `(set! (var ,t ,x) ,e)
+                    x* t*)))))
      
      ((set! ,[e1 x1 t1] ,[e x* t*])
       (let-values (((x* t*) (union-live x* t* live-x live-t)))
@@ -362,11 +362,14 @@
       ;; obviously kills anything that comes after it.
       (values `(return ,e)
               x* t*))
-     ((let ,x ,t)
+     ((let ,x ,[t])
       (let-values (((live-x live-t) (kill x live-x live-t)))
         (values `(let ,x ,t) live-x live-t)))
      ((print ,[e x t])
       (union-live/e `(print ,e) x t live-x live-t))
+     ((print ,[e0 x0 t0] ,[e1 x1 t1])
+      (let-values (((live-x live-t) (union-live x0 t0 live-x live-t)))
+        (union-live/e `(print ,e0 ,e1) x1 t1 live-x live-t)))
      ((while ,[e x t] ,[stmt live-x live-t -> stmt live-x live-t])
       (union-live/e `(while ,e ,stmt) x t live-x live-t))
      
@@ -391,7 +394,9 @@
         (nanopass-case
          (M9.2.2 Expr) e
          ((int ,i) 'int)
+         ((bool ,b) 'bool)
          ((var ,t ,x) t)
+         ((call (var (fn (,x* ...) ,-> ,t) ,x) ,e* ...) t)
          ((,op ,e1 ,e2) (type-of e1))
          (else (error 'type-of "I don't know how to find this type"
                       (unparse-M9.2.2 e)))))
@@ -400,6 +405,7 @@
                            (lambda ()
                              (set! i (+ 1 i))
                              i)))
+      (define preserve-return (make-parameter #f))
       (define dispatch-name (make-parameter #f))
       (define stack-base (make-parameter #f))
       (define stack-pointer (make-parameter #f))
@@ -419,14 +425,14 @@
 
     (Stmt
      : Stmt (stmt) -> Stmt ()
-     ((return ,[e]) (guard (stack-base))
+     ((return ,[e]) (guard (and (stack-base) (not (preserve-return))))
       (let ((ra (gensym 'return_address)))
       `(begin
          (let ,ra int)
          (pop! ,(stack-base) ,(stack-pointer) int (var int ,ra))
          (push! ,(stack-base) ,(stack-pointer) ,(type-of e) ,e)
          (do (call-label ,(dispatch-name) (var int ,ra))))))
-     ((return) (guard (stack-base))
+     ((return) (guard (and (stack-base) (not (preserve-return))))
       (let ((ra (gensym 'return_address)))
       `(begin
          (let ,ra int)
@@ -483,16 +489,13 @@
                        (stack-pointer (with-output-language
                                        (M9.2.2 Expr)
                                        `(var int ,sp))))
-          ;; TODO: Still need to generate dispatch function and insert
-          ;; calls to it.
           (let* ((stmt* (map Stmt stmt*))
                  (lbls (with-output-language
                         (M9.2.2 Body)
-                        ;; Why do I get an invalid pattern if I put
-                        ;; this inline.
-                        `(with-labels (,(build-dispatch)
-                                       (,name ((,x* ,t*) ...) ,stmt*) ...)
-                                      ,(Stmt stmt))))
+                        (parameterize ((preserve-return #t))
+                          `(with-labels (,(build-dispatch)
+                                         (,name ((,x* ,t*) ...) ,stmt*) ...)
+                                        ,(Stmt stmt)))))
                  (stuff (list
                          `(let ,stack (fixed-array char ,stack-size)
                                (empty-struct))
@@ -527,7 +530,7 @@
          (set! ,e1 (+ ,e1 (sizeof ,t)))))
      ((pop! ,[e0] ,[e1] ,[t] ,[e2])
       `(begin
-         (set! ,e1 (+ ,e1 (sizeof ,t)))
+         (set! ,e1 (- ,e1 (sizeof ,t)))
          (set! ,e2 (deref (cast (ptr ,t) (+ ,e0 ,e1))))))
       
      ((do (call-label ,name ,[e*] ...))
