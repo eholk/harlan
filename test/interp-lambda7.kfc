@@ -1,0 +1,51 @@
+;; CPS lambda calculus interpreter using Harlan lambdas.
+;;
+;; This run runs on the GPU.
+
+(%testspec
+ (%tags xfail))
+
+(module
+
+  (define-datatype Expr
+    (variable int)
+    (Lambda Expr)
+    (app Expr Expr))
+
+  (define-datatype Value
+    (error)
+    (closure Expr Env))
+  
+  (define-datatype Env
+    (empty-env)
+    (extended-env Value Env))
+
+  (define (lookup i env k)
+    (match env
+      ((empty-env) (k (error)))
+      ((extended-env v env)
+       (if (= 0 i)
+           (k v)
+           (lookup (- i 1) env k)))))
+  
+  (define (eval e env k)
+    (match e
+      ((variable i) (lookup i env k))
+      ((Lambda b)
+       (k (closure b env)))
+      ((app e1 e2)
+       (eval e1 env
+             (lambda (e1)
+               (eval e2 env
+                     (lambda (e2)
+                       (match e1
+                         ((error) (k (error)))
+                         ((closure e env)
+                          (eval e (extended-env e2 env) k))))))))))
+
+  (define (main)
+    (kernel ((i (iota 1)))
+      (let ((e (app (Lambda (variable 0)) (Lambda (variable 0)))))
+        (eval e (empty-env) (lambda (x) x))))
+    (return 0))
+  )
