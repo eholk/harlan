@@ -40,8 +40,8 @@ uint64_t nanotime() {
 // () -> float
 //
 // Retuns the value of a timer in seconds.
-double time$s() {
-  return double(nanotime()) / 1e9;
+float time$s() {
+  return float(nanotime()) / 1e9;
 }
 
 // (str) -> (ptr ofstream)
