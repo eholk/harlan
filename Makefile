@@ -95,6 +95,11 @@ etags:
 		| xargs etags
 #"
 
+# Build Chez Scheme .so files.  This makes "harlanc" much faster.
+.phony: prebuild
+prebuild:
+	scheme --libdirs .:./external/elegant-weapons:./external/nanopass-framework/ --optimize-level 2 --compile-imported-libraries --program harlanc.scm
+
 #============================================================
 # For JIT support we embed Chez Scheme in a static library:
 
