@@ -1,4 +1,38 @@
 (module
+
+  (define-datatype point3i-t
+    (point3i int int int))
+  
+  (define-datatype point3f-t
+    (point3f float float float))
+
+  (define (clamp i)
+    (cond
+      ((< i 0) 0)
+      ((> i 255) 255)
+      (else i)))
+      
+  (define (write-ppm file data)
+    (let ((stream (open_outfile file))
+          (rows (length data))
+          (cols (length (vector-ref data 0))))
+      (println "P3" stream)
+      (print rows stream) (print " " stream) (println cols stream)
+      (println "255" stream)
+      (for (i 0 rows)
+        (for (j 0 cols)
+          (let ((p (vector-ref (vector-ref data i) j)))
+            (match p
+              ((point3i r g b)
+               (begin
+                 (print (clamp r) stream) (print " " stream)
+                 (print (clamp g) stream) (print " " stream)
+                 (print (clamp b) stream) 
+                 ;; dummy expression value
+                 42)))
+            (print " " stream)))
+        (print "\n" stream))
+      (close_outfile stream)))
   
   (define (write-pgm file data)
     (let ((stream (open_outfile file))

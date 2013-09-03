@@ -94,5 +94,9 @@
 
   (define-macro sqrt ()
     ((_ x) (harlan_sqrt x)))
+
+  (define-macro println ()
+    ((_ e) (begin (print e) (print "\n")))
+    ((_ e s) (let ((stream s)) (print e s) (print "\n" s))))
   
   )

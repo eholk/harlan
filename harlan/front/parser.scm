@@ -172,11 +172,6 @@
           ,(make-begin
              `(,@(map (parse-stmt env) stmt*)
                ,((parse-expr env) e)))))))
-  ((reduce ,op ,[e])
-   (begin
-     (unless (reduceop? op)
-       (error 'parse-expr "invalid operation in reduction" op))
-     `(reduce ,op ,e)))
   ((match ,[e]
      ((,tag ,x* ...) ,s* ... ,e*) ...)
    (guard (and (andmap ident? tag)
