@@ -74,6 +74,7 @@
   ((call ,[fn] ,[args] ...)
    `(call ,fn . ,args))
   ((int->float ,[e]) `(int->float ,e))
+  ((float->int ,[e]) `(float->int ,e))
   ((length ,[e]) `(length ,e))
   ((,t ,x) (guard (scalar-type? t)) `(,t ,x))
   ((var ,t ,x) `(var ,t ,x))

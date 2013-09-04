@@ -1,0 +1,20 @@
+;; A simple graphics unit test. If all goes well, it should draw a circle.
+
+(module
+  (import graphics)
+
+  (define (main)
+    (let* ((size 256)
+           (img (kernel* ((i (iota size))
+                          (j (iota size)))
+                  (let ((x (- (/ (int->float (* i 2)) (int->float size)) 1))
+                        (y (- (/ (int->float (* j 2)) (int->float size)) 1)))
+                    (let ((r (+ (* x x) (* y y))))
+                      (if (< r 1)
+                          (let ((h (* 180 (+ 1 (/ (atan2 y x) 3.141592654)))))
+                            (hsv->rgb h 1 (- 1 r)))
+                          (point3i 0 0 0)))))))
+      (write-ppm "test.bin/colorwheel.ppm" img)
+      0)))
+                        
+                         

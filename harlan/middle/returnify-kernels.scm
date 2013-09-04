@@ -70,6 +70,7 @@
    `(vector-ref ,t ,v ,i))
   ((length ,[e]) `(length ,e))
   ((int->float ,[e]) `(int->float ,e))
+  ((float->int ,[e]) `(float->int ,e))
   ((make-vector ,t ,r ,[e]) `(make-vector ,t ,r ,e))
   ((vector ,t ,r ,[e*] ...) `(vector ,t ,r . ,e*))
   ((,op ,[lhs] ,[rhs])

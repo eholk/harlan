@@ -11,7 +11,33 @@
       ((< i 0) 0)
       ((> i 255) 255)
       (else i)))
-      
+
+  ;; Generates a point3i-t representing an RGB color corresponding to
+  ;; the given hue, saturation and value.
+  ;;
+  ;; h - hue, a float ranging from 0 to 360 degrees
+  ;; s - saturation, a float ranging from 0 to 1
+  ;; v - value, a float ranging from 0 to 1
+  (define (hsv->rgb h s v)
+    ;; adapted from http://www.cs.rit.edu/~ncs/color/t_convert.html
+    (let* ((h (/ h 60))
+           (i (floor h))
+           (f (- h i))
+           (p (* v (- 1 s)))
+           (q (* v (- 1 (* s f))))
+           (t (* v (- 1 (* s (- 1 f))))))
+      (let ((v (float->int (* 256 v)))
+            (t (float->int (* 256 t)))
+            (q (float->int (* 256 q)))
+            (p (float->int (* 256 p))))
+        (cond
+          ((< i 1) (point3i v t p))
+          ((< i 2) (point3i q v p))
+          ((< i 3) (point3i p v t))
+          ((< i 4) (point3i p q v))
+          ((< i 5) (point3i t p v))
+          (else    (point3i v p q))))))
+    
   (define (write-ppm file data)
     (let ((stream (open_outfile file))
           (rows (length data))

@@ -52,6 +52,13 @@
       (new-node! name)
       `(fn ,name (,x ...) ,t ,(Stmt stmt))))
 
+    (Kernel
+     : Kernel (k) -> Kernel ()
+
+     ((kernel ,x ((,x* ,[t*]) ...) ,stmt)
+      (new-node! '_kernel)
+      `(kernel ,x ((,x* ,t*) ...) ,(Stmt stmt))))
+    
     (Expr
      : Expr (e) -> Expr ()
      ((call (var ,[t] ,x) ,[e*] ...)
@@ -123,7 +130,7 @@
                      (in-kernel #t))
         `(gpu-module ,(map Kernel k*) ...)))))
 
-  (define-pass lift-call-label : M9.2 (m) -> M9.2 ()
+  (trace-define-pass lift-call-label : M9.2 (m) -> M9.2 ()
     (definitions
       (define label-calls (make-parameter '()))
 

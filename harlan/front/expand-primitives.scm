@@ -113,6 +113,7 @@
     ((,t ,v) (guard (scalar-type? t)) `(,t ,v))
     ((var ,t ,x) `(var ,t ,x))
     ((int->float ,[e]) `(int->float ,e))
+    ((float->int ,[e]) `(float->int ,e))
     ((iota ,[e])
      `(iota ,e))
     ((iota-r ,r ,[e])

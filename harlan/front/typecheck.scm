@@ -272,6 +272,9 @@
        ((int->float ,e)
         (do* (((e _) (require-type e env 'int)))
              (return `(int->float ,e) 'float)))
+       ((float->int ,e)
+        (do* (((e _) (require-type e env 'float)))
+             (return `(float->int ,e) 'int)))
        ((return)
         (unify-return-type
          'void
@@ -537,7 +540,9 @@
                       (list (cons name (cons 'fn t))))))
                 decls))
      ;; Add some primitives
-     '((harlan_sqrt fn (float) -> float))))
+     '((harlan_sqrt fn (float) -> float)
+       (floor fn (float) -> float)
+       (atan2 fn (float float) -> float))))
 
   (define (recursive-adt? name graph)
     (let loop ((path (list name)))
@@ -721,6 +726,7 @@
         ((bool ,b) `(bool ,b))
         ((var ,[ground-type -> t] ,x) `(var ,t ,x))
         ((int->float ,[e]) `(int->float ,e))
+        ((float->int ,[e]) `(float->int ,e))
         ((,op ,[ground-type -> t] ,[e1] ,[e2])
          (guard (or (relop? op) (binop? op)))
          `(,op ,t ,e1 ,e2))
@@ -776,6 +782,7 @@
     ((bool ,b) '())
     ((str ,s) '())
     ((int->float ,[e]) e)
+    ((float->int ,[e]) e)
     ((assert ,[e]) e)
     ((print ,[free-regions-type -> t] ,[e]) (union t e))
     ((print ,[free-regions-type -> t] ,[e] ,[f]) (union t e f))

@@ -137,6 +137,7 @@
   ((length ,[e])
    `(length ,e))
   ((int->float ,[e]) `(int->float ,e))
+  ((float->int ,[e]) `(float->int ,e))
   ((lambda (,x* ...) ,stmt* ... ,expr)
    (begin
      (check-idents x*)

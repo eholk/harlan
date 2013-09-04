@@ -12,7 +12,7 @@
 
 (define-match annotate-decl*
   (((,tag* ,name* . ,rest*) ...)
-   (map (annotate-decl (append name* '(harlan_sqrt)))
+   (map (annotate-decl (append name* '(harlan_sqrt floor atan2)))
         `((,tag* ,name* . ,rest*) ...))))
 
 (define-match (annotate-decl globals)
@@ -81,6 +81,7 @@
   ((,t ,n) (guard (scalar-type? t)) `())
   ((var ,t ,x) `((var ,t ,x)))
   ((int->float ,[fv*]) fv*)
+  ((float->int ,[fv*]) fv*)
   ((length ,[fv*]) fv*)
   ((addressof ,[fv*]) fv*)
   ((not ,[e]) e)

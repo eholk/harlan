@@ -183,6 +183,8 @@
            (extract-regions tx)))
   ((int->float ,[e r*])
    (values `(cast float ,e) r*))
+  ((float->int ,[e r*])
+   (values `(cast int ,e) r*))
   ((call ,[name nr*] ,[args ar**] ...)
    (values `(call ,name
                   ,@args

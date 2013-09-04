@@ -35,7 +35,7 @@
   
   (define (main)
     (let ((start (nanotime))
-          (size 512))
+          (size 256))
       (let ((img (kernel ((i (iota size)))
                    (kernel ((j (iota size)))
                      (let ((c (complex
