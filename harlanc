@@ -1,6 +1,8 @@
 #!/bin/bash
 
+MACHINE=`echo "(display (machine-type))" | petite -q`
+
 schemeScript="$0".scm
-dir=`dirname $schemeScript`:external/nanopass-framework
+dir=`dirname $schemeScript`:external/nanopass-framework/lib/csv8.4/$MACHINE:external/nanopass-framework
 
 petite --libdirs "$dir" --program "$schemeScript" $@
