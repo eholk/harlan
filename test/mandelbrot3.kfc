@@ -2,9 +2,6 @@
 ;;
 ;; This one is in color.
 
-(%testspec
- (%tags xfail))
-
 (module
   (import graphics)
 
@@ -37,12 +34,17 @@
     (point3i 0 0 c))
   
   (define (main)
-    (let ((start (nanotime)))
-      (let ((img (kernel ((i (iota 1024)))
-                   (kernel ((j (iota 1024)))
+    (let ((start (nanotime))
+          (size 512))
+      (let ((img (kernel ((i (iota size)))
+                   (kernel ((j (iota size)))
                      (let ((c (complex
-                               (- (/ (int->float j) 512.0) 1.5)
-                               (- (/ (int->float i) 512.0) 1.0)))
+                               (- (/ (int->float j)
+                                     (/ (int->float size) 2))
+                                  1.5)
+                               (- (/ (int->float i)
+                                     (/ (int->float size) 2))
+                                  1.0)))
                            (x (complex 0 0))
                            (idx 0)
                            (escape 0))

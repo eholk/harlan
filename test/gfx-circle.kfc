@@ -1,0 +1,19 @@
+;; A simple graphics unit test. If all goes well, it should draw a circle.
+
+(module
+  (import graphics)
+
+  (define (main)
+    (let* ((size 512)
+           (img (kernel* ((i (iota size))
+                          (j (iota size)))
+                  (let ((x (- (/ (int->float (* i 2)) (int->float size)) 1))
+                        (y (- (/ (int->float (* j 2)) (int->float size)) 1)))
+                    (let ((r (+ (* x x) (* y y))))
+                      (if (< r 1)
+                          (point3i 255 0 0)
+                          (point3i 0 0 255)))))))
+      (write-ppm "test.bin/circle.ppm" img)
+      0)))
+                        
+                         

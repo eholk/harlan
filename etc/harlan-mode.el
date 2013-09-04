@@ -2,6 +2,7 @@
   "Harlan is a major mode for editing Harlan programs."
 
   (put 'kernel 'scheme-indent-function 1)
+  (put 'kernel* 'scheme-indent-function 1)
   (put 'reduce 'scheme-indent-function 1)
   (put 'for 'scheme-indent-function 1)
 
