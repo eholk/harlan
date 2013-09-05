@@ -489,7 +489,7 @@
      ((with-labels ((,name ((,x* ,[t*]) ...) ,stmt*) ...) ,stmt)
       (let ((stack (gensym 'stack))
             (sp (gensym 'sp))
-            (stack-size 8192))
+            (stack-size 512))
         (parameterize ((new-labels '())
                        (dispatch-name (gensym 'dispatch))
                        (stack-base (with-output-language

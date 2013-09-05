@@ -129,9 +129,9 @@
             (eq? x1 x2))
            ((,bt1 ,bt2) (equal? bt1 bt2))
            (else (begin
-                   (pretty-print "Failed Match!\n")
-                   (pretty-print a)
-                   (pretty-print b)
+                   ;;(pretty-print "Failed Match!\n")
+                   ;;(pretty-print a)
+                   ;;(pretty-print b)
                    #f)))))
 
       (define (select-closure-type t closures)
