@@ -87,14 +87,19 @@
       (define (find-scc name)
         (let loop ((sccs (sccs)))
           (if (null? sccs)
-              '() ;; This really shouldn't happen...
+              (begin
+                 ;; This really shouldn't happen...
+                (display "Could not find label for ") (display name) (newline)
+                '())
               (if (memq name (car sccs))
                   (car sccs)
                   (loop (cdr sccs))))))
       
       (define (recursive? name)
         (or (memq name (cdr (assq name (call-graph))))
-            (> 1 (length (find-scc name))))))
+            (let ((scc (find-scc name)))
+              ;;(display (length scc))
+              (> (length scc) 1)))))
 
     (Expr
      : Expr (e) -> Expr ()
@@ -130,7 +135,7 @@
                      (in-kernel #t))
         `(gpu-module ,(map Kernel k*) ...)))))
 
-  (trace-define-pass lift-call-label : M9.2 (m) -> M9.2 ()
+  (define-pass lift-call-label : M9.2 (m) -> M9.2 ()
     (definitions
       (define label-calls (make-parameter '()))
 
