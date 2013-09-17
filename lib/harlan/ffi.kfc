@@ -1,0 +1,11 @@
+;; Functions for interacting with foreign data.
+
+(module
+
+  (extern unsafe-deref-float ((ptr float) int) -> float)
+  (extern unsafe-deref-int   ((ptr int)   int) -> int)
+  (extern unsafe-deref-char  ((ptr char)  int) -> char)
+  
+  (extern unsafe-deref-float ((ptr float) int) -> float)
+  (extern unsafe-deref-int   ((ptr int)   int) -> int)
+  (extern unsafe-deref-char  ((ptr char)  int) -> char))
