@@ -5,6 +5,7 @@
    (except (chezscheme) gensym)
    (only (elegant-weapons helpers) define-match)
    (harlan driver)
+   (harlan compile-opts)
    (elegant-weapons match))
 
   (define-match expand-include
@@ -25,7 +26,7 @@
 
   (define (load-include name)
     (let-values (((source _)
-                  (read-source (string-append "lib/harlan/" name))))
+                  (read-source (string-append (harlan-library-path) "/" name))))
       (match source
         ((module . ,decls) decls))))
   )

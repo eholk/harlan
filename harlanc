@@ -3,6 +3,8 @@
 MACHINE=`echo "(display (machine-type))" | petite -q`
 
 schemeScript="$0".scm
-dir=`dirname $schemeScript`:external/nanopass-framework/lib/csv8.4/$MACHINE:external/nanopass-framework
+HARLAN_DIR=`dirname $schemeScript`
 
-petite --libdirs "$dir" --program "$schemeScript" $@
+dir=$HARLAN_DIR:external/nanopass-framework/lib/csv8.4/$MACHINE:$HARLAN_DIR/external/nanopass-framework
+
+petite --libdirs "$dir" --program "$schemeScript" -L $HARLAN_DIR/lib/harlan $@

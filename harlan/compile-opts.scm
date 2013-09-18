@@ -6,6 +6,7 @@
     benchmark
     verify
     generate-debug
+    harlan-library-path
     make-shared-object
     no-kernels
     test-tags
@@ -34,6 +35,7 @@
 (define use-doubles        (make-parameter #f))
 (define test-tags          (make-parameter '((xfail . -) (bench . -))))
 (define dump-call-graph    (make-parameter #f))
+(define harlan-library-path (make-parameter "lib/harlan"))
 
 (define trace-passes '())
 
@@ -83,6 +85,7 @@
     ((("--verbose" "-v"))      (verbose #t))
     ((("--debug" "-g"))        (generate-debug #t))
     ((("--enable-double"))     (use-doubles #t))
+    ((("--libdirs" "-L") path) (harlan-library-path path))
     ((("--shared" "-s"))       (make-shared-object #t))
     ((("--quiet" "-q"))        (quiet #t))
     ((("--no-kernels"))        (no-kernels #t))
