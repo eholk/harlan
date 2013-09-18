@@ -68,6 +68,8 @@
    `(if ,t ,c ,a))
   ((vector-ref ,t ,[v] ,[i])
    `(vector-ref ,t ,v ,i))
+  ((unsafe-vec-ptr ,t ,[v])
+   `(unsafe-vec-ptr ,t ,v))
   ((length ,[e]) `(length ,e))
   ((int->float ,[e]) `(int->float ,e))
   ((float->int ,[e]) `(float->int ,e))
@@ -236,6 +238,8 @@
   ((int->float ,[e]) `(int->float ,e))
   ((vector-ref ,t ,[v] ,[i])
    `(vector-ref ,t ,v ,i))
+  ((unsafe-vec-ptr ,t ,[v])
+   `(unsafe-vec-ptr ,t ,v))
   ((error ,e)
    `(begin
       (set! ,(danger bounds-check) (bool #t))

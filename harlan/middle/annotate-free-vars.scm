@@ -105,6 +105,7 @@
    (union/var lfv* rfv*))
   ((field ,[e] ,x) e)
   ((empty-struct) '())
+  ((unsafe-vec-ptr ,t ,[v]) v)
   ((vector-ref ,t ,[vfv*] ,[ifv*])
    (union/var vfv* ifv*)))
 

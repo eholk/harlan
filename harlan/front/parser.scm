@@ -51,6 +51,7 @@
 
 (define-match (parse-type type-env)
   (void 'void)
+  (char 'char)
   (int 'int)
   (u64 'u64)
   (str 'str)
@@ -134,6 +135,7 @@
    `(vector-ref ,v ,i))
   ((unsafe-vector-ref ,[v] ,[i])
    `(unsafe-vector-ref ,v ,i))
+  ((unsafe-vec-ptr ,[v]) `(unsafe-vec-ptr ,v))
   ((length ,[e])
    `(length ,e))
   ((int->float ,[e]) `(int->float ,e))

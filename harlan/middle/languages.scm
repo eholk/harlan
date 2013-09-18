@@ -109,6 +109,7 @@
      (match t e arm ...)
      (vector-ref t e0 e1)
      (unsafe-vector-ref t e0 e1)
+     (unsafe-vec-ptr t e)
      (length e)
      (int->float e)
      (float->int e)

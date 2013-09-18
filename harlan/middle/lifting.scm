@@ -158,6 +158,7 @@
      (union x i))
     ((unsafe-vector-ref ,t ,[x] ,[i])
      (union x i))
+    ((unsafe-vec-ptr ,t ,[v]) v)
     ((kernel ,t (,[dfv**] ...) (((,x* ,t*) (,[fv**] ,ts*) ,d) ...) ,[e])
      (apply union
             (difference e x*)

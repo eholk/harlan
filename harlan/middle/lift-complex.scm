@@ -47,6 +47,8 @@
            (lift-expr
              e2 (lambda (e2^)
                   (finish `(vector-ref ,t ,e1^ ,e2^)))))))
+      ((unsafe-vec-ptr ,t ,e)
+       (lift-expr e (lambda (e^) (finish `(unsafe-vec-ptr ,t ,e^)))))
       ((make-vector ,t ,r ,e)
        (lift-expr e (lambda (e^) (finish `(make-vector ,t ,r ,e^)))))
       ((vector ,t ,r . ,e*)

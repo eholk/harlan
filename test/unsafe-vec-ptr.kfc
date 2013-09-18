@@ -1,0 +1,12 @@
+(module
+
+  (import ffi)
+
+  (define (main)
+    (let* ((v (vector 42))
+           (p (unsafe-vec-ptr v))
+           (i (unsafe-deref-int p 0)))
+      (println i)
+      (assert (= i 42)))
+    0))
+      

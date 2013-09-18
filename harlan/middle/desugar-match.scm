@@ -146,6 +146,8 @@
           `(vector-ref ,t ,e ,i))
          ((unsafe-vector-ref ,t ,[e] ,[i])
           `(unsafe-vector-ref ,t ,e ,i))
+         ((unsafe-vec-ptr ,t ,[v])
+          `(unsafe-vec-ptr ,t ,v))
          ((length ,[e]) `(length ,e))
          ((iota-r ,r ,[e]) `(iota-r ,r ,e))
          ((vector ,t ,r ,[e] ...) `(vector ,t ,r ,e ...))

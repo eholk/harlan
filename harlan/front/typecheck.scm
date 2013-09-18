@@ -94,6 +94,9 @@
                     s
                     (maybe-subst ra rb s))))
 
+             (((ptr ,a) (ptr ,b))
+              (unify-types a b s))
+             
              (((adt ,ta ,ra) (adt ,tb ,rb))
               (let ((s (unify-types ta tb s)))
                 (if (eq? ra rb)
@@ -339,6 +342,11 @@
           (do* (((v _) (require-type v env `(vec ,r ,t)))
                 ((i _) (require-type i env 'int)))
                (return `(unsafe-vector-ref ,t ,v ,i) t))))
+       ((unsafe-vec-ptr ,v)
+        (let ((t (make-tvar (gensym 'tvecref)))
+              (r (make-rvar (gensym 'rvref))))
+          (do* (((v _) (require-type v env `(vec ,r ,t))))
+               (return `(unsafe-vec-ptr (ptr ,t) ,v) `(ptr ,t)))))
        ((,+ ,a ,b) (guard (binop? +))
         (do* (((a t) (infer-expr a env))
               ((b t) (require-type b env t))
@@ -752,6 +760,8 @@
          `(vector-ref ,t ,v ,i))
         ((unsafe-vector-ref ,[ground-type -> t] ,[v] ,[i])
          `(unsafe-vector-ref ,t ,v ,i))
+        ((unsafe-vec-ptr ,[ground-type -> t] ,[v])
+         `(unsafe-vec-ptr ,t ,v))
         ((kernel-r ,[ground-type -> t] ,r
            (((,x ,[ground-type -> ta*]) (,[e] ,[ground-type -> ta**])) ...)
            ,[b])
@@ -795,6 +805,8 @@
     ((length ,[e]) e)
     ((vector-ref ,[free-regions-type -> t] ,[x] ,[i]) (union t x i))
     ((unsafe-vector-ref ,[free-regions-type -> t] ,[x] ,[i]) (union t x i))
+    ((unsafe-vec-ptr ,[free-regions-type -> t] ,[v])
+     (union t v))
     ((iota-r ,r ,[e]) (set-add e r))
     ((make-vector ,[free-regions-type -> t] ,[len] ,[val])
      (union t len val))

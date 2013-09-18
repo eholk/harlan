@@ -206,6 +206,9 @@
      (assert (not (null? er*)))
      (values (uglify-vector-ref t e i (car er*))
              (append er* ir*))))
+  ((unsafe-vec-ptr (ptr ,t) ,[v r*])
+   (values `(addressof ,(uglify-vector-ref t v `(int 0) (car r*)))
+           (append r*)))
   ((length ,[e r*])
    (begin
      (assert (not (null? r*)))

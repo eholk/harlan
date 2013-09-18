@@ -142,6 +142,8 @@
      `(vector-ref ,t ,v ,i))
     ((unsafe-vector-ref ,t ,[v] ,[i])
      `(unsafe-vector-ref ,t ,v ,i))
+    ((unsafe-vec-ptr ,t ,[v])
+     `(unsafe-vec-ptr ,t ,v))
     ((length ,[e])
      `(length ,e))
     ((call ,[f] ,[args] ...)

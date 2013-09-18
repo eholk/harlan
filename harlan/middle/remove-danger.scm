@@ -111,6 +111,8 @@
             (vector-ref ,t (var ,vt ,v-var) (var int ,i-var))))))
     ((unsafe-vector-ref ,t ,[v] ,[i])
      `(vector-ref ,t ,v ,i))
+    ((unsafe-vec-ptr ,t ,[v])
+     `(unsafe-vec-ptr ,t ,v))
     ((length ,[e])
      `(length ,e))
     ((vector ,t ,r ,[e*] ...)
