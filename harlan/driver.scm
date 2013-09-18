@@ -21,7 +21,7 @@
            (command
             (join " " (append `("g++"
                                 ,(if (generate-debug) "-g" "")
-                                ,(if (make-shared-object) "-shared" "")
+                                ,(if (make-shared-object) "-shared -fPIC" "")
                                 "-Wno-unused-value"
                                 "-Wno-comment"
                                 "-O2"
