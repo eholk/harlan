@@ -28,11 +28,24 @@
 (display "\n")
 (display "Compile a file with (compile \"filename\")\n")
 
+(define-syntax try
+  (syntax-rules (catch)
+    ((_ (catch (x) handler-body ... e)
+        body ...)
+     (call/cc (lambda (k)
+                (with-exception-handler
+                 (lambda (x)
+                   handler-body ... (k e))
+                 (lambda ()
+                   body ...)))))))
+
 (define-syntax match-commands
   (syntax-rules ()
     ((_ e cmd ...)
      (match e
-       ((cmd . ,args) (display (apply cmd args)) (newline)) ...
+       ((cmd . ,args)
+        (try (catch (x) (display "ERROR: ") (display x) (newline))
+             (begin (display (apply cmd args)) (newline)))) ...
        (else (display "unrecognized command\n"))))))
 
 (call/cc
