@@ -44,7 +44,7 @@
     ((_ e cmd ...)
      (match e
        ((cmd . ,args)
-        (try (catch (x) (display "ERROR: ") (display x) (newline))
+        (try (catch (x) (display-condition x) (newline))
              (begin (display (apply cmd args)) (newline)))) ...
        (else (display "unrecognized command\n"))))))
 
