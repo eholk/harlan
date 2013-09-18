@@ -7,4 +7,4 @@ HARLAN_DIR=`dirname $schemeScript`
 
 dir=$HARLAN_DIR:external/nanopass-framework/lib/csv8.4/$MACHINE:$HARLAN_DIR/external/nanopass-framework
 
-petite --libdirs "$dir" --program "$schemeScript" -L $HARLAN_DIR/lib/harlan $@
+petite --libdirs "$dir" --program "$schemeScript" -L $HARLAN_DIR/lib/harlan -R $HARLAN_DIR/rt $@

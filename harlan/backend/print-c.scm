@@ -15,6 +15,7 @@
     harlan-format-relop)
   (import
     (rnrs)
+    (harlan compile-opts)
     (elegant-weapons print-c)
     (elegant-weapons insert-prototypes)
     (elegant-weapons match)
@@ -30,15 +31,26 @@
        "__kernel void " name "(" (join ", " arg*) ") " stmt))
     (,else (harlan-format-decl else)))
 
+  (define (read-rt-include name)
+    (let* ((port (open-file-input-port (string-append (harlan-runtime-path)
+                                                      "/"
+                                                      name)
+                                       (file-options no-create)
+                                       (buffer-mode line)
+                                       (native-transcoder)))
+           (data (get-string-all port)))
+      (close-port port)
+      data))
+  
   (define (build-kernel-programs kernel*)
     `(global cl::program g_prog
        (call
          (field (var g_ctx) createAndBuildProgramFromSource)
          (str
            ,(string-append
-              "#include \"rt/gpu_common.h\"\n\n"
-              "#include \"rt/gpu_only.h\"\n\n"
-              (join "\n" (map compile-kernel (insert-prototypes kernel*))))))))
+             (read-rt-include "gpu_common.h")
+             (read-rt-include "gpu_only.h")
+             (join "\n" (map compile-kernel (insert-prototypes kernel*))))))))
   
   (define (harlan-decl decl ft)
     (match decl

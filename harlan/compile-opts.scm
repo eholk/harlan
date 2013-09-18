@@ -7,6 +7,7 @@
     verify
     generate-debug
     harlan-library-path
+    harlan-runtime-path
     make-shared-object
     no-kernels
     test-tags
@@ -36,6 +37,7 @@
 (define test-tags          (make-parameter '((xfail . -) (bench . -))))
 (define dump-call-graph    (make-parameter #f))
 (define harlan-library-path (make-parameter "lib/harlan"))
+(define harlan-runtime-path (make-parameter "rt"))
 
 (define trace-passes '())
 
@@ -90,6 +92,7 @@
     ((("--quiet" "-q"))        (quiet #t))
     ((("--no-kernels"))        (no-kernels #t))
     ((("--no-verify" "-V"))    (verify #f))
+    ((("--rt-dir" "-R") path)  (harlan-runtime-path path))
     ((("--time" "-t"))         (timing #t))
     ((("--tags" "-x") tags)    (parse-tags tags))
     ((("--dump-call-graph"))   (dump-call-graph #t))))
