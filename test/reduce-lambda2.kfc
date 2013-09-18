@@ -1,0 +1,8 @@
+(module
+  (define (main)
+    (let* ((max (lambda (a b) (if (> a b) a b)))
+           (x (reduce max
+                (vector 1 2 5 4 3))))
+      (println x)
+      (assert (= x 5)))
+    0))

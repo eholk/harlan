@@ -221,6 +221,7 @@
            (list (cons x t))))
       ((lambda ,t ((,x* ,t*) ...) ,b)
        (free-var-types b (append x* env)))
+      ((if ,[t] ,[c] ,[a]) (append t c a))
       ((vector-ref ,t ,[x] ,[i])
        (append x i))
       ((match ,t ,[e]

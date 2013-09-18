@@ -43,6 +43,8 @@
          ((var ,t ,x) (list (list x t)))
          ((lambda ,t ((,x* ,t*) ...) ,[e])
           (remove-vars x* e))
+         ((if ,[e0] ,[e1] ,[e2])
+          (union e0 e1 e2))
          ((vector-ref ,t ,[e0] ,[e1])
           (union e0 e1))
          ((call (var ,t ,x) ,[e*] ...)
@@ -347,6 +349,19 @@
               (var (fn (,(cons t t*) ...) -> ,t^)
                    ,dispatch)
               ,(cons e e*) ...))))
+       ((make-closure (closure ,r (,t* ...) ,-> ,t^) ,x ,[e*] ...)
+        (let ((e (Expr e env))
+              (t (with-output-language
+                  (M2 Rho-Type)
+                  `(closure ,r (,t* ...) ,-> ,t^))))
+          (let ((dispatch (find-dispatch t env))
+                (t (Rho-Type t env))
+                (t^ (Rho-Type t^ env))
+                (t* (map (lambda (t) (Rho-Type t env)) t*)))
+            `(call
+              (var (fn (,(cons t t*) ...) -> ,t^)
+                   ,dispatch)
+              ,(cons e e*) ...))))
        ((call (var (fn (,t*^ ...) ,->^ (closure ,r (,t* ...) ,-> ,t^)) ,x)
               ,e** ...)
         (let ((e (Expr e env))
@@ -360,7 +375,8 @@
             `(call
               (var (fn (,(cons t t*) ...) -> ,t^)
                    ,dispatch)
-              ,(cons e e*) ...)))))))
+              ,(cons e e*) ...))))
+       (else (error 'Expr "unknown invoke target" (unparse-M2 e))))))
     
     (Module
      : Module (m env types dispatches) -> Module ()
