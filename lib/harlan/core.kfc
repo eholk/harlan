@@ -24,8 +24,9 @@
      (for (i start stop 1) body ...))
     ((_ (i start stop step) body ...)
      (let ((i start)
-           (stepv step))
-       (while (< i stop)
+           (stepv step)
+           (stopv stop))
+       (while (< i stopv)
          body ...
          (set! i (+ i stepv))))))
 

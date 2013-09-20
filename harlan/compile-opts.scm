@@ -2,9 +2,9 @@
   (harlan compile-opts)
   (export
     passes
-    verbose
     benchmark
-    verify
+    danger-zone
+    verbose
     generate-debug
     harlan-library-path
     harlan-runtime-path
@@ -17,13 +17,15 @@
     use-doubles
     quiet
     dump-call-graph
-    timing)
+    timing
+    verify)
   (import
     (rnrs)
     (util color)
 ;;    (harlan helpers)
     (only (chezscheme) pretty-print make-parameter time trace-define-syntax))
-  
+
+(define danger-zone        (make-parameter #f))
 (define verbose            (make-parameter #f))
 (define verify             (make-parameter #t))
 (define quiet              (make-parameter #f))
@@ -83,6 +85,7 @@
           
 (define (parse-args command-line)
   (match-args command-line
+    ((("--danger-zone"))       (danger-zone #t))
     ((("--no-optimize" "-O0")) (optimize-level 0))
     ((("--verbose" "-v"))      (verbose #t))
     ((("--debug" "-g"))        (generate-debug #t))

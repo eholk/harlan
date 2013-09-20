@@ -63,3 +63,16 @@ inline void *get_region_ptr(region *r, region_ptr i) {
 
     return (((char __global *)r) + i);
 }
+
+
+
+// FFI-related functions. These are pretty low level and could
+// probably be open-coded by the compiler.
+
+#define mk_refs(T) \
+    inline T unsafe$deref$##T(T *p, int i) { return p[i]; } \
+    inline void unsafe$set$b$##T(T *p, int i, T x) { p[i] = x; }
+
+mk_refs(float)
+mk_refs(int)
+mk_refs(char)    

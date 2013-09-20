@@ -68,14 +68,3 @@ void reset_kernel_time() {
 float sqrt(float x) {
     return sqrtf(x);
 }
-
-// FFI-related functions. These are pretty low level and could
-// probably be open-coded by the compiler.
-
-#define mk_refs(T) \
-    T unsafe$deref$##T(T *p, int i) { return p[i]; } \
-    void unsafe$set$b$##T(T *p, int i, T x) { p[i] = x; }
-
-mk_refs(float)
-mk_refs(int)
-mk_refs(char)    
