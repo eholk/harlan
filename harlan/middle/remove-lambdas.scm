@@ -221,9 +221,9 @@
             (eq? x1 x2))
            ((,bt1 ,bt2) (equal? bt1 bt2))
            (else (begin
-                   (pretty-print "Failed Match!")
-                   (pretty-print a)
-                   (pretty-print b)
+                   ;;(pretty-print "Failed Match!")
+                   ;;(pretty-print a)
+                   ;;(pretty-print b)
                    #f)))))
 
       (define (find-env t env)
@@ -349,7 +349,7 @@
               (var (fn (,(cons t t*) ...) -> ,t^)
                    ,dispatch)
               ,(cons e e*) ...))))
-       ((make-closure (closure ,r (,t* ...) ,-> ,t^) ,x ,[e*] ...)
+       ((make-closure (closure ,r (,t* ...) ,-> ,t^) ,x ,[e**] ...)
         (let ((e (Expr e env))
               (t (with-output-language
                   (M2 Rho-Type)
@@ -384,22 +384,11 @@
       `(module ,(append types dispatches decl) ...)))
         
      )
-    
-    ;; We'll need to do a couple of things here. First, we need to
-    ;; sort all the closures by type. Next, we pass this information
-    ;; into the module clause, which will generate ADTs for each
-    ;; closure. This will also produce an environment which we thread
-    ;; down to the Expr class, which is used to remove both
-    ;; make-closure and invoke.
-  ;;)
 
   (define (remove-lambdas module)
     (>::> module
           uncover-lambdas
-          (trace-message "uncovered lambdas")
           sort-closures
-          (trace-message "sorted closures")
-          remove-closures
-          (trace-message "removed closures")))
+          remove-closures))
   )
 
