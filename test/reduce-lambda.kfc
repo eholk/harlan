@@ -1,6 +1,3 @@
-(%testspec
- (%tags xfail))
-
 (module
   (define (main)
     (let ((x (reduce (lambda (a b) (if (> a b) a b))
