@@ -102,7 +102,7 @@
   ((addressof ,[t]) `(ptr ,t))
   ((deref ,[t]) (cadr t))
   ((if ,t ,[c] ,a) c)
-  ((call (var (,argt -> ,rt) ,fn) . ,arg*) rt)
+  ((call (var (fn ,argt -> ,rt) ,fn) . ,arg*) rt)
   ((c-expr ,t ,v) t)
   ((vector-ref ,t ,v ,i) t)
   ((,op ,[lhs] ,rhs)

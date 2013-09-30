@@ -40,9 +40,12 @@
         (nanopass-case
          (M0 Expr) e
          ((int ,i) '())
+         ((float ,f) '())
          ((var ,t ,x) (list (list x t)))
          ((lambda ,t ((,x* ,t*) ...) ,[e])
           (remove-vars x* e))
+         ((let ((,x* ,t* ,[e*]) ...) ,[e])
+          (apply union (remove-vars x* e) e*))
          ((if ,[e0] ,[e1] ,[e2])
           (union e0 e1 e2))
          ((vector-ref ,t ,[e0] ,[e1])
@@ -219,11 +222,13 @@
             (loop t1 t2 env))
            (((adt ,x1 ,r1) (adt ,x2 ,r2))
             (eq? x1 x2))
+           (((adt ,x1) (adt ,x2))
+            (eq? x1 x2))
            ((,bt1 ,bt2) (equal? bt1 bt2))
            (else (begin
                    ;;(pretty-print "Failed Match!")
-                   ;;(pretty-print a)
-                   ;;(pretty-print b)
+                   ;;(pretty-print (unparse-M2 a))
+                   ;;(pretty-print (unparse-M2 b))
                    #f)))))
 
       (define (find-env t env)
@@ -234,18 +239,24 @@
             ((,x0 ,x1 ,t^)
              (if (type-compat? t t^)
                  `(,x0 ,x1 ,t^)
-                 (find-env t rest)))))
+                 (find-env t rest)))
+            (,_ (error 'find-env "Wat?" _))))
          (_ => #f)))
       
       (define (find-typename t env)
         (match (find-env t env)
           ((,x0 ,x1 ,t)
-           x0)))
+           x0)
+          (,_ (begin
+                (pretty-print (unparse-M2 t))
+                (pretty-print env)
+                (error 'find-typename "Wat?" _)))))
 
       (define (find-dispatch t env)
         (match (find-env t env)
           ((,x0 ,x1 ,t)
-           x1))))
+           x1)
+          (,_ (error 'find-dispatch "Wat?" _)))))
 
     (Rho-Type
      : Rho-Type (t env) -> Rho-Type ()
@@ -381,7 +392,7 @@
     (Module
      : Module (m env types dispatches) -> Module ()
      ((module ,[decl env -> decl] ...)
-      `(module ,(append types dispatches decl) ...)))
+      `(module ,(append decl types dispatches) ...)))
         
      )
 

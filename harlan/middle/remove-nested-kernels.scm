@@ -149,6 +149,7 @@
    `(make-vector ,t ,r ,n))
   ((vector ,t ,[e] ...)
    `(vector ,t . ,e))
+  ((field ,[e] ,x) `(field ,e ,x))
   ((call
     (c-expr (fn (int) -> int) get_global_id)
     ,n)
