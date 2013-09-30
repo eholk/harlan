@@ -1,6 +1,6 @@
 (import
  (elegant-weapons match)
- (except (chezscheme) compile)
+ (except (chezscheme) compile debug)
  (harlan compiler)
  (harlan compile-opts)
  (harlan driver))
@@ -40,13 +40,15 @@
                    body ...)))))))
 
 (define-syntax match-commands
-  (syntax-rules ()
+  (syntax-rules (=>)
     ((_ e cmd ...)
      (match e
        ((cmd . ,args)
         (try (catch (x) (display-condition x) (newline))
              (begin (display (apply cmd args)) (newline)))) ...
        (else (display "unrecognized command\n"))))))
+
+(define debug generate-debug)
 
 (call/cc
  (lambda (exit)

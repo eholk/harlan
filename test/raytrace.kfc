@@ -1,6 +1,3 @@
-(%testspec
- (%tags xfail))
-
 (module
 
   (import graphics)
@@ -97,12 +94,20 @@
        (point3i (float->int (* r 256))
                 (float->int (* g 256))
                 (float->int (* b 256))))))
+
+  (define (render-pixel x y scene)
+    (let ((origin (point3f 0 0 -3)))
+      (let ((dir (unit-length (point-diff (point3f x y 0)
+                                          origin)))
+            (object (vector-ref scene 0)))
+        (match (object origin dir)
+          ((miss) (point3f 0 0 0))
+          ((hit color) color)))))
   
   (define (main)
     (let ((scene (vector (make-diffuse-sphere (point3f 0 0 0)
                                               1
                                               (point3f 0 0 1))))
-          (origin (point3f 0 0 -3))
           (width 256)
           (height 256))
       (let ((img (interpolate-range
@@ -110,12 +115,7 @@
                   (interpolate-range
                    (y -1 1 height)
 
-                   (let ((dir (unit-length (point-diff (point3f x y 0)
-                                                     origin))))
-                     (let ((object (vector-ref scene 0)))
-                     (match (object origin dir)
-                       ((miss) (point3f 0 0 0))
-                       ((hit color) color))))))))
+                   (render-pixel x y scene)))))
         (write-ppm "test.bin/raytrace.ppm"
                    (map2d (lambda (x) (rgbf->rgbi x)) img))))
     0)
