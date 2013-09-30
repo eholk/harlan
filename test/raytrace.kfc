@@ -1,0 +1,122 @@
+(%testspec
+ (%tags xfail))
+
+(module
+
+  (import graphics)
+
+  (define-datatype ray-result
+    (miss)
+    ;; The ray hits the surface and is completely absorbed, so it
+    ;; should be rendered with the returned color.
+    (hit point3f-t))
+
+  (define (min a b)
+    (if (< a b) a b))
+  (define (max a b)
+    (if (> a b) a b))
+
+  (define (dot-prod a b)
+    (match a
+      ((point3f ax ay az)
+       (match b
+         ((point3f bx by bz)
+          (+ (* ax bx) (+ (* ay by) (* az bz))))))))
+  
+  (define (point-diff x y)
+    (match x
+      ((point3f a b c)
+       (match y
+         ((point3f d e f)
+          (point3f (- a d) (- b e) (- c f)))))))
+
+  (define (point-add x y)
+    (match x
+      ((point3f a b c)
+       (match y
+         ((point3f x y z)
+          (point3f (+ a x) (+ b y) (+ c z)))))))
+  
+  (define (point-div a y)
+    (match a
+      ((point3f a b c)
+       (point3f (/ a y) (/ b y) (/ c y)))))
+
+  (define (point-scale a y)
+    (match a
+      ((point3f a b c)
+       (point3f (* a y) (* b y) (* c y)))))
+
+  (define (point-mag p)
+    (match p
+      ((point3f a b c)
+       (sqrt (+ (* a a) (+ (* b b) (* c c)))))))
+
+  (define (normalize p)
+    (point-div p (point-mag p)))
+
+  (define (make-diffuse-sphere center radius color)
+    (lambda (start direction)
+      ;; Sphere / Ray interstion code adapted from
+      ;; http://wiki.cgsociety.org/index.php/Ray_Sphere_Intersection
+      (let ((a (dot-prod direction direction))
+            (b (* 2 (dot-prod direction start)))
+            (c (- (dot-prod start start) (* radius radius))))
+        (let ((disc (- (* b b) (* 4 (* a c)))))
+          (if (< disc 0)
+              (miss)
+              (let* ((dist-sqrt (sqrt disc))
+                     (q (if (< b 0)
+                            (* -0.5 (+ b dist-sqrt))
+                            (* 0.5 (- dist-sqrt b))))
+                     (t0 (/ q a))
+                     (t1 (/ c q)))
+                (let ((t0 (min t0 t1))
+                      (t1 (max t0 t1)))
+                  (if (< t1 0)
+                      (miss)
+                      ;; TODO: shade the color based on the direction.
+                      (hit color)))))))))
+
+  (define-macro interpolate-range ()
+    ((_ (i start end steps) body)
+     (kernel ((j (iota steps)))
+       (let ((i (+ start (* (/ (- end start) (int->float steps))
+                            (int->float j)))))
+         body))))
+
+  (define-macro map2d ()
+    ((_ f data)
+     (kernel ((row data))
+       (kernel ((x row))
+         (f x)))))
+
+  (define (rgbf->rgbi x)
+    (match x
+      ((point3f r g b)
+       (point3i (float->int (* r 256))
+                (float->int (* g 256))
+                (float->int (* b 256))))))
+  
+  (define (main)
+    (let ((scene (vector (make-diffuse-sphere (point3f 0 0 0)
+                                              1
+                                              (point3f 0 0 1))))
+          (origin (point3f 0 0 -3))
+          (width 512)
+          (height 512))
+      (let ((img (interpolate-range
+                  (x -1 1 width)
+                  (interpolate-range
+                   (y -1 1 height)
+
+                   (let ((dir (normalize (point-diff (point3f x y 0)
+                                                     origin))))
+                     (let ((object (vector-ref scene 0)))
+                     (match (object origin dir)
+                       ((miss) (point3f 0 0 0))
+                       ((hit color) color))))))))
+        (write-ppm "test.bin/raytrace.ppm"
+                   (map2d (lambda (x) (rgbf->rgbi x)) img)))))
+      
+  )
