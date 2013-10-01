@@ -6,7 +6,10 @@
     (miss)
     ;; The ray hits the surface and is completely absorbed, so it
     ;; should be rendered with the returned color.
-    (hit point3f-t))
+    ;;
+    ;; the float tells the distance so we can do occlusion when
+    ;; multiple rays hit.
+    (hit float point3f-t))
 
   (define (minimum a b)
     (if (< a b) a b))
@@ -53,27 +56,34 @@
     (point-div p (point-mag p)))
 
   (define (make-diffuse-sphere center radius color)
-    (lambda (start direction)
-      ;; Sphere / Ray interstion code adapted from
-      ;; http://wiki.cgsociety.org/index.php/Ray_Sphere_Intersection
-      (let ((a (dot-prod direction direction))
-            (b (* 2 (dot-prod direction start)))
-            (c (- (dot-prod start start) (* radius radius))))
-        (let ((disc (- (* b b) (* 4 (* a c)))))
-          (if (< disc 0)
-              (miss)
-              (let* ((dist-sqrt (sqrt disc))
-                     (q (if (< b 0)
-                            (* -0.5 (+ b dist-sqrt))
-                            (* 0.5 (- dist-sqrt b))))
-                     (t0 (/ q a))
-                     (t1 (/ c q)))
-                (let ((t0 (minimum t0 t1))
-                      (t1 (maximum t0 t1)))
-                  (if (< t1 0)
-                      (miss)
-                      ;; TODO: shade the color based on the direction.
-                      (hit color)))))))))
+    (let ((light-pos (point3f 5 5 -8)))
+      (lambda (start direction)
+        ;; Sphere / Ray interstion code adapted from
+        ;; http://wiki.cgsociety.org/index.php/Ray_Sphere_Intersection
+        (let ((a (dot-prod direction direction))
+              (b (* 2 (dot-prod direction start)))
+              (c (- (dot-prod start start) (* radius radius))))
+          (let ((disc (- (* b b) (* 4 (* a c)))))
+            (if (< disc 0)
+                (miss)
+                (let* ((dist-sqrt (sqrt disc))
+                       (q (if (< b 0)
+                              (* -0.5 (+ b dist-sqrt))
+                              (* 0.5 (- dist-sqrt b))))
+                       (t0 (/ q a))
+                       (t1 (/ c q)))
+                  (let ((t (maximum t0 t1)))
+                    (if (< t 0)
+                        (miss)
+                        (let* ((pos (point-add (point-scale direction t)
+                                               start))
+                               (norm (unit-length (point-diff pos center)))
+                               (light-dir (unit-length
+                                           (point-diff pos light-pos)))
+                               (color (point-scale
+                                       color
+                                       (dot-prod light-dir norm))))
+                          (hit t color)))))))))))
 
   (define-macro interpolate-range ()
     ((_ (i start end steps) body)
@@ -102,7 +112,7 @@
             (object (vector-ref scene 0)))
         (match (object origin dir)
           ((miss) (point3f 0 0 0))
-          ((hit color) color)))))
+          ((hit dist color) color)))))
   
   (define (main)
     (let ((scene (vector (make-diffuse-sphere (point3f 0 0 0)
@@ -115,7 +125,7 @@
                   (interpolate-range
                    (y -1 1 height)
 
-                   (render-pixel x y scene)))))
+                   (render-pixel x (- 0 y) scene)))))
         (write-ppm "test.bin/raytrace.ppm"
                    (map2d (lambda (x) (rgbf->rgbi x)) img))))
     0)

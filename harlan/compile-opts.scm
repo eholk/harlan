@@ -129,7 +129,10 @@
        (with-color 'green
          (display "Timing pass ") (display pass-name))
        (newline)
-       (time expr)))))
+       (let ((e (time expr)))
+         (with-color 'green
+           (display "Timing complete for ") (display pass-name) (newline))
+         e)))))
 
 (define do-trace-pass
   (lambda (pass-name pass expr)
