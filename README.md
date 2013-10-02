@@ -62,6 +62,14 @@ an executable based on the program's filename. For example, the
 previous example will produce the file `hello`, which can be executed
 directly.
 
-If Latex is installed, you can build the Harlan User's Guide as follows.
+Next Steps
+----------
 
-    make docs
+The official Harlan documentation is currently held in the [Harlan Wiki].
+
+The Harlan mailing list is [harlan-dev]. Feel free to join this group
+and ask questions of the Harlan developers and other Harlan users.
+
+
+[Harlan Wiki]: https://github.com/eholk/harlan/wiki
+[harlan-dev]: https://groups.google.com/forum/#!forum/harlan-dev
