@@ -1,15 +1,23 @@
 (library
   (harlan middle uglify-vectors)
-  (export uglify-vectors
+  (export uglify-vectors uglify-vectors-new
     uglify-stmt
     uglify-decl
     uglify-expr)
   (import
     (rnrs)
     (only (harlan front typecheck) free-regions-type)
+    (nanopass)
+    (harlan middle languages)
     (elegant-weapons helpers)
     (elegant-weapons sets))
 
+(trace-define-pass uglify-vectors-new : M7.1 (m) -> M7.2 ()
+  
+  ;; For now, don't do anything just to make sure we get the parsing
+  ;; right.
+  )
+  
 (define (remove-dups ls)
   (cond
    ((null? ls) `())
@@ -28,7 +36,6 @@
      (+ ,e ,vector-length-offset))
     ,i))
 
-;; TODO: should this return true for region-allocated ADTs as well?
 (define-match region-allocated?
   ((vec ,r ,t) #t)
   (,else #f))

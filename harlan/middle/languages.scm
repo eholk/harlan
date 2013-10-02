@@ -10,6 +10,7 @@
           M6 unparse-M6
           M7 unparse-M7
           M7.1 unparse-M7.1 parse-M7.1
+          M7.2 unparse-M7.2
           M8 unparse-M8 parse-M8
           M9 unparse-M9
           M9.1 unparse-M9.1
@@ -65,11 +66,14 @@
     (AdtDeclPattern
      (pt)
      (x t* ...))
+    (LetBinding
+     (lbind)
+     (x t e))
     (Body
      (body)
      (begin body* ... body)
      (let-region (r ...) body)
-     (let ((x* t* e*) ...) body)
+     (let (lbind* ...) body)
      (if e body1 body2)
      (print e)
      (print e1 e2)
@@ -98,7 +102,7 @@
      (print e1 e2)
      (begin e e* ...)
      (assert e)
-     (let ((x* t* e*) ...) e)
+     (let (lbind* ...) e)
      (let-region (r ...) e)
      (kernel t r (((x0 t0) (e1 t1)) ...) e)
      (iota-r r e)
@@ -213,21 +217,78 @@
   (define-language M7
     (extends M6)
     (entry Module)
-
+    
     (Expr
      (e)
      (- (kernel t r i (((x0 t0) (e1 t1) i*) ...) e)
         (kernel t r i (e* ...) (((x0 t0) (e1 t1) i*) ...) e))
      (+ (kernel t r (e* ...) (((x0 t0) (e1 t1) i*) ...) e))))
 
+  ;; before uglify-vectors
   (define-language M7.1
+    (extends M7)
+
+    (FreeVars
+     (fv)
+     (+ (free-vars (x t) ...)))
+
+    (LetBinding
+     (lbind)
+     (+ (x t)))
+    
+    (Stmt
+     (stmt)
+     (+ (print e)
+        (print e1 e2)
+        (assert e)
+        (set! e1 e2)
+        (begin stmt ...)
+        (if e stmt)
+        (if e stmt1 stmt2)
+        (for (x e1 e2 e3) stmt)
+        (while e stmt)
+        (do e)
+        (error x)
+        (kernel t (e* ...) fv e)
+        (let (lbind* ...) stmt)
+        rstmt))
+
+    (RetStmt
+     (rstmt)
+     (+ (return e)
+        (return)))
+
+    (Body
+     (body)
+     (+ stmt)
+     (- (begin body* ... body)
+        (return)
+        (return e)
+        (set! e1 e2)
+        (assert e)
+        (while e1 e2)
+        (do e)
+        (print e)
+        (print e1 e2)
+        (if e body1 body2)))
+
+    (Expr
+     (e)
+     (- (kernel t r (e* ...) (((x0 t0) (e1 t1) i*) ...) e))
+     (+ (kernel t (e* ...) fv e)
+        (addressof e)
+        (deref e)))
+    )
+
+  ;; after uglify-vectors
+  (define-language M7.2
     (extends M7.1)
 
     )
   
   ;; after hoist-kernels
   (define-language M8
-    (extends M7)
+    (extends M7.2)
 
     (entry Module)
     
@@ -263,37 +324,17 @@
 
     (Stmt
      (stmt)
-     (+ (print e)
-        (print e1 e2)
-        (assert e)
-        (set! e1 e2)
-        (apply-kernel x (e1* ...) e* ...)
+     (+ (apply-kernel x (e1* ...) e* ...)
         (let x t e)
-        (let x t)
-        (begin stmt ...)
-        (if e stmt)
-        (if e stmt1 stmt2)
-        (for (x e1 e2 e3) stmt)
-        (while e stmt)
-        (do e)
-        (error x)
-        rstmt))
-
-    (RetStmt
-     (rstmt)
-     (+ (return e)
-        (return)))
-
+        (let x t)))
+    
     (Expr
      (e)
      (+ (cast t e)
         (sizeof t)
         (alloc e1 e2)
-        (addressof e)
-        (deref e)
         (region-ref t e1 e2))
-     (- (kernel t r (e* ...) (((x0 t0) (e1 t1) i*) ...) e)
-        (box r t e)
+     (- (box r t e)
         (unbox t r e)
         (vector t r e* ...)
         (do e)
@@ -352,20 +393,9 @@
     
     (Body
      (body)
-     (+ (with-labels (lbl ...) stmt)
-        stmt)
-     (- (begin body* ... body)
-        (let-region (r ...) body)
-        (let ([x* t* e*] ...) body)
-        (if e body1 body2)
-        (print e)
-        (print e1 e2)
-        (do e)
-        (while e1 e2)
-        (assert e)
-        (set! e1 e2)
-        (return)
-        (return e))))
+     (+ (with-labels (lbl ...) stmt))
+     (- (let-region (r ...) body)
+        (let (lbind* ...) body))))
 
   (define-language M9.2.1
     (extends M9.2)
