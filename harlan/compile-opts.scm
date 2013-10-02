@@ -2,6 +2,7 @@
   (harlan compile-opts)
   (export
     passes
+    allow-complex-kernel-args
     benchmark
     danger-zone
     verbose
@@ -25,6 +26,7 @@
 ;;    (harlan helpers)
     (only (chezscheme) pretty-print make-parameter time trace-define-syntax))
 
+(define allow-complex-kernel-args (make-parameter #f))
 (define danger-zone        (make-parameter #f))
 (define verbose            (make-parameter #f))
 (define verify             (make-parameter #t))
@@ -98,7 +100,8 @@
     ((("--rt-dir" "-R") path)  (harlan-runtime-path path))
     ((("--time" "-t"))         (timing #t))
     ((("--tags" "-x") tags)    (parse-tags tags))
-    ((("--dump-call-graph"))   (dump-call-graph #t))))
+    ((("--dump-call-graph"))   (dump-call-graph #t))
+    ((("--Zallow-complex-kernel-args")) (allow-complex-kernel-args #t))))
 
 (define (string-search needle haystack)
   (let loop ((i 0))

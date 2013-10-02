@@ -64,6 +64,8 @@
     verify-annotate-free-vars)
    (lower-vectors
     verify-lower-vectors)
+   ;;(nanopasses
+   ;; (uglify-vectors-new : M7.1 -> M7.2))
    (uglify-vectors
     verify-uglify-vectors)
    (remove-let-regions
@@ -73,6 +75,7 @@
    (hoist-kernels
     verify-hoist-kernels)
    (nanopasses
+    (remove-complex-kernel-args : M8 -> M8)
     (generate-kernel-calls : M8 -> M9)
     (remove-recursion : M9 -> M9.3))
    (compile-module

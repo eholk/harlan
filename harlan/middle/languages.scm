@@ -9,6 +9,7 @@
           M5 unparse-M5 parse-M5
           M6 unparse-M6
           M7 unparse-M7
+          M7.1 unparse-M7.1 parse-M7.1
           M8 unparse-M8 parse-M8
           M9 unparse-M9
           M9.1 unparse-M9.1
@@ -219,6 +220,11 @@
         (kernel t r i (e* ...) (((x0 t0) (e1 t1) i*) ...) e))
      (+ (kernel t r (e* ...) (((x0 t0) (e1 t1) i*) ...) e))))
 
+  (define-language M7.1
+    (extends M7.1)
+
+    )
+  
   ;; after hoist-kernels
   (define-language M8
     (extends M7)
@@ -420,6 +426,7 @@
   (define-parser parse-M0 M0)
   (define-parser parse-M3 M3)
   (define-parser parse-M5 M5)
+  (define-parser parse-M7.1 M7.1)
   (define-parser parse-M8 M8)
 
   )

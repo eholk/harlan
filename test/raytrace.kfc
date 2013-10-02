@@ -104,28 +104,24 @@
        (point3i (float->int (* r 256))
                 (float->int (* g 256))
                 (float->int (* b 256))))))
-
-  (define (render-pixel x y scene)
-    (let ((origin (point3f 0 0 -3)))
-      (let ((dir (unit-length (point-diff (point3f x y 0)
-                                          origin)))
-            (object (vector-ref scene 0)))
-        (match (object origin dir)
-          ((miss) (point3f 0 0 0))
-          ((hit dist color) color)))))
   
   (define (main)
     (let ((scene (vector (make-diffuse-sphere (point3f 0 0 0)
                                               1
                                               (point3f 0 0 1))))
           (width 256)
-          (height 256))
+          (height 256)
+          (origin (point3f 0 0 -3)))
       (let ((img (interpolate-range
                   (x -1 1 width)
                   (interpolate-range
-                   (y -1 1 height)
-
-                   (render-pixel x (- 0 y) scene)))))
+                   (y 1 -1 height) ;; y coordinate is upside down.
+                   (let ((dir (unit-length (point-diff (point3f x y 0)
+                                                       origin)))
+                         (object (vector-ref scene 0)))
+                     (match (object origin dir)
+                       ((miss) (point3f 0 0 0))
+                       ((hit dist color) color)))))))
         (write-ppm "test.bin/raytrace.ppm"
                    (map2d (lambda (x) (rgbf->rgbi x)) img))))
     0)
