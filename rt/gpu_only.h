@@ -23,6 +23,6 @@ region_ptr alloc_in_region(region __global *r, unsigned int size)
 // 2 means allocation failure
 // FIXME: with the new small danger vectors, this doesn't actually
 // report allocation failures...
-#define harlan_error(code) { /**danger = 2*/; return; }
+#define harlan_error(code) { /**danger = 2*/; /* return */; }
 
 typedef int cl_int;
