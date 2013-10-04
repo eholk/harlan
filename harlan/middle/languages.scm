@@ -31,7 +31,6 @@
   ;; The first language in the middle end.
   (define-language M0
     (terminals
-     (any (any ?))
      (scalar-type (bt))
      (operator (op))
      (region-var (r))
@@ -164,8 +163,10 @@
      (- (closures (cgroup ...) m)))
     (ClosureGroup
      (cgroup)
-     (- (x0 x1 t ctag ...))
-     (+ (x0 x1 any ctag ...)))
+     (- (x0 x1 t ctag ...)))
+    (ClosureTag
+     (ctag)
+     (- (x (x0 ...) e (x* t*) ...)))
     (Rho-Type
      (t)
      (- (closure r (t* ...) -> t))))
@@ -194,7 +195,19 @@
         (empty-struct)
         (unbox t r e)
         (box   r t e)
-        (field e x))))
+        (field e x)))
+
+    (MatchArm
+     (arm)
+     (- (mbind e)))
+
+    (MatchBindings
+     (mbind)
+     (- (x x* ...)))
+
+    (AdtDeclPattern
+     (pt)
+     (- (x t* ...))))
   
   ;; After make-kernel-dimensions-explicit
   (define-language M6
@@ -225,18 +238,6 @@
 
     (entry Module)
     
-    (MatchArm
-     (arm)
-     (- (mbind e)))
-
-    (MatchBindings
-     (mbind)
-     (- (x x* ...)))
-
-    (AdtDeclPattern
-     (pt)
-     (- (x t* ...)))
-
     (Decl
      (decl)
      (+ (gpu-module k* ...)
@@ -299,6 +300,21 @@
      (+ (vec t))
      (- (vec r t)
         (adt x r)))
+
+    (Body
+     (body)
+     (- (begin body* ... body)
+        (let-region (r ...) body)
+        (let ([x* t* e*] ...) body)
+        (if e body1 body2)
+        (print e)
+        (print e1 e2)
+        (do e)
+        (while e1 e2)
+        (assert e)
+        (set! e1 e2)
+        (return)
+        (return e)))
     )
   
   (define-language M9
@@ -313,6 +329,9 @@
     (extends M9)
     (entry Module)
 
+    (terminals
+     (+ (any (?))))
+
     (Decl
      (decl)
      (- (gpu-module k* ...))
@@ -325,6 +344,9 @@
   (define-language M9.2
     (extends M9.1)
     (entry Module)
+
+    (terminals
+     (- (any (?))))
 
     (Decl
      (decl)
@@ -347,19 +369,11 @@
     (Body
      (body)
      (+ (with-labels (lbl ...) stmt)
-        stmt)
-     (- (begin body* ... body)
-        (let-region (r ...) body)
-        (let ([x* t* e*] ...) body)
-        (if e body1 body2)
-        (print e)
-        (print e1 e2)
-        (do e)
-        (while e1 e2)
-        (assert e)
-        (set! e1 e2)
-        (return)
-        (return e))))
+        stmt))
+    
+    (CallGraph
+     (cg)
+     (- (call-graph ?0 ?1))))
 
   (define-language M9.2.1
     (extends M9.2)
@@ -412,7 +426,11 @@
     
     (Expr
      (e)
-     (- (call-label name e* ...))))
+     (- (call-label name e* ...)))
+    
+    (LabeledBlock
+     (lbl)
+     (- (name ((x t) ...) stmt))))
   
   (define-language M10
     (extends M9))
