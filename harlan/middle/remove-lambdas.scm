@@ -272,8 +272,6 @@
      ((,x (,x0 ...) ,e (,x* ,[Rho-Type : t* env -> t*]) ...)
       `(,x ,t* ...)))
 
-    (ClosureTag : ClosureTag (t env) -> ClosureTag ())
-
     (ClosureMatch
      : ClosureTag (t formals ftypes env) -> MatchArm ()
      ((,x (,x0 ...) ,[e] (,x1 ,t1) ...)
@@ -287,44 +285,42 @@
       `(,x0 ,x1 ,t)))
     
     (ClosureGroup
-     : ClosureGroup (cgroup env) -> ClosureGroup (typedef dispatch)
+     : ClosureGroup (cgroup env) -> * (typedef dispatch)
      ((,x0 ,x1 ,t ,ctag ...)
-      (let* ((cgroup `(,x0 ,x1 ,t ,(map (lambda (t) (ClosureTag t env))
-                                       ctag) ...)))
-        (nanopass-case
-         (M2 Rho-Type) t
-         ((closure ,r (,t* ...) ,-> ,t)
-          (values cgroup
-                  (with-output-language
-                   (M3 Decl)
-                   `(define-datatype (,x0 ,r) ,(map (lambda (t)
-                                                    (ClosureCase t env))
-                                                  ctag) ...))
-                  (with-output-language
-                   (M3 Decl)
-                   (let* ((formals (map (lambda _ (gensym 'formal)) t*))
-                          (t* (map (lambda (t) (Rho-Type t env)) t*))
-                          (t (Rho-Type t env))
-                          (x (gensym 'closure))
-                          (ctype (with-output-language
-                                  (M3 Rho-Type)
-                                  `(adt ,x0 ,r)))
-                          (arms (map (lambda (t)
-                                       (ClosureMatch t formals t* env))
-                                     ctag)))
-                     `(fn ,x1 (,(cons x formals) ...)
-                          (fn (,(cons ctype t*) ...) -> ,t)
-                          (return (match ,t (var ,ctype ,x)
-                                         ,arms ...))))))))
-        )))
+      (nanopass-case
+        (M2 Rho-Type) t
+        ((closure ,r (,t* ...) ,-> ,t)
+         (values
+           (with-output-language
+             (M3 Decl)
+             `(define-datatype (,x0 ,r) ,(map (lambda (t)
+                                                (ClosureCase t env))
+                                           ctag) ...))
+           (with-output-language
+             (M3 Decl)
+             (let* ((formals (map (lambda _ (gensym 'formal)) t*))
+                     (t* (map (lambda (t) (Rho-Type t env)) t*))
+                     (t (Rho-Type t env))
+                     (x (gensym 'closure))
+                     (ctype (with-output-language
+                              (M3 Rho-Type)
+                              `(adt ,x0 ,r)))
+                     (arms (map (lambda (t)
+                                  (ClosureMatch t formals t* env))
+                             ctag)))
+               `(fn ,x1 (,(cons x formals) ...)
+                  (fn (,(cons ctype t*) ...) -> ,t)
+                  (return (match ,t (var ,ctype ,x)
+                            ,arms ...))))))))
+        ))
 
     (Closures
      : Closures (x) -> Module ()
      ((closures (,cgroup ...) ,m)
       (let ((env (map MakeEnv cgroup)))
-        (let-values (([cgroup types dispatches]
+        (let-values (([types dispatches]
                       (if (null? cgroup)
-                          (values '() '() '())
+                          (values '() '())
                           (map-values (lambda (g)
                                         (ClosureGroup g env))
                                       cgroup ))))

@@ -33,7 +33,6 @@
   ;; The first language in the middle end.
   (define-language M0
     (terminals
-     (any (any ?))
      (scalar-type (bt))
      (operator (op))
      (region-var (r))
@@ -42,6 +41,7 @@
      (flonum (f))
      (boolean (b))
      (char (c))
+     (any (? any))
      (string (str-t))
      (variable (x name)))
     (Module
@@ -169,8 +169,10 @@
      (- (closures (cgroup ...) m)))
     (ClosureGroup
      (cgroup)
-     (- (x0 x1 t ctag ...))
-     (+ (x0 x1 any ctag ...)))
+     (- (x0 x1 t ctag ...)))
+    (ClosureTag
+     (ctag)
+     (- (x (x0 ...) e (x* t*) ...)))
     (Rho-Type
      (t)
      (- (closure r (t* ...) -> t))))
@@ -199,7 +201,19 @@
         (empty-struct)
         (unbox t r e)
         (box   r t e)
-        (field e x))))
+        (field e x)))
+
+    (MatchArm
+     (arm)
+     (- (mbind e)))
+
+    (MatchBindings
+     (mbind)
+     (- (x x* ...)))
+
+    (AdtDeclPattern
+     (pt)
+     (- (x t* ...))))
   
   ;; After make-kernel-dimensions-explicit
   (define-language M6
@@ -292,18 +306,6 @@
 
     (entry Module)
     
-    (MatchArm
-     (arm)
-     (- (mbind e)))
-
-    (MatchBindings
-     (mbind)
-     (- (x x* ...)))
-
-    (AdtDeclPattern
-     (pt)
-     (- (x t* ...)))
-
     (Decl
      (decl)
      (+ (gpu-module k* ...)
@@ -346,6 +348,7 @@
      (+ (vec t))
      (- (vec r t)
         (adt x r)))
+    
     )
   
   (define-language M9
@@ -448,7 +451,11 @@
     
     (Expr
      (e)
-     (- (call-label name e* ...))))
+     (- (call-label name e* ...)))
+    
+    (LabeledBlock
+     (lbl)
+     (- (name ((x t) ...) stmt))))
   
   (define-language M10
     (extends M9))
