@@ -274,7 +274,7 @@
 
     (ClosureMatch
      : ClosureTag (t formals ftypes env) -> MatchArm ()
-     ((,x (,x0 ...) ,[e] (,x1 ,t1) ...)
+     ((,x (,x0 ...) ,[Expr : e env -> e] (,x1 ,t1) ...)
       `((,x ,x1 ...)
         (let ((,x0 ,ftypes (var ,ftypes ,formals)) ...)
           ,e))))
@@ -327,20 +327,21 @@
           (Module m env types dispatches)))))
 
     (Body : Body (b env) -> Body ())
-
+    (LetBinding : LetBinding (lbind env) -> LetBinding ())
+    
     (MatchArm : MatchArm (arm env) -> MatchArm ())
     
     (Decl : Decl (d env) -> Decl ())
     
     (Expr
      : Expr (e env) -> Expr ()
-     ((make-closure ,t ,x ,[e*] ...)
+     ((make-closure ,t ,x ,[Expr : e* env -> e*] ...)
       (let ((adt-name (find-typename t env)))
         (nanopass-case
          (M2 Rho-Type) t
          ((closure ,r (,t* ...) ,-> ,t^)
           `(call (var (fn (_) -> (adt ,adt-name ,r)) ,x) ,e* ...)))))
-     ((invoke ,e ,[e*] ...)
+     ((invoke ,e ,[Expr : e* env -> e*] ...)
       (nanopass-case
        (M2 Expr) e
        ((var (closure ,r (,t* ...) ,-> ,t^) ,x)

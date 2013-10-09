@@ -263,19 +263,16 @@
         (while e stmt)
         (do e)
         (error x)
-        (kernel t (e* ...) fv e)
+        (kernel t (e* ...) fv stmt)
         (let (lbind* ...) stmt)
-        rstmt))
-
-    (RetStmt
-     (rstmt)
-     (+ (return e)
+        (return e)
         (return)))
 
     (Body
      (body)
      (+ stmt)
      (- (begin body* ... body)
+        (let (lbind* ...) body)
         (return)
         (return e)
         (set! e1 e2)
@@ -288,8 +285,10 @@
 
     (Expr
      (e)
-     (- (kernel t r (e* ...) (((x0 t0) (e1 t1) i*) ...) e))
+     (- (kernel t r (e* ...) (((x0 t0) (e1 t1) i*) ...) e)
+        (box r t e))
      (+ (kernel t (e* ...) fv e)
+        (box r t)
         (addressof e)
         (deref e)))
     )
@@ -336,7 +335,7 @@
         (sizeof t)
         (alloc e1 e2)
         (region-ref t e1 e2))
-     (- (box r t e)
+     (- (box r t)
         (unbox t r e)
         (vector t r e* ...)
         (do e)
@@ -397,8 +396,7 @@
     (Body
      (body)
      (+ (with-labels (lbl ...) stmt))
-     (- (let-region (r ...) body)
-        (let (lbind* ...) body))))
+     (- (let-region (r ...) body))))
 
   (define-language M9.2.1
     (extends M9.2)

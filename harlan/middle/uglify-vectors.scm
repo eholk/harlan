@@ -12,7 +12,7 @@
     (elegant-weapons helpers)
     (elegant-weapons sets))
 
-(trace-define-pass uglify-vectors-new : M7.1 (m) -> M7.2 ()
+(define-pass uglify-vectors-new : M7.1 (m) -> M7.2 ()
   
   ;; For now, don't do anything just to make sure we get the parsing
   ;; right.
@@ -56,8 +56,6 @@
      ,e)))
 
 (define-match extract-regions
-  ;;((fn (,[t*] ...) -> ,[t])
-  ;; (append (apply append t*) t))
   (,else (free-regions-type else)))
 
 (define (remove-regions t)
