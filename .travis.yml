@@ -1,0 +1,11 @@
+language: c
+
+compiler:
+ - gcc
+
+install:
+  - sudo apt-get install fglrx opencl-headers
+  - ./travis/install-petite.sh
+
+script:
+  - make
