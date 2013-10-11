@@ -3,6 +3,9 @@ language: c
 compiler:
  - gcc
 
+before_install:
+  - sudo apt-get update
+
 install:
   - sudo apt-get install fglrx opencl-headers
   - ./travis/install-petite.sh
