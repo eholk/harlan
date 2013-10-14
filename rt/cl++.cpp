@@ -60,7 +60,7 @@ device_list::device_list(cl_device_type type)
         status = clGetDeviceIDs(platforms[i], type, CL_UINT_MAX, NULL, &n_dev);
         if(CL_DEVICE_NOT_FOUND == status)
             continue;
-        CL_CHECK(status);
+        CL_CHECK_MSG(status, "clGetDeviceIDs (count)");
         num_ids += n_dev;
         break;
     }
@@ -81,7 +81,7 @@ device_list::device_list(cl_device_type type)
                                 devices + offset, &n_dev);
         if(CL_DEVICE_NOT_FOUND == status)
             continue;
-        CL_CHECK(status);
+        CL_CHECK_MSG(status, "clGetDeviceIDs");
         offset += n_dev;
     }
 
@@ -115,7 +115,7 @@ context::context(device_list &devices)
   cl_int status;
   ctx = clCreateContext(0, devices.count(), devices.ids(),
                         sLogError, this, &status);
-  CL_CHECK(status);
+  CL_CHECK_MSG(status, "clCreateContext");
 }
 
 context::~context()
@@ -208,7 +208,7 @@ void program::build()
                                        NULL));
         std::cerr << log << std::endl;
     }
-    CL_CHECK(status);
+    CL_CHECK_MSG(status, "clBuildProgram");
 }
 
 kernel program::createKernel(string name)
@@ -301,7 +301,7 @@ program context::createProgramFromSource(string src)
   const char *c_src = src.c_str();
   cl_int status;
   cl_program p = clCreateProgramWithSource(ctx, 1, &c_src, NULL, &status);
-  CL_CHECK(status);
+  CL_CHECK_MSG(status, "clCreateProgramWithSource");
   return program(p);
 }
 
@@ -322,7 +322,7 @@ command_queue context::createCommandQueue(cl_device_id dev)
 						  dev,
 						  0, // properties
 						  &status);
-	CL_CHECK(status);
+	CL_CHECK_MSG(status, "clCreateCommandQueue");
 	return command_queue(q);
 }
 
