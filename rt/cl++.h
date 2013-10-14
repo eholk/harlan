@@ -19,10 +19,11 @@
 #include <fstream>
 #include <iostream>
 
-#define CL_CHECK(e) {                                         \
+#define CL_CHECK(e) CL_CHECK_MSG(e, #e)
+#define CL_CHECK_MSG(e, m) {								  \
         cl_int __st__ = (e);                                  \
         if(CL_SUCCESS != __st__) {                            \
-            cl::handle_error(#e, __st__);                     \
+            cl::handle_error((m), __st__);					  \
         }                                                     \
     }
 
