@@ -5,6 +5,9 @@
 ;; This one uses an accumulator so all calls are in tail
 ;; position. This case is easier to get correct.
 
+(%testspec
+ (%tags recursive))
+
 (module
   (define (fact n acc)
     (if (= 0 n)

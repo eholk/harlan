@@ -2,6 +2,9 @@
 ;;
 ;; This makes sure we can do mutual recursion.
 
+(%testspec
+ (%tags recursive))
+
 (module
   (define (even n)
     (if (= 0 n)

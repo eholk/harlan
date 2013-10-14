@@ -2,6 +2,9 @@
 ;;
 ;; Used to help develop the passes to make recursion work.
 
+(%testspec
+ (%tags recursive))
+
 (module
   (define (fact n)
     (if (= 0 n)
