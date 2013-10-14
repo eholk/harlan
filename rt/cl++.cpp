@@ -57,7 +57,7 @@ device_list::device_list(cl_device_type type)
     // Find out how many devices there are.
     cl_uint n_dev = 0;
     for(int i = 0; i < nPlatforms; ++i) {
-        status = clGetDeviceIDs(platforms[i], type, CL_UINT_MAX, NULL, &n_dev);
+        status = clGetDeviceIDs(platforms[i], type, 0, NULL, &n_dev);
         if(CL_DEVICE_NOT_FOUND == status)
             continue;
         CL_CHECK_MSG(status, "clGetDeviceIDs (count)");
@@ -77,7 +77,7 @@ device_list::device_list(cl_device_type type)
   
     size_t offset = 0;
     for(int i = 0; i < nPlatforms; ++i) {
-        status = clGetDeviceIDs(platforms[i], type, CL_UINT_MAX,
+        status = clGetDeviceIDs(platforms[i], type, n_dev,
                                 devices + offset, &n_dev);
         if(CL_DEVICE_NOT_FOUND == status)
             continue;
