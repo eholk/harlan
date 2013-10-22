@@ -1,7 +1,7 @@
 #! /usr/bin/env scheme-script
 ;; -*- scheme -*-
 (import
-  (chezscheme)
+  (vicare)
   (harlan compile-opts)
   (harlan driver)
   (harlan backend print-c)
@@ -9,15 +9,17 @@
   (util system) ;; HARLAND
   )
 
-(print-gensym 'pretty/suffix)
+;;(print-gensym 'pretty/suffix)
+(print-gensym 'pretty)
 
 ;; This could be set from the env var HARLAND, or based on the
 ;; directory in which this script resides.  Using the latter:
-(HARLAND (path-parent (car (command-line))))
+;(HARLAND (path-parent (car (command-line))))
 
 ;; Converts foo/bar.kfc to bar
 (define (output-filename input)
-  (let ((base (path-last (path-root input))))
+  (string-append input ".out")
+  #;(let ((base (path-last (path-root input))))
     (if (make-shared-object)
         (string-append base ".so")
         base)))

@@ -5,8 +5,7 @@
    (rnrs)
    (except (elegant-weapons helpers) ident?)
    (harlan compile-opts)
-   (harlan helpers)
-   (cKanren mk))
+   (harlan helpers))
 
 (define-match remove-nested-kernels
   ((module ,[Decl -> decl*] ...)

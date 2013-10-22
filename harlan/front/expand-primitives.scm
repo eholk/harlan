@@ -5,8 +5,7 @@
     (rnrs)
     (elegant-weapons helpers)
     (elegant-weapons compat)
-    (only (chezscheme) printf trace-define)
-    (cKanren mk))
+    (only (vicare) printf trace-define))
 
   ;; This pass macro-expands primitives. It also inserts fresh region
   ;; variables.
@@ -157,7 +156,7 @@
     ((if ,[test] ,[conseq])
      `(if ,test ,conseq))
     ((kernel ,ktype (((,x ,t) (,[xs] ,ts)) ...) ,[body])
-     `(kernel ,ktype ,(var 'region) (((,x ,t) (,xs ,ts)) ...) ,body))
+     `(kernel ,ktype ,(gensym 'region) (((,x ,t) (,xs ,ts)) ...) ,body))
     ((kernel-r ,ktype ,r (((,x ,t) (,[xs] ,ts)) ...) ,[body])
      `(kernel ,ktype ,r (((,x ,t) (,xs ,ts)) ...) ,body))
     ((let ((,x* ,t* ,[e*]) ...) ,[e])
@@ -209,7 +208,7 @@
       `(let ((,l (vec ,t) ,lhs)
              (,r (vec ,t) ,rhs))
          (let ((,len int (length (var (vec ,t) ,l))))
-           (let ((,res (vec ,t) (make-vector ,t ,(var 'region) (var int ,len))))
+           (let ((,res (vec ,t) (make-vector ,t ,(gensym 'region) (var int ,len))))
              (begin
                (for (,i (int 0) (var int ,len) (int 1))
                     (let ((,lhsi

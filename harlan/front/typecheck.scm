@@ -3,8 +3,8 @@
   (export typecheck free-regions-type)
   (import
     (rnrs)
-    (only (chezscheme) make-parameter parameterize
-          pretty-print printf trace-define trace-let trace)
+    (only (vicare) make-parameter parameterize
+          pretty-print printf trace-define trace-let)
     (elegant-weapons match)
     (elegant-weapons helpers)
     (elegant-weapons sets)

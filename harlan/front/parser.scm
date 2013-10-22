@@ -4,8 +4,7 @@
   (import
     (rnrs)
     (harlan helpers)
-    (except (elegant-weapons helpers) ident?)
-    (cKanren mk))
+    (except (elegant-weapons helpers) ident?))
 
 (define (check-idents x*)
   (or (null? x*)

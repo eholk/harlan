@@ -23,8 +23,8 @@
   (import
     (rnrs)
     (util color)
-;;    (harlan helpers)
-    (only (chezscheme) pretty-print make-parameter time trace-define-syntax))
+    (only (vicare) pretty-print time)
+    (elegant-weapons compat))
 
 (define allow-complex-kernel-args (make-parameter #f))
 (define danger-zone        (make-parameter #f))

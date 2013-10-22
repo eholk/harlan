@@ -1,10 +1,8 @@
 #!/bin/bash
 
-MACHINE=`echo "(display (machine-type))" | petite -q`
+SCHEME=vicare
 
 schemeScript="$0".scm
 HARLAN_DIR=`dirname $schemeScript`
 
-dir=$HARLAN_DIR:external/nanopass-framework/lib/csv8.4/$MACHINE:$HARLAN_DIR/external/nanopass-framework
-
-petite --libdirs "$dir" --program "$schemeScript" -L $HARLAN_DIR/lib/harlan -R $HARLAN_DIR/rt $@
+$SCHEME -L $HARLAN_DIR -L $HARLAN_DIR/external/nanopass-framework --more-file-extensions --r6rs-script "$schemeScript" -- -L $HARLAN_DIR/lib/harlan -R $HARLAN_DIR/rt $@

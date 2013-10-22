@@ -3,7 +3,6 @@
   (export insert-let-regions)
   (import (rnrs)
     (harlan helpers)
-    (cKanren mk)
     (except (elegant-weapons helpers) ident?))
   
   ;; insert-let-regions inserts let-regions (no kidding) in an
@@ -11,7 +10,7 @@
   ;; inferencer will have no clue which regions take precedence, have
   ;; what scope, etc.  there's a better way to do this, but lazy.
 
-  (define (new-region) (var 'region) #;(gensym 'g_region))
+  (define (new-region) (gensym 'g_region))
   
   ;; put recursive calls inside calls to letr for great success
   (define-syntax letr

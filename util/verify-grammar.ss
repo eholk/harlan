@@ -2,47 +2,6 @@
 ;; see eof for an example
 
 (library
-  (util verify-helpers)
-  (export verify-name pred-name nonterminal? terminal? filter*)
-  (import (rnrs))
-
-(define filter*
-  (lambda (pred expr)
-    (cond
-      ((pair? expr)
-       (append
-         (filter* pred (car expr))
-         (filter* pred (cdr expr))))
-      ((pred expr) `(,expr))
-      (else '()))))
-
-;; nonterminal ->  verify-nonterminal
-;; terminal    ->  terminal?
-(define (create-name completion)
-  (lambda (syn)
-    (syntax-case syn ()
-      (_ (datum->syntax syn
-           (string->symbol
-             (completion (symbol->string (syntax->datum syn)))))))))
-(define pred-name
-  (create-name (lambda (str) (string-append str "?"))))
-(define verify-name
-  (create-name (lambda (str) (string-append "verify-" str))))
-
-;; terminals have a lowercase first char,
-;; nonterminals are capitalized
-(define (form-pred proc)
-  (lambda (syn)
-    (syntax-case syn ()
-      (_ (let ((sym (syntax->datum syn)))
-           (and (symbol? sym)
-                (proc (string-ref (symbol->string sym) 0))))))))
-(define nonterminal? (form-pred char-upper-case?))
-(define terminal? (form-pred char-lower-case?))
-  
-)
-
-(library
   (util verify-grammar)
   (export
     grammar-transforms
@@ -56,7 +15,7 @@
     (rnrs)
     (util verify-helpers)
     (harlan compile-opts)
-    (only (chezscheme) pretty-print errorf with-output-to-string
+    (only (vicare) pretty-print with-output-to-string
       trace-define-syntax trace-define))
   
 (define wildcard? (lambda (x) #t))
@@ -168,7 +127,7 @@
                           (nonterminals (lambda (left*) body*))
                           ...)
                        (unless (start prg)
-                         (errorf 'name
+                         (error 'name
                            (string-append
                              "grammar verification failed"
                              "\nGrammar: ~a\nProblems:\n ~a\n")

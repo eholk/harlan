@@ -9,7 +9,7 @@
    (harlan helpers)
    (harlan compile-opts)
    (except (elegant-weapons helpers) ident?)
-   (only (chezscheme) trace-define trace-lambda))
+   (only (vicare) trace-define trace-lambda))
 
   (define-match optimize-fuse-kernels
     ((module ,[Decl -> decl*] ...)

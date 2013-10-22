@@ -31,11 +31,10 @@
     (rnrs)
     (harlan helpers)
     (except (elegant-weapons helpers) ident?)
-    (util verify-grammar)
-    (cKanren mk))
+    (util verify-grammar))
 
 (define (region-var? x)
-  (or (symbol? x) (var? x)))
+  (or (symbol? x)))
   
 (grammar-transforms
 

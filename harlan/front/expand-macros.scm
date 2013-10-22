@@ -2,8 +2,8 @@
     (harlan front expand-macros)
   (export expand-macros)
   (import
-   (except (chezscheme) gensym record-case)
-   (only (elegant-weapons helpers) gensym define-match)
+   (except (rnrs) gensym record-case)
+   (only (elegant-weapons helpers) gensym define-match ormap)
    (elegant-weapons record-case)
    (elegant-weapons match)
    (elegant-weapons sets))

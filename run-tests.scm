@@ -6,10 +6,11 @@
 ; containing timing information
 
 (import
-  (chezscheme)
+  (rnrs)
   (util color)
   (elegant-weapons match)
   (elegant-weapons sets)
+  (elegant-weapons compat)
   (util system)
   (harlan driver)
   (harlan compiler)
@@ -23,7 +24,9 @@
 (define exclude-tags (make-parameter '()))
 
 (define (is-test? filename)
-  (equal? (path-extension filename) "kfc"))
+  (let ((len (string-length filename)))
+    (and (> len 4)
+         (string=? (substring (- len 4) len) ".kfc"))))
 
 (define (enumerate-tests)
   (filter is-test? (directory-list "test")))

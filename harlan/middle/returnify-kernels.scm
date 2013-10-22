@@ -3,10 +3,9 @@
   (export returnify-kernels)
   (import
    (rnrs)
-   (only (chezscheme) trace-lambda)
+   (only (vicare) trace-lambda)
    (except (elegant-weapons helpers) ident?)
-   (harlan helpers)
-   (cKanren mk))
+   (harlan helpers))
 
   ;; Variables related to danger
   (define danger-type 'bool)

@@ -2,7 +2,7 @@
     (harlan front expand-include)
   (export expand-include)
   (import
-   (except (chezscheme) gensym)
+   (except (rnrs) gensym)
    (only (elegant-weapons helpers) define-match)
    (harlan driver)
    (harlan compile-opts)

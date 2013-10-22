@@ -3,7 +3,7 @@
   (export remove-lambdas)
   (import
    (rnrs)
-   (only (chezscheme) pretty-print trace-define)
+   (only (vicare) pretty-print trace-define)
    (nanopass)
    (except (elegant-weapons match) ->)
    (harlan compile-opts)

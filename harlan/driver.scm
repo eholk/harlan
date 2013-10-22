@@ -2,10 +2,11 @@
   (harlan driver)
   (export get-cflags g++-compile-stdin read-source)
   (import
-    (chezscheme)
+    (rnrs)
     (only (elegant-weapons helpers) join)
     (elegant-weapons match)
     (util system)
+    (only (vicare posix) system unlink)
     (harlan compile-opts))
 
   (define (get-cflags)
@@ -15,9 +16,7 @@
                  "-lOpenCL" "-lrt"))))
 
   (define (g++-compile-stdin src outfile . args)
-    (let* ((src-tmp (if (generate-debug)
-                         (string-append outfile ".cpp")
-                         "-"))
+    (let* ((src-tmp (string-append outfile ".cpp"))
            (command
             (join " " (append `("g++"
                                 ,(if (generate-debug) "-g" "")
@@ -35,20 +34,12 @@
                               args))))
       (if (verbose)
           (begin (display command) (newline)))
-      (if (generate-debug)
-          (let ((out (open-output-file src-tmp '(truncate))))
-            (display src out)
-            (close-output-port out)))
-      (let-values (((to-stdin from-stdout from-stderr proccess-id)
-                    (open-process-ports command 'block (native-transcoder))))
-        (unless (generate-debug)
-          (begin
-            (display src to-stdin)
-            (close-output-port to-stdin)))
-        (let ((errors (read-all from-stderr)))
-          (if (string=? "" errors)
-              #t ;; Assume that if we get no stderr data then g++ succeeded.
-              (error 'g++-compile-stdin errors))))))
+      (let ((out (open-output-file src-tmp)))
+        (display src out)
+        (close-output-port out))
+      (system command)
+      (unless (generate-debug)
+        (unlink src-tmp))))
 
   (define (read-source path)
     (let* ((file (open-input-file path))

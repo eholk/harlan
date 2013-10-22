@@ -3,7 +3,7 @@
   (export generate-kernel-calls remove-complex-kernel-args)
   (import
    (rnrs)
-   (only (chezscheme) pretty-print)
+   (only (vicare) pretty-print)
    (nanopass)
    (except (elegant-weapons helpers) ident?)
    (harlan compile-opts)
