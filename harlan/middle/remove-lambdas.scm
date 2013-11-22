@@ -384,6 +384,19 @@
               (var (fn (,(cons t t*) ...) -> ,t^)
                    ,dispatch)
               ,(cons e e*) ...))))
+       ((match (closure ,r (,t* ...) ,-> ,t^) ,e^ ,arm ...)
+        (let ((e (Expr e env))
+              (t (with-output-language
+                  (M2 Rho-Type)
+                  `(closure ,r (,t* ...) ,-> ,t^))))
+          (let ((dispatch (find-dispatch t env))
+                (t (Rho-Type t env))
+                (t^ (Rho-Type t^ env))
+                (t* (map (lambda (t) (Rho-Type t env)) t*)))
+            `(call
+              (var (fn (,(cons t t*) ...) -> ,t^)
+                   ,dispatch)
+              ,(cons e e*) ...))))
        (else (error 'Expr "unknown invoke target" (unparse-M2 e))))))
     
     (Module
