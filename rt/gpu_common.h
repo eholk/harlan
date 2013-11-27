@@ -26,7 +26,7 @@ struct region_ {
 
 };
 
-typedef struct region_ region;
+#define region struct region_
 
 // Extract the tag from an ADT
 #define extract_tag(x) ((x).tag)
