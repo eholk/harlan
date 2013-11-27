@@ -231,6 +231,12 @@
                    ;;(pretty-print (unparse-M2 b))
                    #f)))))
 
+      (define (type-of e)
+        (nanopass-case
+         (M3 Expr) e
+         ((var ,t ,x) t)
+         (else (error 'type-of "unimplemented expr" (unparse-M3 e)))))
+
       (define (find-env t env)
         (pair-case
          env
@@ -340,7 +346,8 @@
         (nanopass-case
          (M2 Rho-Type) t
          ((closure ,r (,t* ...) ,-> ,t^)
-          `(call (var (fn (_) -> (adt ,adt-name ,r)) ,x) ,e* ...)))))
+          `(call (var (fn (,(map type-of e*) ...) -> (adt ,adt-name ,r)) ,x)
+                 ,e* ...)))))
      ((invoke ,e ,[Expr : e* env -> e*] ...)
       (nanopass-case
        (M2 Expr) e

@@ -167,9 +167,7 @@
                                 typedefs)))
             `(let ((,e-var ,tag-type ,e))
                (let ((,tag-var int (call (c-expr
-                                          ;; use _ as the type. It's
-                                          ;; never observed anyway.
-                                          (fn (_) -> int) extract_tag)
+                                          (fn (,tag-type) -> int) extract_tag)
                                          (var ,tag-type ,e-var))))
                  ,(let loop ((tag tag)
                              (x x)

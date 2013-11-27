@@ -1,0 +1,17 @@
+(%testspec
+ (%tags xfail))
+
+(module
+
+  (define-datatype Box
+    (box (closure (Box) -> Box)))
+
+  (define-macro unbox ()
+    ((_ x)
+     (match x
+       ((box f) f))))
+  
+  (define (main)
+    ((lambda (x) ((unbox x) x))
+     (box (lambda (x) ((unbox x) x))))
+    0))
