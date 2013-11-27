@@ -8,11 +8,11 @@
 typedef unsigned int region_ptr;
 
 // We use our own bool type because OpenCL doesn't let you pass bools
-// between host and kernel code.q
+// between host and kernel code.
 typedef int bool_t;
 
 // This is mostly opaque to the GPU.
-typedef struct region_ {
+struct region_ {
     unsigned int magic;
 
     // Size of this header + the stuff
@@ -24,7 +24,9 @@ typedef struct region_ {
     // This is actually a cl_mem
     void *cl_buffer;
 
-} region;
+};
+
+typedef struct region_ region;
 
 // Extract the tag from an ADT
 #define extract_tag(x) ((x).tag)
