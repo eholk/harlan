@@ -6,6 +6,7 @@
     uglify-expr)
   (import
     (rnrs)
+    (elegant-weapons compat)
     (only (harlan front typecheck) free-regions-type)
     (nanopass)
     (harlan middle languages)
@@ -55,8 +56,34 @@
      (var (ptr region) ,region)
      ,e)))
 
-(define-match extract-regions
-  (,else (free-regions-type else)))
+(define extract-regions free-regions-type)
+
+;; For variable references, we need to handle regions specially when
+;; the reference is to a function call.
+(define (extract-var-regions x t)
+  (let ((callee-type (hashtable-ref (function-types) x #f)))
+    (if callee-type
+        (let ((env
+               (let walk-types ((env '())
+                                (callee callee-type)
+                                (caller t))
+                 (match `(,callee ,caller)
+                   (((fn (,t* ...) -> ,t)
+                     (fn (,t^* ...) -> ,t^))
+                    (fold-left walk-types env (cons t t*) (cons t^ t^*)))
+                   (((vec ,r ,t) (vec ,r^ ,t^))
+                    (walk-types (cons (cons r r^) env) t t^))
+                   (((adt ,n ,r) (adt ,n^ ,r^))
+                    (cons (cons r r^) env))
+                   (((ptr ,t) (ptr ,t^))
+                    (walk-types env t t^))
+                   (((struct (,x* ,t*) ...) (struct (,x^* ,t^*) ...))
+                    (fold-left walk-types env t* t^*))
+                   (((union (,x* ,t*) ...) (union (,x^* ,t^*) ...))
+                    (fold-left walk-types env t* t^*))
+                   (,_ env)))))
+          (map (lambda (x) (cdr (assq x env))) (extract-regions callee-type)))
+        (extract-regions t))))
 
 (define (remove-regions t)
   (match t
@@ -70,9 +97,22 @@
      `(union (,x* ,t*) ...))
     (,else else)))
 
+;; We're going to keep all the function declarations in a global table
+;; to make it easier to get to them at the call site.
+(define function-types (make-parameter #f))
+
+(define (build-function-table decl)
+  (let ((table (function-types)))
+    (match decl
+      ((fn ,name ,formals ,type . ,_)
+       (hashtable-set! table name type))
+      (,_ _))))
+
 (define-match uglify-vectors
-  ((module ,[uglify-decl -> decl*] ...)
-   `(module . ,decl*)))
+  ((module ,decl* ...)
+   (parameterize ((function-types (make-eq-hashtable)))
+     (for-each build-function-table decl*)
+     `(module . ,(map uglify-decl decl*)))))
 
 (define-match uglify-decl
   ((fn ,name ,args (fn ,arg-t -> ,rt)
@@ -185,7 +225,7 @@
    (values `(,(remove-regions t) ,n) `()))
   ((var ,tx ,x)
    (values `(var ,(remove-regions tx) ,x)
-           (extract-regions tx)))
+           (extract-var-regions x tx)))
   ((int->float ,[e r*])
    (values `(cast float ,e) r*))
   ((float->int ,[e r*])
