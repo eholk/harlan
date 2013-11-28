@@ -538,12 +538,12 @@
      : Stmt (stmt) -> Stmt ()
      ((push! ,[e0] ,[e1] ,[t] ,[e2])
       `(begin
-         (set! (deref (cast (ptr local ,t) (+ ,e0 ,e1))) ,e2)
+         (set! (deref (cast (ptr private ,t) (+ ,e0 ,e1))) ,e2)
          (set! ,e1 (+ ,e1 (sizeof ,t)))))
      ((pop! ,[e0] ,[e1] ,[t] ,[e2])
       `(begin
          (set! ,e1 (- ,e1 (sizeof ,t)))
-         (set! ,e2 (deref (cast (ptr local ,t) (+ ,e0 ,e1))))))
+         (set! ,e2 (deref (cast (ptr private ,t) (+ ,e0 ,e1))))))
       
      ((do (call-label ,name ,[e*] ...))
       (let-values (((x* t*) (arg-types name)))
