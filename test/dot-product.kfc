@@ -8,4 +8,4 @@
                              (* x y)))))
         (println dot)
         (assert (= dot 20))
-        (return 0)))))
+        0))))

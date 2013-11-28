@@ -9,4 +9,4 @@
            (kernel ((i (iota 10)))
              (iota (+ i 1)))))
       (println triangle))
-    (return 0)))
+    0))

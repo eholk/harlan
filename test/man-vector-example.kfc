@@ -4,5 +4,5 @@
 (module
   (define (main)
     (let ((x (vector 1 2)))
-      (return 0))))
+      0)))
 

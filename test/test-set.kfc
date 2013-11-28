@@ -5,4 +5,4 @@
       (assert (= x 1))
       (let ((y x))
         (assert (= x y))
-        (return 0)))))
+        0))))

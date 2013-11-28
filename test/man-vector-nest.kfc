@@ -6,4 +6,4 @@
     (let ((x (vector
               (vector 1 2)
               (vector 3 4))))
-      (return 0))))
+      0)))

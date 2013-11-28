@@ -7,4 +7,4 @@
       (print (kernel ((r triangle))
                (reduce + r)))
       (print "\n"))
-    (return 0)))
+    0))

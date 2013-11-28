@@ -13,4 +13,4 @@
     (assert (match (Float 5)
               ((Int x) #f)
               ((Float f) #t)))
-    (return 0)))
+    0))

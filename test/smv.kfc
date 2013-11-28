@@ -18,4 +18,4 @@
                    (kernel ((i is) (v vs))
                      (* v (vector-ref X i)))))))
         (assert (= X Y))
-        (return 0)))))
+        0))))

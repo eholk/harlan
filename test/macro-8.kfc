@@ -11,4 +11,4 @@
   (define (main)
     (println (test #t))
     (assert (test #t))
-    (return 0)))
+    0))

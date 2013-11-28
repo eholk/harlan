@@ -8,4 +8,4 @@
                          (set! j (- j 1)))
                        r))))
       (println (kernel ((a A) (b B)) (= a b))))
-    (return 0)))
+    0))

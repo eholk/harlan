@@ -48,5 +48,5 @@
 
   (define (main)
     (iterate)
-    (return 0)))
+    0))
 

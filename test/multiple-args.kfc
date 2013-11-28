@@ -10,4 +10,4 @@
       (let ((N (map_add1 M)))
         (assert (= (vector-ref N 0)
                    (+ (vector-ref M 0) 1)))))
-    (return 0)))
+    0))

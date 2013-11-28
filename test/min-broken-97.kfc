@@ -4,4 +4,4 @@
       (for (i 0 1000)
         (for (j 0 4)
           (vector-ref (vector-ref B 0) (* j 0))))
-      (return 0))))
+      0)))

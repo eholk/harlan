@@ -13,4 +13,4 @@
       (println (kernel ((x x))
                  (match x
                    ((point3 a b c) (+ (+ a b) c))))))
-    (return 0)))
+    0))

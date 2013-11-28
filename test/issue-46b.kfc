@@ -7,4 +7,4 @@
                             (= xVals yVals))))
         (for (i 0 (length result))
              (print (vector-ref result i)))))
-    (return 0)))
+    0))

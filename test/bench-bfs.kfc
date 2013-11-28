@@ -82,6 +82,6 @@
     (let ((graph (make-graph 4 10)))
       (println graph)
       (println (bfs graph 0)))
-    (return 0))
+    0)
   
   )

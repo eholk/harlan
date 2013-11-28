@@ -7,5 +7,5 @@
      (kernel ((a (vector 2 3)))
        (kernel ((b (vector 5 7)))
          (* a b))))
-    (return 0)))
+    0))
 

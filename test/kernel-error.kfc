@@ -8,4 +8,4 @@
     (let ((xs (iota 5)))
       (kernel ((i xs))
         (vector-ref xs (* i 2))))
-    (return 0)))
+    0))

@@ -3,4 +3,4 @@
     (let ((X (vector 1 2 3 4)))
       (let ((Z (kernel ((x X))
                  x)))
-        (return 0)))))
+        0))))

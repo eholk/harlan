@@ -11,4 +11,4 @@
   
   (define (main)
     (println (or #f #t #f))
-    (return 0)))
+    0))

@@ -5,4 +5,4 @@
      (let-region
       (r2)
       (let ((x (iota-r r1 256)))
-        (return (vector-ref x 0)))))))
+        (vector-ref x 0))))))

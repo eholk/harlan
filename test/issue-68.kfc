@@ -6,4 +6,4 @@
  (define (main)
    (let ((A (vector 5)))
        (id A))
-   (return 0)))
+   0))

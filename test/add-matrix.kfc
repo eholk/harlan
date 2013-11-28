@@ -13,4 +13,4 @@
         (for (i 0 3)
           (for (j 0 3)
             (assert (= (vector-ref (vector-ref C i) j) 10))))))
-    (return 0)))
+    0))

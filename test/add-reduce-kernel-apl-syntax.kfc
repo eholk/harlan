@@ -8,4 +8,4 @@
       (let ((z (reduce + (kernel ((x X) (y Y))
                            (* x y)))))
         (assert (= z 56))
-        (return 0)))))
+        0))))

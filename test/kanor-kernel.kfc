@@ -30,4 +30,4 @@
       (assert (= (vector-ref Z 1) (* (vector-ref X 1) (vector-ref Y 1))))
       (assert (= (vector-ref Z 2) (* (vector-ref X 2) (vector-ref Y 2))))
       (assert (= (vector-ref Z 3) (* (vector-ref X 3) (vector-ref Y 3))))      
-      (return 0)))
+      0))

@@ -4,4 +4,4 @@
       (for (i 0 100)
         (kernel ((i (vector 0 1 2 3)))
           (vector-ref (vector-ref B 0) (* i 0))))
-      (return 0))))
+      0)))

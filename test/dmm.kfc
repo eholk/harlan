@@ -22,4 +22,4 @@
                        (kernel ((x row) (y col))
                          (* x y)))))))
           (assert (= C A))
-          (return 0))))))
+          0)))))

@@ -10,4 +10,4 @@
         (assert (= (vector-ref X 1) 3))
         (assert (= (vector-ref X 2) 4))
         (assert (= (vector-ref X 3) 5))
-        (return 0)))))
+        0))))

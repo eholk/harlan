@@ -101,5 +101,5 @@
 	(print i)
 	(print "\t")
 	(println (/ total 10))))
-    (return 0))
+    0)
   )

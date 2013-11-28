@@ -16,4 +16,4 @@
                              (* x y))))))
         (println Y)
         (assert (= X Y))
-        (return 0)))))
+        0))))

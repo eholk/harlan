@@ -10,5 +10,5 @@
     (if (if (< 5 6)
             (begin (print "Right answer\n") #t)
             (begin (print "Wrong answer\n") #f))
-        (return 0)
-        (return 1))))
+        0
+        1)))

@@ -11,4 +11,4 @@
           (println (vector-ref B i)))
         (assert (= (vector-ref B 0) 6))
         (assert (= (vector-ref B 1) 15))))
-    (return 0)))
+    0))

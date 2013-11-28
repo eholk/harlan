@@ -7,4 +7,4 @@
       (let ((Z (kernel ((x X) (y Y)) (+ x y))))
         (println Z)
         (assert (= Z (vector 6 3 4 11))))
-      (return 0))))
+      0)))

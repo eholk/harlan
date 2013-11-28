@@ -2,4 +2,4 @@
   (define (main)
     (let ((x 42))
       (print x)
-      (return 0))))
+      0)))

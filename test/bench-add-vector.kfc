@@ -28,4 +28,4 @@
 		(print i)
 		(print "\nSELFTIMED: ")
 		(println (/ time 10))))
-    (return 0)))
+    0))

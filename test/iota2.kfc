@@ -2,4 +2,4 @@
   (define (main)
     (let ((v (iota 4)))
       (assert (= 6 (reduce + v)))
-      (return 0))))
+      0)))

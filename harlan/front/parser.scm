@@ -74,9 +74,6 @@
    `(print . ,e))
   ((println ,[(parse-expr env) -> e] ...)
    `(println . ,e))
-  ((return) `(return))
-  ((return ,[(parse-expr env) -> e])
-   `(return ,e))
   ((if ,[(parse-expr env) -> test]
        ,[(parse-stmt env) -> conseq])
    `(if ,test ,conseq))
