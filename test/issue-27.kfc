@@ -5,5 +5,5 @@
       (let ((Y X))
         (assert (= X Y))
         (assert (= (= Y Z) #f))
-        (return 0)))))
+        0))))
 

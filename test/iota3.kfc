@@ -2,4 +2,4 @@
   (define (main)
       (assert (= 14 (reduce + (kernel ((i (iota 4)))
                                      (* i i)))))
-      (return 0)))
+      0))

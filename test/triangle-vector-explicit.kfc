@@ -12,4 +12,4 @@
                    (iota 9))))
       (print triangle)
       (print "\n"))
-    (return 0)))
+    0))

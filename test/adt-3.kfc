@@ -14,4 +14,4 @@
         (if (= 0 (mod i 2))
             (even)
             (odd))))
-    (return 0)))
+    0))

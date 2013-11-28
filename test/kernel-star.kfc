@@ -3,4 +3,4 @@
   (define (main)
     (println (kernel* ((i (iota 5)) (j (iota 5)))
                       (* i j)))
-    (return 0)))
+    0))

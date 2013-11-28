@@ -93,5 +93,5 @@
            (v (eval (value-of-t e (empty-env) (final-k)))))
       (print-val v)
       (println ""))
-    (return 0))
+    0)
   )

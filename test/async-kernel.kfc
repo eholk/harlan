@@ -14,4 +14,4 @@
       	            (* x y)))
       (let z (reduce + (wait handle)))
       (assert (= z 40))
-      (return 0)))
+      0))

@@ -4,5 +4,5 @@
       (let ((i (iota (length v))))
         (println i)
         (assert (= (length i) 3))
-        (return 0)))))
+        0))))
 

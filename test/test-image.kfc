@@ -9,4 +9,4 @@
       (print "\n")
       (print (length (vector-ref img 0)))
       (write-pgm "test.bin/test-image.pgm" img)
-      (return 0))))
+      0)))

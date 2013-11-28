@@ -6,4 +6,4 @@
   (define (main)
     (let ((bar (foo)))
       (my_print bar))
-    (return 0)))
+    0))

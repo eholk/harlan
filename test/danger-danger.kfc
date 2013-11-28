@@ -7,4 +7,4 @@
 (module
   (define (main)
     (vector-ref (vector 1) 42)
-    (return 0)))
+    0))

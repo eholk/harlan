@@ -3,8 +3,8 @@
 
 (module
   (define (add x y)
-    (return (+ x y)))
+    (+ x y))
 
   (define (main)
     (print (add 2 3))
-    (return 0)))
+    0))

@@ -6,4 +6,4 @@
         (assert (= (vector-ref Y 1) 3))
         (assert (= (vector-ref Y 2) 4))
         (assert (= (vector-ref Y 3) 5))
-        (return 0)))))
+        0))))

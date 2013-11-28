@@ -3,4 +3,4 @@
  (define (main)
    (let ((x (nanotime)))
      (print x)
-     (return 0))))
+     0)))

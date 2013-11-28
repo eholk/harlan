@@ -1,4 +1,4 @@
 (module
   (define (main)
       (assert (= 6 (reduce + (iota 4))))
-      (return 0)))
+      0))

@@ -13,7 +13,7 @@ const char *g_src =
 
 cl::program g_prog = g_ctx.createProgramFromSource(g_src);
 
-uint64_t do_dot_prod(int size) {
+uint64_t do_dot_prod(int size) stop{
   int *x = new int[size];
   int *y = new int[size];
   int *out = new int[size];
@@ -57,7 +57,7 @@ uint64_t do_dot_prod(int size) {
   delete [] y;
   delete [] out;
 
-  return stop - start;
+  return  - start;
 }
 
 int main() {

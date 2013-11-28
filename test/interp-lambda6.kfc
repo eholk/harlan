@@ -55,5 +55,5 @@
     (kernel ((i (iota 1)))
       (let ((e (app (Lambda (variable 0)) (Lambda (variable 0)))))
         (eval e (empty-env) (lambda (x) (stop x)))))
-    (return 0))
+    0)
   )

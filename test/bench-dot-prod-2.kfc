@@ -124,5 +124,5 @@
           (for (j i (* 2 i) (if (> i 16) (/ i 10) 1))
             (bench_length j))
           (set! i (* i 2)))))
-    (return 0)))
+    0))
 

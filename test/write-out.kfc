@@ -5,4 +5,4 @@
     (let ((f (open_outfile "test.bin/outfile.txt")))
       (print "Hello there!\n" f)
       (close_outfile f)
-      (return 0))))
+      0)))

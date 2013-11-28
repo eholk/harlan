@@ -3,4 +3,4 @@
     (let ((X (vector 1 2 3 4))
           (Y (vector 0 0 0 0)))
       (set! Y (kernel ((x X)) x))
-      (return 0))))
+      0)))

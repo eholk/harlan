@@ -3,4 +3,4 @@
     (let ((B (vector (vector 17))))
       (let ((row (vector-ref (vector-ref B 0) 0)))
         (print row)
-        (return 0)))))
+        0))))

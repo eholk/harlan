@@ -12,4 +12,4 @@
            (x "hello")
            (x (vector x "world")))
       (println x))
-    (return 0)))
+    0))

@@ -31,5 +31,5 @@
   (define (main)
     (let ((e (app (Lambda (variable 0)) (Lambda (variable 0)))))
       (stepe e))
-    (return 0))
+    0)
   )

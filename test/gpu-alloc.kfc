@@ -7,4 +7,4 @@
                            (vector 2)
                            (vector 3)
                            (vector 4))))
-      (return 0))))
+      0)))

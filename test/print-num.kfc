@@ -1,4 +1,4 @@
 (module
   (define (main)
       (print 42)
-      (return 0)))
+      0))

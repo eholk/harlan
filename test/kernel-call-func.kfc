@@ -7,4 +7,4 @@
           (ys (vector 4 3 2 1)))
       (println (kernel ((x xs) (y ys))
                  (magnitude x y))))
-    (return 0)))
+    0))

@@ -62,6 +62,6 @@
   (define (main)
     (for (i 1 66)
       (bench-length (* i 1000)))
-    (return 0))
+    0)
   
   )

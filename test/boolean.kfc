@@ -1,4 +1,4 @@
 (module
   (define (main)
     (let ((x #t))
-      (if x (return 0) (return 1)))))
+      (if x 0 1))))

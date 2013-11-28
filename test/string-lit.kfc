@@ -1,4 +1,4 @@
 (module
  (define (main)
      (print "Hello, World!")
-     (return 0)))
+     0))

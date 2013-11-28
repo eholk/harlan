@@ -11,4 +11,4 @@
         (assert (= 2 (vector-ref (var v) 1)))
         (assert (= 3 (vector-ref (var v) 2)))
         (assert (= 4 (vector-ref (var v) 3)))
-        (return 0)))))
+        0))))

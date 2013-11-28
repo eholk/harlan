@@ -2,4 +2,4 @@
  (extern nanotime () -> u64)
  (define (main)
      (print (nanotime))
-     (return 0)))
+     0))

@@ -84,5 +84,5 @@
         0))
       ;;(print-val (value-of e (empty-env)))
       ;;(println ""))
-    (return 0))
+    0)
   )

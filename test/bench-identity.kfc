@@ -24,4 +24,4 @@
           (print len)
           (print "\t")
           (println (/ (/ ttime 1000) iters)))))
-    (return 0)))
+    0))

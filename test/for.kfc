@@ -5,4 +5,4 @@
         (print x)
         (set! y (+ x y)))
       (assert (= y 45))
-      (return 0))))
+      0)))

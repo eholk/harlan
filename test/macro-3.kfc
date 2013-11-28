@@ -9,4 +9,4 @@
     (let ((if #t))
       (println (or #f if))
       (assert (or #f if)))
-    (return 0)))
+    0))

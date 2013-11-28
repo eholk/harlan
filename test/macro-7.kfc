@@ -9,4 +9,4 @@
         ((= x 6) (println "x"))
         ((= y 5) (println "y"))
         (else (println "else"))))
-    (return 0)))
+    0))

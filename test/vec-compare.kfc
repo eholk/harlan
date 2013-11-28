@@ -9,5 +9,5 @@
       (assert (= (= Z X) #f))
       (assert (= (= Y Z) #f))
       (assert (= (= Z Y) #f))
-      (return 0))))
+      0)))
 

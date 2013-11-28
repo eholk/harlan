@@ -19,4 +19,4 @@
     (let ((ls (cons 5 (null))))
       (let ((ls2 (cons2 ls (null2))))
         (println "hi")))
-    (return 0)))
+    0))

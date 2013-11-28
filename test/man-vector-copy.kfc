@@ -5,4 +5,4 @@
   (define (main)
     (let ((x (vector 1 2)))
       (let ((y (kernel ((x x)) x)))
-        (return 0)))))
+        0))))
