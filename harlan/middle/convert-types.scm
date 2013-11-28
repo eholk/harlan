@@ -115,6 +115,7 @@
   ((cl::buffer_map ,[t]) `(cl::buffer_map ,t))
   ((ref ,[t]) `(ref ,t))
   ((ptr ,[scalar]) `(ptr ,scalar))
+  ((ptr ,space ,[scalar]) `(ptr ,space ,scalar))
   ((vec ,[t]) 'region_ptr)
   ((struct (,x ,[t]) ...) `(struct (,x ,t) ...))
   ((union (,x ,[t]) ...) `(union (,x ,t) ...))

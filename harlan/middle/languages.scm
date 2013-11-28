@@ -29,6 +29,7 @@
   (define (operator? x) (or (binop? x) (relop? x) (eq? x '=)))
   (define (arrow? x) (eq? x '->))
   (define (any? x) (lambda _ #t))
+  (define (address-space? x) (memq x '(local global)))
   
   ;; The first language in the middle end.
   (define-language M0
@@ -43,6 +44,7 @@
      (char (c))
      (any (? any))
      (string (str-t))
+     (address-space (space))
      (variable (x name)))
     (Module
      (m)
@@ -450,7 +452,11 @@
     (Expr
      (e)
      (- (call-label name e* ...)))
-    
+
+    (Rho-Type
+     (t)
+     (+ (ptr space t)))
+
     (LabeledBlock
      (lbl)
      (- (name ((x t) ...) stmt))))
