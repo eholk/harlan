@@ -12,3 +12,7 @@ install:
 
 script:
   - make
+
+env:
+  - HARLAN_DEVICE=cpu
+  - HARLAN_DEVICE=gpu
