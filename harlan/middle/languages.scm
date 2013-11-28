@@ -29,7 +29,7 @@
   (define (operator? x) (or (binop? x) (relop? x) (eq? x '=)))
   (define (arrow? x) (eq? x '->))
   (define (any? x) (lambda _ #t))
-  (define (address-space? x) (memq x '(local global)))
+  (define (address-space? x) (memq x '(local global private)))
   
   ;; The first language in the middle end.
   (define-language M0
