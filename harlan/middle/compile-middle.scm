@@ -7,6 +7,7 @@
     (harlan verification-passes)
     (harlan middle languages)
     (harlan middle lifting)
+    (harlan middle remove-complex-kernel-args)
     (harlan middle remove-lambdas)
     (harlan middle remove-recursion)
     (harlan middle desugar-match)
@@ -61,6 +62,8 @@
     verify-make-vector-refs-explicit)
    (annotate-free-vars
     verify-annotate-free-vars)
+   (nanopasses
+    (remove-complex-kernel-args : M7.0 -> M7.0))
    (lower-vectors
     verify-lower-vectors)
    (nanopasses
@@ -74,7 +77,6 @@
    (hoist-kernels
     verify-hoist-kernels)
    (nanopasses
-    (remove-complex-kernel-args : M8 -> M8)
     (generate-kernel-calls : M8 -> M9)
     (remove-recursion : M9 -> M9.3))
    (compile-module

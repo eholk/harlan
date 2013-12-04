@@ -1,6 +1,6 @@
 (library
   (harlan middle generate-kernel-calls)
-  (export generate-kernel-calls remove-complex-kernel-args)
+  (export generate-kernel-calls)
   (import
    (rnrs)
    (only (chezscheme) pretty-print)
@@ -10,58 +10,62 @@
    (harlan middle languages)
    (harlan helpers))
 
-(define-pass remove-complex-kernel-args^
-  : M8 (m) -> M8 ()
-
-  (definitions
-    (define (complex? t)
-      (nanopass-case
-       (M8 Rho-Type) t
-       ((adt ,x) #t)
-       (else #f)))
-    
-    ;; returns (x*^ t*^ replace-x* replace-x*^ replace-t* region)
-    (define (replace-args x* t*)
-      (if (null? t*)
-          (values '() '() '() '()' ())
-          (let-values (((x*^ t*^ replace-x* replace-x*^ replace-t*)
-                        (replace-args (cdr x*) (cdr t*))))
-             (let ((x (car x*))
-                   (t (car t*)))
-               (if (complex? t)
-                   (let ((x^ (gensym x)))
-                     (values (cons x^ x*^)
-                             (cons 'region_ptr t*^)
-                             (cons x replace-x*)
-                             (cons x^ replace-x*^)
-                             (cons t replace-t*)))
-                   (values (cons x x*^)
-                           (cons t t*^)
-                           replace-x*
-                           replace-x*^
-                           replace-t*)))))))
+;; TODO: This is a failed attempt at removing complex kernel
+;; arguments. Basically, we were doing it too late in the compiler to
+;; be feasible. I'm moving it to before lower-vectors. This code is
+;; kept commented out here, but it should be removed once the earlier
+;; version is in place.
+  
+;;(define-pass remove-complex-kernel-args^
+;;  : M8 (m) -> M8 ()
+;;
+;;  (definitions
+;;    (define (complex? t)
+;;      (nanopass-case
+;;       (M8 Rho-Type) t
+;;       ((adt ,x) #t)
+;;       (else #f)))
+;;    
+;;    ;; returns (x*^ t*^ replace-x* replace-x*^ replace-t* region)
+;;    (define (replace-args x* t*)
+;;      (if (null? t*)
+;;          (values '() '() '() '()' ())
+;;          (let-values (((x*^ t*^ replace-x* replace-x*^ replace-t*)
+;;                        (replace-args (cdr x*) (cdr t*))))
+;;             (let ((x (car x*))
+;;                   (t (car t*)))
+;;               (if (complex? t)
+;;                   (let ((x^ (gensym x)))
+;;                     (values (cons x^ x*^)
+;;                             (cons 'region_ptr t*^)
+;;                             (cons x replace-x*)
+;;                             (cons x^ replace-x*^)
+;;                             (cons t replace-t*)))
+;;                   (values (cons x x*^)
+;;                           (cons t t*^)
+;;                           replace-x*
+;;                           replace-x*^
+;;                           replace-t*)))))))
   ;; Oh yeah... We need to pick a random region to put these things
   ;; in.  Also, we don't have box and unbox anymore... This might be
   ;; worth adding in.
                 
-  ;;(Kernel
-  ;; : Kernel (kernel) -> Kernel
+;;  (Kernel
+;;   : Kernel (kernel) -> Kernel
+;;
+;;   ((kernel ,x ((,x* ,t*) ...) ,stmt)
+;;    (let-values (((x*^ t*^ replace-x* replace-x*^ replace-t*)
+;;                  (replace-args x* t*)))
+;;      `(kernel
+;;           ,x ((,x*^ ,x*^) ...)
+;;           (begin
+;;             (let ,replace-x* ,replace-t*
+;;)
 
-   ;;((kernel ,x ((,x* ,t*) ...) ,stmt)
-   ;; (let-values (((x*^ t*^ replace-x* replace-x*^ replace-t*)
-   ;;               (replace-args x* t*)))
-   ;;   `(kernel
-   ;;        ,x ((,x*^ ,x*^) ...)
-   ;;        (begin
-   ;;          (let ,replace-x* ,replace-t*
-   ;;               (unbox
-  ;;)
-)
-
-(define (remove-complex-kernel-args m)
-  (if (allow-complex-kernel-args)
-      m
-      (remove-complex-kernel-args^ m)))
+;;(define (remove-complex-kernel-args m)
+;;  (if (allow-complex-kernel-args)
+;;      m
+;;      (remove-complex-kernel-args^ m)))
   
 (define-pass generate-kernel-calls
   : M8 (m) -> M9 ()
