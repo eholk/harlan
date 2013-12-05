@@ -12,6 +12,7 @@
   (elegant-weapons sets)
   (elegant-weapons compat)
   (util system)
+  (util compat)
   (harlan driver)
   (harlan compiler)
   (harlan compile-opts))
@@ -26,7 +27,7 @@
 (define (is-test? filename)
   (let ((len (string-length filename)))
     (and (> len 4)
-         (string=? (substring (- len 4) len) ".kfc"))))
+         (string=? (substring filename (- len 4) len) ".kfc"))))
 
 (define (enumerate-tests)
   (filter is-test? (directory-list "test")))

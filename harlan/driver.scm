@@ -6,7 +6,7 @@
     (only (elegant-weapons helpers) join)
     (elegant-weapons match)
     (util system)
-    (only (vicare posix) system unlink)
+    (util compat)
     (harlan compile-opts))
 
   (define (get-cflags)
