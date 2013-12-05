@@ -857,6 +857,8 @@
      (set-add (apply union t t*) r))
     ((fn (,[t*] ...) -> ,[t]) (union t (apply union t*)))
     ((ptr ,[t]) t)
+    ;; Boxes hide all their regions until they are unboxed.
+    ((box ,r ,t) (list r))
     (() '())
     (,else (guard (symbol? else)) '()))
   )

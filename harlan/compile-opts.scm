@@ -188,8 +188,14 @@
            expr)))))
 
 (define-syntax do-nanopasses
-  (syntax-rules (: ->)
+  (syntax-rules (: -> unless)
     ((_) (lambda (e) e))
+    ((_ (unless e . clause*) . rest)
+     (lambda (expr)
+       ((do-nanopasses . rest)
+        (if e
+            expr
+            ((do-nanopasses . clause*) expr)))))
     ((_ (pass : input -> output) . rest)
      (lambda (expr)
        ((np-middle-passes output (pass : input -> output) . rest)

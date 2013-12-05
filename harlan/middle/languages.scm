@@ -195,7 +195,8 @@
     (Rho-Type
      (t)
      (+ (struct (x t) ...)
-        (union  (x t) ...)))
+        (union  (x t) ...)
+        (box r t)))
 
     (Expr
      (e)
@@ -289,8 +290,7 @@
     (Expr
      (e)
      (- (kernel t r (e* ...) (((x0 t0) (e1 t1) i*) ...) e))
-     (+ (kernel t (e* ...) fv e)
-        (addressof e)
+     (+ (addressof e)
         (deref e))))
   
   ;; before uglify-vectors
@@ -356,9 +356,8 @@
      (t)
      (+ (vec t))
      (- (vec r t)
-        (adt x r)))
-    
-    )
+        (box r t)
+        (adt x r))))
   
   (define-language M9
     (extends M8)

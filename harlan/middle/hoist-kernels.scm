@@ -26,6 +26,7 @@
    (apply union t))
   ((union (,name ,[type-symbols -> t]) ...)
    (apply union t))
+  ((box ,r ,[t]) t)
   (,x (guard (symbol? x)) (list x)))
 
 (define-match stmt-symbols

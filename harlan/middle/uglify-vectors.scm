@@ -95,6 +95,7 @@
      `(struct (,x* ,t*) ...))
     ((union (,x* ,[t*]) ...)
      `(union (,x* ,t*) ...))
+    ((box ,r ,t) 'region_ptr)
     (,else else)))
 
 ;; We're going to keep all the function declarations in a global table
