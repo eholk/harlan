@@ -66,8 +66,8 @@
     (remove-complex-kernel-args : M7.0 -> M7.0))
    (lower-vectors
     verify-lower-vectors)
-   (nanopasses
-    (uglify-vectors-new : M7.1 -> M7.2))
+   ;;(nanopasses
+   ;; (uglify-vectors-new : M7.1 -> M7.2))
    (uglify-vectors
     verify-uglify-vectors)
    (remove-let-regions
