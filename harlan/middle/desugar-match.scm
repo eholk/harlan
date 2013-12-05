@@ -111,8 +111,8 @@
          ((print ,[desugar-expr -> e]) `(print ,e))
          ((print ,[desugar-expr -> e] ,[desugar-expr -> o])
           `(print ,e ,o))
-         ((if ,[desugar-expr -> t] ,c ,a) `(if ,t ,c ,a))
-         ((if ,[desugar-expr -> t] ,c) `(if ,t ,c))
+         ((if ,[desugar-expr -> t] ,[c] ,[a]) `(if ,t ,c ,a))
+         ((if ,[desugar-expr -> t] ,[c]) `(if ,t ,c))
          ((for (,i ,[desugar-expr -> start]
                    ,[desugar-expr -> stop]
                    ,[desugar-expr -> step])
@@ -239,6 +239,7 @@
      (match f
        ((fn ,_ -> ,t) t)
        (,else (error 'type-of "Illegal function type" else))))
+    ((vector-ref ,t . ,_) t)
     ((kernel ,t . ,_) t)
     ((field ,[e] ,x) e)
     ((var ,t ,x) t))

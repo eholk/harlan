@@ -1,0 +1,55 @@
+(%testspec
+ (%tags xfail))
+(module
+  (define-datatype K
+    (Cont (closure () -> K))
+    (Final int))
+
+  (define-macro bounce ()
+    ((_ e) (Cont (lambda () e))))
+
+  (define (fib n k)
+    (bounce 
+     (if (<= n 1)
+         (k 1)
+         (fib (- n 1)
+              (lambda (v1)
+                (fib (- n 2)
+                     (lambda (v2)
+                       (k (+ v1 v2)))))))))
+  
+  (define (fact n k)
+    (bounce
+     (if (= 0 n)
+         (k 1)
+         (fact (- n 1) (lambda (v) (k (* n v)))))))
+
+  (define (all-done ks)
+    (reduce and (kernel ((k ks))
+                  (match k
+                    ((Cont _) #f)
+                    ((Final _) #t)))))
+  
+  (define (driver ks)
+    (if (all-done ks)
+        (print-all ks)
+        (begin (print-all ks)
+               (driver (kernel ((k ks))
+                         (match k
+                           ((Cont k) (k))
+                           ((Final i) (Final i))))))))
+
+  (define (print-all ks)
+    (print "[")
+    (for (i 0 (length ks))
+      (match (vector-ref ks i)
+        ((Cont k) (begin (print " (#continuation)") ks))
+        ((Final i) (begin (print " ") (print i) ks))))
+    (print " ]")
+    ks)
+
+  (define (main)
+    (let ((empty (lambda (n) (Final n))))
+      (driver (vector (bounce (fib  5 empty))
+                      (bounce (fact 5 empty)))))
+    0))
