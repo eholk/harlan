@@ -1,0 +1,9 @@
+(module
+  (define (main)
+    (let ((x 10))
+      (for (i 0 2)
+        (let ((x- (/ x 2)))
+          (set! x x-)))
+      (println x)
+      (assert (= x 2))
+      0)))
