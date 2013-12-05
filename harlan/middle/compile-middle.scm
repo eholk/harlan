@@ -63,7 +63,8 @@
    (annotate-free-vars
     verify-annotate-free-vars)
    (nanopasses
-    (remove-complex-kernel-args : M7.0 -> M7.0))
+    (unless (allow-complex-kernel-args)
+      (remove-complex-kernel-args : M7.0 -> M7.0)))
    (lower-vectors
     verify-lower-vectors)
    ;;(nanopasses

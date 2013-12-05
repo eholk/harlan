@@ -1,0 +1,5 @@
+(module
+  (define (main)
+    (let ((f (lambda () 5)))
+      (kernel ((i (iota 10))) f))
+    0))
