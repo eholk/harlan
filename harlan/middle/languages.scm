@@ -8,9 +8,9 @@
           M3 unparse-M3 parse-M3
           M5 unparse-M5 parse-M5
           M6 unparse-M6
-          M7 unparse-M7 parse-M7
+          M7 unparse-M7
           M7.0 unparse-M7.0 parse-M7.0
-          M7.1 unparse-M7.1 parse-M7.1
+          M7.1 unparse-M7.1
           M7.2 unparse-M7.2
           M8 unparse-M8 parse-M8
           M9 unparse-M9
@@ -475,9 +475,9 @@
   (define-parser parse-M0 M0)
   (define-parser parse-M3 M3)
   (define-parser parse-M5 M5)
-  (define-parser parse-M7 M7)
+  ;;(define-parser parse-M7 M7)
   (define-parser parse-M7.0 M7.0)
-  (define-parser parse-M7.1 M7.1)
+  ;;(define-parser parse-M7.1 M7.1)
   (define-parser parse-M8 M8)
 
   )
