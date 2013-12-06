@@ -26,15 +26,11 @@
       (define cgraph '())
 
       (define (new-node! name)
-        (printf "starting node ~a\n" name)
-        (flush-output-port (current-output-port))
         (unless (null? current-node)
           (set! cgraph (cons current-node cgraph)))
         (set! current-node (list name)))
 
       (define (add-call! name)
-        (printf "adding call to ~a\n" name)
-        (flush-output-port (current-output-port))
         (assert (not (null? current-node)))
         (set-cdr! current-node (set-add (cdr current-node) name))))
     
@@ -330,10 +326,8 @@
                      ((stmt* '()) (live-x live-x) (live-t live-t)
                       <- (stmt stmt))
                      (begin
-                       ;;(pretty-print (list "ABCDEF" (unparse-M9.2 stmt) live-x live-t))
                        (let-values (((stmt live-x live-t)
                                      (Stmt stmt live-x live-t)))
-                         ;;(pretty-print (list "GHIJKL" live-x live-t))
                          (values (cons stmt stmt*) live-x live-t))))))
         (values `(begin ,stmt* ...) live-x live-t)))
      ((do ,[e x t])
