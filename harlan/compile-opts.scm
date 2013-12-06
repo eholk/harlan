@@ -23,8 +23,8 @@
   (import
     (rnrs)
     (util color)
-    (only (vicare) pretty-print time)
-    (elegant-weapons compat))
+    (except (elegant-weapons compat) make-parameter parameterize)
+    (util compat))
 
 (define allow-complex-kernel-args (make-parameter #f))
 (define danger-zone        (make-parameter #f))

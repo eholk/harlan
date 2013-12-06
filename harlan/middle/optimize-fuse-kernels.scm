@@ -8,8 +8,7 @@
    (rnrs)
    (harlan helpers)
    (harlan compile-opts)
-   (except (elegant-weapons helpers) ident?)
-   (only (vicare) trace-define trace-lambda))
+   (except (elegant-weapons helpers) ident?))
 
   (define-match optimize-fuse-kernels
     ((module ,[Decl -> decl*] ...)

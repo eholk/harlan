@@ -3,13 +3,13 @@
   (export remove-lambdas)
   (import
    (rnrs)
-   (only (vicare) pretty-print trace-define)
    (nanopass)
    (except (elegant-weapons match) ->)
    (harlan compile-opts)
    (harlan helpers)
    (harlan middle languages)
    (elegant-weapons sets)
+   (util compat)
    (only (elegant-weapons helpers) gensym andmap map-values))
   
   (define-pass uncover-lambdas : M0 (m) -> M1 ()

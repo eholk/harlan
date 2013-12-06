@@ -4,8 +4,7 @@
   (import
     (rnrs)
     (elegant-weapons helpers)
-    (elegant-weapons compat)
-    (only (vicare) printf trace-define))
+    (elegant-weapons compat))
 
   ;; This pass macro-expands primitives. It also inserts fresh region
   ;; variables.

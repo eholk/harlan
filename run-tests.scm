@@ -10,7 +10,7 @@
   (util color)
   (elegant-weapons match)
   (elegant-weapons sets)
-  (elegant-weapons compat)
+  (except (elegant-weapons compat) make-parameter parameterize)
   (util system)
   (util compat)
   (harlan driver)

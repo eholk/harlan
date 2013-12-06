@@ -1,7 +1,7 @@
 #! /usr/bin/env scheme-script
 ;; -*- scheme -*-
 (import
-  (vicare)
+  (rnrs)
   (harlan compile-opts)
   (harlan driver)
   (harlan backend print-c)
@@ -9,9 +9,6 @@
   (util compat)
   (util system) ;; HARLAND
   )
-
-;;(print-gensym 'pretty/suffix)
-(print-gensym 'pretty)
 
 ;; This could be set from the env var HARLAND, or based on the
 ;; directory in which this script resides.  Using the latter:

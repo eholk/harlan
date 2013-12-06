@@ -15,8 +15,7 @@
     (rnrs)
     (util verify-helpers)
     (harlan compile-opts)
-    (only (vicare) pretty-print with-output-to-string
-      trace-define-syntax trace-define))
+    (util compat))
   
 (define wildcard? (lambda (x) #t))
 

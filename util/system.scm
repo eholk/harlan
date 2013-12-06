@@ -3,7 +3,7 @@
   (export read-all shell get-os join-path HARLAND)
   (import
    (rnrs)
-   (only (elegant-weapons compat) make-parameter)
+   (only (util compat) make-parameter)
    (only (elegant-weapons helpers) join))
 
   (define read-all get-string-all)

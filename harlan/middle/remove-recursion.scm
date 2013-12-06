@@ -4,7 +4,6 @@
   (import
    (rnrs)
    (rnrs mutable-pairs)
-   (only (vicare) pretty-print trace-define make-parameter parameterize)
    (harlan middle languages)
    (harlan helpers)
    (only (elegant-weapons helpers) gensym)

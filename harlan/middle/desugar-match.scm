@@ -4,7 +4,6 @@
   (export desugar-match)
   (import
    (rnrs)
-   (only (vicare) trace-define pretty-print)
    (elegant-weapons match)
    (elegant-weapons helpers))
 

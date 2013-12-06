@@ -3,12 +3,11 @@
   (export typecheck free-regions-type)
   (import
     (rnrs)
-    (only (vicare) make-parameter parameterize
-          pretty-print printf trace-define trace-let)
     (elegant-weapons match)
     (elegant-weapons helpers)
     (elegant-weapons sets)
     (harlan compile-opts)
+    (util compat)
     (util color))
 
   (define (typecheck m)
@@ -162,7 +161,6 @@
   (define (unify a b seq)
     (lambda (e r s)
       (let ((s^ (unify-types a b s)))
-        ;;(printf "Unifying ~a and ~a => ~a\n" a b s)
         (if s^
             ((seq) e r s^)
             (type-error e (walk-type a s) (walk-type b s))))))

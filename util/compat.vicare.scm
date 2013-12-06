@@ -1,9 +1,11 @@
 (library
     (util compat)
-  (export directory-list printf system unlink path-last path-root path-parent)
+  (export directory-list printf system unlink path-last path-root path-parent
+          time pretty-print with-output-to-string make-parameter parameterize)
   (import
    (rnrs)
-   (only (vicare) printf)
+   (only (vicare) printf time pretty-print with-output-to-string
+         make-parameter parameterize)
    (only (vicare posix) system unlink opendir readdir/string))
 
   (define (string-rfind s c)

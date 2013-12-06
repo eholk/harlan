@@ -3,7 +3,6 @@
   (export generate-kernel-calls)
   (import
    (rnrs)
-   (only (vicare) pretty-print)
    (nanopass)
    (except (elegant-weapons helpers) ident?)
    (harlan compile-opts)

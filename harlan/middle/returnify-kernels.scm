@@ -3,7 +3,6 @@
   (export returnify-kernels)
   (import
    (rnrs)
-   (only (vicare) trace-lambda)
    (except (elegant-weapons helpers) ident?)
    (harlan helpers))
 
