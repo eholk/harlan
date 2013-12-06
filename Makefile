@@ -98,7 +98,8 @@ etags:
 # Build Vicare FASL files so everything goes faster
 .phony: prebuild
 prebuild:
-	vicare -L . -L external/nanopass-framework --more-file-extensions --compile-dependencies harlanc.scm
+	vicare -O2 -L . -L external/nanopass-framework --more-file-extensions --compile-dependencies prebuild.ss
+#	vicare -L . -L external/nanopass-framework --more-file-extensions --compile-dependencies harlanc.scm
 
 #============================================================
 # For JIT support we embed Chez Scheme in a static library:

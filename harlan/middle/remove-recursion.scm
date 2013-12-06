@@ -30,6 +30,7 @@
         (set! current-node (list name)))
 
       (define (add-call! name)
+        (assert (not (null? current-node)))
         (set-cdr! current-node (set-add (cdr current-node) name))))
     
     (Stmt : Stmt (b) -> Stmt ())
@@ -37,17 +38,18 @@
     (Decl
      : Decl (decl) -> Decl ()
 
-     ((gpu-module ,[k*] ...)
-      (new-node! '_)
-      (let ((sccs (strongly-connected-components cgraph)))
-        (if (dump-call-graph)
-            (begin
-              (if (file-exists? "call-graph.dot")
-                  (delete-file "call-graph.dot"))
-              (write-dot cgraph
-                         sccs
-                         (open-output-file "call-graph.dot"))))
-        `(gpu-module (call-graph ,cgraph ,sccs) ,k* ...)))
+     ((gpu-module ,k* ...)
+      (let ((k* (map Kernel k*)))
+        (new-node! '_)
+        (let ((sccs (strongly-connected-components cgraph)))
+          (if (dump-call-graph)
+              (begin
+                (if (file-exists? "call-graph.dot")
+                    (delete-file "call-graph.dot"))
+                (write-dot cgraph
+                           sccs
+                           (open-output-file "call-graph.dot"))))
+          `(gpu-module (call-graph ,cgraph ,sccs) ,k* ...))))
      ((fn ,name (,x ...) ,[t] ,stmt)
       (new-node! name)
       `(fn ,name (,x ...) ,t ,(Stmt stmt))))
@@ -56,7 +58,7 @@
      : Kernel (k) -> Kernel ()
 
      ((kernel ,x ((,x* ,[t*]) ...) ,stmt)
-      (new-node! '_kernel)
+      (new-node! x)
       `(kernel ,x ((,x* ,t*) ...) ,(Stmt stmt))))
     
     (Expr
@@ -96,10 +98,14 @@
                   (loop (cdr sccs))))))
       
       (define (recursive? name)
-        (or (memq name (cdr (assq name (call-graph))))
-            (let ((scc (find-scc name)))
-              ;;(display (length scc))
-              (> (length scc) 1)))))
+        (let ((node (assq name (call-graph))))
+          (if (not node)
+              (error 'recursive "could not find function in call graph"
+                     name (call-graph)))
+          (or (memq name (cdr node))
+              (let ((scc (find-scc name)))
+                ;;(display (length scc))
+                (> (length scc) 1))))))
 
     (Expr
      : Expr (e) -> Expr ()
