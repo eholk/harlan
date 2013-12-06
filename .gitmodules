@@ -1,12 +1,6 @@
 [submodule "external/elegant-weapons"]
 	path = external/elegant-weapons
 	url = https://github.com/eholk/elegant-weapons.git
-[submodule "external/scheme-listings"]
-	path = external/scheme-listings
-	url = https://github.com/stuhlmueller/scheme-listings.git
-[submodule "external/cKanren"]
-	path = external/cKanren
-	url = https://github.com/calvis/cKanren.git
 [submodule "external/nanopass-framework"]
 	path = external/nanopass-framework
 	url = https://github.com/akeep/nanopass-framework.git
