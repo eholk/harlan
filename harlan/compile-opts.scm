@@ -143,7 +143,8 @@
       (newline)
       (with-color 'green
         (display "Beginning pass ") (display pass-name))
-      (newline))
+      (newline)
+      (flush-output-port (current-output-port)))
     (let ((expr (if (timing)
                     (add-time pass-name (pass expr))
                     (pass expr))))
@@ -152,7 +153,8 @@
           (display "Pass ") (display pass-name) (display " output:"))
         (newline)
         (pretty-print expr)
-        (newline))
+        (newline)
+        (flush-output-port (current-output-port)))
       expr)))
 
 (define do-verify-pass

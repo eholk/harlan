@@ -8,6 +8,7 @@
    (harlan middle languages)
    (harlan helpers)
    (only (elegant-weapons helpers) gensym)
+   (util compat)
    (harlan compile-opts)
    (elegant-weapons sets)
    (elegant-weapons lists)
@@ -25,11 +26,15 @@
       (define cgraph '())
 
       (define (new-node! name)
+        (printf "starting node ~a\n" name)
+        (flush-output-port (current-output-port))
         (unless (null? current-node)
           (set! cgraph (cons current-node cgraph)))
         (set! current-node (list name)))
 
       (define (add-call! name)
+        (printf "adding call to ~a\n" name)
+        (flush-output-port (current-output-port))
         (assert (not (null? current-node)))
         (set-cdr! current-node (set-add (cdr current-node) name))))
     
@@ -38,18 +43,17 @@
     (Decl
      : Decl (decl) -> Decl ()
 
-     ((gpu-module ,k* ...)
-      (let ((k* (map Kernel k*)))
-        (new-node! '_)
-        (let ((sccs (strongly-connected-components cgraph)))
-          (if (dump-call-graph)
-              (begin
-                (if (file-exists? "call-graph.dot")
-                    (delete-file "call-graph.dot"))
-                (write-dot cgraph
-                           sccs
-                           (open-output-file "call-graph.dot"))))
-          `(gpu-module (call-graph ,cgraph ,sccs) ,k* ...))))
+     ((gpu-module ,[k*] ...)
+      (new-node! '_)
+      (let ((sccs (strongly-connected-components cgraph)))
+        (if (dump-call-graph)
+            (begin
+              (if (file-exists? "call-graph.dot")
+                  (delete-file "call-graph.dot"))
+              (write-dot cgraph
+                         sccs
+                         (open-output-file "call-graph.dot"))))
+        `(gpu-module (call-graph ,cgraph ,sccs) ,k* ...)))
      ((fn ,name (,x ...) ,[t] ,stmt)
       (new-node! name)
       `(fn ,name (,x ...) ,t ,(Stmt stmt))))
@@ -59,7 +63,11 @@
 
      ((kernel ,x ((,x* ,[t*]) ...) ,stmt)
       (new-node! x)
-      `(kernel ,x ((,x* ,t*) ...) ,(Stmt stmt))))
+      `(kernel ,x ((,x* ,t*) ...) ,(Stmt stmt)))
+
+     ((fn ,name (,x* ...) ,[t] ,stmt)
+      (new-node! name)
+      `(fn ,name (,x* ...) ,t ,(Stmt stmt))))
     
     (Expr
      : Expr (e) -> Expr ()

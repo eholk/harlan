@@ -5,4 +5,4 @@ SCHEME=vicare
 schemeScript="$0".scm
 HARLAN_DIR=`dirname $schemeScript`
 
-$SCHEME -O2 -L $HARLAN_DIR -L $HARLAN_DIR/external/nanopass-framework --more-file-extensions --r6rs-script "$schemeScript" -- -L $HARLAN_DIR/lib/harlan -R $HARLAN_DIR/rt $@
+$SCHEME -L $HARLAN_DIR -L $HARLAN_DIR/external/nanopass-framework --more-file-extensions --r6rs-script "$schemeScript" -- -L $HARLAN_DIR/lib/harlan -R $HARLAN_DIR/rt $@
