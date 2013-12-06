@@ -21,7 +21,7 @@ Others will probably work as well.
 Harlan requires an OpenCL implementation as well as Petite Chez
 Scheme. Below are several OpenCL implementations that should work.
 
-* [Intel OpenCL SDK](http://software.intel.com/en-us/articles/opencl-sdk/)
+* [Intel OpenCL SDK](http://software.intel.com/en-us/vcsource/tools/opencl-sdk)
 * [NVIDIA CUDA Toolkit](http://developer.nvidia.com/cuda-toolkit)
 * [AMD Accelerated Parallel Processing (APP) SDK](http://developer.amd.com/SDKS/AMDAPPSDK/Pages/default.aspx)
 
