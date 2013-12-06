@@ -7,7 +7,7 @@ before_install:
   - sudo apt-get update
 
 install:
-  - sudo apt-get install fglrx opencl-headers libgmp-dev
+  - sudo apt-get install fglrx opencl-headers libgmp-dev texinfo
   - ./travis/install-petite.sh
   - ./travis/install-vicare.sh
 
