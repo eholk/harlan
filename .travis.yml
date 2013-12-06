@@ -9,6 +9,7 @@ before_install:
 install:
   - sudo apt-get install fglrx opencl-headers
   - ./travis/install-petite.sh
+  - ./travis/install-vicare.sh
 
 script:
   - make
