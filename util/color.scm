@@ -5,7 +5,8 @@
    (rnrs))
 
   (define (set-color-string color)
-    (case color
+    ""
+    #;(case color
       ((default)       "\x1B;[39m")
       ((black)         "\x1B;[30m")
       ((red)           "\x1B;[31m")
@@ -27,7 +28,8 @@
   (define set-color
     (case-lambda
       ((color port)
-       (put-string port (set-color-string color)))
+       (put-string port (set-color-string color))
+       (flush-output-port port))
       ((color)
        (set-color color (current-output-port)))))
 

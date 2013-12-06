@@ -63,6 +63,7 @@
          (test-source
           (lambda (name source)
             (printf "Generating C++...")
+            (flush-output-port (current-output-port))
             (try (catch (x)
                    (if (or (error? x) (condition? x))
                        (begin
@@ -80,13 +81,14 @@
                          (with-color 'green (printf "OK\n")))
                        (error 'do-test "Test execution failed.")))))))
     (printf "Test ~a\n" path)
+    (flush-output-port (current-output-port))
     (let-values (((source spec) (read-source path)))
       (let ((tags (assq 'tags spec)))
         (let ((tags (if tags (cdr tags) '())))
           (if (and (subset? (include-tags) tags)
                    (null? (intersection (exclude-tags) tags)))
               (begin
-                (delete-file out-path)
+                (if (file-exists? out-path) (delete-file out-path))
                 (test-source path source))
               (begin
             (ignored (add1 (ignored)))
@@ -109,6 +111,7 @@
                        (length (failures)))
       (format-in-color (if (zero? (ignored)) 'green 'yellow) (ignored))
       (+ (successes) (length (failures)) (ignored)))
+    (flush-output-port (current-output-port))
     (zero? (length (failures)))))
 
 (define (run-tests cl)
@@ -120,3 +123,4 @@
       (begin (do-test (car cl)) (exit))))))
 
 (run-tests (command-line))
+(flush-output-port (current-output-port))
