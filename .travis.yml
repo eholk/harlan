@@ -1,3 +1,4 @@
+# -*- ruby -*-
 language: c
 
 compiler:
@@ -13,3 +14,7 @@ install:
 
 script:
   - make
+
+env:
+  - SCHEME=petite
+  - SCHEME=vicare
