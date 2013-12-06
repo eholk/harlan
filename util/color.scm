@@ -5,8 +5,7 @@
    (rnrs))
 
   (define (set-color-string color)
-    ""
-    #;(case color
+    (case color
       ((default)       "\x1B;[39m")
       ((black)         "\x1B;[30m")
       ((red)           "\x1B;[31m")

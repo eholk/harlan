@@ -123,4 +123,3 @@
       (begin (do-test (car cl)) (exit))))))
 
 (run-tests (command-line))
-(flush-output-port (current-output-port))
