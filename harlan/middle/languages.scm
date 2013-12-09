@@ -11,7 +11,7 @@
           M7 unparse-M7
           M7.0 unparse-M7.0 parse-M7.0
           M7.1 unparse-M7.1
-          M7.2 unparse-M7.2
+          ;;M7.2 unparse-M7.2
           M8 unparse-M8 parse-M8
           M9 unparse-M9
           M9.1 unparse-M9.1
@@ -302,14 +302,14 @@
     )
 
   ;; after uglify-vectors
-  (define-language M7.2
-    (extends M7.1)
-
-    )
+  ;;(define-language M7.2
+  ;;  (extends M7.1)
+  ;;
+  ;;  )
   
   ;; after hoist-kernels
   (define-language M8
-    (extends M7.2)
+    (extends M7.1)
 
     (entry Module)
     
