@@ -43,9 +43,7 @@
      (flonum (f))
      (boolean (b))
      (char (c))
-     (any (? any))
      (string (str-t))
-     (address-space (space))
      (variable (x name)))
     (Module
      (m)
@@ -371,6 +369,9 @@
     (extends M9)
     (entry Module)
 
+    (terminals
+     (+ (any (?))))
+    
     (Decl
      (decl)
      (- (gpu-module k* ...))
@@ -384,6 +385,9 @@
     (extends M9.1)
     (entry Module)
 
+    (terminals
+     (- (any (?))))
+    
     (Decl
      (decl)
      (+ (gpu-module k* ...))
@@ -398,6 +402,10 @@
      (lbl)
      (+ (name ((x t) ...) stmt)))
 
+    (CallGraph
+     (cg)
+     (- (call-graph ?0 ?1)))
+    
     (Expr
      (e)
      (+ (call-label name t e* ...)))
@@ -446,6 +454,9 @@
     (extends M9.2.2)
     (entry Module)
 
+    (terminals
+     (+ (address-space (space))))
+    
     (Body
      (body)
      (- (with-labels (lbl ...) stmt)
