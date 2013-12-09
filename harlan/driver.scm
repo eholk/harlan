@@ -34,6 +34,7 @@
                               args))))
       (if (verbose)
           (begin (display command) (newline)))
+      (if (file-exists? src-tmp) (unlink src-tmp))
       (let ((out (open-output-file src-tmp)))
         (display src out)
         (close-output-port out))
