@@ -19,7 +19,8 @@
           M9.2.1 unparse-M9.2.1
           M9.2.2 unparse-M9.2.2
           M9.3 unparse-M9.3
-          M10 unparse-M10)
+          ;;M10 unparse-M10
+          )
   (import
    (rnrs)
    (nanopass)
@@ -350,6 +351,10 @@
         (print e)
         (print e1 e2)))
 
+    (Body
+     (body)
+     (- (let-region (r ...) body)))
+    
     (Rho-Type
      (t)
      (+ (vec t))
@@ -393,6 +398,10 @@
      (+ (gpu-module k* ...))
      (- (gpu-module cg k* ...)))
     
+    (Body
+     (body)
+     (+ (with-labels (lbl ...) stmt)))
+
     (CommonDecl
      (cdecl)
      (- (fn x (x* ...) t stmt))
@@ -408,12 +417,7 @@
     
     (Expr
      (e)
-     (+ (call-label name t e* ...)))
-    
-    (Body
-     (body)
-     (+ (with-labels (lbl ...) stmt))
-     (- (let-region (r ...) body))))
+     (+ (call-label name t e* ...))))
 
   (define-language M9.2.1
     (extends M9.2)
@@ -479,8 +483,8 @@
      (lbl)
      (- (name ((x t) ...) stmt))))
   
-  (define-language M10
-    (extends M9))
+  ;;(define-language M10
+  ;;  (extends M9))
   
   (define-parser parse-M0 M0)
   (define-parser parse-M3 M3)
