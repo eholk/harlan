@@ -1,6 +1,6 @@
 (library
   (harlan middle uglify-vectors)
-  (export uglify-vectors uglify-vectors-new
+  (export uglify-vectors ;;uglify-vectors-new
     uglify-stmt
     uglify-decl
     uglify-expr)
@@ -13,11 +13,11 @@
     (elegant-weapons helpers)
     (elegant-weapons sets))
 
-(define-pass uglify-vectors-new : M7.1 (m) -> M7.2 ()
-  
-  ;; For now, don't do anything just to make sure we get the parsing
-  ;; right.
-  )
+;;(define-pass uglify-vectors-new : M7.1 (m) -> M7.2 ()
+;;  
+;;  ;; For now, don't do anything just to make sure we get the parsing
+;;  ;; right.
+;;  )
   
 (define (remove-dups ls)
   (cond
