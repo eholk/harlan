@@ -62,6 +62,16 @@ device_list::device_list(cl_device_type type)
             continue;
         CL_CHECK_MSG(status, "clGetDeviceIDs (count)");
         num_ids += n_dev;
+
+        char n[256] = {0};
+        clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, sizeof(n), n, NULL);
+        
+        cerr << "OpenCL Platform Name:   " << n << endl;
+        
+        clGetPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, sizeof(n), n, NULL);
+        
+        cerr << "OpenCL Platform Vendor: " << n << endl;
+
         break;
     }
 
