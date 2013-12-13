@@ -104,4 +104,11 @@
     ((_ e) e)
     ((_ e e* ...)
      (if e (and e* ...) #f)))
+
+  (define-macro or ()
+    ((_ e) e)
+    ((_ e1 e2)
+     (if e1 #t e2))
+    ((_ e e* ...)
+     (if e #t (or e* ...))))
   )

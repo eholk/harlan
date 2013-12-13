@@ -6,23 +6,36 @@
 (module
   (extern rand () -> int)
 
-  (define (append A B)
-    (let ((lenA (length A))
-          (len (+ (length A) (length B))))
-      (kernel ((i (iota len)))
-        (if (< i lenA)
-            (vector-ref A i)
-            (vector-ref B (- i lenA))))))
+  (define-datatype color
+    (white)
+    (gray)
+    (black))
 
-  ;; We wouldn't need this if we had polymorphism
-  (define (append2 A B)
-    (let ((lenA (length A))
-          (len (+ (length A) (length B))))
-      (kernel ((i (iota len)))
-        (if (< i lenA)
-            (vector-ref A i)
-            (vector-ref B (- i lenA))))))
-
+  (define (color-eqp c1 c2)
+    (match c1
+      ((white) (match c2
+                 ((white) #t)
+                 ((gray)  #f)
+                 ((black) #f)))
+      ((gray)  (match c2
+                 ((white) #f)
+                 ((gray)  #t)
+                 ((black) #f)))
+      ((black) (match c2
+                 ((white) #f)
+                 ((gray)  #f)
+                 ((black) #t)))))
+  
+  (define-macro append ()
+    ((_ A B)
+     (let ((a A) (b B))
+       (let ((lenA (length a))
+             (len (+ (length a) (length b))))
+         (kernel ((i (iota len)))
+           (if (< i lenA)
+               (vector-ref a i)
+               (vector-ref b (- i lenA))))))))
+  
   (define (choose_edges N max_vertex)
     (if (<= N 1)
         (vector (mod (rand) max_vertex))
@@ -36,7 +49,7 @@
         (let ((A (make-graph-inner edge_factor N (/ remainder 2)))
               (B (make-graph-inner edge_factor N (- remainder
                                                     (/ remainder 2)))))
-          (append2 A B))))
+          (append A B))))
   
   (define (make-graph edge_factor N)
     (make-graph-inner edge_factor N N))
@@ -50,29 +63,30 @@
     (println "iterate")
     (let ((new-colors
            (kernel ((i (iota (length graph))) (c colors))
-             (if (= c 2)
-                 2
-                 (if (= c 1)
-                     2
-                     ;; else, C had better be 0
-                     (if (< 0 (reduce + (kernel ((j (vector-ref graph i)))
-                                          (if (= (vector-ref colors j) 1)
-                                              1
-                                              0))))
-                         1
-                         0))))))
-      (if (= new-colors colors)
+             (match c
+               ((black) (black))
+               ((gray)  (black))
+               ((white)
+                (if (reduce or (kernel ((j (vector-ref graph i)))
+                                 (match (vector-ref colors j)
+                                   ((white) #f)
+                                   ((gray)  #t)
+                                   ((black) #f))))
+                    (gray)
+                    (white)))))))
+      (if (reduce and (kernel ((c1 new-colors)
+                               (c2 colors))
+                        (color-eqp c1 c2)))
           colors
           (begin
             (println new-colors)
             (iterate-colors graph new-colors)))))
 
   (define (bfs graph start)
-    ;; Initialize the color vector. 0 = white, 1 = gray, 2 = black.
     (let ((colors (kernel ((i (iota (length graph))))
                     (if (= i start)
-                        1
-                        0))))
+                        (gray)
+                        (white)))))
       (println colors)
       (iterate-colors graph colors)))
   
