@@ -4,7 +4,7 @@
  (%tags bench))
 
 (module
-  (extern rand () -> int)
+  (import random)
 
   (define-datatype color
     (white)
@@ -35,24 +35,31 @@
            (if (< i lenA)
                (vector-ref a i)
                (vector-ref b (- i lenA))))))))
-  
-  (define (choose_edges N max_vertex)
-    (if (<= N 1)
-        (vector (mod (rand) max_vertex))
-        (let ((A (choose_edges (/ N 2)  max_vertex))
-              (B (choose_edges (- N (/ N 2)) max_vertex)))
-          (append A B))))
 
-  (define (make-graph-inner edge_factor N remainder)
-    (if (= 1 remainder)
-        (vector (choose_edges edge_factor N))
-        (let ((A (make-graph-inner edge_factor N (/ remainder 2)))
-              (B (make-graph-inner edge_factor N (- remainder
-                                                    (/ remainder 2)))))
-          (append A B))))
-  
+  ;; FIXME: We'd like to call choose-edges from make-graph-inner, but
+  ;; calling functions that have kernels from within a kernel is
+  ;; currently broken.
+  ;;
+  ;;(define (choose-edges N max_vertex rng)
+  ;;  (kernel ((i (iota N)))
+  ;;    (let ((rng (reseed rng i)))
+  ;;      (match (random rng)
+  ;;        ((RandomResult n _)
+  ;;         (mod n max_vertex))))))
+
+  (define (make-graph-inner edge_factor N rng)
+    (kernel ((i (iota N)))
+      (let ((rng (reseed rng i))
+            (N edge_factor)
+            (max_vertex N))
+        (kernel ((i (iota N)))
+          (let ((rng (reseed rng i)))
+            (match (random rng)
+              ((RandomResult n _)
+               (mod n max_vertex))))))))
+
   (define (make-graph edge_factor N)
-    (make-graph-inner edge_factor N N))
+    (make-graph-inner edge_factor N (init-rand)))
 
   ;; Ideally, this would be make-graph, but we'd have to be able to do
   ;; function calls from kernels first.
@@ -60,7 +67,7 @@
   ;;  (kernel ((i (iota N))) (choose_edges edge_factor N)))
 
   (define (iterate-colors graph colors)
-    ;;(println "iterate")
+    (println "iterate")
     (let ((new-colors
            (kernel ((i (iota (length graph))) (c colors))
              (match c
@@ -74,6 +81,7 @@
                                    ((black) #f))))
                     (gray)
                     (white)))))))
+      (println "computed new colors")
       (if (reduce and (kernel ((c1 new-colors)
                                (c2 colors))
                         (color-eqp c1 c2)))
@@ -92,17 +100,14 @@
   
   (define (main)
     (let* ((start (time-s))
-           (graph (make-graph 4 50))
+           (graph (make-graph 64 10000))
            (stop  (time-s)))
-      (print "Generated graph in ")
-      (print (- stop start))
-      (println " seconds.")
+      (println* "Generated graph with " (length graph) " vertices in "
+                (- stop start) " seconds.")
       (let* ((start  (time-s))
              (result (bfs graph 0))
              (stop   (time-s)))
-        (print "Performed BFS in ")
-        (print (- stop start))
-        (println " seconds.")))
+        (println* "Performed BFS in " (- stop start) " seconds.")))
     0)
   
   )
