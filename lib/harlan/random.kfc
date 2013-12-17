@@ -33,11 +33,11 @@
   ;; A better option would be to do a cryptographic hash of the state
   ;; and the index
   (define (reseed state i)
-    (match state
-      ((RandomState x y z w)
-       (RandomState (bitwise-xor w i)
-                    (bitwise-xor x i)
-                    (bitwise-xor y i)
-                    (bitwise-xor z i)))))
-
+    (let ((im (mod i 11)))
+      (match state
+        ((RandomState x y z w)
+         (RandomState (bitwise-xor (bitwise-xor x (<< w im)) i)
+                      (bitwise-xor (bitwise-xor y (<< x im)) i)
+                      (bitwise-xor (bitwise-xor z (<< y im)) i)
+                      (bitwise-xor (bitwise-xor w (<< z im)) i))))))
   )
