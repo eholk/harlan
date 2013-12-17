@@ -60,7 +60,7 @@
   ;;  (kernel ((i (iota N))) (choose_edges edge_factor N)))
 
   (define (iterate-colors graph colors)
-    (println "iterate")
+    ;;(println "iterate")
     (let ((new-colors
            (kernel ((i (iota (length graph))) (c colors))
              (match c
@@ -79,7 +79,7 @@
                         (color-eqp c1 c2)))
           colors
           (begin
-            (println new-colors)
+            ;;(println new-colors)
             (iterate-colors graph new-colors)))))
 
   (define (bfs graph start)
@@ -87,15 +87,22 @@
                     (if (= i start)
                         (gray)
                         (white)))))
-      (println colors)
+      ;;(println colors)
       (iterate-colors graph colors)))
   
   (define (main)
-    ;; Just kidding, this isn't actually BFS. It's testing if we can
-    ;; generate random numbers.
-    (let ((graph (make-graph 4 10)))
-      (println graph)
-      (println (bfs graph 0)))
+    (let* ((start (time-s))
+           (graph (make-graph 4 50))
+           (stop  (time-s)))
+      (print "Generated graph in ")
+      (print (- stop start))
+      (println " seconds.")
+      (let* ((start  (time-s))
+             (result (bfs graph 0))
+             (stop   (time-s)))
+        (print "Performed BFS in ")
+        (print (- stop start))
+        (println " seconds.")))
     0)
   
   )

@@ -5,6 +5,8 @@
   (extern open_outfile (str) -> (ptr ofstream))
   (extern close_outfile ((ptr ofstream)) -> void)
 
+  (extern time-s () -> float)
+  
   (define-macro cond (else)
     ((_ (else body))
      body)
