@@ -1,0 +1,13 @@
+(module
+  (import random)
+
+  (define (gen-nums r i)
+    (if (> i 0)
+        (match (random r)
+          ((RandomResult n r)
+           (begin (println n)
+                  (gen-nums r (- i 1)))))
+        0))
+  
+  (define (main)
+    (gen-nums (init-rand) 100)))

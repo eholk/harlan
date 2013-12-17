@@ -1,0 +1,10 @@
+(module
+  (import random)
+  
+  (define (main)
+    (let ((r (init-rand)))
+      (match (random r)
+        ((RandomResult r _)
+         (begin (println r)
+                r))))
+    0))

@@ -1,0 +1,43 @@
+(module
+  ;; Random number generation using Xorshift
+  ;;
+  ;; http://en.wikipedia.org/wiki/Xorshift
+  
+  (define-datatype RandomState
+    (RandomState int int int int))
+
+  (define-datatype RandomResult
+    (RandomResult int RandomState))
+  
+  (define (random state)
+    (match state
+      ((RandomState x y z w)
+       (let ((t (bitwise-xor x (<< x 11))))
+         (let ((x y)
+               (y z)
+               (z w)
+               (w (bitwise-xor w
+                               (bitwise-xor (>> w 19)
+                                            (bitwise-xor t (>> t 8))))))
+           (RandomResult w (RandomState x y z w)))))))
+
+  ;; Returns the seed used in the wikipedia article
+  (define (init-rand)
+    (RandomState 123456789
+                 362436069
+                 521288629
+                 88675123))
+
+  ;; Used to fork the random number generator.
+  ;;
+  ;; A better option would be to do a cryptographic hash of the state
+  ;; and the index
+  (define (reseed state i)
+    (match state
+      ((RandomState x y z w)
+       (RandomState (bitwise-xor w i)
+                    (bitwise-xor x i)
+                    (bitwise-xor y i)
+                    (bitwise-xor z i)))))
+
+  )

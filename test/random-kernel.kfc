@@ -1,0 +1,10 @@
+(module
+  (import random)
+  
+  (define (main)
+    (let ((r (init-rand)))
+      (println (kernel ((i (iota 1000)))
+                 (match (random (reseed r i))
+                   ((RandomResult r _)
+                    r)))))
+    0))
