@@ -24,6 +24,7 @@
     (rnrs)
     (util color)
     (except (elegant-weapons compat) make-parameter parameterize)
+    (only (elegant-weapons helpers) join)
     (util compat))
 
 (define allow-complex-kernel-args (make-parameter #f))
@@ -59,49 +60,106 @@
          (set! trace-passes (remove pass trace-passes)))
        passes))
 
+(define-syntax if-docstring
+  (lambda (x)
+    (syntax-case x ()
+      ((_ s conseq alt)
+       (if (string? (syntax->datum #'s))
+           #'conseq
+           #'alt)))))
+
 (define-syntax decode-pattern
   (syntax-rules ()
-    ((_ loop args () body ...)
+    ((_ loop args () body body* ...)
      (begin
-       body ...
+       (if-docstring body (if #f 5) body)
+       body* ...
        (loop args)))
     ((_ loop args (pat pat* ...) body ...)
      (let ((pat (car args))
            (x (cdr args)))
        (decode-pattern loop x (pat* ...) body ...)))))
-    
+
+(define-syntax display-one-help
+  (syntax-rules ()
+    ((_ (((long short ...) args ...) body))
+     (let ((arg-string (join ", " (list long short ...))))
+       (display arg-string)
+       (if-docstring body
+                     (cond
+                       ((< (string-length arg-string) 30)
+                        (display (make-string
+                                  (- 30 (string-length arg-string))
+                                  #\space))
+                        (display body)
+                        (newline))
+                       (else (display (make-string 30 #\space))
+                             (display body)
+                             (newline)))
+                     (if #f 5))
+       (newline)))))
+                                    
+
+(define-syntax generate-help
+  (syntax-rules ()
+    ((_ (((long short ...) args ...) body) ...)
+     (lambda ()
+       (display "Harlan supports these command line arguments:\n\n")
+       (display-one-help (((long short ...) args ...) body)) ...))))
+  
 (define-syntax match-args
   (syntax-rules ()
     ;; pat-args is not yet used, but it's supposed to be for things
     ;; like "-o file.out"
     ((_ args
         (((long short ...) pat-args ...) body body* ...) ...)
-     (let loop ((x args))
-       (cond
-         ((null? x) '())
-         ((or (string=? long  (car x))
-              (string=? short (car x)) ...)
-          (decode-pattern loop (cdr x) (pat-args ...) body body* ...))
-         ...
-         (else (cons (car x) (loop (cdr x)))))))))
+     (let ((display-help (generate-help
+                          (((long short ...) pat-args ...) body) ...)))
+       (let loop ((x args))
+         (cond
+           ((null? x) '())
+           ((string=? "--help" (car x))
+            (display-help)
+            (exit))
+           ((or (string=? long  (car x))
+                (string=? short (car x)) ...)
+            (decode-pattern loop (cdr x) (pat-args ...) body body* ...))
+           ...
+           (else (cons (car x) (loop (cdr x))))))))))
           
 (define (parse-args command-line)
   (match-args command-line
-    ((("--danger-zone"))       (danger-zone #t))
-    ((("--no-optimize" "-O0")) (optimize-level 0))
-    ((("--verbose" "-v"))      (verbose #t))
-    ((("--debug" "-g"))        (generate-debug #t))
-    ((("--enable-double"))     (use-doubles #t))
-    ((("--libdirs" "-L") path) (harlan-library-path path))
-    ((("--shared" "-s"))       (make-shared-object #t))
-    ((("--quiet" "-q"))        (quiet #t))
-    ((("--no-kernels"))        (no-kernels #t))
-    ((("--no-verify" "-V"))    (verify #f))
-    ((("--rt-dir" "-R") path)  (harlan-runtime-path path))
-    ((("--time" "-t"))         (timing #t))
-    ((("--tags" "-x") tags)    (parse-tags tags))
-    ((("--dump-call-graph"))   (dump-call-graph #t))
-    ((("--Zallow-complex-kernel-args")) (allow-complex-kernel-args #t))))
+    ((("--danger-zone"))       "Disable runtime safety checks"
+     (danger-zone #t))
+    ((("--no-optimize" "-O0")) "Disable optimization"
+     (optimize-level 0))
+    ((("--verbose" "-v"))      "Output intermediate compilation results"
+     (verbose #t))
+    ((("--debug" "-g"))        "Generate debugging information"
+     (generate-debug #t))
+    ((("--enable-double"))     "Use double precision math"
+     (use-doubles #t))
+    ((("--libdirs" "-L") path) "Search these directories for libraries"
+     (harlan-library-path path))
+    ((("--shared" "-s"))       "Generate a library instead of an executable"
+     (make-shared-object #t))
+    ((("--quiet" "-q"))        "Generate less output"
+     (quiet #t))
+    ((("--no-kernels"))        "Do not generate OpenCL kernels"
+     (no-kernels #t))
+    ((("--no-verify" "-V"))    "Disable verification passes"
+     (verify #f))
+    ((("--rt-dir" "-R") path)  "Specify the location of Harlan's runtime"
+     (harlan-runtime-path path))
+    ((("--time" "-t"))         "Output pass timing information"
+     (timing #t))
+    ((("--tags" "-x") tags)    "Run tests matching this tag set"
+     (parse-tags tags))
+    ((("--dump-call-graph"))   "Save the call graph to a file"
+     (dump-call-graph #t))
+    ((("--Zallow-complex-kernel-args"))
+     "Allow unboxed complex kernel parameters"
+     (allow-complex-kernel-args #t))))
 
 (define (string-search needle haystack)
   (let loop ((i 0))
