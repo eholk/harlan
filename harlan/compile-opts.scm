@@ -125,7 +125,10 @@
                 (string=? short (car x)) ...)
             (decode-pattern loop (cdr x) (pat-args ...) body body* ...))
            ...
-           (else (cons (car x) (loop (cdr x))))))))))
+           (else
+            (if (eq? #\- (string-ref (car x) 0))
+                (error 'match-args "unrecognized option" (car x))
+                (cons (car x) (loop (cdr x)))))))))))
           
 (define (parse-args command-line)
   (match-args command-line
