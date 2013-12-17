@@ -113,4 +113,14 @@
      (if e1 #t e2))
     ((_ e e* ...)
      (if e #t (or e* ...))))
+
+  (define-macro print* ()
+    ((_ e e* ...)
+     (begin (print e) (print e*) ... )))
+
+  (define-macro println* ()
+    ((_ e)
+     (println e))
+    ((_ e e* ...)
+     (begin (print e) (println* e* ...))))
   )
