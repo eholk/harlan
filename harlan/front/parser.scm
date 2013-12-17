@@ -19,7 +19,7 @@
                           (map (lambda (d)
                                  (match d
                                    ((define-datatype ,name . ,_)
-                                    (list name))
+                                    (list (cons name (gensym name))))
                                    (,else '())))
                                decl*))))
      `(module . ,(map (parse-decl type-env) decl*)))))
@@ -32,7 +32,7 @@
      `(extern ,name . ,t)))
   ((define-datatype ,name
      (,tag ,[(parse-type type-env) -> t] ...) ...)
-   `(define-datatype ,name (,tag ,t ...) ...))
+   `(define-datatype ,(cdr (assq name type-env)) (,tag ,t ...) ...))
   ((define (,name . ,args) . ,stmt*)
    (begin
      (unless (symbol? name)
@@ -56,7 +56,7 @@
   (str 'str)
   (float 'float)
   (ofstream 'ofstream)
-  (,t (guard (member t type-env)) `(adt ,t))
+  (,t (guard (assq t type-env)) `(adt ,(cdr (assq t type-env))))
   ((ptr ,[t]) `(ptr ,t))
   ((vec ,n ,[t])
    (guard (integer? n))
