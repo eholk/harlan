@@ -1,0 +1,5 @@
+(module
+  (define (main)
+    (assert (= (<< 1 4) 16))
+    (assert (= (>> 4 1) 2))
+    0))
