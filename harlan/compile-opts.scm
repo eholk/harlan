@@ -292,7 +292,10 @@
      (np-exit output))
     ((_ output^ (pass : input -> output) . rest)
      (lambda (expr)
-       ((np-middle-passes output . rest) (pass expr))))))
+       ((np-middle-passes output . rest)
+        (if (timing)
+            (add-time 'pass (pass expr))
+            (pass expr)))))))
 
 (define-syntax passes
   (syntax-rules ()
