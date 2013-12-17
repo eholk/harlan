@@ -35,7 +35,8 @@ extern cl::command_queue g_queue;
 
 template<typename T>
 void print(T n, std::ostream *f) {
-  *f << n;
+	(*f).precision(10);
+	*f << n;
 }
 
 void print(bool b, std::ostream *f);
