@@ -17,6 +17,8 @@
        (lift-expr e (lambda (e) (finish `(int->float ,e)))))
       ((float->int ,e)
        (lift-expr e (lambda (e) (finish `(float->int ,e)))))
+      ((cast ,t ,e)
+       (lift-expr e (lambda (e) (finish `(cast ,t ,e)))))
       ((not ,e)
        (lift-expr e (lambda (e) (finish `(not ,e)))))
       ((begin ,[lift-stmt -> stmt*] ... ,e)

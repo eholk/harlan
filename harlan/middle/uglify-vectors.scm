@@ -235,6 +235,7 @@
    (values `(cast float ,e) r*))
   ((float->int ,[e r*])
    (values `(cast int ,e) r*))
+  ((cast ,t ,[e r]) (values `(cast ,t ,e) r))
   ((call ,[name nr*] ,[args ar**] ...)
    (values `(call ,name
                   ,@args

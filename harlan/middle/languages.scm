@@ -99,6 +99,7 @@
      (char c)
      (str str-t)
      (vector t r e* ...)
+     (cast t e)
      (do e)
      (print e)
      (print e1 e2)
@@ -340,8 +341,7 @@
     
     (Expr
      (e)
-     (+ (cast t e)
-        (sizeof t)
+     (+ (sizeof t)
         (alloc e1 e2)
         (region-ref t e1 e2))
      (- (box r t)

@@ -2,12 +2,11 @@
 
 (module
 
-  (extern open_outfile (str) -> (ptr ofstream))
   (extern close_outfile ((ptr ofstream)) -> void)
-
-  (extern time-s () -> float)
-
   (extern command-line () -> (vec str))
+  (extern open_outfile (str) -> (ptr ofstream))
+  (extern str->vec (str) -> (vec char))
+  (extern time-s () -> float)
   
   (define-macro cond (else)
     ((_ (else body))
@@ -139,4 +138,7 @@
   (define-macro println-vec ()
     ((_ v)
      (begin (print-vec v) (println ""))))
+
+  (define (char->int c)
+    (unsafe-explicit-cast (char -> int) c))
   )

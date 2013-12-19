@@ -135,6 +135,7 @@
          ((char ,c) `(char ,c))
          ((int->float ,[i]) `(int->float ,i))
          ((float->int ,[f]) `(float->int ,f))
+         ((cast ,t ,[e]) `(cast ,t ,e))
          ((begin ,[desugar-stmt -> s] ... ,[e])
           `(begin ,s ... ,e))
          ((call ,[e*] ...) `(call ,e* ...))

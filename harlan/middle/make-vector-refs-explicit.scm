@@ -70,6 +70,7 @@
   ((length ,[e]) `(length ,e))
   ((int->float ,[e]) `(int->float ,e))
   ((float->int ,[e]) `(float->int ,e))
+  ((cast ,t ,[e]) `(cast ,t ,e))
   ((not ,[e]) `(not ,e))
   ((make-vector ,t ,r ,[e]) `(make-vector ,t ,r ,e))
   ((vector ,t ,r ,[e*] ...) `(vector ,t ,r . ,e*))

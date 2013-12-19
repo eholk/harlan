@@ -40,7 +40,7 @@ uint64_t nanotime() {
 // () -> float
 //
 // Retuns the value of a timer in seconds.
-float time$s() {
+float time$ds() {
 	return float(nanotime() / 1000) / 1e6;
 }
 
@@ -70,7 +70,7 @@ float sqrt(float x) {
 }
 template<typename T>
 struct harlan_vector {
-	int length;
+	int64_t length;
 	T data[];
 };
 
@@ -78,9 +78,13 @@ struct harlan_vector {
 extern int ARGC;
 extern char **ARGV;
 
+#define VECTOR_LENGTH_OFFSET 8
+
 // () -> (vec str)
-region_ptr command$line(region *&r) {
-	region_ptr ptr = alloc_in_region(&r, sizeof(int) + ARGC * sizeof(char *));
+region_ptr command$dline(region *&r) {
+	region_ptr ptr = alloc_in_region(&r,
+									 VECTOR_LENGTH_OFFSET 
+									 + ARGC * sizeof(char *));
 	harlan_vector<char *> *vec
 		= (harlan_vector<char *> *)get_region_ptr(r, ptr);
 
@@ -90,5 +94,24 @@ region_ptr command$line(region *&r) {
 		vec->data[i] = ARGV[i];
 	}
 
+	return ptr;
+}
+
+// (str) -> (vec char)
+region_ptr str$d$vvec(const char *str, region *&r) {
+	int length = strlen(str);
+
+	region_ptr ptr = alloc_in_region(&r,
+									 VECTOR_LENGTH_OFFSET
+									 + length * sizeof(char));
+	harlan_vector<char> *vec
+		= (harlan_vector<char> *)get_region_ptr(r, ptr);
+	
+	vec->length = length;
+	
+	for(int i = 0; i < length; ++i) {
+		vec->data[i] = str[i];
+	}
+	
 	return ptr;
 }

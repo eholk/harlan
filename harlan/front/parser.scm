@@ -129,6 +129,9 @@
   ((unsafe-vec-ptr ,[v]) `(unsafe-vec-ptr ,v))
   ((length ,[e])
    `(length ,e))
+  ((unsafe-explicit-cast
+    (,[(parse-type env) -> t1] -> ,[(parse-type env) -> t2]) ,[e])
+   `(unsafe-explicit-cast (,t1 -> ,t2) ,e))
   ((int->float ,[e]) `(int->float ,e))
   ((float->int ,[e]) `(float->int ,e))
   ((lambda (,x* ...) ,stmt* ... ,expr)

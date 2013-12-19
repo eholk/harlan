@@ -112,6 +112,7 @@
     ((var ,t ,x) `(var ,t ,x))
     ((int->float ,[e]) `(int->float ,e))
     ((float->int ,[e]) `(float->int ,e))
+    ((cast ,t ,[e]) `(cast ,t ,e))
     ((iota ,[e])
      `(iota ,e))
     ((iota-r ,r ,[e])
