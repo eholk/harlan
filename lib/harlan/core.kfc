@@ -141,4 +141,11 @@
 
   (define (char->int c)
     (unsafe-explicit-cast (char -> int) c))
+
+  (define (int->float i)
+    (unsafe-explicit-cast (int -> float) i))
+
+  (define (float->int f)
+    (unsafe-explicit-cast (float -> int) f))
+  
   )

@@ -149,8 +149,6 @@
     ((deref ,[e]) e)
     ((call ,[fn] ,[args] ...)
      (apply union fn args))
-    ((int->float ,[e]) e)
-    ((float->int ,[e]) e)
     ((length ,[e]) e)
     ((make-vector ,t ,r ,[e]) e)
     ((vector ,t ,r ,[e] ...) (apply union e))
@@ -205,8 +203,6 @@
   (define-match pure?
     ((,t ,x) (guard (scalar-type? t)) `(,t ,x))
     ((var ,t ,x) #t)
-    ((int->float ,[e]) e)
-    ((float->int ,[e]) e)
     ((,op ,[lhs] ,[rhs])
      (guard (or (binop? op) (relop? op)))
      (and lhs rhs))

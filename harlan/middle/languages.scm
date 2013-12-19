@@ -119,8 +119,6 @@
      (unsafe-vector-ref t e0 e1)
      (unsafe-vec-ptr t e)
      (length e)
-     (int->float e)
-     (float->int e)
      (if e0 e1)
      (if e0 e1 e2)
      (set! e1 e2)

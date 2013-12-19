@@ -80,8 +80,6 @@
 (define-match expr-fv
   ((,t ,n) (guard (scalar-type? t)) `())
   ((var ,t ,x) `((var ,t ,x)))
-  ((int->float ,[fv*]) fv*)
-  ((float->int ,[fv*]) fv*)
   ((cast ,t ,[e]) e)
   ((length ,[fv*]) fv*)
   ((addressof ,[fv*]) fv*)

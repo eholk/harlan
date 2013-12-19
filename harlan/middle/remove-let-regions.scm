@@ -97,7 +97,6 @@
 (define-match type-of
   ((,t ,v) (guard (scalar-type? t)) t)
   ((var ,t ,x) t)
-  ((int->float ,t) `float)
   ((length ,t) `int)
   ((addressof ,[t]) `(ptr ,t))
   ((deref ,[t]) (cadr t))
