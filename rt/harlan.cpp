@@ -203,3 +203,15 @@ cl_mem get_cl_buffer(region *r)
     assert(r->cl_buffer);
     return (cl_mem)r->cl_buffer;
 }
+
+int ARGC = 0;
+char **ARGV = NULL;
+
+extern int harlan_main();
+
+int main(int argc, char **argv) {
+	ARGC = argc;
+	ARGV = argv;
+
+	return harlan_main();
+}

@@ -39,14 +39,10 @@
        (error 'parse-harlan "invalid function name, expected symbol" name))
      (let* ((args^ (map gensym args))
             (env (map cons args args^)))
-       `(fn ,name ,args^ ,(make-begin (map (parse-stmt env) stmt*))))))
-  ((fn ,name ,args . ,stmt*)
-   (begin
-     (unless (symbol? name)
-       (error 'parse-harlan "invalid function name, expected symbol" name))
-     (let* ((args^ (map gensym args))
-            (env (map cons args args^)))
-       `(fn ,name ,args^ ,(make-begin (map (parse-stmt env) stmt*)))))))
+       `(fn ,(if (eq? name 'main)
+                 'harlan_main
+                 name)
+            ,args^ ,(make-begin (map (parse-stmt env) stmt*)))))))
 
 (define-match (parse-type type-env)
   (void 'void)
@@ -196,7 +192,7 @@
    ;; reason, so here we take advantage of that fact to differentiate
    ;; between call and invoke instructions.
    (guard (and (symbol? rator) (not (assq rator env))))
-   `(call ,rator . ,rand*))
+   `(call ,(if (eq? rator 'main) 'harlan_main rator) . ,rand*))
   ((,[rator] ,[rand*] ...)
    `(invoke ,rator . ,rand*)))
 
