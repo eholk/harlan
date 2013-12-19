@@ -1,0 +1,4 @@
+(module
+  (define (main)
+    (println-vec (command-line))
+    0))

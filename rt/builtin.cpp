@@ -68,3 +68,27 @@ void reset_kernel_time() {
 float sqrt(float x) {
     return sqrtf(x);
 }
+template<typename T>
+struct harlan_vector {
+	int length;
+	T data[];
+};
+
+// in harlan.cpp
+extern int ARGC;
+extern char **ARGV;
+
+// () -> (vec str)
+region_ptr command$line(region *&r) {
+	region_ptr ptr = alloc_in_region(&r, sizeof(int) + ARGC * sizeof(char *));
+	harlan_vector<char *> *vec
+		= (harlan_vector<char *> *)get_region_ptr(r, ptr);
+
+	vec->length = ARGC;
+	
+	for(int i = 0; i < ARGC; ++i) {
+		vec->data[i] = ARGV[i];
+	}
+
+	return ptr;
+}

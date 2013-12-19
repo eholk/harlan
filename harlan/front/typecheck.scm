@@ -1,6 +1,6 @@
 (library
   (harlan front typecheck)
-  (export typecheck free-regions-type)
+  (export typecheck free-regions-type gen-rvar)
   (import
     (rnrs)
     (elegant-weapons match)

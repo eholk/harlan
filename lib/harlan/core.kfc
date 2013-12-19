@@ -6,6 +6,8 @@
   (extern close_outfile ((ptr ofstream)) -> void)
 
   (extern time-s () -> float)
+
+  (extern command-line () -> (vec str))
   
   (define-macro cond (else)
     ((_ (else body))
@@ -123,4 +125,18 @@
      (println e))
     ((_ e e* ...)
      (begin (print e) (println* e* ...))))
+
+  (define-macro print-vec ()
+    ((_ v)
+     (let ((t v))
+       (print "[")
+       (for (i 0 (length t))
+         (begin
+           (print " ")
+           (print (vector-ref t i))))
+       (print " ]"))))
+
+  (define-macro println-vec ()
+    ((_ v)
+     (begin (print-vec v) (println ""))))
   )

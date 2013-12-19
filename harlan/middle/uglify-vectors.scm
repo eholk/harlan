@@ -129,7 +129,11 @@
           ,s)))
   ((typedef ,name ,t) `(typedef ,name ,(remove-regions t)))
   ((extern ,name ,args -> ,t)
-   `(extern ,name ,args -> ,t)))
+   (let ((all-regions (map (lambda (_) `(ptr region))
+                           (free-regions-type `(fn ,args -> ,t))))
+         (args (map remove-regions args))
+         (t (remove-regions t)))
+     `(extern ,name ,(append args all-regions) -> ,t))))
 
 (define-match (uglify-let finish)
   (() (values finish `()))
