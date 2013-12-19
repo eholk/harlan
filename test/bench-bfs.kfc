@@ -100,7 +100,7 @@
   
   (define (main)
     (let* ((start (time-s))
-           (graph (make-graph 64 10000))
+           (graph (make-graph 16 100))
            (stop  (time-s)))
       (println* "Generated graph with " (length graph) " vertices in "
                 (- stop start) " seconds.")
