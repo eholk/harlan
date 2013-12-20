@@ -56,6 +56,7 @@
   ((int ,n) '())
   ((bool ,b) '())
   ((float ,f) '())
+  ((char ,c) '())
   ((str ,s) '())
   ((var ,[type-symbols -> t] ,x) (set-add t x))
   ((deref ,[e]) e)

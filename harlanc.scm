@@ -41,6 +41,6 @@
       (let ((filename (car args)))
         (print-compile-harlan filename)))))
 
-;;(trace-pass 'expand-macros)
+;;(trace-pass 'typecheck)
 
 (harlanc (command-line))

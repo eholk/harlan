@@ -147,5 +147,32 @@
 
   (define (float->int f)
     (unsafe-explicit-cast (float -> int) f))
-  
+
+  (define-datatype MaybeInt
+    (JustInt int)
+    (NoInt))
+     
+  ;;(define (parse-char-vec->int v default)
+  ;;  (match
+  ;;      (reduce
+  ;;          (lambda (a b)
+  ;;            (match a
+  ;;              ((NoInt) (NoInt))
+  ;;              ((JustInt a)
+  ;;               (match b
+  ;;                 ((NoInt) (NoInt))
+  ;;                 ((JustInt b) (JustInt (+ a b)))))))
+  ;;        (kernel ((c v) (i (iota (length v))))
+  ;;          (let ((c (char->int c)))
+  ;;            (if (and (<= (char->int #\0) c) (<= c (char->int #\9)))
+  ;;                (JustInt (* (/ (reduce *
+  ;;                                 (kernel ((_ (iota (- (length v) i)))) 10))
+  ;;                               10)
+  ;;                            (- c (char->int #\0))))
+  ;;                (NoInt)))))
+  ;;    ((NoInt) default)
+  ;;    ((JustInt i) i)))
+  ;;
+  ;;(define (parse-str->int s default)
+  ;;  (parse-char-vec->int (str->vec s) default))
   )

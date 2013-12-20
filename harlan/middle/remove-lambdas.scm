@@ -126,11 +126,21 @@
              (closure ,r2 (,t2* ...) ,-> ,t2))
             ;; TODO: This needs to consider region variables and
             ;; renaming.
-            (and (eq? (length t1*) (length t2*))
-                 (andmap type-compat? (cons t1 t1*) (cons t2 t2*))))
+            (let ((result 
+                   (and (eq? (length t1*) (length t2*))
+                        (andmap type-compat? (cons t1 t1*) (cons t2 t2*)))))
+              ;;(pretty-print "type-compat?")
+              ;;(pretty-print (unparse-M1 a))
+              ;;(pretty-print " and ")
+              ;;(pretty-print (unparse-M1 b))
+              ;;(pretty-print "=>")
+              ;;(pretty-print result)
+              result))
            (((ptr ,t1) (ptr ,t2))
             (loop t1 t2 env))
            (((adt ,x1 ,r1) (adt ,x2 ,r2))
+            (eq? x1 x2))
+           (((adt ,x1) (adt ,x2))
             (eq? x1 x2))
            ((,bt1 ,bt2) (equal? bt1 bt2))
            (else (begin

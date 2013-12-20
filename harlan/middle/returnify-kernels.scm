@@ -232,6 +232,7 @@
   ((float ,f) `(float ,f))
   ((bool ,b) `(bool ,b))
   ((var ,t ,x) `(var ,t ,x))
+  ((char ,c) `(char ,c))
   ((cast ,t ,[e]) `(cast ,t ,e))
   ((vector-ref ,t ,[v] ,[i])
    `(vector-ref ,t ,v ,i))

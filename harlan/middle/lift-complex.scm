@@ -32,8 +32,10 @@
          (lambda (t)
            (let ((if-res (gensym 'if_res))
                  (type (type-of conseq)))
-             (let ((c (lift-expr conseq (lambda (c) `(set! (var ,type ,if-res) ,c))))
-                   (a (lift-expr alt (lambda (a) `(set! (var ,type ,if-res) ,a)))))
+             (let ((c (lift-expr conseq (lambda (c)
+                                          `(set! (var ,type ,if-res) ,c))))
+                   (a (lift-expr alt (lambda (a)
+                                       `(set! (var ,type ,if-res) ,a)))))
                `(let ((,if-res ,type))
                   (begin
                     (if ,t ,c ,a)
@@ -197,6 +199,6 @@
      ((fn ,args -> ,t) t)))
   ((,op ,lhs ,rhs)
    (guard (relop? op))
-   rhs))
+   'bool))
 
 )
