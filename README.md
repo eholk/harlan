@@ -14,6 +14,7 @@ Harlan is known to build and run on the following operating systems.
 * Mac OS X 10.6 (Snow Leopard)
 * Mac OS X 10.7 (Lion)
 * Mac OS X 10.8 (Mountain Lion)
+* Mac OS X 10.9 (Mavericks)
 * Various flavors of Linux
 
 Others will probably work as well.
