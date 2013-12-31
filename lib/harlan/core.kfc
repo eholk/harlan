@@ -4,6 +4,7 @@
 
   (extern close_outfile ((ptr ofstream)) -> void)
   (extern command-line () -> (vec str))
+  (extern get-environment-variable (str) -> str)
   (extern open_outfile (str) -> (ptr ofstream))
   (extern str->vec (str) -> (vec char))
   (extern time-s () -> float)

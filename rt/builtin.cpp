@@ -115,3 +115,15 @@ region_ptr str$d$vvec(const char *str, region *&r) {
 	
 	return ptr;
 }
+
+const char *EMPTY_ENV_VAR = "";
+
+const char *get$denvironment$dvariable(const char *name) {
+    char *v = getenv(name);
+    if(v) {
+        return v;
+    }
+    else {
+        return EMPTY_ENV_VAR;
+    }
+}

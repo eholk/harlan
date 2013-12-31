@@ -1,0 +1,4 @@
+(module
+  (define (main)
+    (println (get-environment-variable "PATH"))
+    0))
