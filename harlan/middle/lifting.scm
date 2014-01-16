@@ -94,16 +94,22 @@
               ,[Expr -> end end-bindings]
               ,[Expr -> step step-bindings])
           ,[body bindings])
-     (let-values (((liftable pinned)
-                   ((split-bindings (list x)) bindings)))
-       (values
-        `(for (,x ,start ,end ,step)
-              ,(make-let pinned body))
-        (append start-bindings end-bindings step-bindings liftable))))
+     ;; We don't lift any body bindings out of the for loop, in case
+     ;; side effects mess with them. Again, we need a proper assigned
+     ;; variable analysis.
+     (values
+      `(for (,x ,start ,end ,step)
+         ,(make-let bindings body))
+        (append start-bindings end-bindings step-bindings)))
     ((while ,[Expr -> test test-bindings]
        ,[body bindings])
-     (values `(while ,test ,body)
-             (append test-bindings bindings)))
+     ;; We don't lift any bindings in the body outside of the while
+     ;; loop. This avoids problems when there are side effects. That
+     ;; said, this is exactly the situation where we do want to lift
+     ;; bindings, so we should probably do a proper assigned variable
+     ;; analysis instead.
+     (values `(while ,test ,(make-let bindings body))
+             test-bindings))
     ((if ,[Expr -> e bindings] ,c)
      (values `(if ,e ,c) bindings))
     ((if ,[Expr -> e bindings] ,c ,a)
@@ -128,15 +134,15 @@
       `(begin ,@(map make-let bindings* stmt*) ,(make-let bindings e))
       `()))
     ((kernel ,kt ,d (((,x* ,t) (,e ,es) ,dim) ...) ,[body bindings])
-     (let-values (((liftable pinned) ((split-bindings x*) bindings)))
-       (values `(kernel ,kt ,d (((,x* ,t) (,e ,es) ,dim) ...)
-                        ,(make-let pinned body))
-               liftable)))
+     ;; Don't lift out of kernels, in case there are side
+     ;; effects. Again, we need an assigned variable analysis.
+     (values `(kernel ,kt ,d (((,x* ,t) (,e ,es) ,dim) ...)
+                      ,(make-let bindings body))
+             '()))
     ((kernel ,kt ,r ,d (((,x* ,t) (,e ,es) ,dim) ...) ,[body bindings])
-     (let-values (((liftable pinned) ((split-bindings x*) bindings)))
-       (values `(kernel ,kt ,r ,d (((,x* ,t) (,e ,es) ,dim) ...)
-                        ,(make-let pinned body))
-               liftable)))
+     (values `(kernel ,kt ,r ,d (((,x* ,t) (,e ,es) ,dim) ...)
+                      ,(make-let bindings body))
+             '()))
     (,e (values e `())))
 
   (define-match free-vars-Expr

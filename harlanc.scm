@@ -41,6 +41,6 @@
       (let ((filename (car args)))
         (print-compile-harlan filename)))))
 
-;;(trace-pass 'typecheck)
+;(trace-pass 'optimize-lift-lets)
 
 (harlanc (command-line))
