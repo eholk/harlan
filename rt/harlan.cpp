@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <string>
+#include <algorithm>
 
 using namespace std;
 
@@ -34,12 +35,17 @@ cl_device_type get_device_type()
 
   if(cfg) {
     string s = cfg;
+	transform(s.begin(), s.end(), s.begin(), ::tolower);
     if(s == "gpu") {
       return CL_DEVICE_TYPE_GPU | CL_DEVICE_TYPE_ACCELERATOR;
     }
     else if(s == "cpu") {
       return CL_DEVICE_TYPE_CPU;
     }
+	else {
+		cerr << "HARLAN_DEVICE must be either `cpu` or `gpu`." << endl;
+		abort();
+	}
   }
   return (CL_DEVICE_TYPE_GPU |
           CL_DEVICE_TYPE_CPU |
