@@ -3,9 +3,15 @@
  (except (chezscheme) compile debug)
  (harlan compiler)
  (harlan compile-opts)
- (harlan driver))
+ (harlan driver)
+ (only (util system) HARLAND))
 
-;; copied from harlanc.scm.
+;;; copied from harlanc.scm.
+
+;; This could be set from the env var HARLAND, or based on the
+;; directory in which this script resides.  Using the latter:
+(HARLAND (path-parent (car (command-line))))
+
 (define (output-filename input)
   (let ((base (path-last (path-root input))))
     (if (make-shared-object)
