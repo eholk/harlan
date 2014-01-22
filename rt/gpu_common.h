@@ -3,7 +3,8 @@
   basic data structures.
  */
 
-#pragma once
+#ifndef GPU_COMMON_H
+#define GPU_COMMON_H
 
 typedef unsigned int region_ptr;
 
@@ -33,3 +34,5 @@ struct region_ {
 
 
 #define harlan_sqrt(x) (sqrt(((float)(x))))
+
+#endif
