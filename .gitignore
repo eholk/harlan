@@ -4,7 +4,7 @@
 *.lo
 /gc/
 test.bin/
-rt/libharlanrt.a
+rt/*.a
 *~
 doc/harlan-manual.pdf
 *.log

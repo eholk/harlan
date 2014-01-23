@@ -15,6 +15,11 @@
       ('linux  '("-I/opt/cuda/include" "-I/usr/local/cuda/include"
                  "-lOpenCL" "-lrt"))))
 
+  (define (get-runtime)
+    (if (make-shared-object)
+        (string-append (HARLAND) "/rt/libharlanrts.a")
+        (string-append (HARLAND) "/rt/libharlanrt.a")))
+  
   (define (g++-compile-stdin src outfile . args)
     (let* ((src-tmp (string-append outfile ".cpp"))
            (command
@@ -26,7 +31,7 @@
                                 "-O2"
                                 "-x c++"
                                 ,src-tmp "-x none"
-                                ,(string-append (HARLAND) "/rt/libharlanrt.a")
+                                ,(get-runtime)
                                 ,(string-append "-I" (HARLAND) "/rt")
                                 "-o" ,outfile
                                 "-lm")

@@ -57,8 +57,12 @@ int get_default_region_size()
 {
   const char *cfg = getenv("HARLAN_MIN_REGION_SIZE");
 
-  if(cfg)
-      return atoi(cfg);
+  if(cfg) {
+	  int sz = atoi(cfg);
+	  cerr << "Setting region size from HARLAN_MIN_REGION_SIZE to "
+		   << sz << " bytes." << endl;
+      return sz;
+  }
   //else return 8192;
   else return 8 << 20; // 8 megs
 }
