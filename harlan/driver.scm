@@ -1,6 +1,6 @@
 (library
   (harlan driver)
-  (export get-cflags g++-compile-stdin read-source)
+  (export get-cflags g++-compile-stdin read-source output-filename)
   (import
     (rnrs)
     (only (elegant-weapons helpers) join)
@@ -20,7 +20,16 @@
         (string-append (HARLAND) "/rt/libharlanrts.a")
         (string-append (HARLAND) "/rt/libharlanrt.a")))
   
-  (define (g++-compile-stdin src outfile . args)
+  ;; Converts foo/bar.kfc to bar
+  (define (output-filename input)
+    (let ((base (path-last (path-root input))))
+      (if (make-shared-object)
+          (string-append base (case (get-os)
+                                ('linux ".so")
+                                ('darwin ".dylib")))
+          base)))
+
+(define (g++-compile-stdin src outfile . args)
     (let* ((src-tmp (string-append outfile ".cpp"))
            (command
             (join " " (append `("g++"

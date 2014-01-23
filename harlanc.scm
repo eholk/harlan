@@ -14,13 +14,6 @@
 ;; directory in which this script resides.  Using the latter:
 (HARLAND (path-parent (car (command-line))))
 
-;; Converts foo/bar.kfc to bar
-(define (output-filename input)
-  (let ((base (path-last (path-root input))))
-    (if (make-shared-object)
-        (string-append base ".so")
-        base)))
-
 (define print-compile-harlan
   (lambda (filename)
     (let-values (((input testspec) (read-source filename)))

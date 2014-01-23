@@ -12,12 +12,6 @@
 ;; directory in which this script resides.  Using the latter:
 (HARLAND (path-parent (car (command-line))))
 
-(define (output-filename input)
-  (let ((base (path-last (path-root input))))
-    (if (make-shared-object)
-        (string-append base ".so")
-        base)))
- 
 (define (compile path)
   (let-values (((source testspec) (read-source path)))
     (g++-compile-stdin (harlan->c++ source) (output-filename path))))
