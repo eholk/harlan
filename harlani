@@ -1,1 +1,25 @@
-harlanc
+#!/bin/bash
+
+if [ -z $SCHEME ];
+then SCHEME=petite;
+fi;
+
+if [ ! -z `which rlwrap` ];
+then RLWRAP='rlwrap -c';
+fi
+
+schemeScript=./harlani.scm
+HARLAN_DIR=`dirname $schemeScript`
+
+case $SCHEME in
+vicare)
+        $RLWRAP $SCHEME -L $HARLAN_DIR -L $HARLAN_DIR/external/nanopass-framework --more-file-extensions --r6rs-script "$schemeScript" -- -L $HARLAN_DIR/lib/harlan -R $HARLAN_DIR/rt $@
+        ;;
+petite)
+        dir=$HARLAN_DIR:external/nanopass-framework/lib/csv8.4/$MACHINE:$HARLAN_DIR/external/nanopass-framework
+        $RLWRAP petite --libdirs "$dir" --program "$schemeScript" -L $HARLAN_DIR/lib/harlan -R $HARLAN_DIR/rt $@
+        ;;
+*)
+        echo $SCHEME is not a supported Scheme implementation
+        ;;
+esac
