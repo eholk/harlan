@@ -99,8 +99,15 @@
       (iterate-colors graph colors)))
   
   (define (main)
-    (let* ((start (time-s))
-           (graph (make-graph 16 100))
+    (let* ((args (command-line))
+           (N (if (> (length args) 1)
+                  (parse-str->int (vector-ref args 1) 100)
+                  100))
+           (edge-factor (if (> (length args) 2)
+                            (parse-str->int (vector-ref args 2) 16)
+                            16))
+           (start (time-s))
+           (graph (make-graph edge-factor N))
            (stop  (time-s)))
       (println* "Generated graph with " (length graph) " vertices in "
                 (- stop start) " seconds.")
