@@ -13,6 +13,8 @@
     (case (get-os)
       ('darwin '("-framework OpenCL"))
       ('linux  '("-I/opt/cuda/include" "-I/usr/local/cuda/include"
+		 "-I/opt/nvidia/cudatoolkit/default/include"
+		 "-L/opt/cray/nvidia/default/lib64/"
                  "-lOpenCL" "-lrt"))))
 
   (define (get-runtime)

@@ -13,7 +13,7 @@ SRC = \
 	gpu_common.h \
 	gpu_only.h \
 
-CXXFLAGS = -I/usr/local/cuda/include -g -fPIC -O2
+CXXFLAGS = -I/usr/local/cuda/include -I/opt/nvidia/cudatoolkit/default/include -g -fPIC -O2
 
 .phony : clean all
 
