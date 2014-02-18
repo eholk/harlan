@@ -33,7 +33,7 @@ uint64_t nanotime() {
     uint64_t ns_per_s = 1000000000LL;
     timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
-    return (ts.tv_sec * ns_per_s + ts.tv_nsec);
+    return ((uint64_t)ts.tv_sec * (uint64_t)ns_per_s + (uint64_t)ts.tv_nsec);
 #endif    
 }
 

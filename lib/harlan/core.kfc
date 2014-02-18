@@ -5,6 +5,7 @@
   (extern close_outfile ((ptr ofstream)) -> void)
   (extern command-line () -> (vec str))
   (extern get-environment-variable (str) -> str)
+  (extern nanotime () -> u64)
   (extern open_outfile (str) -> (ptr ofstream))
   (extern str->vec (str) -> (vec char))
   (extern time-s () -> float)
@@ -148,6 +149,9 @@
 
   (define (float->int f)
     (unsafe-explicit-cast (float -> int) f))
+
+  (define (u64->float u)
+    (unsafe-explicit-cast (u64 -> float) u))
 
   (define (parse-char-vec->int-helper v default i acc)
     (if (= (length v) i)
