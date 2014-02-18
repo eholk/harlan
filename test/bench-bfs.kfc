@@ -38,7 +38,7 @@
 
   ;; FIXME: We'd like to call choose-edges from make-graph-inner, but
   ;; calling functions that have kernels from within a kernel is
-  ;; currently broken.
+  ;; currently broken. Depends on issue #114.
   ;;
   ;;(define (choose-edges N max_vertex rng)
   ;;  (kernel ((i (iota N)))

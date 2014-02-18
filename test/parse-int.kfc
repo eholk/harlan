@@ -1,0 +1,6 @@
+(module
+  (define (main)
+    (let ((n (parse-str->int "42" -1)))
+      (println n)
+      (assert (= n 42)))
+    0))
