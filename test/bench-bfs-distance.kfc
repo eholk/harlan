@@ -1,0 +1,107 @@
+;; Breadth first search
+
+(%testspec
+ (%tags bench))
+
+(module
+  (import random)
+  (extern get_kernel_time () -> u64)
+
+  (define (elapsed-sec start end)
+    (/ (u64->float (- end start)) 1e9))
+
+  (define-datatype color
+    (white)
+    (gray)
+    (black))
+
+  (define (minimum x y)
+    (if (< x y)
+	x
+	y))
+
+  (define-macro append ()
+    ((_ A B)
+     (let ((a A) (b B))
+       (let ((lenA (length a))
+             (len (+ (length a) (length b))))
+         (kernel ((i (iota len)))
+           (if (< i lenA)
+               (vector-ref a i)
+               (vector-ref b (- i lenA))))))))
+
+  ;; FIXME: We'd like to call choose-edges from make-graph-inner, but
+  ;; calling functions that have kernels from within a kernel is
+  ;; currently broken. Depends on issue #114.
+  ;;
+  ;;(define (choose-edges N max_vertex rng)
+  ;;  (kernel ((i (iota N)))
+  ;;    (let ((rng (reseed rng i)))
+  ;;      (match (random rng)
+  ;;        ((RandomResult n _)
+  ;;         (mod n max_vertex))))))
+
+  (define (make-graph-inner edge_factor N rng)
+    (kernel ((i (iota N)))
+      (let ((rng (reseed rng i))
+            (N edge_factor)
+            (max_vertex N))
+        (kernel ((i (iota N)))
+          (let ((rng (reseed rng i)))
+            (match (random rng)
+              ((RandomResult n _)
+               (mod n max_vertex))))))))
+
+  (define (make-graph edge_factor N)
+    (make-graph-inner edge_factor N (init-rand)))
+
+  ;; Ideally, this would be make-graph, but we'd have to be able to do
+  ;; function calls from kernels first.
+  ;;(define (make-graph edge_factor N)
+  ;;  (kernel ((i (iota N))) (choose_edges edge_factor N)))
+
+  (define (iterate-distances graph distances)
+    (println "iterate")
+    (let ((new-distances
+           (kernel ((i (iota (length graph))))
+	     (minimum
+	      (reduce minimum (kernel ((j (vector-ref graph i)))
+				(+ (vector-ref distances j) 1)))
+	      (vector-ref distances i)))))
+      (println "computed new distances")
+      (if (reduce and (kernel ((d1 new-distances)
+			       (d2 distances))
+			(= d1 d2)))
+          distances
+          (begin
+            ;;(println new-colors)
+            (iterate-distances graph new-distances)))))
+
+  (define (bfs graph start)
+    (let ((distances (kernel ((i (iota (length graph))))
+                    (if (= i start)
+                        0
+                        (u64_max)))))
+      ;;(println colors)
+      (iterate-distances graph distances)))
+  
+  (define (main)
+    (let* ((args (command-line))
+           (N (if (> (length args) 1)
+                  (parse-str->int (vector-ref args 1) 100)
+                  100))
+           (edge-factor (if (> (length args) 2)
+                            (parse-str->int (vector-ref args 2) 16)
+                            16))
+           (start (time-s))
+           (graph (make-graph edge-factor N))
+           (stop  (time-s)))
+      (println* "Generated graph with " (length graph) " vertices in "
+                (- stop start) " seconds.")
+      (let* ((start  (nanotime))
+             (result (bfs graph 0))
+             (stop   (nanotime)))
+        (println* "Performed BFS in " (elapsed-sec start stop) " seconds.")))
+    0)
+  
+  )
