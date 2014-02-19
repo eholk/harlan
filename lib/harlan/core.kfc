@@ -34,6 +34,12 @@
          body ...
          (set! i (+ i stepv))))))
 
+  (define-macro make-vector ()
+    ((_ len init)
+     (let ((t init))
+       (kernel ((i (iota len)))
+         t))))
+  
   (define-macro kernel* ()
     ((_ ((x e)) b)
      (kernel ((x e)) b))

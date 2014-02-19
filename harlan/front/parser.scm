@@ -114,8 +114,6 @@
    `(vector-r ,r . ,e*))
   ((begin ,[(parse-stmt env) -> stmt*] ... ,[(parse-expr env) -> expr])
    `(begin ,@stmt* ,expr))
-  ((make-vector ,[(parse-expr env) -> size] ,[expr])
-   `(make-vector ,size ,expr))
   ((if ,[test] ,[conseq] ,[alt])
    `(if ,test ,conseq ,alt))
   ((iota ,[e])
