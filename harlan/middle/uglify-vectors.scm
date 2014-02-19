@@ -18,6 +18,8 @@
 ;;  ;; For now, don't do anything just to make sure we get the parsing
 ;;  ;; right.
 ;;  )
+
+(define in-kernel? (make-parameter #f))
   
 (define (remove-dups ls)
   (cond
@@ -144,14 +146,14 @@
           (vv (uglify-let-vec t `(var int ,length) r))
           (xt (remove-regions `(vec ,r ,t))))
      (values
-      `(let ((,length int ,n))
-         (let ((,x ,xt ,vv))
-           ,(make-begin
-             `((if (= (int 0) (cast int (var ,xt ,x)))
-                   (error allocation-failure))
-               (set! ,(vector-length-field `(var ,xt ,x) r)
-                     (var int ,length))
-               ,rest))))
+      `(let ((,x ,xt (call (c-expr (fn ((ptr region) int int) -> region_ptr)
+                                   alloc_vector)
+                           ,(if (in-kernel?)
+                                `(var region ,r)
+                                `(addressof (var region ,r)))
+                           (sizeof ,(remove-regions t))
+                           ,n)))
+         ,rest)
       (append r* rr*))))
   (((,x ,t ,[uglify-expr -> e er*])
     . ,[(uglify-let finish) -> rest rr*])
@@ -206,20 +208,22 @@
      ,t
      (,[uglify-expr -> dims dr**] ...)
      (free-vars . ,fv*)
-     ,[stmt sr*])
-   (let ((regions (remove-dups
-                   (apply append sr*
-                          (map extract-regions
-                               (map cadr fv*))))))
-     (values
-      `(kernel ,dims
-               (free-vars
-                ,@(map (lambda (fv) `(,(car fv)
-                                 ,(remove-regions (cadr fv))))
-                       fv*)
-                ,@(map (lambda (r) `(,r (ptr region))) regions))
-               ,stmt)
-      (apply append sr* dr**))))
+     ,stmt)
+   (let-values (((stmt sr*) (parameterize ((in-kernel? #t))
+                              (uglify-stmt stmt))))
+     (let ((regions (remove-dups
+                     (apply append sr*
+                            (map extract-regions
+                                 (map cadr fv*))))))
+       (values
+        `(kernel ,dims
+           (free-vars
+            ,@(map (lambda (fv) `(,(car fv)
+                                  ,(remove-regions (cadr fv))))
+                   fv*)
+            ,@(map (lambda (r) `(,r (ptr region))) regions))
+           ,stmt)
+        (apply append sr* dr**)))))
   ((do ,[uglify-expr -> e r*])
    (values `(do ,e) r*)))
 

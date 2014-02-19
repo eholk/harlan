@@ -55,7 +55,7 @@
   (define (harlan-decl decl ft)
     (match decl
       ((gpu-module ,kernel* ...)
-       (if (null? kernel*) "" (ft (build-kernel-programs kernel*))))
+       (ft (build-kernel-programs kernel*)))
       (,else (ft else))))
   
   (define-syntax format-as-harlan
