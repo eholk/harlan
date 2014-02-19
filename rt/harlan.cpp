@@ -55,16 +55,21 @@ cl_device_type get_device_type()
 
 int get_default_region_size()
 {
-  const char *cfg = getenv("HARLAN_MIN_REGION_SIZE");
+    static bool first_time = true;
 
-  if(cfg) {
-	  int sz = atoi(cfg);
-	  cerr << "Setting region size from HARLAN_MIN_REGION_SIZE to "
-		   << sz << " bytes." << endl;
-      return sz;
-  }
-  //else return 8192;
-  else return 8 << 20; // 8 megs
+    const char *cfg = getenv("HARLAN_MIN_REGION_SIZE");
+
+    if(cfg) {
+        int sz = atoi(cfg);
+        if(first_time) {
+            cerr << "Setting region size from HARLAN_MIN_REGION_SIZE to "
+                 << sz << " bytes." << endl;
+            first_time = false;
+        }
+        return sz;
+    }
+    //else return 8192;
+    else return 8 << 20; // 8 megs
 }
 
 region *create_region(int size)

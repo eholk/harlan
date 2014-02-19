@@ -374,6 +374,8 @@ string cl::format_status(cl_int e) {
         STATUS_STR(CL_OUT_OF_RESOURCES);
         STATUS_STR(CL_OUT_OF_HOST_MEMORY);
 
+	STATUS_STR(CL_PLATFORM_NOT_FOUND_KHR);
+
     default:
         stringstream s;
         s << "Unknown";

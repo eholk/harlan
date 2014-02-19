@@ -156,31 +156,20 @@
   (match (u64-value 18446744073709551615)
     ((u64-value i) i)))
 
-  (define-datatype MaybeInt
-    (JustInt int)
-    (NoInt))
-     
-  ;;(define (parse-char-vec->int v default)
-  ;;  (match
-  ;;      (reduce
-  ;;          (lambda (a b)
-  ;;            (match a
-  ;;              ((NoInt) (NoInt))
-  ;;              ((JustInt a)
-  ;;               (match b
-  ;;                 ((NoInt) (NoInt))
-  ;;                 ((JustInt b) (JustInt (+ a b)))))))
-  ;;        (kernel ((c v) (i (iota (length v))))
-  ;;          (let ((c (char->int c)))
-  ;;            (if (and (<= (char->int #\0) c) (<= c (char->int #\9)))
-  ;;                (JustInt (* (/ (reduce *
-  ;;                                 (kernel ((_ (iota (- (length v) i)))) 10))
-  ;;                               10)
-  ;;                            (- c (char->int #\0))))
-  ;;                (NoInt)))))
-  ;;    ((NoInt) default)
-  ;;    ((JustInt i) i)))
-  ;;
-  ;;(define (parse-str->int s default)
-  ;;  (parse-char-vec->int (str->vec s) default))
+  (define (parse-char-vec->int-helper v default i acc)
+    (if (= (length v) i)
+        acc
+        (let ((c (char->int (vector-ref v i))))
+          (if (and (<= (char->int #\0) c) (<= c (char->int #\9)))
+              (parse-char-vec->int-helper v default
+                                          (+ 1 i)
+                                          (+ (- c (char->int #\0))
+                                             (* 10 acc)))
+              default))))
+  
+  (define (parse-char-vec->int v default)
+    (parse-char-vec->int-helper v default 0 0))
+  
+  (define (parse-str->int s default)
+    (parse-char-vec->int (str->vec s) default))
   )
