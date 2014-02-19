@@ -47,5 +47,4 @@
     (kernel ((i (iota 1)))
       (let ((e (app (Lambda (variable 0)) (Lambda (variable 0)))))
         (eval e (empty-env) (lambda (x) x))))
-    0)
-  )
+    0))

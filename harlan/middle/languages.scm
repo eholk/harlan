@@ -109,7 +109,6 @@
      (let-region (r ...) e)
      (kernel t r (((x0 t0) (e1 t1)) ...) e)
      (iota-r r e)
-     (make-vector t r e)
      (for (x e0 e1 e2) e)
      (lambda t0 ((x t) ...) e)
      (invoke e e* ...)
@@ -238,7 +237,8 @@
      (e)
      (- (kernel t r i (((x0 t0) (e1 t1) i*) ...) e)
         (kernel t r i (e* ...) (((x0 t0) (e1 t1) i*) ...) e))
-     (+ (kernel t r (e* ...) (((x0 t0) (e1 t1) i*) ...) e))))
+     (+ (kernel t r (e* ...) (((x0 t0) (e1 t1) i*) ...) e)
+        (make-vector t r e))))
 
   ;; before lower-vectors
   (define-language M7.0
