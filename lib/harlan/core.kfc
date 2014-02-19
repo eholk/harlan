@@ -156,6 +156,13 @@
   (define (float->int f)
     (unsafe-explicit-cast (float -> int) f))
 
+  (define-datatype u64-value
+  (u64-value u64))
+
+  (define (u64_max)
+  (match (u64-value 18446744073709551615)
+    ((u64-value i) i)))
+
   (define (u64->float u)
     (unsafe-explicit-cast (u64 -> float) u))
 

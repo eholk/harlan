@@ -5,7 +5,6 @@
 
 (module
   (import random)
-  (extern get_kernel_time () -> u64)
 
   (define (elapsed-sec start end)
     (/ (u64->float (- end start)) 1e9))
@@ -15,11 +14,21 @@
     (gray)
     (black))
 
-  (define (minimum x y)
-    (if (< x y)
-	x
-	y))
-
+  (define (color-eqp c1 c2)
+    (match c1
+      ((white) (match c2
+                 ((white) #t)
+                 ((gray)  #f)
+                 ((black) #f)))
+      ((gray)  (match c2
+                 ((white) #f)
+                 ((gray)  #t)
+                 ((black) #f)))
+      ((black) (match c2
+                 ((white) #f)
+                 ((gray)  #f)
+                 ((black) #t)))))
+  
   (define-macro append ()
     ((_ A B)
      (let ((a A) (b B))
@@ -60,30 +69,37 @@
   ;;(define (make-graph edge_factor N)
   ;;  (kernel ((i (iota N))) (choose_edges edge_factor N)))
 
-  (define (iterate-distances graph distances)
+  (define (iterate-colors graph colors)
     (println "iterate")
-    (let ((new-distances
-           (kernel ((i (iota (length graph))))
-	     (minimum
-	      (reduce minimum (kernel ((j (vector-ref graph i)))
-				(+ (vector-ref distances j) 1)))
-	      (vector-ref distances i)))))
-      (println "computed new distances")
-      (if (reduce and (kernel ((d1 new-distances)
-			       (d2 distances))
-			(= d1 d2)))
-          distances
+    (let ((new-colors
+           (kernel ((i (iota (length graph))) (c colors))
+             (match c
+               ((black) (black))
+               ((gray)  (black))
+               ((white)
+                (if (reduce or (kernel ((j (vector-ref graph i)))
+                                 (match (vector-ref colors j)
+                                   ((white) #f)
+                                   ((gray)  #t)
+                                   ((black) #f))))
+                    (gray)
+                    (white)))))))
+      (println "computed new colors")
+      (if (reduce and (kernel ((c1 new-colors)
+                               (c2 colors))
+                        (color-eqp c1 c2)))
+          colors
           (begin
             ;;(println new-colors)
-            (iterate-distances graph new-distances)))))
+            (iterate-colors graph new-colors)))))
 
   (define (bfs graph start)
-    (let ((distances (kernel ((i (iota (length graph))))
+    (let ((colors (kernel ((i (iota (length graph))))
                     (if (= i start)
-                        0
-                        (u64_max)))))
+                        (gray)
+                        (white)))))
       ;;(println colors)
-      (iterate-distances graph distances)))
+      (iterate-colors graph colors)))
   
   (define (main)
     (let* ((args (command-line))
