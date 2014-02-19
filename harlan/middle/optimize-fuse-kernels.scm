@@ -15,43 +15,44 @@
      `(module ,decl* ...)))
     
   (define-match Decl
-    ((fn ,name ,args ,t ,[Stmt -> stmt])
+    ((fn ,name ,args ,t ,[(Stmt '()) -> stmt])
      `(fn ,name ,args ,t ,stmt))
     ((typedef ,name ,t) `(typedef ,name ,t))
     ((extern ,name ,args -> ,rtype)
      `(extern ,name ,args -> ,rtype)))
 
-  (define-match Stmt
-    ((let ((,x* ,t* ,[Expr -> e*]) ...) ,[body])
-     `(let ((,x* ,t* ,e*) ...) ,body))
+  (define-match (Stmt env)
+    ((let ((,x* ,t* ,e*) ...) ,body)
+     `(let ((,x* ,t* ,(map (Expr env) e*)) ...)
+        ,((Stmt (append (map cons x* e*) env)) body)))
     ((let-region (,r ...) ,[body]) `(let-region (,r ...) ,body))
-    ((set! ,[Expr -> lhs] ,[Expr -> rhs])
+    ((set! ,[(Expr env) -> lhs] ,[(Expr env) -> rhs])
      `(set! ,lhs ,rhs))
-    ((if ,[Expr -> test] ,[conseq] ,[altern])
+    ((if ,[(Expr env) -> test] ,[conseq] ,[altern])
      `(if ,test ,conseq ,altern))
-    ((if ,[Expr -> test] ,[conseq])
+    ((if ,[(Expr env) -> test] ,[conseq])
      `(if ,test ,conseq))
-    ((while ,[Expr -> test] ,[body])
+    ((while ,[(Expr env) -> test] ,[body])
      `(while ,test ,body))
-    ((for (,x ,[Expr -> start]
-              ,[Expr -> stop]
-              ,[Expr -> step])
+    ((for (,x ,[(Expr env) -> start]
+              ,[(Expr env) -> stop]
+              ,[(Expr env) -> step])
           ,[body])
      `(for (,x ,start ,stop ,step) ,body))
     ((begin ,[stmt*] ...)
      `(begin ,stmt* ...))
-    ((print ,[Expr -> e] ...)
+    ((print ,[(Expr env) -> e] ...)
      `(print . ,e))
-    ((assert ,[Expr -> e])
+    ((assert ,[(Expr env) -> e])
      `(assert ,e))
     ((return) `(return))
-    ((return ,[Expr -> e])
+    ((return ,[(Expr env) -> e])
      `(return ,e))
     ((error ,x) `(error ,x))
-    ((do ,[Expr -> e])
+    ((do ,[(Expr env) -> e])
      `(do ,e)))
 
-  (define-match Expr
+  (define-match (Expr env)
     ((,t ,v) (guard (scalar-type? t)) `(,t ,v))
     ((var ,t ,x) `(var ,t ,x))
     ((cast ,t ,[e]) `(cast ,t ,e))
@@ -78,9 +79,10 @@
     ((if ,[test] ,[conseq])
      `(if ,test ,conseq))
     ((kernel ,t ,r ,dims ,iters ,[body])
-     (make-2d-kernel t r dims iters body))
-    ((let ((,x* ,t* ,[e*]) ...) ,[e])
-     `(let ((,x* ,t* ,e*) ...) ,e))
+     (make-2d-kernel t r dims iters body env))
+    ((let ((,x* ,t* ,e*) ...) ,e)
+     `(let ((,x* ,t* ,(map (Expr env) e*)) ...)
+        ,((Expr (append (map cons x* e*) env)) e)))
     ((begin ,[Stmt -> s*] ... ,[e])
      `(begin ,s* ... ,e))
     ((field ,[e] ,x) `(field ,e ,x))
@@ -89,7 +91,7 @@
      (guard (or (relop? op) (binop? op)))
      `(,op ,lhs ,rhs)))
 
-  (define (inline-kernel t r dims iters body)
+  (define (inline-kernel t r dims iters body env)
     (match iters
       ((((,x ,xt)
          ((kernel ,t^ ,r^ ,dims^ ,iters^ ,body^)
@@ -98,25 +100,44 @@
         . ,rest)
        ;; Super kernel!
        (begin
-         (if (verbose)
+         (if (or #t (verbose))
              (begin
                (display "Harlan Compiler Message:")
                (display "optimize-fuse-kernels is inlining a kernel\n")))
-         (Expr
-          `(kernel ,t ,r ,dims
+         ((Expr env)
+          `(kernel ,t ,r ,dims^
                    (,@rest . ,iters^)
                    (let ((,x ,xt ,body^))
                      ,body)))))
+      ((((,x ,xt)
+         ((var ,tx ,xs)
+          ,et)
+         ,i)
+        . ,rest)
+       ;; Super kernel!
+       (match (assq xs env)
+         ((,xs . (kernel ,t^ ,r^ ,dims^ ,iters^ ,body^))
+          (begin
+            (if (or #t (verbose))
+                (begin
+                  (display "Harlan Compiler Message:")
+                  (display "optimize-fuse-kernels is inlining a kernel\n")))
+            ((Expr env)
+             `(kernel ,t ,r ,dims^
+                      (,@rest . ,iters^)
+                      (let ((,x ,xt ,body^))
+                        ,body)))))
+         (,else `(kernel ,t ,r ,dims ,iters ,body))))
       (,else `(kernel ,t ,r ,dims ,iters ,body))))
 
-  (define (make-2d-kernel t r dims iters body)
+  (define (make-2d-kernel t r dims iters body env)
     (let ((arg-vars (map caar iters))
-          (fallback (lambda () (inline-kernel t r dims iters body))))
+          (fallback (lambda () (inline-kernel t r dims iters body env))))
       (match body
         ((kernel ,t^ ,r^ ,dims^ ,iters^ ,body^)
          (guard (and ((not-in arg-vars) dims^)    ;; this should be (not (in ...))
                      ((not-in arg-vars) iters^)))
-         (Expr
+         ((Expr env)
           `(kernel
             ,t ,r
             (,@dims ,@dims^)
