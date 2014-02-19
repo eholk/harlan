@@ -3,6 +3,7 @@
 // This gives us a pointer to something in a region.
 #define get_region_ptr(r, i) (((char __global *)r) + i)
 
+typedef unsigned long uint64_t;
 
 region_ptr alloc_in_region(region __global *r, unsigned int size);
 region_ptr alloc_in_region(region __global *r, unsigned int size)
