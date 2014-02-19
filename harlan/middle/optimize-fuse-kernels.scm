@@ -83,7 +83,7 @@
     ((let ((,x* ,t* ,e*) ...) ,e)
      `(let ((,x* ,t* ,(map (Expr env) e*)) ...)
         ,((Expr (append (map cons x* e*) env)) e)))
-    ((begin ,[Stmt -> s*] ... ,[e])
+    ((begin ,[(Stmt env) -> s*] ... ,[e])
      `(begin ,s* ... ,e))
     ((field ,[e] ,x) `(field ,e ,x))
     ((empty-struct) '(empty-struct))
