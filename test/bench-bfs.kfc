@@ -5,27 +5,18 @@
 
 (module
   (import random)
+  (extern get_kernel_time () -> u64)
 
   (define-datatype color
     (white)
     (gray)
     (black))
 
-  (define (color-eqp c1 c2)
-    (match c1
-      ((white) (match c2
-                 ((white) #t)
-                 ((gray)  #f)
-                 ((black) #f)))
-      ((gray)  (match c2
-                 ((white) #f)
-                 ((gray)  #t)
-                 ((black) #f)))
-      ((black) (match c2
-                 ((white) #f)
-                 ((gray)  #f)
-                 ((black) #t)))))
-  
+  (define (minimum x y)
+    (if (< x y)
+	x
+	y))
+
   (define-macro append ()
     ((_ A B)
      (let ((a A) (b B))
@@ -66,47 +57,40 @@
   ;;(define (make-graph edge_factor N)
   ;;  (kernel ((i (iota N))) (choose_edges edge_factor N)))
 
-  (define (iterate-colors graph colors)
+  (define (iterate-distances graph distances)
     (println "iterate")
-    (let ((new-colors
-           (kernel ((i (iota (length graph))) (c colors))
-             (match c
-               ((black) (black))
-               ((gray)  (black))
-               ((white)
-                (if (reduce or (kernel ((j (vector-ref graph i)))
-                                 (match (vector-ref colors j)
-                                   ((white) #f)
-                                   ((gray)  #t)
-                                   ((black) #f))))
-                    (gray)
-                    (white)))))))
-      (println "computed new colors")
-      (if (reduce and (kernel ((c1 new-colors)
-                               (c2 colors))
-                        (color-eqp c1 c2)))
-          colors
+    (let ((new-distances
+           (kernel ((i (iota (length graph))))
+	     (minimum
+	      (reduce minimum (kernel ((j (vector-ref graph i)))
+				(+ (vector-ref distances j) 1)))
+	      (vector-ref distances i)))))
+      (println "computed new distances")
+      (if (reduce and (kernel ((d1 new-distances)
+			       (d2 distances))
+			(= d1 d2)))
+          distances
           (begin
             ;;(println new-colors)
-            (iterate-colors graph new-colors)))))
+            (iterate-distances graph new-distances)))))
 
   (define (bfs graph start)
-    (let ((colors (kernel ((i (iota (length graph))))
+    (let ((distances (kernel ((i (iota (length graph))))
                     (if (= i start)
-                        (gray)
-                        (white)))))
+                        0
+                        (u64_max)))))
       ;;(println colors)
-      (iterate-colors graph colors)))
+      (iterate-distances graph distances)))
   
   (define (main)
     (let* ((start (time-s))
-           (graph (make-graph 16 100))
+           (graph (make-graph 16 1000))
            (stop  (time-s)))
       (println* "Generated graph with " (length graph) " vertices in "
                 (- stop start) " seconds.")
-      (let* ((start  (time-s))
+      (let* ((start  (get_kernel_time))
              (result (bfs graph 0))
-             (stop   (time-s)))
+             (stop   (get_kernel_time)))
         (println* "Performed BFS in " (- stop start) " seconds.")))
     0)
   
