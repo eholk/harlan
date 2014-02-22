@@ -80,9 +80,11 @@
                                (norm (unit-length (point-diff pos center)))
                                (light-dir (unit-length
                                            (point-diff pos light-pos)))
-                               (color (point-scale
-                                       color
-                                       (dot-prod light-dir norm))))
+                               (color (point-add
+                                       (point3f 0.2 0.2 0.2)
+                                       (point-scale
+                                        color
+                                        (* .8 (dot-prod light-dir norm))))))
                           (hit t color)))))))))))
 
   (define-macro interpolate-range ()
@@ -108,7 +110,7 @@
   (define (main)
     (let ((scene (vector (make-diffuse-sphere (point3f 0 0 0)
                                               1
-                                              (point3f 0 0 1))))
+                                              (point3f 0 1 1))))
           (width 256)
           (height 256)
           (origin (point3f 0 0 -3)))
