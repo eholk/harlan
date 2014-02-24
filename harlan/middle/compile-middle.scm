@@ -47,8 +47,8 @@
    (optimize-fuse-kernels
     verify-optimize-fuse-kernels
     1)
-   (remove-danger
-    verify-remove-danger)
+   (nanopasses
+    (remove-danger : M7 -> M7.0.0))
    (remove-nested-kernels
     verify-remove-nested-kernels)
    (returnify-kernels

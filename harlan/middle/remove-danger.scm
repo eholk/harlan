@@ -3,9 +3,10 @@
   (export remove-danger)
   (import
    (rnrs)
-   (harlan compile-opts)
-   (harlan helpers)
-   (except (elegant-weapons helpers) ident?))
+   (nanopass)
+   (harlan middle languages)
+   (only (elegant-weapons helpers) gensym)
+   (harlan compile-opts))
 
   ;; This pass inserts vector bounds checks. So far we only support
   ;; this and allocation failures. The checking code for allocation
@@ -55,105 +56,48 @@
   ;;
   ;; This is software engineering at its finest.
 
-  
-  (define-match remove-danger
-    ((module ,[Decl -> decl*] ...)
-     `(module ,decl* ...)))
-    
-  (define-match Decl
-    ((fn ,name ,args ,t ,[Stmt -> stmt])
-     `(fn ,name ,args ,t ,stmt))
-    ((typedef ,name ,t) `(typedef ,name ,t))
-    ((extern ,name ,args -> ,rtype)
-     `(extern ,name ,args -> ,rtype)))
+  (define-pass remove-danger : M7 (m) -> M7.0.0 ()
+    (definitions
+      (define (type-of e)
+        (with-output-language
+         (M7.0.0 Rho-Type)
+         (nanopass-case
+          (M7.0.0 Expr) e
+          ((var ,t ,x) t)
+          ((vector-ref ,t ,e1 ,e2) t)
+          ((let ((,x ,t ,e) ...) ,[e0]) e0)
+          ((kernel ,t ,r (,e* ...) (((,x0 ,t0) (,e1 ,t1) ,i*) ...) ,e) t)
+          ((begin ,[e] ,[e*] ...)
+           (let loop ((e* e*))
+             (cond
+               ((null? e*) e)
+               ((null? (cdr e*)) (car e*))
+               (else (loop (cdr e*))))))
+          ((vector ,t ,r ,e)
+           `(vec ,r ,t))
+          ((if ,e1 ,[e2] ,e3) e2)
+          ((if ,e1 ,[e2]) e2)
+          ((error ,x) 'void)
+          (else (error 'remove-danger::type-of "unrecognized expr"
+                       (unparse-M7.0.0 e)))))))
 
-  (define-match Stmt
-    ((let ((,x* ,t* ,[Expr -> e*]) ...) ,[body])
-     `(let ((,x* ,t* ,e*) ...) ,body))
-    ((let-region (,r ...) ,[body]) `(let-region (,r ...) ,body))
-    ((set! ,[Expr -> lhs] ,[Expr -> rhs])
-     `(set! ,lhs ,rhs))
-    ((if ,[Expr -> test] ,[conseq] ,[altern])
-     `(if ,test ,conseq ,altern))
-    ((if ,[Expr -> test] ,[conseq])
-     `(if ,test ,conseq))
-    ((while ,[Expr -> test] ,[body])
-     `(while ,test ,body))
-    ((for (,x ,[Expr -> start] ,[Expr -> stop] ,[Expr -> step]) ,[body])
-     `(for (,x ,start ,stop ,step) ,body))
-    ((begin ,[stmt*] ...)
-     `(begin ,stmt* ...))
-    ((print ,[Expr -> e] ...)
-     `(print . ,e))
-    ((assert ,[Expr -> e])
-     `(assert ,e))
-    ((return) `(return))
-    ((return ,[Expr -> e])
-     `(return ,e))
-    ((do ,[Expr -> e])
-     `(do ,e)))
+    (Expr
+     : Expr (e) -> Expr ()
 
-  (define-match Expr
-    ((,t ,v) (guard (scalar-type? t)) `(,t ,v))
-    ((var ,t ,x) `(var ,t ,x))
-    ((cast ,t ,[e]) `(cast ,t ,e))
-    ((make-vector ,t ,r ,[e])
-     `(make-vector ,t ,r ,e))
-    ((vector-ref ,t ,[v] ,[i])
-     (if (danger-zone)
-         `(vector-ref ,t ,v ,i)
-         (let ((v-var (gensym 'vec))
-               (i-var (gensym 'refindex))
-               (vt    (type-of v)))
-           `(let ((,v-var ,vt ,v)
-                  (,i-var int ,i))
-              (begin
-                (if (>= (var int ,i-var) (length (var ,vt ,v-var)))
-                    (error ,(gensym 'vector-length-error)))
-                (vector-ref ,t (var ,vt ,v-var) (var int ,i-var)))))))
-    ((unsafe-vector-ref ,t ,[v] ,[i])
-     `(vector-ref ,t ,v ,i))
-    ((unsafe-vec-ptr ,t ,[v])
-     `(unsafe-vec-ptr ,t ,v))
-    ((length ,[e])
-     `(length ,e))
-    ((vector ,t ,r ,[e*] ...)
-     `(vector ,t ,r . ,e*))
-    ((box ,r ,t ,[e]) `(box ,r ,t ,e))
-    ((unbox ,t ,r ,[e]) `(unbox ,t ,r ,e))
-    ((call ,[f] ,[args] ...)
-     `(call ,f . ,args))
-    ((if ,[test] ,[conseq] ,[altern])
-     `(if ,test ,conseq ,altern))
-    ((kernel
-      (vec ,r ,inner-type)
-      ,r
-      (,[dim] ...)
-      (((,x* ,t*) (,[xs*] ,ts*) ,d*) ...)
-      ,[body])
-     `(kernel
-       (vec ,r ,inner-type)
-       ,r
-       ,dim
-       (((,x* ,t*) (,xs* ,ts*) ,d*) ...) ,body))
-    ((let ((,x* ,t* ,[e*]) ...) ,[e])
-     `(let ((,x* ,t* ,e*) ...) ,e))
-    ((begin ,[Stmt -> s*] ... ,[e])
-     `(begin ,s* ... ,e))
-    ((c-expr . ,whatever) `(c-expr . ,whatever))
-    ((field ,[e] ,x) `(field ,e ,x))
-    ((empty-struct) '(empty-struct))
-    ((,op ,[lhs] ,[rhs])
-     (guard (or (relop? op) (binop? op)))
-     `(,op ,lhs ,rhs)))
+     ((vector-ref ,[t] ,[e0] ,[e1])
+      (if (danger-zone)
+          `(vector-ref ,t ,e0 ,e1)
+          (let ((v-var (gensym 'vec))
+                (i-var (gensym 'refindex))
+                (vt    (type-of e0)))
+            `(let ((,v-var ,vt ,e0)
+                   (,i-var int ,e1))
+               (begin
+                 (if (>= (var int ,i-var) (length (var ,vt ,v-var)))
+                     (error ,(gensym 'vector-length-error)))
+                 (vector-ref ,t (var ,vt ,v-var) (var int ,i-var)))))))
+     ((unsafe-vector-ref ,[t] ,[e0] ,[e1])
+      `(vector-ref ,t ,e0 ,e1))))
 
-  (define-match type-of
-    ((var ,t ,_) t)
-    ((vector-ref ,t ,v ,i) t)
-    ((let ((,x ,t ,e) ...) ,[b]) b)
-    ((kernel ,t . ,_) t)
-    ((begin ,e* ... ,[e]) e))
-  
-  
   ;; end library
   )

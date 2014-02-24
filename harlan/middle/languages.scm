@@ -8,7 +8,8 @@
           M3 unparse-M3 parse-M3
           M5 unparse-M5 parse-M5
           M6 unparse-M6
-          M7 unparse-M7
+          M7 unparse-M7 parse-M7
+          M7.0.0 unparse-M7.0.0
           M7.0 unparse-M7.0 parse-M7.0
           M7.1 unparse-M7.1
           ;;M7.2 unparse-M7.2
@@ -240,9 +241,17 @@
      (+ (kernel t r (e* ...) (((x0 t0) (e1 t1) i*) ...) e)
         (make-vector t r e))))
 
+  ;; After remove-danger
+  (define-language M7.0.0
+    (extends M7)
+
+    (Expr (e)
+          (+ (error x))
+          (- (unsafe-vector-ref t e0 e1))))
+    
   ;; before lower-vectors
   (define-language M7.0
-    (extends M7)
+    (extends M7.0.0)
 
     (FreeVars
      (fv)
@@ -259,10 +268,10 @@
         (print e1 e2)
         (assert e)
         (set! e1 e2)
+        (error x)
         (begin stmt ...)
         (if e stmt1 stmt2)
         (if e stmt)
-        (error x)
         (while e stmt)
         (do e)
         (kernel t (e* ...) fv stmt)
@@ -287,7 +296,8 @@
 
     (Expr
      (e)
-     (- (kernel t r (e* ...) (((x0 t0) (e1 t1) i*) ...) e))
+     (- (kernel t r (e* ...) (((x0 t0) (e1 t1) i*) ...) e)
+        (error x))
      (+ (addressof e)
         (deref e))))
   
@@ -487,7 +497,7 @@
   (define-parser parse-M0 M0)
   (define-parser parse-M3 M3)
   (define-parser parse-M5 M5)
-  ;;(define-parser parse-M7 M7)
+  (define-parser parse-M7 M7)
   (define-parser parse-M7.0 M7.0)
   ;;(define-parser parse-M7.1 M7.1)
   (define-parser parse-M8 M8)
