@@ -51,11 +51,14 @@ device_list::device_list(cl_device_type type)
     CL_CHECK(clGetPlatformIDs(0, NULL, &nPlatforms));
     assert(nPlatforms > 0);
 
+    //cerr << "found " << nPlatforms << " platforms." << endl;
+
     platforms = new cl_platform_id[nPlatforms];
     CL_CHECK(clGetPlatformIDs(nPlatforms, platforms, &nPlatforms));
 
     // Find out how many devices there are.
     cl_uint n_dev = 0;
+    int platform = -1;
     for(int i = 0; i < nPlatforms; ++i) {
         status = clGetDeviceIDs(platforms[i], type, 0, NULL, &n_dev);
         if(CL_DEVICE_NOT_FOUND == status)
@@ -76,6 +79,8 @@ device_list::device_list(cl_device_type type)
         
         cerr << "OpenCL Platform Version: " << n << endl;
 
+        platform = i;
+
         break;
     }
 
@@ -89,15 +94,10 @@ device_list::device_list(cl_device_type type)
     // Allocate memory, gather information about all the devices.
     devices = new cl_device_id[num_ids];
   
-    size_t offset = 0;
-    for(int i = 0; i < nPlatforms; ++i) {
-        status = clGetDeviceIDs(platforms[i], type, n_dev,
-                                devices + offset, &n_dev);
-        if(CL_DEVICE_NOT_FOUND == status)
-            continue;
-        CL_CHECK_MSG(status, "clGetDeviceIDs");
-        offset += n_dev;
-    }
+    status = clGetDeviceIDs(platforms[platform], type, n_dev,
+                            devices, &n_dev);
+    //cerr << status << ", " << n_dev << endl;
+    CL_CHECK_MSG(status, "clGetDeviceIDs");
 
     delete [] platforms;
 }
