@@ -81,7 +81,10 @@
                        (begin
                          (successes (add1 (successes)))
                          (with-color 'green (printf "OK\n")))
-                       (error 'do-test "Test execution failed.")))))))
+                       (begin
+                         (if (print-failed-logs)
+                             (system (string-append "cat " out-path)))
+                         (error 'do-test "Test execution failed."))))))))
     (printf "Test ~a\n" path)
     (flush-output-port (current-output-port))
     (let-values (((source spec) (read-source path)))
