@@ -9,8 +9,7 @@ before_install:
 
 install:
   - sudo apt-get install fglrx opencl-headers libgmp-dev texinfo
-  - ./travis/install-petite.sh
-  - ./travis/install-vicare.sh
+  - ./travis/install-scheme.sh
 
 script:
   - make

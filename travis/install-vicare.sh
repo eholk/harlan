@@ -7,5 +7,5 @@ mkdir -p build
 sh autogen.sh
 cd build
 ../configure --enable-maintainer-mode
-make
+make -j8
 sudo make install
