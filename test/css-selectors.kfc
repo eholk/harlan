@@ -1,0 +1,52 @@
+;; CSS Selector Matching
+;;
+;; Inspired by
+;; http://www.eecs.berkeley.edu/~lmeyerov/projects/pbrowser/pubfiles/playout.pdf
+
+(module
+
+  ;; We represent tags as integers, assuming they are interned strings.
+
+  ;; TODO: symbols are tags and also attributes like classes.
+  
+  (define-datatype CssSelector
+    ;; Match a single tag
+    (Symbol int)
+    ;; Match a selector followed by another selector.
+    (Sequence CssSelector CssSelector)
+    ;; Match a selector, followed by a wildcard, followed by a selector.
+    (Wildcard CssSelector CssSelector))
+
+  (define-datatype CssRule
+    (Selector CssSelector)
+    (Alternate CssRule CssSelector))
+
+  (define-datatype DomNode
+    ;; Nodes are always a tag and a vector of child nodes.
+    (Node int (vec DomNode)))
+
+  (define (matches-selector? (Node tag children) selector)
+    (match selector
+      ((Symbol tag^) (= tag tag^))
+      ((Sequence s1 s2)
+       ;; TODO: test s1 and if it matches, test the remainder on
+       ;; s2. This means we'll need some way to return the part of the
+       ;; node that wasn't consumed in matching s1.
+       #f)
+      ((Wildcard s1 s2)
+       ;; This will be like the previous one, but if s1 matches we'll
+       ;; have to see if any subtree of the remainder matches s2.
+       #f)))
+  
+  (define (matches? (Node tag children) rule)
+    (match rule
+      ((Selector selector) (matches-selector? (Node tag children) selector))
+      ((Alternate rule selector)
+       (or (matches? (Node tag children) rule)
+           (matches-selector? (Node tag children) selector)))))
+
+  (define (main)
+    (let ((selector (Selector (Symbol 0)))
+          (node (Node 0 (vector))))
+      (println (matches? node selector)))
+    0))
