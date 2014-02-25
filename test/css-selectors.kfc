@@ -3,6 +3,9 @@
 ;; Inspired by
 ;; http://www.eecs.berkeley.edu/~lmeyerov/projects/pbrowser/pubfiles/playout.pdf
 
+(%testspec
+  (%tags xfail))
+
 (module
 
   ;; We represent tags as integers, assuming they are interned strings.
