@@ -25,7 +25,7 @@
     ;; Nodes are always a tag and a vector of child nodes.
     (Node int (vec DomNode)))
 
-  (define (matches-selector? (Node tag children) selector)
+  (define (matches-selector? (Node tag children) selector matches-rest?)
     (match selector
       ((Symbol tag^) (= tag tag^))
       ((Sequence s1 s2)
@@ -40,13 +40,23 @@
   
   (define (matches? (Node tag children) rule)
     (match rule
-      ((Selector selector) (matches-selector? (Node tag children) selector))
+      ((Selector selector)
+       (matches-selector? (Node tag children) selector (lambda (node) #t)))
       ((Alternate rule selector)
        (or (matches? (Node tag children) rule)
-           (matches-selector? (Node tag children) selector)))))
+           (matches-selector? (Node tag children)
+                              selector
+                              (lambda (node) #t))))))
+
+  (define (leaf-node tag)
+    (Node tag (vector)))
 
   (define (main)
-    (let ((selector (Selector (Symbol 0)))
-          (node (Node 0 (vector))))
-      (println (matches? node selector)))
+    (let ((selector1 (Selector (Symbol 0)))
+          (node1 (leaf-node 0))
+          (selector2 (Selector (Sequence (Symbol 0)
+                                        (Symbol 1))))
+          (node2 (Node 0 (vector (leaf-node 1)))))
+      (println (matches? node1 selector1))
+      (println (matches? node2 selector2)))
     0))
