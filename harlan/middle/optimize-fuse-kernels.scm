@@ -79,6 +79,9 @@
      `(if ,test ,conseq))
     ((kernel ,t ,r ,dims ,iters ,[body])
      (make-2d-kernel t r dims iters body))
+    ((kernel-update! ,t (((,x ,t^) (,[xs] ,ts)) ...) ,[e])
+     ;; TODO: we can do some limited fusion here.
+     `(kernel-update! ,t (((,x ,t^) (,xs ,ts)) ...) ,e))
     ((let ((,x* ,t* ,[e*]) ...) ,[e])
      `(let ((,x* ,t* ,e*) ...) ,e))
     ((begin ,[Stmt -> s*] ... ,[e])

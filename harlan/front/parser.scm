@@ -165,6 +165,16 @@
           ,(make-begin
              `(,@(map (parse-stmt env) stmt*)
                ,((parse-expr env) e)))))))
+  ((kernel-update! ((,x ,[e]) <- (,x* ,[e*]) ...) ,stmt* ... ,b)
+   (begin
+     (check-idents (cons x x*))
+     (let* ((x^ (gensym x))
+            (x*^ (map gensym x*))
+            (env (cons (cons x x^) (append (map cons x* x*^) env))))
+       `(kernel-update! ((,x^ ,e) <- (,x*^ ,e*) ...)
+          ,(make-begin
+             `(,@(map (parse-stmt env) stmt*)
+               ,((parse-expr env) b)))))))
   ((match ,[e]
      ((,tag ,x* ...) ,s* ... ,e*) ...)
    (guard (and (andmap ident? tag)

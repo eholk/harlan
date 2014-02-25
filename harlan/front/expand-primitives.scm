@@ -3,6 +3,7 @@
   (export expand-primitives)
   (import
     (rnrs)
+    (only (chezscheme) pretty-print)
     (elegant-weapons helpers)
     (elegant-weapons compat))
 
@@ -155,10 +156,12 @@
      `(if ,test ,conseq ,altern))
     ((if ,[test] ,[conseq])
      `(if ,test ,conseq))
-    ((kernel ,ktype (((,x ,t) (,[xs] ,ts)) ...) ,[body])
-     `(kernel ,ktype ,(gensym 'region) (((,x ,t) (,xs ,ts)) ...) ,body))
     ((kernel-r ,ktype ,r (((,x ,t) (,[xs] ,ts)) ...) ,[body])
      `(kernel ,ktype ,r (((,x ,t) (,xs ,ts)) ...) ,body))
+    ((kernel-update! ,t (((,x ,tx) (,[xs] ,ts)) ...) ,[body])
+     `(kernel-update! ,t (((,x ,tx) (,xs ,ts)) ...) ,body))
+    ((kernel-update! . ,_)
+     (pretty-print `(kernel-update! . ,_)))
     ((let ((,x* ,t* ,[e*]) ...) ,[e])
      `(let ((,x* ,t* ,e*) ...) ,e))
     ((begin ,[expand-prim-stmt -> s*] ... ,[e])

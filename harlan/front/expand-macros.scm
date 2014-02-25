@@ -273,6 +273,22 @@
                                   env)))
                  `(,a ((,(reify x env) ,e) ...)
                     ,(reify b* env) ...)))))
+           ((kernel-update!)
+            (match x
+              ((,_ ((,x ,e) ,<- (,x* ,e*) ...) ,b* ...)
+               (let ((e (reify e env))
+                     (e* (map (lambda (e)
+                                (reify e env))
+                              e*))
+                     (env (cons (cons x (gensym (ident-symbol x)))
+                                (append (map (lambda (x)
+                                               (cons x
+                                                     (gensym (ident-symbol x))))
+                                             x*)
+                                        env))))
+                 `(,a ((,(reify x env) ,e) ,(ident-symbol <-)
+                       (,(reify x* env) ,e*) ...)
+                      ,(reify b* env) ...)))))
            ((let-region)
             (match x
               ((,_ (,r ...) ,b ...)

@@ -80,7 +80,46 @@
   ((field ,[e] ,x) `(field ,e ,x))
   ((empty-struct) '(empty-struct))
   ((kernel . ,body*)
-   (returnify-kernel `(kernel . ,body*))))
+   (returnify-kernel `(kernel . ,body*)))
+  ((kernel-update! (vec ,r ,t)
+                   (((,x ,t) (,[x^] (vec ,r ,t)))
+                    ((,x* ,t*) (,[xs*] ,ts*)) ...)
+                   ,body)
+   ;; This is where we get ride of kernel-update!. After this point,
+   ;; we'll just have regular kernels.
+   (make-danger-vector
+    (lambda (danger)
+      (let ((body ((set-retval t x danger) body)))
+        `(kernel (vec ,r ,t)
+                 ((length ,x^))
+                 (((,x ,t) (,x^ (vec ,r ,t)) 0)
+                  ((,x* ,t*) (,xs* ,ts*) 0) ...)
+                 ,body)))
+    x^)))
+
+(define (make-danger-vector make-body rval)
+  (let ((r (gensym 'danger-region)))
+    (let ((danger-vector (gensym 'danger_vector))
+          (danger-vec-t `(vec ,r ,danger-type))
+          (i (gensym 'i)))
+      `(begin
+         (let-region (,r)
+           (let ((,danger-vector
+                  ,danger-vec-t
+                  (make-vector ,danger-type ,r ,num-danger)))
+             (begin
+               (for (,i (int 0) ,num-danger (int 1))
+                 (set! (vector-ref
+                        ,danger-type
+                        (var ,danger-vec-t ,danger-vector)
+                        (var int ,i))
+                       (bool #f)))
+               ,(make-body (lambda (d)
+                             `(vector-ref ,danger-type
+                                          (var ,danger-vec-t ,danger-vector)
+                                          ,d)))
+               ,(check-danger-vector danger-vector r num-danger))))
+         ,rval))))
 
 (define-match returnify-kernel
   ((kernel (vec ,r ,t)
@@ -89,48 +128,35 @@
      (((,x* ,tx*) (,[returnify-kernel-expr -> xe*] ,xet*) ,dim) ...)
      ,body)
    (let ((retvars (map (lambda (_) (gensym 'retval)) dims))
-         (danger-vector (gensym 'danger_vector))
-         (danger-vec-t `(vec ,r ,danger-type))
-         (i (gensym 'i))
          (vv (gensym 'vv))
+         (i  (gensym 'i))
          (id (gensym 'kern)))
-     `(let ((,id (vec ,r ,t) (make-vector ,t ,r ,(car dims)))
-            (,danger-vector
-             ;; TODO: the danger vector should probably get its own region.
-             ,danger-vec-t
-             (make-vector ,danger-type ,r ,num-danger)))
-        (begin
-          (for (,i (int 0) ,num-danger (int 1))
-            (set! (vector-ref
-                   ,danger-type
-                   (var ,danger-vec-t ,danger-vector)
-                   (var int ,i))
-                  (bool #f)))
-          ,@(if (null? (cdr dims))
-                `()
-                (match t
-                  ((vec ,r^ ,t^)
-                   `((for (,i (int 0) ,(car dims) (int 1))
-                          (let ((,vv (vec ,r^ ,t^)
-                                     (make-vector ,t^ ,r^
-                                                  ,(cadr dims))))
-                            (set! (vector-ref (vec ,r^ ,t^)
-                                              (var (vec ,r ,t) ,id)
-                                              (var int ,i))
-                                  (var (vec ,r^ ,t^) ,vv))))))))
-          (kernel
-           (vec ,r ,t)
-           ,dims
-           ,(insert-retvars r retvars (cons id retvars) 0 t
-                            `(((,x* ,tx*) (,xe* ,xet*) ,dim) ...))
-           ,((set-retval (shave-type (length dims) `(vec ,r ,t))
-                         (car (reverse retvars))
-                         (lambda (d) `(vector-ref ,danger-type
-                                             (var ,danger-vec-t ,danger-vector)
-                                             ,d)))
-              body))
-          ,(check-danger-vector danger-vector r num-danger)
-          (var (vec ,r ,t) ,id))))))
+     `(let ((,id (vec ,r ,t) (make-vector ,t ,r ,(car dims))))
+        ,(make-danger-vector
+          (lambda (danger)
+            `(begin
+               ,@(if (null? (cdr dims))
+                     `()
+                     (match t
+                       ((vec ,r^ ,t^)
+                        `((for (,i (int 0) ,(car dims) (int 1))
+                            (let ((,vv (vec ,r^ ,t^)
+                                       (make-vector ,t^ ,r^
+                                                    ,(cadr dims))))
+                              (set! (vector-ref (vec ,r^ ,t^)
+                                                (var (vec ,r ,t) ,id)
+                                                (var int ,i))
+                                    (var (vec ,r^ ,t^) ,vv))))))))
+               (kernel
+                   (vec ,r ,t)
+                 ,dims
+                 ,(insert-retvars r retvars (cons id retvars) 0 t
+                                  `(((,x* ,tx*) (,xe* ,xet*) ,dim) ...))
+                 ,((set-retval (shave-type (length dims) `(vec ,r ,t))
+                               (car (reverse retvars))
+                               danger)
+                   body))))
+          `(var (vec ,r ,t) ,id))))))
 
 (define (check-danger-vector danger-vector r len)
   (let ((i (gensym 'danger_i))

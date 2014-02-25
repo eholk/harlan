@@ -68,6 +68,12 @@
        `(kernel (vec ,r ,t) ,r ,dims
                 (((,x* ,t*) (,xs* ,ts*) ,d*) ...)
                 ,e)))
+  ((kernel-update! ,t (((,x ,t^) (,[xs] ,ts)) ...) ,[(Expr #t) -> e])
+   (if k
+       ;; TODO: allow nested kernel-update!
+       (error 'remove-nested-kernels
+              "nesting kernel-update! is not yet supported.")
+       `(kernel-update! ,t (((,x ,t^) (,xs ,ts)) ...) ,e)))
   ((if ,[t] ,[c] ,[a])
    `(if ,t ,c ,a))
   ((call ,[fn] ,[args] ...)

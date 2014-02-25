@@ -151,6 +151,8 @@
          ((vector ,t ,r ,[e] ...) `(vector ,t ,r ,e ...))
          ((kernel ,t ,r (((,x ,t*) (,[xs] ,ts)) ...) ,[e])
           `(kernel ,t ,r (((,x ,t*) (,xs ,ts)) ...) ,e))
+         ((kernel-update! ,t (((,x ,t*) (,[xs] ,ts)) ...) ,[e])
+          `(kernel-update! ,t (((,x ,t*) (,xs ,ts)) ...) ,e))
          ((let ((,x ,t ,[e]) ...) ,[b])
           `(let ((,x ,t ,e) ...) ,b))
          ((make-vector ,t ,r ,[e]) `(make-vector ,t ,r ,e))
