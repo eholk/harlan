@@ -20,15 +20,15 @@
 #include <iostream>
 
 #define CL_CHECK(e) CL_CHECK_MSG(e, #e)
-#define CL_CHECK_MSG(e, m) {								  \
-        cl_int __st__ = (e);                                  \
-        if(CL_SUCCESS != __st__) {                            \
-            cl::handle_error((m), __st__);					  \
-        }                                                     \
+#define CL_CHECK_MSG(e, m) {									\
+        cl_int __st__ = (e);									\
+        if(CL_SUCCESS != __st__) {								\
+            cl::handle_error((m), __st__, __FILE__, __LINE__);	\
+        }														\
     }
 
 namespace cl {
-    void handle_error(const char *code, cl_int e);
+    void handle_error(const char *code, cl_int e, std::string file, int line);
     std::string format_status(cl_int status);
 
     // represents an OpenCL device.

@@ -25,7 +25,18 @@
     ;; Nodes are always a tag and a vector of child nodes.
     (Node int (vec DomNode)))
 
-  (define (matches-selector? (Node tag children) selector matches-rest?)
+  ;; A linked list of nodes
+  (define-datatype NodeList
+    (DomItem DomNode NodeList)
+    (EmptyList))
+
+  (define (append-nodes list1 list2)
+    (match list1
+      ((DomItem node tail)
+       (DomItem node (append-nodes tail list2)))
+      ((EmptyList) list2)))
+  
+  (define (matches-selector? (Node tag children) selector path matches-rest?)
     (match selector
       ((Symbol tag^) (= tag tag^))
       ((Sequence s1 s2)
@@ -38,19 +49,32 @@
        ;; have to see if any subtree of the remainder matches s2.
        #f)))
   
-  (define (matches? (Node tag children) rule)
+  (define (matches? (Node tag children) rule path)
     (match rule
       ((Selector selector)
-       (matches-selector? (Node tag children) selector (lambda (node) #t)))
+       (matches-selector? (Node tag children) selector path (lambda (node) #t)))
       ((Alternate rule selector)
        (or (matches? (Node tag children) rule)
            (matches-selector? (Node tag children)
                               selector
+                              path
                               (lambda (node) #t))))))
 
   (define (leaf-node tag)
     (Node tag (vector)))
 
+  ;; Traverses the whole tree, finding all nodes that match the given rule.
+  (define (find-all-matches node rule path)
+    (match node
+      ((Node tag children)
+       (let* ((path^ (DomItem node path))
+              (child-matches (reduce append-nodes
+                               (kernel ((child children))
+                                 (find-all-matches child rule path^)))))
+         (if (matches? node rule path)
+             (DomItem node child-matches)
+             child-matches)))))
+  
   (define (main)
     (let ((selector1 (Selector (Symbol 0)))
           (node1 (leaf-node 0))

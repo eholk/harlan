@@ -385,9 +385,11 @@ string cl::format_status(cl_int e) {
     }
 }
 
-void cl::handle_error(const char *code, cl_int e)
+void cl::handle_error(const char *code, cl_int e, std::string file, int line)
 {
     cerr << code << " failed with error "                           
-         << format_status(e) << " (" << e << ")" << endl;           
+         << format_status(e) << " (" << e << ") in "
+		 << file << ":" << line
+		 << endl;           
 	abort();														
 }
