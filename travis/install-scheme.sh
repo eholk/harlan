@@ -3,6 +3,6 @@ vicare)
 			./travis/install-vicare.sh
 			;;
 petite)
-			./travise/install-petite.sh
+			./travis/install-petite.sh
 			;;
 esac
