@@ -248,7 +248,7 @@
                                        x*)
                                   env)))
                  `(lambda ,(reify x* env) . ,(reify b* env))))))
-           ((define)
+           ((prim-define)
             (match x
               ((,define (,name ,x* ...) ,b* ...)
                (let ((env^ (cons (cons name (ident-symbol name))
