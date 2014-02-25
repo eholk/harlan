@@ -1,0 +1,9 @@
+(module
+  (define (main)
+    (let ((a* (iota 10)))
+      (println a*)
+      (kernel-update! ((a a*) <- (i (iota 10)))
+        (* a i))
+      (println a*)
+      (assert (= (vector-ref a* 4) 16)))
+    0))
