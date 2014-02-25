@@ -131,20 +131,25 @@ void map_region(region *header)
 
     //printf("map_region: new alloc_ptr = %d\n", header->alloc_ptr);
 
-    printf("map_region: read %lu bytes, reading %lu more.\n",
-           sizeof(region), header->alloc_ptr - sizeof(region));
+	if(header->alloc_ptr - sizeof(region) > 0) {
+		printf("map_region: read %lu bytes, reading %lu more.\n",
+			   sizeof(region), header->alloc_ptr - sizeof(region));
 
-    // Now read the contents
-    status = clEnqueueReadBuffer(g_queue,
-                                 buffer,
-                                 CL_TRUE,
-                                 sizeof(region),
-                                 header->alloc_ptr - sizeof(region),
-                                 ((char *)header) + sizeof(region),
-                                 0,
-                                 NULL,
-                                 NULL);
-    CL_CHECK(status);
+		// Now read the contents
+		status = clEnqueueReadBuffer(g_queue,
+									 buffer,
+									 CL_TRUE,
+									 sizeof(region),
+									 header->alloc_ptr - sizeof(region),
+									 ((char *)header) + sizeof(region),
+									 0,
+									 NULL,
+									 NULL);
+		CL_CHECK(status);
+	}
+	else {
+		printf("map_region: no remaining bytes.\n");
+	}
 
     CL_CHECK(clReleaseMemObject(buffer));
     assert(!header->cl_buffer);
