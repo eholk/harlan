@@ -128,6 +128,7 @@
        
        (define-match desugar-expr
          ((int ,n) `(int ,n))
+         ((u64 ,n) `(u64 ,n))
          ((str ,s) `(str ,s))
          ((float ,f) `(float ,f))
          ((bool ,b) `(bool ,b))

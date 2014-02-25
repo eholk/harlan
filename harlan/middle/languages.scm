@@ -95,6 +95,7 @@
     (Expr
      (e)
      (int i)
+     (u64 i)
      (float f)
      (bool b)
      (char c)

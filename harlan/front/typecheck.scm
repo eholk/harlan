@@ -733,7 +733,10 @@
         ((float ,f) `(float ,f))
         ;; This next line is cheating, but it should get us through
         ;; the rest of the compiler.
-        ((num ,n) `(int ,n))
+        ((num ,n)
+         (if (< n #x100000000)
+             `(int ,n)
+             `(u64 ,n)))
         ((char ,c) `(char ,c))
         ((str ,s) `(str ,s))
         ((bool ,b) `(bool ,b))
@@ -794,6 +797,7 @@
   (define-match free-regions-expr
     ((var ,[free-regions-type -> t] ,x) t)
     ((int ,n) '())
+    ((u64 ,n) '())
     ((float ,f) '())
     ((char ,c) '())
     ((bool ,b) '())
