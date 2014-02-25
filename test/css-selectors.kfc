@@ -81,6 +81,6 @@
           (selector2 (Selector (Sequence (Symbol 0)
                                         (Symbol 1))))
           (node2 (Node 0 (vector (leaf-node 1)) (EmptyList))))
-      (println (matches? node1 selector1 (EmptyList))
+      (println (matches? node1 selector1 (EmptyList)))
       (println (matches? node2 selector2 (EmptyList)))
     0))
