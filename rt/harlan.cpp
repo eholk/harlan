@@ -132,8 +132,8 @@ void map_region(region *header)
     //printf("map_region: new alloc_ptr = %d\n", header->alloc_ptr);
 
 	if(header->alloc_ptr - sizeof(region) > 0) {
-		printf("map_region: read %lu bytes, reading %lu more.\n",
-			   sizeof(region), header->alloc_ptr - sizeof(region));
+		//printf("map_region: read %lu bytes, reading %lu more.\n",
+		//	   sizeof(region), header->alloc_ptr - sizeof(region));
 
 		// Now read the contents
 		status = clEnqueueReadBuffer(g_queue,
@@ -148,7 +148,7 @@ void map_region(region *header)
 		CL_CHECK(status);
 	}
 	else {
-		printf("map_region: no remaining bytes.\n");
+		//printf("map_region: no remaining bytes.\n");
 	}
 
     CL_CHECK(clReleaseMemObject(buffer));
@@ -165,8 +165,8 @@ void unmap_region(region *header)
     if(header->cl_buffer) return;
     //assert(!header->cl_buffer);
 
-    fprintf(stderr, "unmap_region %p, alloc_ptr = %d\n",
-            header, header->alloc_ptr);
+    //fprintf(stderr, "unmap_region %p, alloc_ptr = %d\n",
+    //        header, header->alloc_ptr);
 
     cl_int status = 0;
     cl_mem buffer = clCreateBuffer(g_ctx,
@@ -227,8 +227,8 @@ region_ptr alloc_in_region(region **r, unsigned int size)
 region_ptr alloc_vector(region **r, int item_size, int num_items)
 {
     if((*r)->cl_buffer) {
-        cerr << "Attempting to allocate " << 8 + item_size * num_items <<  " byte vector on GPU." << endl;
-        cerr << "region size = " << (*r)->size << endl;
+        //cerr << "Attempting to allocate " << 8 + item_size * num_items <<  " byte vector on GPU." << endl;
+        //cerr << "region size = " << (*r)->size << endl;
         // This region is on the GPU. Try to do the allocation there.
         cl::buffer<region_ptr> buf
             = g_ctx.createBuffer<region_ptr>(1, CL_MEM_READ_WRITE);
@@ -244,7 +244,7 @@ region_ptr alloc_vector(region **r, int item_size, int num_items)
         region_ptr p = map[0];
         if(p) return p;
     }
-    cerr << "Not enough space, allocating on CPU instead." << endl;
+    //cerr << "Not enough space, allocating on CPU instead." << endl;
     // Well, that failed. I guess we'll do here instead.
     region_ptr p = alloc_in_region(r, 8 + item_size * num_items);
     *(int*)get_region_ptr(*r, p) = num_items;
