@@ -36,29 +36,40 @@
        (DomItem node (append-nodes tail list2)))
       ((EmptyList) list2)))
   
-  (define (matches-selector? (Node tag children) selector path matches-rest?)
-    (match selector
-      ((Symbol tag^) (= tag tag^))
-      ((Sequence s1 s2)
-       ;; TODO: test s1 and if it matches, test the remainder on
-       ;; s2. This means we'll need some way to return the part of the
-       ;; node that wasn't consumed in matching s1.
-       #f)
-      ((Wildcard s1 s2)
-       ;; This will be like the previous one, but if s1 matches we'll
-       ;; have to see if any subtree of the remainder matches s2.
-       #f)))
+  (define (matches-selector? path selector sk fk)
+    (match path
+      ((DomItem node tail)
+       (match node
+         ((Node tag children)
+          (match selector
+            ((Symbol tag^)
+             (if (= tag tag^)
+                 (sk tail)
+                 (fk)))
+            ((Sequence s1 s2)
+             (matches-selector? path s2
+                                (lambda (remainder)
+                                  (matches-selector? remainder s1 sk fk))
+                                fk))
+            ((Wildcard s1 s2)
+             ;; This will be like the previous one, but if s1 matches we'll
+             ;; have to see if any subtree of the remainder matches s2.
+             (fk))))))
+      ((EmptyList) (fk))))
   
-  (define (matches? (Node tag children) rule path)
+  (define (matches? node rule path)
     (match rule
       ((Selector selector)
-       (matches-selector? (Node tag children) selector path (lambda (node) #t)))
+       (matches-selector? (DomItem node path)
+                          selector
+                          (lambda (remainder) #t)
+                          (lambda () #f)))
       ((Alternate rule selector)
-       (or (matches? (Node tag children) rule)
-           (matches-selector? (Node tag children)
+       (or (matches? node rule path)
+           (matches-selector? path
                               selector
-                              path
-                              (lambda (node) #t))))))
+                              (lambda (remainder) #t)
+                              (lambda () #f))))))
 
   (define (leaf-node tag)
     (Node tag (vector)))
@@ -79,8 +90,8 @@
     (let ((selector1 (Selector (Symbol 0)))
           (node1 (leaf-node 0))
           (selector2 (Selector (Sequence (Symbol 0)
-                                        (Symbol 1))))
+                                         (Symbol 1))))
           (node2 (Node 0 (vector (leaf-node 1)))))
-      (println (matches? node1 selector1))
-      (println (matches? node2 selector2)))
+      (println (matches? node1 selector1 (EmptyList)))
+      (println (matches? node2 selector2 (EmptyList))))
     0))

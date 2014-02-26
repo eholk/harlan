@@ -161,6 +161,9 @@
           (let* ((tag-var (gensym 'tag))
                  (e-var (gensym 'm))
                  (tag-type (type-of e))
+                 (tag-r (match tag-type
+                          ((adt ,_ ,r) r)
+                          (,else #f)))
                  (typedef (assq (match tag-type
                                   ((adt ,t . ,_) t))
                                 typedefs)))
@@ -184,11 +187,32 @@
                             (let ,(bind-fields tag x
                                                `(var ,tag-type ,e-var)
                                                typedef)
-                              ,e)
+                              ,(if tag-r
+                                   (replace-var-regions e x tag-r)
+                                   e))
                             ,(loop tag* x* e*)))
                       (,else (error 'match-loop "unrecognized" else)))))))))
-       
        `(module . ,(apply append (map desugar-decl decls))))))
+
+  (define (replace-var-regions e x* r)
+    (match e
+      ;; TODO: fill in the rest of the cases. This is just enough to
+      ;; pass our broken test case.
+      ((var ,t ,x) ;;(guard (memq x x*))
+       `(var ,(match t
+                ((vec ,r^ ,[t]) `(vec ,r ,t))
+                ((adt ,x ,r^) `(adt ,x ,r))
+                ((fn (,[t*] ...) -> ,[t])
+                 `(fn (,t* ...) -> ,t))
+                (,else else))
+             ,x))
+      ((call ,[rator] ,[rand*] ...)
+       `(call ,rator ,rand* ...))
+      ((let ,whatever ,[e]) `(let ,whatever ,e))
+      (,else (begin (display "replace-var-regions: still need to handle this\n")
+                    (display else)
+                    (newline)
+                    else))))
   
   (define (bind-fields tag x e typedef)
     (let* ((id (tag-id tag typedef))

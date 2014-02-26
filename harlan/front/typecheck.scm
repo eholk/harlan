@@ -3,6 +3,7 @@
   (export typecheck free-regions-type gen-rvar)
   (import
     (rnrs)
+    ;;(only (chezscheme) trace-define)
     (elegant-weapons match)
     (elegant-weapons helpers)
     (elegant-weapons sets)
@@ -521,6 +522,8 @@
   
   (define infer-body infer-expr)
 
+  ;; This rewrites the region parameters on recursive ADTs. I'm not
+  ;; 100% sure it's safe...
   (define (add-region-vars-to-type end adt-graph)
     (lambda (t*)
       (match t*
@@ -538,6 +541,14 @@
          `(closure ,@end ,t* -> ,t))
         ((adt ,t^) (guard (recursive-adt? t^ adt-graph))
          `(adt ,t^ . ,end))
+        ((adt ,t^ ,r)
+         (begin
+           (display "Warning, in type \n")
+           (display t*)
+           (display " there was already a region parameter. Replacing with \n")
+           (display end)
+           (newline)
+           `(vec ,t^ . ,@end)))
         (,else (begin #;(if (pair? else)
                           (display else))
                       else)))))

@@ -4,6 +4,7 @@
   (import
    (rnrs)
    (nanopass)
+   (only (chezscheme) trace-define trace-lambda)
    (except (elegant-weapons match) ->)
    (harlan compile-opts)
    (harlan helpers)
@@ -273,7 +274,23 @@
         (match (find-env t env)
           ((,x0 ,x1 ,t)
            x1)
-          (,_ (error 'find-dispatch "Wat?" _)))))
+          (,_ (error 'find-dispatch "Wat?" _))))
+
+      (trace-define (rewrite-regions new-r)
+        (lambda (t)
+          (with-output-language
+           (M3 Rho-Type)
+           (nanopass-case
+            (M3 Rho-Type) t
+            ((adt ,x ,r) `(adt ,x ,new-r))
+            ((vec ,r ,[t]) `(vec ,new-r ,t))
+            (else
+             (begin ;;(display "not rewriting type ")
+                    ;;(display (unparse-M3 t))
+                    ;;(display " with ")
+                    ;;(display new-r)
+                    ;;(newline)
+                    t)))))))
 
     (Rho-Type
      : Rho-Type (t env) -> Rho-Type ()
@@ -285,9 +302,9 @@
     (AdtDeclPattern : AdtDeclPattern (pt env) -> AdtDeclPattern ())
 
     (ClosureCase
-     : ClosureTag (t env) -> AdtDeclPattern ()
+     : ClosureTag (t r env) -> AdtDeclPattern ()
      ((,x (,x0 ...) ,e (,x* ,[Rho-Type : t* env -> t*]) ...)
-      `(,x ,t* ...)))
+      `(,x ,(map (rewrite-regions r) t*) ...)))
 
     (ClosureMatch
      : ClosureTag (t formals ftypes env) -> MatchArm ()
@@ -308,27 +325,27 @@
         (M2 Rho-Type) t
         ((closure ,r (,t* ...) ,-> ,t)
          (values
-           (with-output-language
-             (M3 Decl)
-             `(define-datatype (,x0 ,r) ,(map (lambda (t)
-                                                (ClosureCase t env))
-                                           ctag) ...))
-           (with-output-language
-             (M3 Decl)
-             (let* ((formals (map (lambda _ (gensym 'formal)) t*))
-                     (t* (map (lambda (t) (Rho-Type t env)) t*))
-                     (t (Rho-Type t env))
-                     (x (gensym 'closure))
-                     (ctype (with-output-language
-                              (M3 Rho-Type)
-                              `(adt ,x0 ,r)))
-                     (arms (map (lambda (t)
-                                  (ClosureMatch t formals t* env))
+          (with-output-language
+           (M3 Decl)
+           `(define-datatype (,x0 ,r) ,(map (lambda (t)
+                                              (ClosureCase t r env))
+                                            ctag) ...))
+          (with-output-language
+           (M3 Decl)
+           (let* ((formals (map (lambda _ (gensym 'formal)) t*))
+                  (t* (map (lambda (t) (Rho-Type t env)) t*))
+                  (t (Rho-Type t env))
+                  (x (gensym 'closure))
+                  (ctype (with-output-language
+                          (M3 Rho-Type)
+                          `(adt ,x0 ,r)))
+                  (arms (map (lambda (t)
+                               (ClosureMatch t formals t* env))
                              ctag)))
-               `(fn ,x1 (,(cons x formals) ...)
+             `(fn ,x1 (,(cons x formals) ...)
                   (fn (,(cons ctype t*) ...) -> ,t)
                   (return (match ,t (var ,ctype ,x)
-                            ,arms ...))))))))
+                                 ,arms ...))))))))
         ))
 
     (Closures

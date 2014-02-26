@@ -30,10 +30,9 @@
 (define (harlanc args)
   (let ((args (parse-args (cdr args))))
     (unless (null? args)
-      ;; There should be a usage.
       (let ((filename (car args)))
         (print-compile-harlan filename)))))
 
-;(trace-pass 'optimize-lift-lets)
+(trace-pass 'desugar-match)
 
 (harlanc (command-line))
