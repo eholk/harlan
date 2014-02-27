@@ -4,7 +4,7 @@
   (import
    (rnrs)
    (nanopass)
-   (only (chezscheme) trace-define trace-lambda)
+   ;;(only (chezscheme) trace-define trace-lambda)
    (except (elegant-weapons match) ->)
    (harlan compile-opts)
    (harlan helpers)
@@ -43,7 +43,13 @@
          ((int ,i) '())
          ((float ,f) '())
          ((bool ,b) '())
+         ((str ,str-t) '())
          ((var ,t ,x) (list (list x t)))
+         ((begin ,[e] ,[e*] ...)
+          (union e (apply union e*)))
+         ((print ,[e]) e)
+         ((print ,[e1] ,[e2]) (union e1 e2))
+         ((do ,[e]) e)
          ((lambda ,t ((,x* ,t*) ...) ,[e])
           (remove-vars x* e))
          ((let ((,x* ,t* ,[e*]) ...) ,[e])
@@ -64,7 +70,7 @@
                       x* e*)))
          ((,op ,[e1] ,[e2])
           (union e1 e2))
-         (else (error 'free-vars "Unexpected expression" e)))))
+         (else (error 'free-vars "Unexpected expression" (unparse-M0 e))))))
 
     (Module : Module (m) -> Module ())
 
@@ -276,7 +282,7 @@
            x1)
           (,_ (error 'find-dispatch "Wat?" _))))
 
-      (trace-define (rewrite-regions new-r)
+      (define (rewrite-regions new-r)
         (lambda (t)
           (with-output-language
            (M3 Rho-Type)

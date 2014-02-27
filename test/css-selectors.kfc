@@ -35,8 +35,62 @@
       ((DomItem node tail)
        (DomItem node (append-nodes tail list2)))
       ((EmptyList) list2)))
+
+  (define (print-selector sel)
+    (match sel
+      ((Symbol i)
+       (print* "(Symbol " i ")")
+       0)
+      ((Sequence s1 s2)
+       (print "(Sequence ")
+       (print-selector s1)
+       (print " ")
+       (print-selector s2)
+       (print ")")
+       0)
+      ((Wildcard s1 s2)
+       (print "(Wildcard ")
+       (print-selector s1)
+       (print " ")
+       (print-selector s2)
+       (print ")")
+       0)))
+  
+  (define (print-node (Node tag children))
+    (print* "(Node " tag " [ ")
+    ;;(println* "<printing " (length children) " child nodes>")
+    (for (i 0 (length children))
+      (begin 
+        (print-node (vector-ref children i))
+        (print " ")))
+    (print "])")
+    0)
+  
+  (define (print-path path)
+    (match path
+      ((DomItem node tail)
+       (print "(DomItem ")
+       (print-node node)
+       (print " ")
+       (print-path tail)
+       (print ")")
+       0)
+      ((EmptyList)
+       (print "(EmptyList)")
+       0)))
+
+  (define (trace-sk remainder)
+    (print "(sk ")
+    (print-path remainder)
+    (println ")")
+    0)
   
   (define (matches-selector? path selector sk fk)
+    (print "(matches-selector? ")
+    (print-path path)
+    (print " ")
+    (print-selector selector)
+    (println ")")
     (match path
       ((DomItem node tail)
        (match node
@@ -49,6 +103,7 @@
             ((Sequence s1 s2)
              (matches-selector? path s2
                                 (lambda (remainder)
+                                  ;;(trace-sk remainder)
                                   (matches-selector? remainder s1 sk fk))
                                 fk))
             ((Wildcard s1 s2)
@@ -79,19 +134,30 @@
     (match node
       ((Node tag children)
        (let* ((path^ (DomItem node path))
-              (child-matches (reduce append-nodes
-                               (kernel ((child children))
-                                 (find-all-matches child rule path^)))))
+              ;; Using inner-reduce keeps this from producing a
+              ;; kernel, which is important because of the recursion.
+              ;;
+              ;; We shoul'dn't need this anymore once Issue #114 is
+              ;; fixed.
+              (child-matches
+               (if (= 0 (length children))
+                   (EmptyList)
+                   (inner-reduce append-nodes
+                                 (kernel ((child children))
+                                   (find-all-matches child rule path^))))))
          (if (matches? node rule path)
              (DomItem node child-matches)
              child-matches)))))
-  
+
   (define (main)
     (let ((selector1 (Selector (Symbol 0)))
           (node1 (leaf-node 0))
           (selector2 (Selector (Sequence (Symbol 0)
                                          (Symbol 1))))
           (node2 (Node 0 (vector (leaf-node 1)))))
-      (println (matches? node1 selector1 (EmptyList)))
-      (println (matches? node2 selector2 (EmptyList))))
+      (println "Matching tree 1")
+      (print-path (find-all-matches node1 selector1 (EmptyList)))
+      (println "\nMatching tree 2")
+      (print-path (find-all-matches node2 selector2 (EmptyList)))
+      (println ""))
     0))
