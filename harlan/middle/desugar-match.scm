@@ -35,11 +35,14 @@
     (let* ((name (car typedef))
            (type (match name
                    ((,name ,r) `(adt ,name ,r))
-                   (,name `(adt ,name)))))
+                   (,name `(adt ,name))))
+           (regions (match type
+                      ((adt ,name) '())
+                      ((adt ,name ,r) (list r)))))
       (lambda (tag types)
         (let ((args (map (lambda (_) (gensym tag)) types))
               (tmp (gensym 'result)))
-          `(fn ,tag ,args (fn ,types -> ,type)
+          `(fn ,tag ,args (fn ,regions ,types -> ,type)
                (let ((,tmp ,type (empty-struct)))
                  (begin
                    ,@(let* ((id (tag-id tag typedef))
@@ -165,9 +168,10 @@
                                   ((adt ,t . ,_) t))
                                 typedefs)))
             `(let ((,e-var ,tag-type ,e))
-               (let ((,tag-var int (call (c-expr
-                                          (fn (,tag-type) -> int) extract_tag)
-                                         (var ,tag-type ,e-var))))
+               (let ((,tag-var int (call
+                                    (c-expr
+                                     (fn [] (,tag-type) -> int) extract_tag)
+                                    (var ,tag-type ,e-var))))
                  ,(let loop ((tag tag)
                              (x x)
                              (e e*))
@@ -236,7 +240,7 @@
   (define-match type-of
     ((call ,[f] . ,_)
      (match f
-       ((fn ,_ -> ,t) t)
+       ((fn ,r* ,_ -> ,t) t)
        (,else (error 'type-of "Illegal function type" else))))
     ((let ,bindings ,[e]) e)
     ((if ,t ,[e] ,_) e)

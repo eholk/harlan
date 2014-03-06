@@ -87,7 +87,7 @@
           (addressof
            (vector-ref ,t ,xs
             (call
-             (c-expr (fn (int) -> int) get_global_id)
+             (c-expr (fn [] (int) -> int) get_global_id)
              (int ,d))))))
      ,prev))
 

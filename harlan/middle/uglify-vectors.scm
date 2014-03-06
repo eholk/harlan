@@ -13,6 +13,9 @@
     (elegant-weapons helpers)
     (elegant-weapons sets))
 
+;; This pass replaces vector references with explicit region
+;; references.
+  
 ;;(define-pass uglify-vectors-new : M7.1 (m) -> M7.2 ()
 ;;  
 ;;  ;; For now, don't do anything just to make sure we get the parsing
@@ -70,8 +73,13 @@
                                 (callee callee-type)
                                 (caller t))
                  (match `(,callee ,caller)
-                   (((fn (,t* ...) -> ,t)
-                     (fn (,t^* ...) -> ,t^))
+                   ;; TODO: I'm not really sure what the right thing
+                   ;; to do here is.
+                   ;;
+                   ;; We probably want to pair r* and r*^ in the
+                   ;; environments.
+                   (((fn ,r* (,t* ...) -> ,t)
+                     (fn ,r*^ (,t^* ...) -> ,t^))
                     (fold-left walk-types env (cons t t*) (cons t^ t^*)))
                    (((vec ,r ,t) (vec ,r^ ,t^))
                     (walk-types (cons (cons r r^) env) t t^))
@@ -91,7 +99,7 @@
   (match t
     ((vec ,r ,[t]) `(vec ,t))
     ((adt ,n ,r) `(adt ,n))
-    ((fn (,[t*] ...) -> ,[t]) `(fn ,t* -> ,t))
+    ((fn ,r* (,[t*] ...) -> ,[t]) `(fn ,t* -> ,t))
     ((ptr ,[t]) `(ptr ,t))
     ((struct (,x* ,[t*]) ...)
      `(struct (,x* ,t*) ...))
@@ -118,24 +126,22 @@
      `(module . ,(map uglify-decl decl*)))))
 
 (define-match uglify-decl
-  ((fn ,name ,args (fn ,arg-t -> ,rt)
+  ((fn ,name ,args (fn [,r* ...] ,arg-t -> ,rt)
        ,[uglify-stmt -> s sr*])
-   (let ((all-regions (free-regions-type `(fn ,arg-t -> ,rt)))
-         (arg-t (map remove-regions arg-t))
+   (let ((arg-t (map remove-regions arg-t))
          (rt (remove-regions rt)))
      `(fn ,name
-          (,@args ,@all-regions)
+          (,@args ,@r*)
           (fn (,@arg-t
-            ,@(map (lambda (_) `(ptr region)) all-regions))
-           -> ,rt)
+               ,@(map (lambda (_) `(ptr region)) r*))
+              -> ,rt)
           ,s)))
   ((typedef ,name ,t) `(typedef ,name ,(remove-regions t)))
+  ;; TODO: allow regions on externs
   ((extern ,name ,args -> ,t)
-   (let ((all-regions (map (lambda (_) `(ptr region))
-                           (free-regions-type `(fn ,args -> ,t))))
-         (args (map remove-regions args))
+   (let ((args (map remove-regions args))
          (t (remove-regions t)))
-     `(extern ,name ,(append args all-regions) -> ,t))))
+     `(extern ,name ,args -> ,t))))
 
 (define-match (uglify-let finish)
   (() (values finish `()))

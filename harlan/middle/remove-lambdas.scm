@@ -326,7 +326,7 @@
                                   (ClosureMatch t formals t* env))
                              ctag)))
                `(fn ,x1 (,(cons x formals) ...)
-                  (fn (,(cons ctype t*) ...) -> ,t)
+                   (fn [,r] (,(cons ctype t*) ...) -> ,t)
                   (return (match ,t (var ,ctype ,x)
                             ,arms ...))))))))
         ))
@@ -357,7 +357,8 @@
         (nanopass-case
          (M2 Rho-Type) t
          ((closure ,r (,t* ...) ,-> ,t^)
-          `(call (var (fn (,(map type-of e*) ...) -> (adt ,adt-name ,r)) ,x)
+          `(call (var (fn [,r]
+                          (,(map type-of e*) ...) -> (adt ,adt-name ,r)) ,x)
                  ,e* ...)))))
      ((invoke ,e ,[Expr : e* env -> e*] ...)
       (nanopass-case
@@ -372,7 +373,7 @@
                 (t^ (Rho-Type t^ env))
                 (t* (map (lambda (t) (Rho-Type t env)) t*)))
             `(call
-              (var (fn (,(cons t t*) ...) -> ,t^)
+              (var (fn [,r] (,(cons t t*) ...) -> ,t^)
                    ,dispatch)
               ,(cons e e*) ...))))
        ((make-closure (closure ,r (,t* ...) ,-> ,t^) ,x ,[e**] ...)
@@ -385,10 +386,11 @@
                 (t^ (Rho-Type t^ env))
                 (t* (map (lambda (t) (Rho-Type t env)) t*)))
             `(call
-              (var (fn (,(cons t t*) ...) -> ,t^)
+              (var (fn [,r] (,(cons t t*) ...) -> ,t^)
                    ,dispatch)
               ,(cons e e*) ...))))
-       ((call (var (fn (,t*^ ...) ,->^ (closure ,r (,t* ...) ,-> ,t^)) ,x)
+       ((call (var (fn [,r* ...]
+                       (,t*^ ...) ,->^ (closure ,r (,t* ...) ,-> ,t^)) ,x)
               ,e** ...)
         (let ((e (Expr e env))
               (t (with-output-language
@@ -399,7 +401,7 @@
                 (t^ (Rho-Type t^ env))
                 (t* (map (lambda (t) (Rho-Type t env)) t*)))
             `(call
-              (var (fn (,(cons t t*) ...) -> ,t^)
+              (var (fn [,r ,r* ...] (,(cons t t*) ...) -> ,t^)
                    ,dispatch)
               ,(cons e e*) ...))))
        ((match (closure ,r (,t* ...) ,-> ,t^) ,e^ ,arm ...)
@@ -412,7 +414,7 @@
                 (t^ (Rho-Type t^ env))
                 (t* (map (lambda (t) (Rho-Type t env)) t*)))
             `(call
-              (var (fn (,(cons t t*) ...) -> ,t^)
+              (var (fn [,r] (,(cons t t*) ...) -> ,t^)
                    ,dispatch)
               ,(cons e e*) ...))))
        (else (error 'Expr "unknown invoke target" (unparse-M2 e))))))

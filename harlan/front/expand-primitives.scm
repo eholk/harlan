@@ -27,7 +27,7 @@
                    ((,n ,r) `(adt ,n ,r))
                    (,n `(adt ,n)))))
        `((define-datatype ,t (,c ,t* ...) ...)
-         (fn print (,adt ,out) (fn (,type (ptr ofstream)) -> void)
+         (fn print (,adt ,out) (fn [] (,type (ptr ofstream)) -> void)
              (begin
                (do (match int (var ,type ,adt)
                      ,@(map (lambda (c t*)
@@ -51,7 +51,7 @@
                                     (int 0)))))
                             c t*)))
                (return)))
-         (fn print (,adt) (fn (,type) -> void)
+         (fn print (,adt) (fn [] (,type) -> void)
              (begin
                (do (match int (var ,type ,adt)
                      ,@(map (lambda (c t*)
@@ -69,6 +69,9 @@
                             c t*)))
                (return))))))
     ;; Fallback for datatypes we don't generate print for.
+    ;;
+    ;; TODO: We could probably generate an appropriate print once
+    ;; region parameters become explicit.
     ((define-datatype ,t (,c ,t* ...) ...)
      `((define-datatype ,t (,c ,t* ...) ...)))
     ((extern ,name ,args -> ,rtype)

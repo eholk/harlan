@@ -19,7 +19,7 @@
                ,e))
      ((iota-r ,r ,[e])
       `(kernel (vec ,r int) ,r 1 (,e) ()
-               (call (c-expr (fn (int) -> int) get_global_id)
+               (call (c-expr (fn [] (int) -> int) get_global_id)
                      (int 0))))))
   ;; end library
   )

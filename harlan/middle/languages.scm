@@ -54,10 +54,15 @@
      (t)
      bt
      (ptr t)
-     (fn (t* ...) -> t)
+     (fn [r* ...] (t* ...) -> t)
      (adt x r)
      (adt x)
      (vec r t)
+     ;; TODO: what about closures and region-allocated variables?
+     ;;
+     ;; So far we make a distinction between regions of things in the
+     ;; closure and regions in arguments. Do we want to keep doing
+     ;; this?
      (closure r (t* ...) -> t)
      x)
     (Decl
@@ -313,14 +318,17 @@
     )
 
   ;; after uglify-vectors
-  ;;(define-language M7.2
-  ;;  (extends M7.1)
-  ;;
-  ;;  )
+  (define-language M7.2
+    (extends M7.1)
+
+    (Rho-Type
+     (t)
+     (- (fn [r* ...] (t* ...) -> t))
+     (+ (fn (t* ...) -> t))))
   
   ;; after hoist-kernels
   (define-language M8
-    (extends M7.1)
+    (extends M7.2)
 
     (entry Module)
     

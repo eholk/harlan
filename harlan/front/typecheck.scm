@@ -710,7 +710,10 @@
        (let* ((region-params (free-regions-type t))
               (body-regions (free-regions-expr body))
               (local-regions (difference body-regions region-params)))
-       `(fn ,name (,var ...) ,t (let-region ,local-regions ,body))))))
+       (match t
+         ((fn [,r* ...] (,t* ...) -> ,t)
+          `(fn ,name (,var ...) (fn ,region-params (,t* ...) -> ,t)
+                 (let-region ,local-regions ,body))))))))
 
   (define (region-name r)
     (if (rvar? r)
@@ -740,8 +743,11 @@
             ((adt ,t ,r) `(adt ,(ground-type t s) ,(region-name r)))
             ((closure ,r (,[(lambda (t) (ground-type t s)) -> t*] ...) -> ,t)
              `(closure ,(region-name r) ,t* -> ,(ground-type t s)))
-            ((fn (,[(lambda (t) (ground-type t s)) -> t*] ...) -> ,t)
-             `(fn ,t* -> ,(ground-type t s)))
+            ((fn (,[(lambda (t) (ground-type t s)) -> t*] ...)
+                 -> ,[(lambda (t) (ground-type t s)) -> t])
+                 (let ((r* (union (free-regions-type t)
+                 (apply union (map free-regions-type t*)))))
+                 `(fn ,r* ,t* -> ,(ground-type t s))))
             (,else (error 'ground-type "unsupported type" else))))))
 
   (define (ground-expr e s)
@@ -882,7 +888,10 @@
     ((adt ,[t]) t)
     ((closure ,r (,[t*] ...) -> ,[t])
      (set-add (apply union t t*) r))
-    ((fn (,[t*] ...) -> ,[t]) (union t (apply union t*)))
+    ((fn [,r* ...] (,[t*] ...) -> ,[t])
+                 (difference
+                 (union t (apply union t*))
+                 r*))
     ((ptr ,[t]) t)
     ;; Boxes hide all their regions until they are unboxed.
     ((box ,r ,t) (list r))
