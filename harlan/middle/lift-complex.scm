@@ -172,8 +172,8 @@
   ((fn ,name ,args ,t ,[lift-stmt -> stmt])
    `(fn ,name ,args ,t ,stmt))
   ((typedef ,name ,t) `(typedef ,name ,t))
-  ((extern ,name ,args -> ,rtype)
-   `(extern ,name ,args -> ,rtype)))
+  ((extern . ,_)
+   `(extern . ,_)))
 
 (define-match lift-complex
   ((module ,[lift-decl -> fn*] ...)

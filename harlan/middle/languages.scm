@@ -67,7 +67,7 @@
      x)
     (Decl
      (decl)
-     (extern name (t* ...) -> t)
+     (extern name [r* ...] (t* ...) -> t)
      (define-datatype (x r) pt ...)
      (define-datatype x pt ...)
      (fn name (x ...) t body))

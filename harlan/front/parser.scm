@@ -54,12 +54,17 @@
   (ofstream 'ofstream)
   (,t (guard (assq t type-env)) `(adt ,(cdr (assq t type-env))))
   ((ptr ,[t]) `(ptr ,t))
+  ((vec ,r ,[t])
+   `(vec ,r ,t))
   ((vec ,[t])
    `(vec ,(gensym 'vec_r) ,t))
   ((closure (,[t*] ...) -> ,[t])
    `(closure ,t* -> ,t))
+  ((,r* (,[t*] ...) -> ,[t])
+   ;; TODO: ensure we have regions where we need them.
+   `(,r* ,t* -> ,t))
   (((,[t*] ...) -> ,[t])
-   `(,t* -> ,t)))
+   `(() ,t* -> ,t)))
 
 (define-match (parse-stmt env)
   ((assert ,[(parse-expr env) -> e])

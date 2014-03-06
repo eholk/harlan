@@ -137,11 +137,10 @@
               -> ,rt)
           ,s)))
   ((typedef ,name ,t) `(typedef ,name ,(remove-regions t)))
-  ;; TODO: allow regions on externs
-  ((extern ,name ,args -> ,t)
+  ((extern ,name ,r* ,args -> ,t)
    (let ((args (map remove-regions args))
          (t (remove-regions t)))
-     `(extern ,name ,args -> ,t))))
+     `(extern ,name ,(append args (map (lambda (_) '(ptr region)) r*)) -> ,t))))
 
 (define-match (uglify-let finish)
   (() (values finish `()))

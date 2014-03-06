@@ -74,8 +74,8 @@
     ;; region parameters become explicit.
     ((define-datatype ,t (,c ,t* ...) ...)
      `((define-datatype ,t (,c ,t* ...) ...)))
-    ((extern ,name ,args -> ,rtype)
-     `((extern ,name ,args -> ,rtype))))
+    ((extern . ,_)
+     `((extern . ,_))))
 
   (define-match expand-prim-stmt
     ((let ((,x* ,t* ,[expand-prim-expr -> e*]) ...) ,[body])

@@ -3,11 +3,11 @@
 (module
 
   (extern close_outfile ((ptr ofstream)) -> void)
-  (extern command-line () -> (vec str))
+  (extern command-line [r] () -> (vec r str))
   (extern get-environment-variable (str) -> str)
   (extern nanotime () -> u64)
   (extern open_outfile (str) -> (ptr ofstream))
-  (extern str->vec (str) -> (vec char))
+  (extern str->vec [r] (str) -> (vec r char))
   (extern time-s () -> float)
 
   (define-macro define-binders ()

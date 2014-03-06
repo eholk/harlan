@@ -15,8 +15,8 @@
    `(fn ,name ,args ,stmt))
   ((define-datatype . ,whatever)
    `(define-datatype . ,whatever))
-  ((extern ,name ,args -> ,rtype)
-   `(extern ,name ,args -> ,rtype)))
+  ((extern  . ,_)
+   `(extern  . ,_)))
 
 (define-match returnify-stmt
   ((var ,x) `(return (var ,x)))

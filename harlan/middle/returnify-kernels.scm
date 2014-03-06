@@ -20,8 +20,8 @@
   ((fn ,name ,args ,type ,[returnify-kernel-stmt -> stmt])
    `(fn ,name ,args ,type ,stmt))
   ((typedef ,name ,t) `(typedef ,name ,t))
-  ((extern ,name ,args -> ,type)
-   `(extern ,name ,args -> ,type)))
+  ((extern . ,_)
+   `(extern . ,_)))
 
 (define-match returnify-kernel-stmt
   ((print ,[returnify-kernel-expr -> expr*] ...)

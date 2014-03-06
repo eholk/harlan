@@ -21,7 +21,6 @@
     (harlan middle lift-complex)
     (harlan middle annotate-free-vars)
     (harlan middle lower-vectors)
-    (harlan middle insert-let-regions)
     (harlan middle uglify-vectors)
     (harlan middle remove-let-regions)
     (harlan middle flatten-lets)

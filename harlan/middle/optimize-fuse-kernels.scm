@@ -18,8 +18,8 @@
     ((fn ,name ,args ,t ,[Stmt -> stmt])
      `(fn ,name ,args ,t ,stmt))
     ((typedef ,name ,t) `(typedef ,name ,t))
-    ((extern ,name ,args -> ,rtype)
-     `(extern ,name ,args -> ,rtype)))
+    ((extern . ,_)
+     `(extern . ,_)))
 
   (define-match Stmt
     ((let ((,x* ,t* ,[Expr -> e*]) ...) ,[body])
