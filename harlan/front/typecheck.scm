@@ -506,8 +506,10 @@
         (let ((t  (make-tvar (gensym 'rt)))
               (ft (lookup f env)))
           (do* (((e* t*) (infer-expr* e* env))
-                ((_  __) (require-type `(var ,f) env `(fn ,t* -> ,t))))
-               (return `(call (var (fn ,t* -> ,t) ,f) ,e* ...) t))))
+                ;; TODO: this is a place where region parameters will
+                ;; need to be instantiated.
+                ((_  __) (require-type `(var ,f) env `(fn () ,t* -> ,t))))
+               (return `(call (var (fn () ,t* -> ,t) ,f) ,e* ...) t))))
        ((invoke ,rator ,rand* ...)
         (let ((t (gen-tvar 'invoke))
               (r (gen-rvar 'invoke)))
@@ -781,6 +783,9 @@
                  (let ((r* (union (free-regions-type t)
                  (apply union (map free-regions-type t*)))))
                  `(fn ,r* ,t* -> ,(ground-type t s))))
+            ((fn ,r* (,[(lambda (t) (ground-type t s)) -> t*] ...)
+                 -> ,[(lambda (t) (ground-type t s)) -> t])
+             `(fn ,r* ,t* -> ,(ground-type t s)))
             (,else (error 'ground-type "unsupported type" else))))))
 
   (define (ground-expr e s)

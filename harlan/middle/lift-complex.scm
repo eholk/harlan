@@ -196,7 +196,7 @@
   ((begin ,s* ... ,[e]) e)
   ((call ,[e] ,e* ...)
    (match e
-     ((fn ,args -> ,t) t)))
+     ((fn (,r* ...) ,args -> ,t) t)))
   ((,op ,lhs ,rhs)
    (guard (relop? op))
    'bool))
