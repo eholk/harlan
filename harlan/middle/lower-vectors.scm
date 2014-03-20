@@ -68,6 +68,7 @@
                ,rest)))
     (((,x ,t ,e) . ,[rest])
      ;;(display `((,x ,t ,e) ,rest)) (newline)
+     ;;(display (car e)) (newline)
      (assert (not (and (pair? e) (or (eq? (car e) 'vector)
                                      (eq? (car e) 'box)))))
      `(let ((,x ,t ,e)) ,rest))

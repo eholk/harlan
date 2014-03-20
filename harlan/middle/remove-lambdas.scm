@@ -41,6 +41,7 @@
          (M0 Expr) e
          ((int ,i) '())
          ((float ,f) '())
+         ((bool ,b) '())
          ((var ,t ,x) (list (list x t)))
          ((lambda ,t ((,x* ,t*) ...) ,[e])
           (remove-vars x* e))

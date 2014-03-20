@@ -15,6 +15,7 @@
     trace-pass
     untrace-pass
     parse-args
+    print-failed-logs
     use-doubles
     quiet
     dump-call-graph
@@ -43,6 +44,7 @@
 (define dump-call-graph    (make-parameter #f))
 (define harlan-library-path (make-parameter "lib/harlan"))
 (define harlan-runtime-path (make-parameter "rt"))
+(define print-failed-logs  (make-parameter #f))
 
 (define trace-passes '())
 
@@ -138,6 +140,9 @@
      (optimize-level 0))
     ((("--verbose" "-v"))      "Output intermediate compilation results"
      (verbose #t))
+    ((("--display-failure-logs"))
+                               "Display logs for failed tests"
+     (print-failed-logs #t))
     ((("--debug" "-g"))        "Generate debugging information"
      (generate-debug #t))
     ((("--enable-double"))     "Use double precision math"

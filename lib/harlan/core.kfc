@@ -9,6 +9,22 @@
   (extern open_outfile (str) -> (ptr ofstream))
   (extern str->vec (str) -> (vec char))
   (extern time-s () -> float)
+
+  (define-macro define-binders ()
+    ((_ name ((tag x ...) binder ...) (arg ...) (e ...))
+     (define-binders name (binder ...)
+       (arg ... match-tmp)
+       ((match match-tmp
+          ((tag x ...)
+           (begin e ...))))))
+    ((_ name (x binder ...) (arg ...) (e ...))
+     (define-binders name (binder ...) (arg ... x) (e ...)))
+    ((_ name () (arg ...) (e ...))
+     (prim-define (name arg ...) e ...)))
+  
+  (define-macro define ()
+    ((_ (name binder ...) e ...)
+     (define-binders name (binder ...) () (e ...))))
   
   (define-macro cond (else)
     ((_ (else body))

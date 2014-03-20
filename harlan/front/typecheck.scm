@@ -214,6 +214,7 @@
     (match e
       ((num ,i) '())
       ((float ,f) '())
+      ((bool ,b) '())
       ((var ,t ,x)
        (if (memq x env)
            '()
@@ -520,6 +521,27 @@
   
   (define infer-body infer-expr)
 
+  (define (add-region-vars-to-type end adt-graph)
+    (lambda (t*)
+      (match t*
+        ((vec ,[t])
+         `(vec ,@end ,t))
+        ((vec ,r ,[t])
+         (begin
+           (display "Warning, in type \n")
+           (display t*)
+           (display " there was already a region parameter. Replacing with \n")
+           (display end)
+           (newline)
+           `(vec ,@end ,t)))
+        ((closure (,[t*] ...) -> ,[t])
+         `(closure ,@end ,t* -> ,t))
+        ((adt ,t^) (guard (recursive-adt? t^ adt-graph))
+         `(adt ,t^ . ,end))
+        (,else (begin #;(if (pair? else)
+                          (display else))
+                      else)))))
+  
   (define (make-top-level-env decls adt-graph)
     (append
      (apply append
@@ -533,18 +555,9 @@
                                       (list (make-rvar (gensym t)))
                                       '()))
                              (t* (map (lambda (t*)
-                                        (map (lambda (t*)
-                                               (match t*
-                                                 ((vec ,[t])
-                                                  `(vec ,@end ,t))
-                                                 ((closure (,[t*] ...) -> ,[t])
-                                                  `(closure ,@end ,t* -> ,t))
-                                                 ((adt ,t^)
-                                                  (guard
-                                                   (recursive-adt? t^
-                                                                   adt-graph))
-                                                  `(adt ,t^ . ,end))
-                                                 (,else else))) t*))
+                                        (map (add-region-vars-to-type end
+                                                                      adt-graph)
+                                             t*))
                                       t*)))
                         `((,type-tag (adt ,t . ,end) (,c ,t* ...) ...)
                           (,c fn (,t* ...)
@@ -713,7 +726,12 @@
                   ;; We have a free variable that's constrained as
                   ;; Numeric, so ground it as an integer.
                   ((Numeric) 'int))
-                (error 'ground-type "free type variable" t)))
+                (begin
+                  (display "Warning: free type variable: ")
+                  (display t)
+                  (newline)
+                  (display "Defaulting to type int.\n")
+                  'int)))
           (match t
             (,prim (guard (symbol? prim)) prim)
             ((vec ,r ,t) `(vec ,(region-name r) ,(ground-type t s)))
@@ -733,7 +751,10 @@
         ((float ,f) `(float ,f))
         ;; This next line is cheating, but it should get us through
         ;; the rest of the compiler.
-        ((num ,n) `(int ,n))
+        ((num ,n)
+         (if (< n #x100000000)
+             `(int ,n)
+             `(u64 ,n)))
         ((char ,c) `(char ,c))
         ((str ,s) `(str ,s))
         ((bool ,b) `(bool ,b))
@@ -794,6 +815,7 @@
   (define-match free-regions-expr
     ((var ,[free-regions-type -> t] ,x) t)
     ((int ,n) '())
+    ((u64 ,n) '())
     ((float ,f) '())
     ((char ,c) '())
     ((bool ,b) '())

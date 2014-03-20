@@ -1,4 +1,7 @@
+// the #if silences warnings on newer OpenCLs.
+#if __OPENCL_VERSION__ < 120
 #pragma OPENCL EXTENSION cl_khr_fp64: enable
+#endif
 
 // This gives us a pointer to something in a region.
 #define get_region_ptr(r, i) (((char __global *)r) + i)
@@ -45,11 +48,11 @@ typedef int cl_int;
 
 // This is the kernel that is used by the CPU to allocate vectors in
 // regions already on the GPU... or it will be soon, anyway.
-__kernel void harlan_rt_alloc_vector(region __global *r,
+__kernel void harlan_rt_alloc_vector(void __global *r,
                                      int item_size,
                                      int num_items,
                                      region_ptr __global *result)
 {
-    *result = alloc_vector(r, item_size, num_items);
+    *result = alloc_vector((region __global *)r, item_size, num_items);
 }
 
