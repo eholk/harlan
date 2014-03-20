@@ -101,6 +101,18 @@ prebuild:
 	vicare -O2 -L . -L external/nanopass-framework --more-file-extensions --compile-dependencies prebuild.ss
 #	vicare -L . -L external/nanopass-framework --more-file-extensions --compile-dependencies harlanc.scm
 
+
+#============================================================
+# Benchmarking:
+
+bench: run_benchmarks.exe
+
+# Here's how you build the benchmarking script:
+run_benchmarks.exe: 
+	cabal sandbox init
+	cabal install ./HSBencher/ -j
+	cabal install --bindir=. --program-suffix=.exe ./
+
 #============================================================
 # For JIT support we embed Chez Scheme in a static library:
 
