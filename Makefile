@@ -45,9 +45,12 @@ COMPILE_TEST = $(call HC, $(1), $(call TEST_EXE_NAME, $(1)))
 RUN_TEST = $(1)
 
 .phony: check
-check : test.bin rt/libharlanrt.a update-submodules
+check: build
 	@./run-tests --display-failure-logs
 	@echo $(ECHO_ESCAPE) "\033[32mAll tests succeeded.\033[39m"
+
+.phony: build
+build: test.bin rt/libharlanrt.a update-submodules
 
 # Shorthands:
 .phony: rt
@@ -70,6 +73,7 @@ test.bin:
 .phony: clean
 clean:
 	rm -rf test.bin *.dSYM gc
+	rm -f run_benchmarks.exe
 	make -C rt clean
 
 test.bin/%.out : test.bin/%.bin
@@ -105,10 +109,11 @@ prebuild:
 #============================================================
 # Benchmarking:
 
-bench: run_benchmarks.exe
+.phony: bench
+bench: run_benchmarks.exe build
 
 # Here's how you build the benchmarking script:
-run_benchmarks.exe: 
+run_benchmarks.exe: run_benchmarks.cabal run_benchmarks.hs
 	cabal sandbox init
 	cabal install ./HSBencher/ -j
 	cabal install --bindir=. --program-suffix=.exe ./
