@@ -56,12 +56,22 @@
            (stop (nanotime)))
       (print len)
       (print "\t")
-      (print (/ (- stop start) 1000))
-      (print "\n")))
+      ; (print (/ (- stop start) 1000))
+      (println* "\nSELFTIMED: " (/ (u64->float (/ (- stop start) 1000)) 1e6))
+      (print "\n")
+      ))
   
   (define (main)
-    (for (i 1 66)
-      (bench-length (* i 1000)))
+    ; (for (i 1 66)
+    ;   (bench-length (* i 1000)))
+
+    ;; Argument is the number of bodies
+    (let* ((args (command-line))
+           (size (if (> (length args) 0)
+                     (parse-str->int (vector-ref args 0) 10) 10)))
+      (bench-length (* size 1000))
+      )
+
     0)
   
   )
