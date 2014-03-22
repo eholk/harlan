@@ -177,7 +177,15 @@
                (labels (label-calls)))
           (if (null? labels)
               `(return ,e)
-              `(begin ,(append labels (list `(return ,e))) ...))))))
+              `(begin ,(append labels (list `(return ,e))) ...)))))
+
+     ((set! ,e1 ,e2)
+      (parameterize ((label-calls '()))
+        (let ((e1 (Expr e1))
+              (e2 (Expr e2)))
+          (if (null? (label-calls))
+              `(set! ,e1 ,e2)
+              `(begin ,(append (label-calls) (list `(set! ,e1 ,e2))) ...))))))
     
     (Expr
      : Expr (e) -> Expr ()
