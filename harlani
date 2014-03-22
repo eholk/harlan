@@ -19,6 +19,10 @@ petite)
         dir=$HARLAN_DIR:external/nanopass-framework/lib/csv8.4/$MACHINE:$HARLAN_DIR/external/nanopass-framework
         $RLWRAP petite --libdirs "$dir" --program "$schemeScript" -L $HARLAN_DIR/lib/harlan -R $HARLAN_DIR/rt $@
         ;;
+scheme)
+        dir=$HARLAN_DIR:external/nanopass-framework/lib/csv8.4/$MACHINE:$HARLAN_DIR/external/nanopass-framework
+        scheme --compile-imported-libraries --libdirs "$dir" --program "$schemeScript" -L $HARLAN_DIR/lib/harlan -R $HARLAN_DIR/rt $@
+        ;;
 *)
         echo $SCHEME is not a supported Scheme implementation
         ;;
