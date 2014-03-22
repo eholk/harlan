@@ -26,7 +26,7 @@
 	  (let ((time 0))
 		(for (j 0 10)
 		  (set! time (+ time (bench_length (* i 1000000)))))
-        (println* i "\t" (/ (u64->float (/ time 1000)) 1e7))))
+        (println* "ARG_AND_SELFTIMED: " i "\t" (/ (u64->float (/ time 1000)) 1e7))))
 		;;(print i)
 		;;(print "\nSELFTIMED: ")
 		;;(println (/ (u64->float (/ time 1000)) 1e7))))

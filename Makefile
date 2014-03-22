@@ -105,12 +105,17 @@ prebuild:
 	vicare -O2 -L . -L external/nanopass-framework --more-file-extensions --compile-dependencies prebuild.ss
 #	vicare -L . -L external/nanopass-framework --more-file-extensions --compile-dependencies harlanc.scm
 
+prebuild_chez:
+#	SCHEME=scheme ./harlanc --compile-imported-libraries 
+# RRN: TODO, get rid of this duplicated info from the harlanc script:
+	scheme --compile-imported-libraries --libdirs .:external/nanopass-framework/lib/csv8.4/:./external/nanopass-framework --program ./harlanc.scm 
 
 #============================================================
 # Benchmarking:
 
 .phony: bench
-bench: run_benchmarks.exe build
+bench: run_benchmarks.exe build prebuild_chez
+	./run_benchmarks.exe
 
 # Here's how you build the benchmarking script:
 run_benchmarks.exe: run_benchmarks.cabal run_benchmarks.hs

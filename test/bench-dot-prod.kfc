@@ -29,6 +29,7 @@
   
   (define (bench_length len)
     (let ((time (do-dot len)))
+      (print "ARG_AND_TIME: ")
       (print len)
       (print "\t")
       (print (/ time 10000))
