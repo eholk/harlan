@@ -35,7 +35,7 @@ set -e
 # ----------------------------------------
 cd "$CHECKOUT"/
 rm -f run_benchmarks.exe
-make run_benchmarks.exe
+make bench_deps
 
 export TRIALS=1
 

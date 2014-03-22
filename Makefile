@@ -114,8 +114,10 @@ prebuild_chez:
 # Benchmarking:
 
 .phony: bench
-bench: run_benchmarks.exe build prebuild_chez
+bench: bench_deps
 	./run_benchmarks.exe
+
+bench_deps: run_benchmarks.exe build prebuild_chez
 
 # Here's how you build the benchmarking script:
 run_benchmarks.exe: run_benchmarks.cabal run_benchmarks.hs
