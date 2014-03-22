@@ -34,7 +34,8 @@ main = defaultMainModifyConfig myconf
 
 all_benchmarks :: [Benchmark DefaultParamMeaning]
 all_benchmarks =
-  [ mkBenchmark "test/bench-add-vector.kfc" [] defaultCfgSpc
+  [ mkBenchmark "test/bench-add-vector.kfc" [show sz] defaultCfgSpc
+  | sz <- [1,3 .. 90]
   ]
 
 -- Default configuration space over which to vary settings:
