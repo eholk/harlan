@@ -260,10 +260,16 @@
   ((unsafe-vec-ptr (ptr ,t) ,[v r*])
    (values `(addressof ,(uglify-vector-ref t v `(int 0) (car r*)))
            (append r*)))
-  ((length ,[e r*])
-   (begin
-     (assert (not (null? r*)))
-     (values (vector-length-field e (car r*)) r*)))
+  ((length ,e^)
+   (let-values (((e r*) (uglify-expr e^)))
+     (let ((r (match e^
+                ((var (vec ,r ,t) ,x) r)
+                ((vector-ref (vec ,r ,t) ,v ,i) r)
+                (,else (error 'uglify-expr
+                              "can't determine region for expression" else)))))
+       (begin
+         (assert (not (null? r*)))
+         (values (vector-length-field e r) r*)))))
   ((addressof ,[expr r*])
    (values `(addressof ,expr) r*))
   ((field ,[e r] ,x)

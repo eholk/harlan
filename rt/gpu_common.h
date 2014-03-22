@@ -20,11 +20,10 @@ struct region_ {
     unsigned int size;
 
     // This is the next thing to allocate
-    region_ptr alloc_ptr;
+    volatile region_ptr alloc_ptr;
 
     // This is actually a cl_mem
     void *cl_buffer;
-
 };
 
 #define region struct region_
