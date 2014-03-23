@@ -1,0 +1,209 @@
+(%testspec
+ (%tags bench))
+(module
+  (import random)
+  (import graphics)
+
+  (define-datatype ray-result
+    (miss)
+    ;; The ray hits the surface and is completely absorbed, so it
+    ;; should be rendered with the returned color.
+    ;;
+    ;; the float tells the distance so we can do occlusion when
+    ;; multiple rays hit.
+    (hit float point3f-t))
+
+  (define (minimum a b)
+    (if (< a b) a b))
+  (define (maximum a b)
+    (if (> a b) a b))
+  
+  (define (dot-prod a b)
+    (match a
+      ((point3f ax ay az)
+       (match b
+         ((point3f bx by bz)
+          (+ (* ax bx) (+ (* ay by) (* az bz))))))))
+ 
+  (define (point-diff x y)
+    (match x
+      ((point3f a b c)
+       (match y
+         ((point3f d e f)
+          (point3f (- a d) (- b e) (- c f)))))))
+
+  (define (point-add x y)
+    (match x
+      ((point3f a b c)
+       (match y
+         ((point3f x y z)
+          (point3f (+ a x) (+ b y) (+ c z)))))))
+
+  (define (point-div (point3f a b c) y)
+    (point3f (/ a y) (/ b y) (/ c y)))
+
+  (define (point-scale (point3f a b c) y)
+    (point3f (* a y) (* b y) (* c y)))
+
+  (define (point-mag p)
+    (sqrt (dot-prod p p)))
+
+  (define (unit-length p)
+    (point-div p (point-mag p)))
+
+  (define (make-diffuse-sphere center radius color)
+    ;; x and y are switched for some reason from how I think light
+    ;; should work.
+    (let ((light-dir (unit-length (point3f 1 1 2))))
+      ;;(println light-dir)
+      (lambda (start direction)
+        ;; Sphere / Ray interstion code adapted from
+        ;; http://wiki.cgsociety.org/index.php/Ray_Sphere_Intersection
+        (let ((a (dot-prod direction direction))
+              (b (* 2 (dot-prod direction start)))
+              (c (- (dot-prod start start) (* radius radius))))
+          (let ((disc (- (* b b) (* 4 (* a c)))))
+            (if (< disc 0)
+                (miss)
+                (let* ((dist-sqrt (sqrt disc))
+                       (q (if (< b 0)
+                              (* -0.5 (+ b dist-sqrt))
+                              (* 0.5 (- dist-sqrt b))))
+                       (t0 (/ q a))
+                       (t1 (/ c q)))
+                  (let ((t (maximum t0 t1)))
+                    (if (< t 0)
+                        (miss)
+                        (let* ((pos (point-add (point-scale direction t)
+                                               start))
+                               (norm (unit-length (point-diff pos center)))
+                               (color (point-scale
+                                       color
+                                       (dot-prod light-dir norm))))
+                          (hit t color)))))))))))
+
+  (define-macro interpolate-range ()
+    ((_ (i start end steps) body)
+     (kernel ((j (iota steps)))
+       (let ((i (+ start (* (/ (- end start) (int->float steps))
+                            (int->float j)))))
+         body))))
+
+  (define-macro map2d ()
+    ((_ f data)
+     (kernel ((row data))
+       (kernel ((x row))
+         (f x)))))
+
+  (define (rgbf->rgbi x)
+    (match x
+      ((point3f r g b)
+       (point3i (float->int (* r 256))
+                (float->int (* g 256))
+                (float->int (* b 256))))))
+
+  (define (translate object amount)
+    (lambda (start dir)
+      (object (point-diff start amount) dir)))
+
+  (define (scale object amount)
+    (lambda (start dir)
+      (object (point-div start amount) dir)))
+  
+  (define (select-closest a b)
+    (match a
+      ((miss) b)
+      ((hit da _)
+       (match b
+         ((miss) a)
+         ((hit db _)
+          (if (< da db) a b))))))
+
+  (define (rand->float x)
+    (/ (int->float (mod x 1000000)) 1e6))
+
+  (define-macro random-floats ()
+    ((_ rng () e ...)
+     (begin e ...))
+    ((_ rng (x x* ...) e ...)
+     (let ((r^ rng))
+       (match (random r^)
+         ((RandomResult i r^)
+          (let ((x (rand->float i)))
+            (random-floats r^ (x* ...) e ...)))))))
+       
+  
+  (define (make-scale-translate n rng)
+    (kernel ((i (iota n)))
+      (random-floats
+       (reseed rng i)
+       (s tx ty tz r g b radius)
+       (scale
+        (translate
+         (make-diffuse-sphere (point3f 0 0 0)
+                              radius
+                              (point3f r g b))
+         (point3f tx ty tz))
+        s))))
+
+  (define (make-translate-scale n rng)
+    (kernel ((i (iota n)))
+      (random-floats
+       (reseed rng i)
+       (s tx ty tz r g b radius)
+       (translate
+        (scale (make-diffuse-sphere (point3f 0 0 0)
+                                    radius
+                                    (point3f r g b))
+        
+               s)
+        (point3f tx ty tz)))))
+
+  (define (mix-scene n lefts rights)
+    (kernel ((i (iota (* n 2))))
+      (if (= 0 (mod i 2))
+          (vector-ref lefts  (/ i 2))
+          (vector-ref rights (/ i 2)))))
+
+  (define (append lefts rights)
+    (let ((len (length lefts)))
+      (kernel ((i (iota (+ len (length rights)))))
+        (if (< i len)
+            (vector-ref lefts i)
+            (vector-ref rights (- i len))))))
+
+  (define (render-image scene origin width height)
+    (interpolate-range
+     (y 1.0 -1.0 height) ;; y coordinate is upside down.
+     (interpolate-range
+      (x -1.0 1.0 width)
+      (let ((dir (unit-length (point3f x y 1))))
+        (match (reduce select-closest
+                 (kernel ((object scene))
+                   (object origin dir)))
+          ((miss) (point3f 0 0 0))
+          ((hit dist color) color))))))
+  
+  (define (main)
+    (let ((rng (init-rand)))
+      (let ((lefts (make-scale-translate 100 rng))
+            (rights (make-translate-scale 100 rng)))
+        (let ((scene1 (append lefts rights))
+              (scene2 (mix-scene (length lefts) lefts rights))
+              (width 512)
+              (height 512)
+              (origin (point3f 0 0 -5)))
+          (begin
+            (let* ((start (nanotime))
+                   (img (render-image scene1 origin width height))
+                   (stop (nanotime)))
+              (println* "Convergent: " (- stop start))
+              (write-ppm "test.bin/raytrace-converged.ppm"
+                         (map2d (lambda (x) (rgbf->rgbi x)) img)))
+            (let* ((start (nanotime))
+                   (img (render-image scene2 origin width height))
+                   (stop (nanotime)))
+              (println* "Divergent:  " (- stop start))
+              (write-ppm "test.bin/raytrace-diverged.ppm"
+                         (map2d (lambda (x) (rgbf->rgbi x)) img)))))))
+    0))
