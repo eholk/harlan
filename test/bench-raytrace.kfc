@@ -13,6 +13,9 @@
     ;; multiple rays hit.
     (hit float point3f-t))
 
+  (define (elapsed-sec start end)
+    (/ (u64->float (- end start)) 1e9))
+  
   (define (minimum a b)
     (if (< a b) a b))
   (define (maximum a b)
@@ -143,7 +146,7 @@
          (make-diffuse-sphere (point3f 0 0 0)
                               radius
                               (point3f r g b))
-         (point3f tx ty tz))
+         (point3f (* 4.0 tx) (* 4.0 ty) (* 4.0 tz)))
         s))))
 
   (define (make-translate-scale n rng)
@@ -157,7 +160,7 @@
                                     (point3f r g b))
         
                s)
-        (point3f tx ty tz)))))
+        (point3f (* 4.0 tx) (* 4.0 ty) (* 4.0 tz))))))
 
   (define (mix-scene n lefts rights)
     (kernel ((i (iota (* n 2))))
@@ -185,25 +188,34 @@
           ((hit dist color) color))))))
   
   (define (main)
-    (let ((rng (init-rand)))
-      (let ((lefts (make-scale-translate 100 rng))
-            (rights (make-translate-scale 100 rng)))
-        (let ((scene1 (append lefts rights))
-              (scene2 (mix-scene (length lefts) lefts rights))
-              (width 512)
-              (height 512)
-              (origin (point3f 0 0 -5)))
-          (begin
+    (let ((args (command-line)))
+      (let ((convergent (if (>= (length args) 2)
+                            (parse-str->int (vector-ref args 1) 0)
+                            0))
+            (num-bodies (if (>= (length args) 3)
+                            (parse-str->int (vector-ref args 2) 10)
+                            10))
+            (rng (init-rand)))
+      (let ((lefts  (make-scale-translate num-bodies rng))
+            (rights (make-translate-scale num-bodies rng))
+            (width 512)
+            (height 512)
+            (origin (point3f 0 0 -5)))
+        (if (= convergent 1)
             (let* ((start (nanotime))
-                   (img (render-image scene1 origin width height))
+                   (img (render-image (append lefts rights)
+                                      origin width height))
                    (stop (nanotime)))
-              (println* "Convergent: " (- stop start))
+              (println "convergent")
+              (println* "SELFTIMED: " (elapsed-sec start stop))
               (write-ppm "test.bin/raytrace-converged.ppm"
                          (map2d (lambda (x) (rgbf->rgbi x)) img)))
             (let* ((start (nanotime))
-                   (img (render-image scene2 origin width height))
+                   (img (render-image (mix-scene (length lefts) lefts rights)
+                                      origin width height))
                    (stop (nanotime)))
-              (println* "Divergent:  " (- stop start))
+              (println "divergent")
+              (println* "SELFTIMED:  " (elapsed-sec start stop))
               (write-ppm "test.bin/raytrace-diverged.ppm"
                          (map2d (lambda (x) (rgbf->rgbi x)) img)))))))
     0))
