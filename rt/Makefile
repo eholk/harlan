@@ -29,4 +29,4 @@ libharlanrts.a : $(OBJS) $(SRC)
 
 
 clean :
-	rm -rf *.o libharlantrt.a
+	rm -rf *.o libharlanrt.a libharlanrts.a

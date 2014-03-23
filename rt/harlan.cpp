@@ -14,6 +14,9 @@ using namespace std;
 
 extern cl::program g_prog;
 
+extern uint64_t nanotime();
+uint64_t g_memtime = 0;
+
 void check_region(region *r) {
     CHECK_MAGIC(r);
     //assert(r->cl_buffer);
@@ -109,6 +112,7 @@ void free_region(region *r)
 
 void map_region(region *header)
 {
+    uint64_t start = nanotime();
     cl_int status = 0;
 
     assert(header->cl_buffer);
@@ -149,10 +153,12 @@ void map_region(region *header)
     CL_CHECK(clReleaseMemObject(buffer));
     assert(!header->cl_buffer);
     check_region(header);
+    g_memtime += nanotime() - start;
 }
 
 void unmap_region(region *header)
 {
+    uint64_t start = nanotime();
     check_region(header);
     
     // Don't unmap the region twice...
@@ -183,6 +189,7 @@ void unmap_region(region *header)
     CL_CHECK(status);
 
     header->cl_buffer = buffer;
+    g_memtime += nanotime() - start;
 }
 
 region_ptr alloc_in_region(region **r, unsigned int size)
@@ -255,12 +262,3 @@ cl_mem get_cl_buffer(region *r)
 
 int ARGC = 0;
 char **ARGV = NULL;
-
-extern int harlan_main();
-
-int main(int argc, char **argv) {
-	ARGC = argc;
-	ARGV = argv;
-
-	return harlan_main();
-}
