@@ -37,8 +37,11 @@
 
     ;; Command line arg is size in millions of elements
     (let* ((args (command-line))
-           (size (parse-str->int (vector-ref args 0) 0))
-           (time (bench_length (* size 1000000))))
+           (size (if (> (length args) 1)
+                     (parse-str->int (vector-ref args 1) -99) 10))
+           (time 0))
+      (println* "Running benchmark for size " size ", command line args were: " args)
+      (set! time (bench_length (* size 1000000)))
       (println* "\nSELFTIMED: " (/ (u64->float (/ time 1000)) 1e7))
       )
 
