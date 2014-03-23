@@ -68,7 +68,8 @@
     ;; Argument is the number of bodies
     (let* ((args (command-line))
            (size (if (> (length args) 0)
-                     (parse-str->int (vector-ref args 0) 10) 10)))
+                     (parse-str->int (vector-ref args 1) -99) 10)))
+      (println* "Running benchmark for size " size ", command line args were: " args)
       (bench-length (* size 1000))
       )
 
