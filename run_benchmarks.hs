@@ -36,7 +36,9 @@ all_benchmarks :: [Benchmark DefaultParamMeaning]
 all_benchmarks =
   [ mkBenchmark "test/bench-add-vector.kfc" [show sz] defaultCfgSpc  | sz <- [1,3 .. 90] ] ++ 
   [ mkBenchmark "test/bench-nbody.kfc"      [show sz] defaultCfgSpc  | sz <- [1 .. 66] ] ++ 
-  [ mkBenchmark "test/bench-mandelbrot.kfc"      [show sz] defaultCfgSpc  | sz <- [1 .. 50] ] 
+  [ mkBenchmark "test/bench-mandelbrot.kfc"      [show sz] defaultCfgSpc  | sz <- [1 .. 50] ] ++
+  [ mkBenchmark "test/bench-bfs-color.kfc" [show sz, "16"] defaultCfgSpc 
+  | sz <- [100, 1000, 10^4, 10^5, 10^5] ] 
 
 -- Default configuration space over which to vary settings:
 defaultCfgSpc = Or [gpu]

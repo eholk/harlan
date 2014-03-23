@@ -112,12 +112,14 @@
            (start (time-s))
            (graph (make-graph edge-factor N))
            (stop  (time-s)))
-      (println* "Generated graph with " (length graph) " vertices in "
-                (- stop start) " seconds.")
+      (println* "Generated graph with " (length graph) " vertices, edge-factor "
+                 edge-factor " in "(- stop start) " seconds.")
       (let* ((start  (nanotime))
              (result (bfs graph 0))
              (stop   (nanotime)))
-        (println* "Performed BFS in " (elapsed-sec start stop) " seconds.")))
+        (println* "Performed BFS in " (elapsed-sec start stop) " seconds.")
+        (println* "SELFTIMED: " (elapsed-sec start stop))
+        ))
     0)
   
   )
