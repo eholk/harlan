@@ -15,14 +15,14 @@
     (if (< a b) a b))
   (define (maximum a b)
     (if (> a b) a b))
-
+  
   (define (dot-prod a b)
     (match a
       ((point3f ax ay az)
        (match b
          ((point3f bx by bz)
           (+ (* ax bx) (+ (* ay by) (* az bz))))))))
-  
+ 
   (define (point-diff x y)
     (match x
       ((point3f a b c)
@@ -36,27 +36,24 @@
        (match y
          ((point3f x y z)
           (point3f (+ a x) (+ b y) (+ c z)))))))
-  
-  (define (point-div a y)
-    (match a
-      ((point3f a b c)
-       (point3f (/ a y) (/ b y) (/ c y)))))
 
-  (define (point-scale a y)
-    (match a
-      ((point3f a b c)
-       (point3f (* a y) (* b y) (* c y)))))
+  (define (point-div (point3f a b c) y)
+    (point3f (/ a y) (/ b y) (/ c y)))
+
+  (define (point-scale (point3f a b c) y)
+    (point3f (* a y) (* b y) (* c y)))
 
   (define (point-mag p)
-    (match p
-      ((point3f a b c)
-       (sqrt (+ (* a a) (+ (* b b) (* c c)))))))
+    (sqrt (dot-prod p p)))
 
   (define (unit-length p)
     (point-div p (point-mag p)))
 
   (define (make-diffuse-sphere center radius color)
-    (let ((light-pos (point3f 5 5 -8)))
+    ;; x and y are switched for some reason from how I think light
+    ;; should work.
+    (let ((light-dir (unit-length (point3f 1 1 2))))
+      (println light-dir)
       (lambda (start direction)
         ;; Sphere / Ray interstion code adapted from
         ;; http://wiki.cgsociety.org/index.php/Ray_Sphere_Intersection
@@ -78,8 +75,6 @@
                         (let* ((pos (point-add (point-scale direction t)
                                                start))
                                (norm (unit-length (point-diff pos center)))
-                               (light-dir (unit-length
-                                           (point-diff pos light-pos)))
                                (color (point-scale
                                        color
                                        (dot-prod light-dir norm))))
@@ -109,6 +104,10 @@
     (lambda (start dir)
       (object (point-diff start amount) dir)))
 
+  (define (scale object amount)
+    (lambda (start dir)
+      (object (point-div start amount) dir)))
+  
   (define (select-closest a b)
     (match a
       ((miss) b)
@@ -126,14 +125,20 @@
                           (make-diffuse-sphere (point3f 0 0 0)
                                                 1.5
                                                 (point3f 1 0 0))
-                          (point3f -1.5 0 0))))
+                          (point3f -2.5 0 0))
+                         (translate
+                          (scale (make-diffuse-sphere (point3f 0.0 0.0 0)
+                                                      1.0
+                                                      (point3f 0 1 0))
+                                 0.5)
+                          (point3f 2.0 2.0 0))))
           (width 512)
           (height 512)
-          (origin (point3f 0 0 -3)))
+          (origin (point3f 0 0 -5)))
       (let ((img (interpolate-range
-                  (x -1 1 width)
+                  (y 1.0 -1.0 height) ;; y coordinate is upside down.
                   (interpolate-range
-                   (y 1 -1 height) ;; y coordinate is upside down.
+                   (x -1.0 1.0 width)
                    (let ((dir (unit-length (point3f x y 1))))
                      (match (reduce select-closest
                               (kernel ((object scene))
@@ -142,6 +147,4 @@
                        ((hit dist color) color)))))))
         (write-ppm "test.bin/raytrace.ppm"
                    (map2d (lambda (x) (rgbf->rgbi x)) img))))
-    0)
-      
-  )
+    0))

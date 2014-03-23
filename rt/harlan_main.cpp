@@ -21,7 +21,5 @@ int main(int argc, char **argv) {
 
     cout << "JITTIME: " << double(g_memtime) / 1e9 << endl;
 
-    return 1;
-
-    //return result;
+    return result;
 }
