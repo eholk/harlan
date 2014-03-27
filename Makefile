@@ -45,9 +45,12 @@ COMPILE_TEST = $(call HC, $(1), $(call TEST_EXE_NAME, $(1)))
 RUN_TEST = $(1)
 
 .phony: check
-check : test.bin rt/libharlanrt.a update-submodules
+check: build
 	@./run-tests --display-failure-logs
 	@echo $(ECHO_ESCAPE) "\033[32mAll tests succeeded.\033[39m"
+
+.phony: build
+build: test.bin rt/libharlanrt.a update-submodules
 
 # Shorthands:
 .phony: rt
@@ -70,6 +73,7 @@ test.bin:
 .phony: clean
 clean:
 	rm -rf test.bin *.dSYM gc
+	rm -f run_benchmarks.exe
 	make -C rt clean
 
 test.bin/%.out : test.bin/%.bin
@@ -100,6 +104,26 @@ etags:
 prebuild:
 	vicare -O2 -L . -L external/nanopass-framework --more-file-extensions --compile-dependencies prebuild.ss
 #	vicare -L . -L external/nanopass-framework --more-file-extensions --compile-dependencies harlanc.scm
+
+prebuild_chez:
+#	SCHEME=scheme ./harlanc --compile-imported-libraries 
+# RRN: TODO, get rid of this duplicated info from the harlanc script:
+	scheme --compile-imported-libraries --libdirs .:external/nanopass-framework/lib/csv8.4/:./external/nanopass-framework --program ./harlanc.scm 
+
+#============================================================
+# Benchmarking:
+
+.phony: bench
+bench: bench_deps
+	./run_benchmarks.exe
+
+bench_deps: run_benchmarks.exe build prebuild_chez
+
+# Here's how you build the benchmarking script:
+run_benchmarks.exe: run_benchmarks.cabal run_benchmarks.hs
+	cabal sandbox init
+	cabal install ./HSBencher/ -j
+	cabal install --bindir=. --program-suffix=.exe ./
 
 #============================================================
 # For JIT support we embed Chez Scheme in a static library:

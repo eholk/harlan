@@ -252,18 +252,18 @@
    (guard (or (binop? op) (relop? op)))
    (values `(,op ,lhs ,rhs)
            (append lr* rr*)))
-  ((vector-ref ,t ,[e er*] ,[i ir*])
+  ((vector-ref ,t ,[uglify-expr/r -> e er* r] ,[i ir*])
    (begin
      (assert (not (null? er*)))
-     (values (uglify-vector-ref t e i (car er*))
+     (values (uglify-vector-ref t e i r)
              (append er* ir*))))
-  ((unsafe-vec-ptr (ptr ,t) ,[v r*])
-   (values `(addressof ,(uglify-vector-ref t v `(int 0) (car r*)))
+  ((unsafe-vec-ptr (ptr ,t) ,[uglify-expr/r -> v r* r])
+   (values `(addressof ,(uglify-vector-ref t v `(int 0) r))
            (append r*)))
-  ((length ,[e r*])
+  ((length ,[uglify-expr/r -> e r* r])
    (begin
      (assert (not (null? r*)))
-     (values (vector-length-field e (car r*)) r*)))
+     (values (vector-length-field e r) r*)))
   ((addressof ,[expr r*])
    (values `(addressof ,expr) r*))
   ((field ,[e r] ,x)
@@ -279,4 +279,15 @@
   ((deref ,[expr r*])
    (values `(deref ,expr) r*)))
 
-)
+;; uglifies an expression and returns the region we need if this is
+;; going to be immediately followed by a region reference. See its use
+;; in length.
+(define (uglify-expr/r e^)
+  (let-values (((e r*) (uglify-expr e^)))
+    (values e r*
+            (match e^
+              ((var (vec ,r ,t) ,x) r)
+              ((vector-ref (vec ,r ,t) ,v ,i) r)
+              ((deref ,[r]) r)
+              (,else (error 'uglify-expr/r
+                            "can't determine region for expression" else)))))))

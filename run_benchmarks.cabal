@@ -1,0 +1,16 @@
+-- A portable way to build the benchmark script/executable itself.
+
+name:                run-benchmark
+version:             0.0.1
+build-type:          Simple
+-- We force a recent version to make sure we have sandboxes:
+cabal-version:       >=1.18
+
+Executable run_benchmarks
+    Main-is: run_benchmarks.hs
+    Build-depends: base >= 4.6, containers >= 0.5, 
+                   process >= 1.2, filepath >= 1.3, directory >= 1.2, bytestring >= 0.10,
+                   GenericPretty >= 1.2.1,
+                   hsbencher >= 1.6
+    ghc-options: -threaded
+    default-language:  Haskell2010

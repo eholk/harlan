@@ -27,18 +27,26 @@ import HSBencher.Logging (log)
 import HSBencher.MeasureProcess
 import HSBencher.Utils (runLogged, defaultTimeout)
 import Prelude hiding (log)
+--------------------------------------------------------------------------------
 
+main :: IO ()
+main = defaultMainModifyConfig myconf
+
+all_benchmarks :: [Benchmark DefaultParamMeaning]
 all_benchmarks =
-  [ Benchmark "test/bench-add-vector.kfc" [] defaultCfgSpc
-  ]
-  
-defaultCfgSpc = Or [cpu, gpu]
+  [ mkBenchmark "test/bench-add-vector.kfc" [show sz] defaultCfgSpc  | sz <- [1,3 .. 90] ] ++ 
+  [ mkBenchmark "test/bench-nbody.kfc"      [show sz] defaultCfgSpc  | sz <- [1 .. 66] ] ++ 
+  [ mkBenchmark "test/bench-mandelbrot.kfc"      [show sz] defaultCfgSpc  | sz <- [1 .. 50] ] ++
+  [ mkBenchmark "test/bench-bfs-color.kfc" [show sz, "16"] defaultCfgSpc 
+  | sz <- [100, 1000, 10^4, 10^5, 10^5] ] ++
+  [ mkBenchmark "test/bench-raytrace.kfc" [show flag, "100"] defaultCfgSpc | flag <- [0,1] ]
+
+-- Default configuration space over which to vary settings:
+defaultCfgSpc = Or [gpu]
  where
    cpu = And [ Set (Variant "CPU") (RuntimeEnv "HARLAN_DEVICE" "cpu") ]
    gpu = And [ Set (Variant "GPU") (RuntimeEnv "HARLAN_DEVICE" "gpu") ]
 
-main :: IO ()
-main = defaultMainModifyConfig myconf
 
 -- | Put it all together as a full HSBencher configuration.
 myconf :: Config -> Config

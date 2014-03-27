@@ -11,9 +11,13 @@ case $SCHEME in
 vicare)
         $SCHEME -L $HARLAN_DIR -L $HARLAN_DIR/external/nanopass-framework --more-file-extensions --r6rs-script "$schemeScript" -- -L $HARLAN_DIR/lib/harlan -R $HARLAN_DIR/rt $@
         ;;
-petite)
+petite | scheme | chez )
         dir=$HARLAN_DIR:external/nanopass-framework/lib/csv8.4/$MACHINE:$HARLAN_DIR/external/nanopass-framework
-        petite --libdirs "$dir" --program "$schemeScript" -L $HARLAN_DIR/lib/harlan -R $HARLAN_DIR/rt $@
+        $SCHEME --libdirs "$dir" --program "$schemeScript" -L $HARLAN_DIR/lib/harlan -R $HARLAN_DIR/rt $@
+        ;;
+scheme)
+        dir=$HARLAN_DIR:external/nanopass-framework/lib/csv8.4/$MACHINE:$HARLAN_DIR/external/nanopass-framework
+        scheme --compile-imported-libraries --libdirs "$dir" --program "$schemeScript" -L $HARLAN_DIR/lib/harlan -R $HARLAN_DIR/rt $@
         ;;
 scheme)
         dir=$HARLAN_DIR:external/nanopass-framework/lib/csv8.4/$MACHINE:$HARLAN_DIR/external/nanopass-framework
