@@ -127,3 +127,7 @@ const char *get$denvironment$dvariable(const char *name) {
         return EMPTY_ENV_VAR;
     }
 }
+
+int hscanf(FILE *f, const char *s, int *i) {
+    return fscanf(f, s, i);
+}

@@ -1,0 +1,11 @@
+(module
+  (import io)
+
+  (define (main)
+    (let* ((f (file-open "test/read-file.txt"))
+           (i (file-read-int f)))
+      (fclose f)
+      (println i)
+      (assert (= i 42))
+      0)))
+      

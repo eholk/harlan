@@ -52,6 +52,7 @@
   (str 'str)
   (float 'float)
   (ofstream 'ofstream)
+  (FILE 'FILE)
   (,t (guard (assq t type-env)) `(adt ,(cdr (assq t type-env))))
   ((ptr ,[t]) `(ptr ,t))
   ((vec ,[t])

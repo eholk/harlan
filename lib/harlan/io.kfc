@@ -1,0 +1,19 @@
+(module
+
+  (import ffi)
+  
+  (extern fopen (str str) -> (ptr FILE))
+  (extern fclose ((ptr FILE)) -> int)
+  (extern hscanf ((ptr FILE) str (ptr int)) -> int)
+
+  (define (file-open name)
+    (fopen name "r"))
+
+  (define (file-close f)
+    (fclose f)
+    #f)
+
+  (define (file-read-int f)
+    (let ((tmp (vector 0)))
+      (hscanf f "%d" (unsafe-vec-ptr tmp))
+      (vector-ref tmp 0))))
