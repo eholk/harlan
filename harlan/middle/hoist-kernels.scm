@@ -56,6 +56,7 @@
   ((int ,n) '())
   ((bool ,b) '())
   ((float ,f) '())
+  ((u64 ,u) '())
   ((char ,c) '())
   ((str ,s) '())
   ((var ,[type-symbols -> t] ,x) (set-add t x))
