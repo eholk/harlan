@@ -1,0 +1,78 @@
+;; BFS based on the rodinia benchmark
+
+(%testspec
+ (%tags bench))
+
+(module
+ (import random)
+ (import io)
+ (extern get_kernel_time () -> u64)
+
+ (define (elapsed-sec start end)
+   (/ (u64->float (- end start)) 1e9))
+
+ (define-datatype Node
+   (Node int int))
+
+ ;; What's the proper way to define that type?
+ ;; (define-datatype Graph
+ ;;   (Graph int int (vector Node) (vector int)))
+ 
+
+ (define-macro append ()
+   ((_ A B)
+    (let ((a A) (b B))
+      (let ((lenA (length a))
+	    (len (+ (length a) (length b))))
+	(kernel ((i (iota len)))
+	  (if (< i lenA)
+	      (vector-ref a i)
+	      (vector-ref b (- i lenA))))))))
+ 
+ (define (read-node f)
+   (Node (file-read-int f) (file-read-int f)))
+
+ ;; This implemetation is painfuly slow.
+ ;; (define (read-all-nodes f no-of-nodes)
+ ;;   (let ((nodes (vector (read-node f))))
+ ;;     (for (i 1 no-of-nodes)
+ ;;       (set! nodes (append nodes (vector (read-node f)))))
+ ;;     nodes))
+
+ (define (read-all-nodes f no-of-nodes)
+   (let ((nodes
+	  ;; Is there a better way to construct a vector of Nodes of a certain length?
+	  (kernel ((i (iota no-of-nodes)))
+	    (Node 0 0))))
+     (for (i 0 no-of-nodes)
+       ;; I am not sure if the following line is supposed to work
+       (set! (vector-ref nodes i) (read-node f)))
+     nodes))
+
+ (define (read-all-edges f no-of-edges)
+   (let ((edges 
+	  (kernel ((i (iota no-of-edges)))
+	    0)))
+     (for (i 0 no-of-edges)
+       (set! (vector-ref edges i) (file-read-int f))
+       (file-read-int f))
+     edges))
+
+ (define (read-graph file)
+   (let* ((f (file-open file))
+ 	  (no-of-nodes (file-read-int f))
+ 	  (nodes (read-all-nodes f no-of-nodes))
+ 	  (source (file-read-int f))
+ 	  (no-of-edges (file-read-int f))
+ 	  (edges (read-all-edges f no-of-edges)))
+     nodes))
+
+ ;; (define (read-graph file)
+ ;;   0)
+
+ (define (main)
+   (let* ((args (command-line))
+ 	  (file (vector-ref args 1))
+ 	  (graph (read-graph file)))
+     (println "Graph is read in.")
+     0)))
