@@ -122,7 +122,7 @@ bench_deps: run_benchmarks.exe build prebuild_chez
 # Here's how you build the benchmarking script:
 run_benchmarks.exe: run_benchmarks.cabal run_benchmarks.hs
 	cabal sandbox init
-	cabal install ./HSBencher/ -j
+	cabal install ./HSBencher/hsbencher ./HSBencher/hsbencher-fusion -j
 	cabal install --bindir=. --program-suffix=.exe ./
 
 #============================================================

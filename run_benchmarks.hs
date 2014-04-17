@@ -26,6 +26,10 @@ import HSBencher.Methods (makeMethod)
 import HSBencher.Logging (log)
 import HSBencher.MeasureProcess
 import HSBencher.Utils (runLogged, defaultTimeout)
+
+import HSBencher.Backend.Fusion  (defaultFusionPlugin)
+import HSBencher.Backend.Dribble (defaultDribblePlugin)
+
 import Prelude hiding (log)
 --------------------------------------------------------------------------------
 
@@ -54,6 +58,8 @@ myconf conf =
   conf
    { benchlist = all_benchmarks
    , buildMethods = [ harlanMethod ]
+   , plugIns   = [ SomePlugin defaultFusionPlugin,
+                   SomePlugin defaultDribblePlugin ]
    }
 
 -- | Teach HSBencher how to build Harlan files From HSBencher's
