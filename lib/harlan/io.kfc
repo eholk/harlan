@@ -5,6 +5,7 @@
   (extern fopen (str str) -> (ptr FILE))
   (extern fclose ((ptr FILE)) -> int)
   (extern hscanf ((ptr FILE) str (ptr int)) -> int)
+  (extern hscanfu64 ((ptr FILE) (ptr u64)) -> int)
 
   (define (file-open name)
     (fopen name "r"))
@@ -16,4 +17,9 @@
   (define (file-read-int f)
     (let ((tmp (vector 0)))
       (hscanf f "%d" (unsafe-vec-ptr tmp))
+      (vector-ref tmp 0)))
+
+  (define (file-read-u64 f)
+    (let ((tmp (vector 0)))
+      (hscanfu64 f (unsafe-vec-ptr tmp))
       (vector-ref tmp 0))))

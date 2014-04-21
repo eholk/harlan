@@ -3,9 +3,12 @@
 
   (define (main)
     (let* ((f (file-open "test/read-file.txt"))
-           (i (file-read-int f)))
+           (i (file-read-int f))
+	   (u (file-read-u64 f)))
       (fclose f)
       (println i)
       (assert (= i 42))
+      (println u)
+      (assert (= u 44))
       0)))
       
