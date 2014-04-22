@@ -139,16 +139,19 @@ void map_region(region *header)
     //       sizeof(region), header->alloc_ptr - sizeof(region));
 
     // Now read the contents
-    status = clEnqueueReadBuffer(g_queue,
-                                 buffer,
-                                 CL_TRUE,
-                                 sizeof(region),
-                                 header->alloc_ptr - sizeof(region),
-                                 ((char *)header) + sizeof(region),
-                                 0,
-                                 NULL,
-                                 NULL);
-    CL_CHECK(status);
+	int remaining = header->alloc_ptr - sizeof(region);
+	if(remaining > 0) {
+		status = clEnqueueReadBuffer(g_queue,
+									 buffer,
+									 CL_TRUE,
+									 sizeof(region),
+									 remaining,
+									 ((char *)header) + sizeof(region),
+									 0,
+									 NULL,
+									 NULL);
+		CL_CHECK(status);
+	}
 
     CL_CHECK(clReleaseMemObject(buffer));
     assert(!header->cl_buffer);
