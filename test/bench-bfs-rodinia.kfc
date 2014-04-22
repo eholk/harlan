@@ -14,6 +14,14 @@
  (define-datatype Node
    (Node int int))
 
+ (define (print-node (Node start num-edges) stream)
+   (begin 
+     (print start stream)
+     (print " " stream)
+     (print num-edges stream)
+     (print "\n" stream)
+     0))
+
  (define (node-num-of-edges (Node a b))
    b)
  
@@ -25,6 +33,22 @@
 
  (define-datatype Graph
    (Graph int int (vec Node) (vec int)))
+
+ (define (print-graph-to-file (Graph number-vert number-edge nodes edges) file)
+   (let ((stream (open_outfile file)))
+     (print "Number of vertices: " stream)
+     (print number-vert stream)
+     (print "\n" stream)
+     (print "Number of edges:" stream)
+     (print number-edge stream)
+     (print "Nodes:\n" stream)
+     (for (i 0 (length nodes) 1)
+       (print-node (vector-ref nodes i) stream))
+     (print "Edges:\n" stream)
+     (for (i 0 (length edges) 1) 
+       (print (vector-ref edges i) stream)
+       (print "\n" stream))
+     0))
  
  (define (graph-size (Graph number-vert number-edge nodes edges))
    number-vert)
@@ -113,10 +137,40 @@
 		     0)
 	      0)))
      0))
+
+ (define (init-vector size v)
+   (kernel ((i (iota size)))
+     v))
+
+ (define (init-vector-with-exception size v index e)
+   (kernel ((i (iota size)))
+     (if (= i index)
+	 v
+	 e)))
+
+ ;; This function is exactly the same as init-vector-with-exception.  The only reason for its existence is to hack around lack of polymorphism.
+ (define (init-vector-with-exception-int size v index e)
+   (kernel ((i (iota size)))
+     (if (= i index)
+	 v
+	 e)))
+
+ (define (bfs (graph-cons source graph))
+   (let ((size (graph-size graph)))
+     (let ((cost (init-vector-with-exception-int size -1 source 0))
+	   (visited (init-vector-with-exception size #f source #t))
+	   (mask (init-vector-with-exception size #f source #t))
+	   (updating (init-vector size #f)))
+       (iterate-rodinia graph cost visited mask updating))))
 	    
  (define (main)
    (let* ((args (command-line))
- 	  (file (vector-ref args 1))
- 	  (source-and-graph (read-graph file)))
-     (println "Graph is read in.")
+ 	  (in-file (vector-ref args 1))
+	  (graph-out-file (vector-ref args 2))
+ 	  (graph-source (read-graph in-file))
+	  (graph (match graph-source
+			((graph-cons source graph) graph))))
+;;	  (source (match graph-source
+;;			((graph-cons source graph) source)))
+     (print-graph-to-file graph graph-out-file)
      0)))
