@@ -77,6 +77,11 @@
            `(vec ,r ,t))
           ((if ,e1 ,[e2] ,e3) e2)
           ((if ,e1 ,[e2]) e2)
+	  ((call ,[e] ,e* ...)
+	   (nanopass-case (M7.0.0 Rho-Type) e
+			  ((fn (,t* ...) ,-> ,t) t)
+			  (else (error 'remove-danger::type-of "illegal call target"
+				       (unparse-M7.0.0 e)))))
           ((error ,x) 'void)
           (else (error 'remove-danger::type-of "unrecognized expr"
                        (unparse-M7.0.0 e)))))))
