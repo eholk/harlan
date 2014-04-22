@@ -3,6 +3,7 @@
  */
 
 #include <stdio.h>
+#define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #include <time.h>
 
