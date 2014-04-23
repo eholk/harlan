@@ -1,0 +1,4 @@
+(module
+  (define (main)
+    (flush-stdout)
+    0))
