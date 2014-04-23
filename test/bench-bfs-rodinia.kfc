@@ -48,6 +48,7 @@
      (for (i 0 (length edges) 1) 
        (print (vector-ref edges i) stream)
        (print "\n" stream))
+     (close_outfile stream)
      0))
  
  (define (graph-size (Graph number-vert number-edge nodes edges))
@@ -194,6 +195,7 @@
        (print " cost:" stream)
        (print (vector-ref cost i) stream)
        (print "\n" stream))
+     (close_outfile stream)
      0))
 	    
  (define (main)
