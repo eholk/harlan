@@ -138,7 +138,8 @@
 			  (begin
 			    (set! (vector-ref cost id) (+ (vector-ref cost i) 1))
 			    (set! (vector-ref updating id) #t)
-			    0))))))))
+			    0))))))
+	      0))
 	(println "visited after first kernel:")
 	(println-vec visited)
 	(println "cost after first kernel:")
