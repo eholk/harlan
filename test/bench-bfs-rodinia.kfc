@@ -119,13 +119,13 @@
 
  (define (read-graph file)
    (println "Reading graph.")
-   (let* ((f (file-open file))
+   (let* ((f (open-infile file))
  	  (no-of-nodes (file-read-int f))
  	  (nodes (read-all-nodes f no-of-nodes))
  	  (source (file-read-int f))
  	  (no-of-edges (file-read-int f))
  	  (edges (read-all-edges f no-of-edges)))
-     (file-close f)
+     (close-infile f)
      (println "Graph read.")
      (graph-cons source (Graph no-of-nodes no-of-edges nodes edges))))
  

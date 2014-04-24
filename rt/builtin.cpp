@@ -58,6 +58,17 @@ void close_outfile(std::ofstream *f) {
     delete f;
 }
 
+std::ifstream* open$dinfile(const char *filename) {
+    std::ifstream *f = new std::ifstream;
+    f->open(filename);
+    return f;
+}
+
+void close$dinfile(std::ifstream *f) {
+    f->close();
+    delete f;
+}
+
 uint64_t get_kernel_time() {
     return g_queue.get_kernel_time();
 }
@@ -135,6 +146,18 @@ int hscanf(FILE *f, const char *s, int *i) {
 
 int hscanfu64(FILE *f, uint64_t *i) {
   return fscanf(f, "%" SCNu64, i);
+}
+
+uint64_t file$dread$du64(std::ifstream *f) {
+    uint64_t i;
+    *f >> i;
+    return i;
+}
+
+int file$dread$dint(std::ifstream *f) {
+    int i;
+    *f >> i;
+    return i;
 }
 
 void flush$dstdout() {

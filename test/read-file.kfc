@@ -2,10 +2,10 @@
   (import io)
 
   (define (main)
-    (let* ((f (file-open "test/read-file.txt"))
+    (let* ((f (open-infile "test/read-file.txt"))
            (i (file-read-int f))
-	   (u (file-read-u64 f)))
-      (fclose f)
+           (u (file-read-u64 f)))
+      (close-infile f)
       (println i)
       (assert (= i 42))
       (println u)
