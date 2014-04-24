@@ -4,6 +4,7 @@
 
   (extern close_outfile ((ptr ofstream)) -> void)
   (extern command-line () -> (vec str))
+  (extern flush-stdout () -> void)
   (extern get-environment-variable (str) -> str)
   (extern nanotime () -> u64)
   (extern open_outfile (str) -> (ptr ofstream))

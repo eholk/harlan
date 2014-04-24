@@ -48,6 +48,7 @@
      (for (i 0 (length edges) 1) 
        (print (vector-ref edges i) stream)
        (print "\n" stream))
+     (close_outfile stream)
      0))
  
  (define (graph-size (Graph number-vert number-edge nodes edges))
@@ -84,26 +85,40 @@
  ;;     nodes))
 
  (define (read-all-nodes f no-of-nodes)
+   (print "Reading nodes: ")
    (let ((nodes
 	  ;; Is there a better way to construct a vector of Nodes of a certain length?
 	  (kernel ((i (iota no-of-nodes)))
 	    (Node 0 0))))
      (for (i 0 no-of-nodes)
-       ;; I am not sure if the following line is supposed to work
-       (set! (vector-ref nodes i) (read-node f)))
+       ;; I am not sure if the following line is supposed to work but it does
+       (set! (vector-ref nodes i) (read-node f))
+       (if (= 0 (mod i 100)) 
+	   (print ".")
+	   ;; I put 0 for this arm of the if, but is there something better like unit or void? Should I use cond for one arm condition?
+	   0))
+     (print "\n")
      nodes))
 
  (define (read-all-edges f no-of-edges)
+   (print "Reading edges: ")
    (let ((edges 
 	  (kernel ((i (iota no-of-edges)))
 	    0)))
+     ;; (println "read-all-edges after kernel")
      (for (i 0 no-of-edges)
        (set! (vector-ref edges i) (file-read-int f))
+       (if (= 0 (mod i 100))
+           (print ".")
+           ;; I put 0 for this arm of the if, but is there something better like unit or void? Should I use cond for one arm condition?
+           0)
        ;; The second integer in the edge description is the cost (edge weight), and it is not used in BFS.
        (file-read-int f))
+     (print "\n")
      edges))
 
  (define (read-graph file)
+   (println "Reading graph.")
    (let* ((f (file-open file))
  	  (no-of-nodes (file-read-int f))
  	  (nodes (read-all-nodes f no-of-nodes))
@@ -111,6 +126,7 @@
  	  (no-of-edges (file-read-int f))
  	  (edges (read-all-edges f no-of-edges)))
      (file-close f)
+     (println "Graph read.")
      (graph-cons source (Graph no-of-nodes no-of-edges nodes edges))))
  
  (define (iterate-rodinia graph cost visited mask updating)
@@ -194,9 +210,11 @@
        (print " cost:" stream)
        (print (vector-ref cost i) stream)
        (print "\n" stream))
+     (close_outfile stream)
      0))
 	    
  (define (main)
+   (println "Started main.")
    (let* ((args (command-line))
  	  (in-file (vector-ref args 1))
 ;;	  (graph-out-file (vector-ref args 2))

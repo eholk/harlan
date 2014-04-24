@@ -136,3 +136,7 @@ int hscanf(FILE *f, const char *s, int *i) {
 int hscanfu64(FILE *f, uint64_t *i) {
   return fscanf(f, "%" SCNu64, i);
 }
+
+void flush$dstdout() {
+	cout.flush();
+}

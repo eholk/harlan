@@ -6,4 +6,4 @@
 	url = https://github.com/akeep/nanopass-framework.git
 [submodule "HSBencher"]
 	path = HSBencher
-	url = git@github.com:rrnewton/HSBencher.git
+	url = https://github.com/rrnewton/HSBencher.git

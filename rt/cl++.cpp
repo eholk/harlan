@@ -208,6 +208,8 @@ void program::build()
     string opts = "-I";
     opts += escape_path(cwd);
     opts += " -I/Users/eric/class/osl/dpp/svn/user/webyrd/harlan";
+	if(getenv("HARLAN_DISABLE_OPENCL_OPTS"))
+		opts += " -cl-opt-disable";
     // opts += " -Werror";
     free(cwd);
     cl_int status = clBuildProgram(prog, 0, NULL, opts.c_str(), NULL, NULL);
