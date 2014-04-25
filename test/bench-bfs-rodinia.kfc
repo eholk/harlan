@@ -94,7 +94,9 @@
        ;; I am not sure if the following line is supposed to work but it does
        (set! (vector-ref nodes i) (read-node f))
        (if (= 0 (mod i 100)) 
-	   (print ".")
+	   (begin
+	     (print ".")
+	     (flush-stdout))
 	   ;; I put 0 for this arm of the if, but is there something better like unit or void? Should I use cond for one arm condition?
 	   0))
      (print "\n")
@@ -109,7 +111,9 @@
      (for (i 0 no-of-edges)
        (set! (vector-ref edges i) (file-read-int f))
        (if (= 0 (mod i 100))
-           (print ".")
+           (begin
+	     (print ".")
+	     (flush-stdout))
            ;; I put 0 for this arm of the if, but is there something better like unit or void? Should I use cond for one arm condition?
            0)
        ;; The second integer in the edge description is the cost (edge weight), and it is not used in BFS.
