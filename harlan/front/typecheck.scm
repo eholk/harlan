@@ -370,7 +370,7 @@
              (return `(,< bool ,a ,b) 'bool)))
        ((assert ,e)
         (do* (((e t) (require-type e env 'bool)))
-             (return `(assert ,e) t)))
+             (return `(assert ,e) 'void)))
        ((set! ,x ,e)
         (do* (((x t) (infer-expr x env))
               ((e t) (require-type e env t)))
@@ -566,7 +566,8 @@
                       (list (cons name (cons 'fn t))))))
                 decls))
      ;; Add some primitives
-     '((harlan_sqrt fn (float) -> float)
+     '((not fn (bool) -> bool)
+       (harlan_sqrt fn (float) -> float)
        (floor fn (float) -> float)
        (atan2 fn (float float) -> float))))
 

@@ -12,7 +12,7 @@
 
 (define-match annotate-decl*
   (((,tag* ,name* . ,rest*) ...)
-   (map (annotate-decl (append name* '(harlan_sqrt floor atan2)))
+   (map (annotate-decl (append name* '(harlan_sqrt floor atan2 not)))
         `((,tag* ,name* . ,rest*) ...))))
 
 (define-match (annotate-decl globals)
