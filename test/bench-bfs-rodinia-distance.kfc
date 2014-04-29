@@ -94,26 +94,26 @@
   (define (iterate-distances graph distances)
     (println "iterate")
     (let ((new-distances
-           (kernel ((i (iota (length graph))))
-	     (minimum
-	      (reduce minimum (kernel ((j (vector-ref graph i)))
-				(+ (vector-ref distances j) 1)))
-	      (vector-ref distances i)))))
+           (kernel ((distance distances) (edges graph))
+             (minimum
+              (reduce minimum (kernel ((j edges))
+                                (+ (vector-ref distances j) 1)))
+              distance))))
       (println "computed new distances")
       (if (reduce and (kernel ((d1 new-distances)
-			       (d2 distances))
-			(= d1 d2)))
+                               (d2 distances))
+                        (= d1 d2)))
           distances
           (begin
-            ;;(println new-colors)
+            (println new-distances)
             (iterate-distances graph new-distances)))))
-
+  
   (define (bfs graph start)
     (let ((distances (kernel ((i (iota (length graph))))
                     (if (= i start)
                         0
-                        (u64_max)))))
-      ;;(println colors)
+                        (- (u64_max) 1)))))
+      (println distances)
       (iterate-distances graph distances)))
 
   (define (print-cost cost file)
@@ -139,5 +139,6 @@
               ((graph-cons start graph)
                (let* ((graph (convert-graph graph))
                       (result (bfs graph start)))
+                 (println (vector-ref graph 0))
                  (print-cost result (vector-ref args 2)))))
             0)))))
