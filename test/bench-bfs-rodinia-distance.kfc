@@ -138,7 +138,11 @@
             (match graph
               ((graph-cons start graph)
                (let* ((graph (convert-graph graph))
-                      (result (bfs graph start)))
+                      (start-time (nanotime))
+                      (result (bfs graph start))
+                      (stop-time (nanotime)))
                  (println (vector-ref graph 0))
-                 (print-cost result (vector-ref args 2)))))
-            0)))))
+                 (print-cost result (vector-ref args 2))
+                 (println* "SELFTIMED: "
+                         (elapsed-sec start-time stop-time))
+                 0))))))))
