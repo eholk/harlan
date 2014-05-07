@@ -1,0 +1,18 @@
+;; nested kernel example from Harlan proposal
+;; total = +/kernel(row : Rows) { +/kernel(x : row) { x }; };
+
+;; This is a simplified version of nested-kernels.kfc
+
+(module
+  (define (main)
+    (let ((Rows (vector (vector 1 2 3)
+                        (vector 4 5 6)
+                        (vector 7 8 9)
+                        (vector 10 11 12))))
+      (let ((total
+             (reduce +
+               (kernel ((row Rows))
+                 (reduce + row)))))
+        (println total)
+        (assert (= total 78))
+        0))))
