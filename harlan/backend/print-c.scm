@@ -27,9 +27,10 @@
        ,[format-ident -> name]
        (,[format-arg -> arg*] ...)
        ,[format-stmt -> stmt])
-     (string-append
-       "__kernel void " name "(" (join ", " arg*) ") " stmt))
-    (,else (harlan-format-decl else)))
+     (run-format
+      (format-append
+       "__kernel void " name "(" (format-join ", " arg*) ") " stmt)))
+    (,else (run-format (harlan-format-decl else))))
 
   (define (read-rt-include name)
     (let* ((port (open-file-input-port (string-append (harlan-runtime-path)
