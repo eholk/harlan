@@ -90,7 +90,7 @@
     ;; (inner-reduce op e))
     ((_ op (kernel ((x e) (x* e*) ...) b))
      (let ((x e)
-           (stride 65536))
+           (stride 30))
        (if (< (length x) stride)
            (inner-reduce op (kernel ((x x) (x* e*) ...) b))
            (inner-reduce
