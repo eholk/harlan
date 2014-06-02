@@ -5,6 +5,7 @@
    (rnrs)
    (nanopass)
    (except (elegant-weapons helpers) ident?)
+   (elegant-weapons print-c)
    (harlan compile-opts)
    (harlan middle languages)
    (harlan helpers))
@@ -23,7 +24,7 @@
                               (call
                                (field (var cl::program g_prog)
                                       createKernel)
-                               (str ,(symbol->string x))))))
+                               (str ,(run-format (mangle-ident (symbol->string x))))))))
            (arg-def (map (lambda (n d)
                            `(let ,n int ,d))
                          dim-names e1*))

@@ -4,8 +4,12 @@
   (import
    (rnrs)
    (except (elegant-weapons helpers) ident?)
+   (util compat)
    (elegant-weapons sets)
    (harlan helpers))
+
+(define context-name (make-parameter 'annon-kernel))
+
 
 (define-match hoist-kernels
   ((module ,[hoist-decl -> decl* kernel*] ...)
@@ -114,8 +118,12 @@
   (filter-decls syms cons '()))
 
 (define-match hoist-decl
-  ((fn ,name ,args ,type ,[hoist-stmt -> stmt kernel*])
-   (values `(fn ,name ,args ,type ,stmt) kernel*))
+  ((fn ,name ,args ,type ,stmt)
+   (parameterize 
+     ((context-name name))
+     (let-values 
+       (((stmt kernel*) (hoist-stmt stmt)))
+       (values `(fn ,name ,args ,type ,stmt) kernel*))))
   ((extern ,name ,arg-types -> ,t)
    (values `(extern ,name ,arg-types -> ,t) '()))
   ((typedef ,name ,t)
@@ -126,7 +134,7 @@
 (define-match hoist-stmt
   ((kernel ,dims (free-vars (,fv* ,ft*) ...)
      ,[hoist-stmt -> stmt kernel*])
-   (let ((name (gensym 'kernel)))
+   (let ((name (gensym (context-name))))
      (let-values (((fv*^ ft*^ casts)
                    (regionptr->voidptr fv* ft*)))
        (values
