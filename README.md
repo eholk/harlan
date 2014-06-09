@@ -1,5 +1,6 @@
 Harlan
 ==========
+[![Build Status](https://travis-ci.org/eholk/harlan.svg?branch=master)](https://travis-ci.org/eholk/harlan)
 
 Harlan is a domain specific language for programming GPUs. This
 project serves primarily as a testbed for implementation and
