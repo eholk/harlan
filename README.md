@@ -83,20 +83,20 @@ Directory Structure
 Here is a quick overview of the various directories included in this
 repository.
 
-- HSBencher - a utility to automatically run and report the results of
+- `HSBencher` - a utility to automatically run and report the results of
 Harlan benchmarks.
-- etc - includes an Emacs mode for Harlan source files.
-- external - the location of several git submodules, including the
+- `etc` - includes an Emacs mode for Harlan source files.
+- `external` - the location of several git submodules, including the
 [Nanopass Framework] and [Elegant Weapons].
-- harlan - the source code for the Harlan compiler.
-- lib - the standard library for Harlan.
-- rt - the runtime library for Harlan.
-- test - Harlan test cases and benchmarks.
-- test.bin - Harlan's test runner (`run-tests.scm`) stores the
+- `harlan` - the source code for the Harlan compiler.
+- `lib` - the standard library for Harlan.
+- `rt` - the runtime library for Harlan.
+- `test` - Harlan test cases and benchmarks.
+- `test.bin` - Harlan's test runner (`run-tests.scm`) stores the
 compiled binaries and program output for the test cases here.
-- travis - support files for running Harlan's test suite under
+- `travis` - support files for running Harlan's test suite under
   [Travis CI].
-- util - miscellaneous Scheme files, including compatability shims for
+- `util` - miscellaneous Scheme files, including compatability shims for
   different Scheme implementations.
 
 [Nanopass Framework]: https://github.com/akeep/nanopass-framework
