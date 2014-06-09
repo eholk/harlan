@@ -72,7 +72,7 @@ test.bin:
 
 .phony: clean
 clean:
-	rm -rf test.bin *.dSYM gc
+	rm -rf test.bin *.dSYM
 	rm -f run_benchmarks.exe
 	make -C rt clean
 
