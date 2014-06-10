@@ -85,7 +85,7 @@ repository.
 
 - `HSBencher` - a utility to automatically run and report the results of
 Harlan benchmarks.
-- `etc` - includes an Emacs mode for Harlan source files.
+- `etc` - miscellaneous tools, including an Emacs mode for Harlan files.
 - `external` - the location of several git submodules, including the
 [Nanopass Framework] and [Elegant Weapons].
 - `harlan` - the source code for the Harlan compiler.
