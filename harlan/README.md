@@ -15,3 +15,16 @@ of the middle end into C++ code that is compiled by the system C++
 compiler.
 
 [Elegant Weapons]: https://github.com/eholk/elegant-weapons
+
+## Directory Structure
+
+* `backend` - the back end of the compiler. This mostly consists of
+  code to transform Harlan's S-Expression-based intermediate forms
+  into C code.
+* `front` - the front end of the compiler. This includes tasks such as
+  loading Harlan libraries, expanding macros and inferring types.
+* `middle` - the middle end of the compiler. This consists of a number
+  of passes to lower Harlan's high level forms into something that
+  resembles C. The middle end includes several optimization passes
+  too.
+
