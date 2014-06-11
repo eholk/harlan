@@ -43,6 +43,22 @@ def nbody():
     plt.tight_layout()
     plt.savefig("figure9-nbody.pdf", bbinches="tight")
 
+def bfs():
+    harlan = loadFile("test.bin/bench-bfs-color.kfc.dat")
+
+    plt.semilogx(harlan['size'],
+                 harlan['time'], 'bo-',
+                 label = "Harlan")
+
+    plt.ylabel("Execution time (s)")
+    plt.xlabel("Number of nodes")
+
+    plt.legend(numpoints=1, loc=2) # loc=1 means upper right, 2 means
+                                   # upper left.
+
+    plt.tight_layout()
+    plt.savefig("figure10-bfs.pdf", bbinches="tight")
+
 def mkbandwidth():
     data = loadFile('mem-bandwidth.dat')
 
@@ -89,6 +105,10 @@ def do_plots():
     
     plt.figure(id, figsize=size)
     nbody()
+    id += 1
+
+    plt.figure(id, figsize=size)
+    bfs()
     id += 1
 
     #plt.figure(id, figsize=size)
