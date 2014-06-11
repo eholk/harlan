@@ -11,11 +11,11 @@ def loadFile(name):
 
     return data
 
-def mkplot(name, plot_name="plot", scale=1e6):
+def mkplot(name, plot_name="plot", yscale=1, xscale=1):
     harlan = loadFile('test.bin/bench-%s.kfc.dat' % (name))
 
-    harlan = plt.plot(harlan['size'],
-                      harlan['time'] / scale,
+    harlan = plt.plot(harlan['size'] / xscale,
+                      harlan['time'] / yscale,
                       'bo',
                       label="Harlan")
 
@@ -80,7 +80,11 @@ def do_plots():
     size = None
 
     plt.figure(id, figsize=size)
-    mkplot('add-vector', plot_name="figure7-vector-addition", scale=1)
+    mkplot('add-vector', plot_name="figure7-vector-addition")
+    id += 1
+    
+    plt.figure(id, figsize=size)
+    mkplot('dot-prod', plot_name="figure8-dot-product")
     id += 1
     
     plt.figure(id, figsize=size)
