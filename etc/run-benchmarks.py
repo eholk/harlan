@@ -23,8 +23,8 @@ benchmarks = [
       "env": {"HARLAN_MIN_REGION_SIZE": "128000000"} },
     { "name": "bench-bfs-color.kfc",
       "args": ["100", "1000", "10000", "100000"] },
-    { "name": "bench-raytrace.kfc",
-      "args": ["1 100", "0 100"] }
+    #{ "name": "bench-raytrace.kfc",
+    #  "args": ["1 100", "0 100"] }
 ]
 
 def run_bench(benchmark):

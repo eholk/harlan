@@ -127,6 +127,6 @@ def do_plots():
     bfs()
     id += 1
 
-    plt.figure(id, figsize=size)
-    raytrace()
-    id += 1
+    #plt.figure(id, figsize=size)
+    #raytrace()
+    #id += 1
