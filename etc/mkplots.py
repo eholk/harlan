@@ -11,20 +11,13 @@ def loadFile(name):
 
     return data
 
-def mkplot(name, harlan_scale=1e6, cublas_scale = 1):
-    cublas = loadFile('%s-cublas.dat' % (name))
-    harlan = loadFile('%s-harlan.dat' % (name))
+def mkplot(name, plot_name="plot", scale=1e6):
+    harlan = loadFile('test.bin/bench-%s.kfc.dat' % (name))
 
-    #plt.figure(figsize = (3, 2))
-
-    harlan = plt.plot(harlan['size'] / harlan_scale,
-                      harlan['time'] / harlan_scale,
+    harlan = plt.plot(harlan['size'],
+                      harlan['time'] / scale,
                       'bo',
                       label="Harlan")
-    cublas = plt.plot(cublas['size'] / 1e6,
-                      cublas['time'] / (1e6 * cublas_scale),
-                      'g^',
-                      label="CUBLAS")
 
     plt.ylabel("Execution Time (s)")
     plt.xlabel("Vector Size (million elements)")
@@ -32,7 +25,7 @@ def mkplot(name, harlan_scale=1e6, cublas_scale = 1):
     plt.legend(numpoints=1, loc=2)
 
     plt.tight_layout()
-    plt.savefig(name + '.pdf')
+    plt.savefig(plot_name + '.pdf')
 
 def nbody():
     harlan = loadFile("test.bin/bench-nbody.kfc.dat")
@@ -86,6 +79,10 @@ def do_plots():
     #size = (4, 2.5)
     size = None
 
+    plt.figure(id, figsize=size)
+    mkplot('add-vector', plot_name="figure7-vector-addition", scale=1)
+    id += 1
+    
     plt.figure(id, figsize=size)
     nbody()
     id += 1
