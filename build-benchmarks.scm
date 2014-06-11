@@ -21,7 +21,7 @@
   '("bench-add-vector.kfc"
     "bench-dot-prod.kfc"
     "bench-nbody.kfc"
-    "bench-bfs.kfc"))
+    "bench-bfs-color.kfc"))
 
 (define-syntax try
   (syntax-rules (catch)

@@ -14,11 +14,13 @@ import re
 benchmarks = [
     { "name": "bench-add-vector.kfc",
       "args": [str(x) for x in xrange(1, 90)] },
-#    { "name": "bench-dot-prod.kfc",
-#      "args": [""] },
+    { "name": "bench-dot-prod.kfc",
+      "args": [""] },
     { "name": "bench-nbody.kfc",
       "args": [str(x) for x in xrange(1, 66)],
-      "env": "HARLAN_MIN_REGION_SIZE=128000000" }
+      "env": {"HARLAN_MIN_REGION_SIZE": "128000000"} }
+   { "name": "bench-bfs-color.kfc",
+      "args": ["100", "1000", "10000", "100000"] }
 ]
 
 def run_bench(benchmark):
@@ -27,7 +29,7 @@ def run_bench(benchmark):
     if "env" in benchmark:
         env = benchmark["env"]
     else:
-        env = ""
+        env = {}
 
     print "Running benchmark " + name
     
@@ -37,8 +39,9 @@ def run_bench(benchmark):
     out = open(out, "w")
 
     for arg in args:
-        result = subprocess.check_output([env, exe, arg],
-                                         stderr=subprocess.PIPE)
+        result = subprocess.check_output([exe, arg],
+                                         stderr=subprocess.PIPE,
+                                         env=env)
 
         match = re.search("^SELFTIMED: (.*)$", result, flags=re.MULTILINE)
         if match:
