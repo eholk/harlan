@@ -59,6 +59,22 @@ def bfs():
     plt.tight_layout()
     plt.savefig("figure10-bfs.pdf", bbinches="tight")
 
+def raytrace():
+    harlan = np.loadtxt("test.bin/bench-raytrace.kfc.dat",
+                        delimiter=",",
+                        dtype = { 'names': ('size', 'time'),
+                                  'formats': ('object', 'float')}
+                      )
+
+    plt.bar(np.arange(2),
+            harlan['time'])
+
+    plt.ylabel("Execution time (s)")
+    plt.xticks(np.arange(2) + 0.4, ('Sorted', 'Unsorted'))
+
+    plt.tight_layout()
+    plt.savefig("table1-raytrace.pdf", bbinches="tight")
+
 def mkbandwidth():
     data = loadFile('mem-bandwidth.dat')
 
@@ -111,6 +127,6 @@ def do_plots():
     bfs()
     id += 1
 
-    #plt.figure(id, figsize=size)
-    #bfs()
-    #id += 1
+    plt.figure(id, figsize=size)
+    raytrace()
+    id += 1

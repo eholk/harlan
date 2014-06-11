@@ -21,8 +21,10 @@ benchmarks = [
     { "name": "bench-nbody.kfc",
       "args": [str(x) for x in xrange(1, 66)],
       "env": {"HARLAN_MIN_REGION_SIZE": "128000000"} },
-   { "name": "bench-bfs-color.kfc",
-      "args": ["100", "1000", "10000", "100000"] }
+    { "name": "bench-bfs-color.kfc",
+      "args": ["100", "1000", "10000", "100000"] },
+    { "name": "bench-raytrace.kfc",
+      "args": ["1 100", "0 100"] }
 ]
 
 def run_bench(benchmark):
@@ -59,8 +61,8 @@ def run_bench(benchmark):
                                                        time=(sec / 1e6)))
 
 print "Running benchmarks..."
-#for bench in benchmarks:
-#    run_bench(bench)
+for bench in benchmarks:
+    run_bench(bench)
 
 print "Generating plots..."
 mkplots.do_plots()
