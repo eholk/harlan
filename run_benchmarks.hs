@@ -49,8 +49,8 @@ all_benchmarks =
 defaultCfgSpc = Or [gpu]
  where
    cpu = And [ Set (Variant "CPU") (RuntimeEnv "HARLAN_DEVICE" "cpu") ]
-   gpu = And [ Set (Variant "GPU") (RuntimeEnv "HARLAN_DEVICE" "gpu") ]
-
+   gpu = And [ Set (Variant "GPU") (RuntimeEnv "HARLAN_DEVICE" "gpu")
+             , Set NoMeaning (RuntimeEnv "HARLAN_MIN_REGION_SIZE" "134217728") ]
 
 -- | Put it all together as a full HSBencher configuration.
 myconf :: Config -> Config
