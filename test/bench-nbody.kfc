@@ -8,6 +8,11 @@
   (define-datatype point3_t
     (point3 float float float))
 
+  (define-macro take ()
+    ((_ n v)
+     (kernel ((i (iota n)))
+       (vector-ref v i))))
+  
   ;; The points don't really matter. This will just make a bunch.
   (define (make-points N)
     (kernel ((i (iota N)))
@@ -43,7 +48,7 @@
     (kernel ((i bodies))
       (reduce point-add
         (kernel ((j bodies))
-          (let* ((diff (point-diff i j))
+          (let* ((diff (point-diff j i))
                  (d (point-mag diff)))
             (if (< 0 d)
                 (point-div diff (* (* d d) d))
@@ -59,7 +64,10 @@
       ; (print (/ (- stop start) 1000))
       (println* "\nSELFTIMED: " (/ (u64->float (/ (- stop start) 1000)) 1e6))
       (print "\n")
-      ))
+      (println "First 10 bodies:")
+      (println (take 10 bodies))
+      (println "First 10 forces:")
+      (println (take 10 forces))))
   
   (define (main)
     ; (for (i 1 66)
