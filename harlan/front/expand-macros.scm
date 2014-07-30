@@ -3,6 +3,7 @@
   (export expand-macros)
   (import
    (rnrs)
+   (only (chezscheme) pretty-print)
    (only (elegant-weapons helpers) gensym define-match ormap)
    (elegant-weapons record-case)
    (elegant-weapons match)
@@ -97,7 +98,8 @@
              (map cdr env)
              (get-... x rest))))
       ((,a . ,d)
-       (get-... x d))))
+       (get-... x d))
+      (,else (error 'get-... "Unmatched item" else))))
 
   (define (mem* x ls)
     (cond
@@ -192,7 +194,8 @@
                       macros)))
          ((,a . ,rest)
           (cons (expander a colors macros) (loop rest macros)))
-         (() '())))))
+         (() '())
+         (,else (error 'expand-module "unmatched item" else))))))
 
   (define (make-expander kw* patterns colors macros)
     (let ((patterns (map (lambda (p)
@@ -247,7 +250,8 @@
                                          (cons x (gensym (ident-symbol x))))
                                        x*)
                                   env)))
-                 `(lambda ,(reify x* env) . ,(reify b* env))))))
+                 `(lambda ,(reify x* env) . ,(reify b* env))))
+              (,else (error 'reify "unmatched item (1)" else))))
            ((prim-define)
             (match x
               ((,define (,name ,x* ...) ,b* ...)
@@ -259,7 +263,8 @@
                                        x*)))))
                  `(define (,(reify name env^)
                            ,(reify x* env^) ...)
-                    ,(reify b* env^) ...)))))
+                    ,(reify b* env^) ...)))
+              (,else (error 'reify "unmatched item (2)" else))))
            ((let kernel)
             (match x
               ((,_ ((,x ,e) ...) ,b* ...)
@@ -272,7 +277,8 @@
                                        x)
                                   env)))
                  `(,a ((,(reify x env) ,e) ...)
-                    ,(reify b* env) ...)))))
+                    ,(reify b* env) ...)))
+              (,else (pretty-print else) (error 'reify "unmatched item (3)" else))))
            ((let-region)
             (match x
               ((,_ (,r ...) ,b ...)
@@ -282,7 +288,8 @@
                                        r)
                                   env)))
                `(let-region (,(reify r env) ...)
-                            ,(reify b env) ...)))))
+                            ,(reify b env) ...)))
+              (,else (error 'reify "unmatched item (4)" else))))
            ((match)
             (match x
               ((,_ ,e
@@ -301,7 +308,8 @@
                                            env))))
                                (reify `((,tag ,x* ...) ,b ...) env)))
                            tag x* b)))
-                 `(match ,e . ,arms)))))
+                 `(match ,e . ,arms)))
+              (,else (error 'reify "unmatched item (5)" else))))
            (else (cons a (reify (cdr x) env))))))
       ((ident? x)
        (let ((t (assq x env)))
