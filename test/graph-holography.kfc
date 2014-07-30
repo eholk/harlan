@@ -1,0 +1,42 @@
+(module
+
+  (define-datatype weight-t
+    (weight float)
+    (bottom))
+
+  (define (my-min a b)
+    (if (< a b) a b))
+  
+  (define (add-weight a b)
+    (match a
+      ((weight wa)
+       (match b
+         ((weight wb) (weight (my-min wa wb)))
+         ((bottom) a)))
+      ((bottom) b)))
+
+  (define (mul-weight a b)
+    (match a
+      ((weight wa)
+       (match b
+         ((weight wb) (weight (+ wa wb)))
+         ((bottom) (bottom))))
+      ((bottom) (bottom))))
+
+  ;; Here is the graph we were looking at yesterday.
+  ;;
+  ;;     0
+  ;;     |
+  ;; 2 - 1
+
+  (define (main)
+    (let* ((graph (vector (vector (bottom)   (weight 1) (bottom))
+                          (vector (weight 1) (bottom)   (weight 1))
+                          (vector (bottom)   (weight 1) (bottom)))))
+      (println (kernel* ((i0 (iota (length graph)))
+                         (j (iota (length graph))))
+                 (reduce add-weight
+                   (kernel ((i1 (vector-ref graph i0))
+                            (j (kernel ((i2 (iota (length graph))))
+                                 (vector-ref (vector-ref graph i2) j))))
+                     (mul-weight i1 j))))))))
