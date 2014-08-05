@@ -10,8 +10,7 @@
     set-add/var
     remove/var
     union/var
-    >::>
-    trace-message)
+    >::>)
   (import
     (rnrs)
     (except (elegant-weapons helpers) ident?)
@@ -87,10 +86,4 @@
       ((_ e (x a ...) e* ...)
        (>::> (x e a ...) e* ...))
       ((_ e x e* ...)
-       (>::> (x e) e* ...))))
-
-  (define (trace-message x s)
-    (if (verbose) (begin (display s) (newline)))
-    x)
-  
-)
+       (>::> (x e) e* ...)))))

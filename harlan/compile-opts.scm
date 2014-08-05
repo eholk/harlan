@@ -1,16 +1,15 @@
 (library
   (harlan compile-opts)
   (export
-    passes
     allow-complex-kernel-args
     benchmark
     danger-zone
-    verbose
     generate-debug
     harlan-library-path
     harlan-runtime-path
     make-shared-object
     no-kernels
+    passes
     test-tags
     trace-pass
     untrace-pass
@@ -20,6 +19,10 @@
     quiet
     dump-call-graph
     timing
+    trace-pass-verbosity-level
+    verbose
+    verbosity
+    verbosity?
     verify)
   (import
     (rnrs)
@@ -30,7 +33,7 @@
 
 (define allow-complex-kernel-args (make-parameter #f))
 (define danger-zone        (make-parameter #f))
-(define verbose            (make-parameter #f))
+(define verbosity          (make-parameter 0))
 (define verify             (make-parameter #f))
 (define quiet              (make-parameter #f))
 (define timing             (make-parameter #f))
@@ -46,10 +49,21 @@
 (define harlan-runtime-path (make-parameter "rt"))
 (define print-failed-logs  (make-parameter #f))
 
+(define trace-pass-verbosity-level 2)
+
+(define verbose
+  (case-lambda
+    (() (>= (verbosity) 1))
+    ((n) (if (number? n)
+             (verbosity n)
+             (verbosity (if n 1 0))))))
+(define (verbosity? n)
+  (>= (verbosity) n))
+
 (define trace-passes '())
 
 (define (trace-pass? pass)
-  (or (verbose) (memq pass trace-passes)))
+  (or (verbosity? trace-pass-verbosity-level) (memq pass trace-passes)))
 
 (define (trace-pass . passes)
   (map (lambda (pass)
@@ -138,8 +152,10 @@
      (danger-zone #t))
     ((("--no-optimize" "-O0")) "Disable optimization"
      (optimize-level 0))
-    ((("--verbose" "-v"))      "Output intermediate compilation results"
+    ((("--verbose" "-v"))      "Display current pass"
      (verbose #t))
+    ((("--really-verbose" "-vv"))      "Output intermediate compilation results"
+     (verbose trace-pass-verbosity-level))
     ((("--display-failure-logs"))
                                "Display logs for failed tests"
      (print-failed-logs #t))
@@ -205,7 +221,7 @@
 
 (define do-trace-pass
   (lambda (pass-name pass expr)
-    (when (trace-pass? pass-name)
+    (when (verbose)
       (newline)
       (with-color 'green
         (display "Beginning pass ") (display pass-name))
@@ -225,7 +241,7 @@
 
 (define do-verify-pass
   (lambda (pass-name pass expr)
-    (when (trace-pass? pass-name)
+    (when (verbose)
       (newline)
       (with-color 'green
         (display "Beginning ") (display pass-name)))

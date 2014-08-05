@@ -680,8 +680,9 @@
        ((,e . ,e*) (lookup-type-tags tags e*))))
   
   (define (ground-module m s)
-    (if (verbose) (begin (pretty-print m) (newline)
-                         (pretty-print s) (newline)))
+    (if (verbosity? trace-pass-verbosity-level)
+        (begin (pretty-print m) (newline)
+               (pretty-print s) (newline)))
     
     (match m
       ((module ,[(lambda (d) (ground-decl d s)) -> decl*] ...)

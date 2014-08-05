@@ -24,7 +24,7 @@
                  (c-code (if (timing)
                              (time (harlan-format-c c-expr))
                              (harlan-format-c c-expr))))
-            (if (verbose) (printf c-code))
+            (if (verbosity? trace-pass-verbosity-level) (printf c-code))
             (g++-compile-stdin c-code (output-filename filename)))))))
 
 (define (harlanc args)
