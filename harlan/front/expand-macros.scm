@@ -3,7 +3,6 @@
   (export expand-macros)
   (import
    (rnrs)
-   (only (chezscheme) pretty-print)
    (only (elegant-weapons helpers) gensym define-match ormap)
    (elegant-weapons record-case)
    (elegant-weapons match)
@@ -278,7 +277,7 @@
                                   env)))
                  `(,a ((,(reify x env) ,e) ...)
                     ,(reify b* env) ...)))
-              (,else (pretty-print else) (error 'reify "unmatched item (3)" else))))
+              (,else (error 'reify "unmatched item (3)" else))))
            ((let-region)
             (match x
               ((,_ (,r ...) ,b ...)

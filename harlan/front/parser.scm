@@ -37,12 +37,11 @@
    (begin
      (unless (symbol? name)
        (error 'parse-harlan "invalid function name, expected symbol" name))
-     (let* ((args^ (map gensym args))
-            (env (map cons args args^)))
+     (let* ((env (map list args)))
        `(fn ,(if (eq? name 'main)
                  'harlan_main
                  name)
-            ,args^ ,(make-begin (map (parse-stmt env) stmt*)))))))
+            ,args ,(make-begin (map (parse-stmt env) stmt*)))))))
 
 (define-match (parse-type type-env)
   (void 'void)
@@ -88,10 +87,9 @@
   ((let ((,x* ,[(parse-expr env) -> e*]) ...) . ,body)
    (begin
      (check-idents x*)
-     (let* ((x*^ (map gensym x*))
-            (env (append (map cons x* x*^) env))
+     (let* ((env (append (map list x*) env))
             (body (map (parse-stmt env) body)))
-       `(let ((,x*^ ,e*) ...) ,(make-begin body)))))
+       `(let ((,x* ,e*) ...) ,(make-begin body)))))
   (,[(parse-expr env) -> e] `(do ,e)))
 
 (define-match (parse-expr env)
@@ -102,13 +100,13 @@
   (,x (guard (symbol? x))
     (let ((x^ (assq x env)))
       (unless x^ (error 'parse-expr "free variable" x))
-      `(var ,(cdr x^))))
+      `(var ,x)))
   (,str (guard (string? str)) `(str ,str))
-  ((var ,x)
-   (guard (symbol? x))
-   (let ((x^ (assq x env)))
-     (unless x^ (error 'parse-expr "free variable" x))
-     `(var ,(cdr x^))))
+  ;;((var ,x)
+  ;; (guard (symbol? x))
+  ;; (let ((x^ (assq x env)))
+  ;;   (unless x^ (error 'parse-expr "free variable" x))
+  ;;   `(var ,x)))
   ((vector ,[e*] ...)
    `(vector . ,e*))
   ((vector-r ,r ,[e*] ...)
@@ -143,26 +141,23 @@
   ((let ((,x* ,[(parse-expr env) -> e*]) ...) ,stmt* ... ,expr)
    (begin
      (check-idents x*)
-     (let* ((x*^ (map gensym x*))
-            (env (append (map cons x* x*^) env))
+     (let* ((env (append (map list x*) env))
             (stmt* (map (parse-stmt env) stmt*))
             (expr ((parse-expr env) expr)))
-       `(let ((,x*^ ,e*) ...) ,(make-begin `(,@stmt* ,expr))))))
+       `(let ((,x* ,e*) ...) ,(make-begin `(,@stmt* ,expr))))))
   ((kernel ((,x* ,[e*]) ...) ,stmt* ... ,e)
    (begin
      (check-idents x*)
-     (let* ((x*^ (map gensym x*))
-            (env (append (map cons x* x*^) env)))
-       `(kernel ((,x*^ ,e*) ...)
+     (let* ((env (append (map list x*) env)))
+       `(kernel ((,x* ,e*) ...)
           ,(make-begin
              `(,@(map (parse-stmt env) stmt*)
                ,((parse-expr env) e)))))))
   ((kernel-r ,r ((,x* ,[e*]) ...) ,stmt* ... ,e)
    (begin
      (check-idents x*)
-     (let* ((x*^ (map gensym x*))
-            (env (append (map cons x* x*^) env)))
-       `(kernel-r ,r ((,x*^ ,e*) ...)
+     (let* ((env (append (map list x*) env)))
+       `(kernel-r ,r ((,x* ,e*) ...)
           ,(make-begin
              `(,@(map (parse-stmt env) stmt*)
                ,((parse-expr env) e)))))))
@@ -171,9 +166,9 @@
    (guard (and (andmap ident? tag)
                (andmap (lambda (x*) (andmap ident? x*)) x*)))
    (let-values (((x* e*)
-                 (let ((x*^ (map (lambda (x) (map gensym x)) x*)))
+                 (let ((x*^ (map (lambda (x) (map list x)) x*)))
                    (values
-                    x*^
+                    x*
                     (map (lambda (x* x*^ s* e*)
                            (let ((env (append (map cons x* x*^) env)))
                              (make-begin
