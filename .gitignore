@@ -61,3 +61,4 @@ error.kfc
 mandelbrot
 nested-kernels
 nested-kernels.cpp
+build/
