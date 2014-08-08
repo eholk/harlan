@@ -1,0 +1,45 @@
+;; Dense matrix-matrix product
+
+(module
+  (import random)
+
+  (define (generate-matrix N rng)
+    (kernel* ((i (iota N))
+              (j (iota N)))
+      (let ((rng (reseed rng (+ (* i N) j))))
+        (match (random rng)
+          ((RandomResult n rng)
+           (match (random rng)
+             ((RandomResult m _)
+              (/ (int->float n) (int->float m)))))))))
+  
+  (define (main)
+    (let* ((args (command-line))
+           (N (if (> (length args) 1)
+                  ;; 850 is chosen as the default because it should
+                  ;; work well with the default region size.
+                  (parse-str->int (vector-ref args 1) 850)
+                  850))
+           (rng (init-rand)))
+      (println "Generating matrices")
+      (let* ((start (nanotime))
+             (A (generate-matrix N rng))
+             (B (match (random rng)
+                  ((RandomResult _ rng)
+                   (generate-matrix N rng))))
+             (stop (nanotime)))
+        (println* "Done (time: " (elapsed-sec start stop) " seconds)");
+        ))
+    ;; end of main
+    0))
+        
+;;      (let ((Bt (kernel ((j (iota 4)))
+;;                  (kernel ((i (iota 4)))
+;;                    (vector-ref (vector-ref B j) i)))))
+;;        (let ((C (kernel ((row A))
+;;                   (kernel ((col Bt))
+;;                     (reduce +
+;;                       (kernel ((x row) (y col))
+;;                         (* x y)))))))
+;;          (assert (= C A))
+;;          0)))))

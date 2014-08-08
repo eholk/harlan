@@ -7,9 +7,6 @@
   (import random)
   (extern get_kernel_time () -> u64)
 
-  (define (elapsed-sec start end)
-    (/ (u64->float (- end start)) 1e9))
-
   (define-datatype color
     (white)
     (gray)

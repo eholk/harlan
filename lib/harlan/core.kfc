@@ -199,4 +199,7 @@
   
   (define (parse-str->int s default)
     (parse-char-vec->int (str->vec s) default))
+
+  (define (elapsed-sec start end)
+    (/ (u64->float (- end start)) 1e9))
   )
