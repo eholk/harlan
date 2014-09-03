@@ -703,8 +703,6 @@
                          (map (lambda (c t*)
                                 `(,c . ,(map (lambda (t) (ground-type t s)) t*)))
                               c t*)) c t*))))
-      ;;((define-datatype ,t (,c ,t* ...) ...)
-      ;; `(define-datatype ,t (,c ,t* ...) ...))
       ((fn ,name (,var ...)
            ,[(lambda (t) (ground-type t s)) -> t]
            ,[(lambda (e) (ground-expr e s)) -> body])
@@ -843,9 +841,10 @@
     ((make-vector ,[free-regions-type -> t] ,[len] ,[val])
      (union t len val))
     ((kernel-r ,[free-regions-type -> t] ,r
-       (((,x ,[free-regions-type -> t*]) (,xs ,[free-regions-type -> ts*])) ...)
+       (((,x ,[free-regions-type -> t*]) (,[xs] ,[free-regions-type -> ts*]))
+        ...)
        ,[b])
-     (set-add (union b t (apply union (append t* ts*))) r))
+     (set-add (union b t (apply union (append t* ts* xs))) r))
     ((reduce ,[free-regions-type -> t] ,op ,[e]) (union t e))
     ((set! ,[x] ,[e]) (union x e))
     ((begin ,[e*] ...) (apply union e*))

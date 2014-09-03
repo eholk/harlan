@@ -1,4 +1,6 @@
 ;; Dense matrix-matrix product
+(%testspec
+ (%tags bench))
 
 (module
   (import random)
@@ -12,6 +14,15 @@
            (match (random rng)
              ((RandomResult m _)
               (/ (int->float n) (int->float m)))))))))
+
+  ;; TODO: New optimization - vector-refs into kernels.
+  (define (mat-mul A B)
+    (let ((N (length A)))
+      (kernel* ((a A)
+                (b (kernel* ((i (iota N))
+                             (j (iota N)))
+                     (vector-ref (vector-ref B j) i))))
+        (reduce + (kernel ((a a) (b b)) (* a b))))))
   
   (define (main)
     (let* ((args (command-line))
@@ -21,15 +32,23 @@
                   (parse-str->int (vector-ref args 1) 850)
                   850))
            (rng (init-rand)))
-      (println "Generating matrices")
+      (print* "Generating " N "x" N " matrices...")
       (let* ((start (nanotime))
              (A (generate-matrix N rng))
              (B (match (random rng)
                   ((RandomResult _ rng)
                    (generate-matrix N rng))))
              (stop (nanotime)))
-        (println* "Done (time: " (elapsed-sec start stop) " seconds)");
-        ))
+        (println* "done (time: " (elapsed-sec start stop) " seconds)");
+        (print "Multiplying matrices...")
+        (let* ((start (nanotime))
+               (result (mat-mul A B))
+               (stop (nanotime))
+               (elapsed (elapsed-sec start stop)))
+          (println* "done (time: " elapsed " seconds, "
+                    (/ (int->float (* (* N N) (+ N (- N 1))))
+                       (* elapsed 1e9))
+                    " effective GFLOPS"))))
     ;; end of main
     0))
         
