@@ -1,8 +1,8 @@
 (library
     (util compat)
-  (export directory-list printf system unlink path-last path-root path-parent
-          time pretty-print with-output-to-string make-parameter parameterize
-          get-os)
+  (export directory-list format printf system unlink path-last
+          path-root path-parent time pretty-print with-output-to-string
+          make-parameter parameterize get-os)
   (import
    (rnrs)
    (only (vicare) printf time pretty-print with-output-to-string
