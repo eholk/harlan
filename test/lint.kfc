@@ -1,0 +1,11 @@
+;; scratch code for building up and testing the linter.
+
+(%testspec
+ (%tags xfail))
+
+(module
+  (define (bar a a) 5)
+  (define (foo a b)
+    (+ a b))
+  (define (main)
+    (foo 5)))

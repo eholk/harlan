@@ -2,7 +2,9 @@
   (harlan front lint)
   (export lint)
   (import
+   (elegant-weapons helpers)
    (elegant-weapons match)
+   (elegant-weapons sets)
    (rnrs)
    (util compat)
    (util color))
@@ -35,6 +37,15 @@
     (if (> any-errors? max-errors)
         (error 'lint "too many errors")))
 
+  (define (find-repeats x*)
+    (cond
+      ((null? x*) '())
+      ((pair? x*)
+       (let ((dups (find-repeats (cdr x*))))
+         (if (member (car x*) (cdr x*))
+             (set-add dups (car x*))
+             dups)))))
+  
   (define (check-if expr env context)
     (if (eq? context 'expr)
         (match expr
@@ -44,7 +55,22 @@
   (define (check-expr expr env)
     #f)
 
-  (define (check-decl decl env context) #f)
+  (define (check-stmt stmt env) #f)
+  
+  (define (check-decl decl env context)
+    (match decl
+      ((define (,x ,a* ...) ,stmt)
+       ;; Check for duplicate names
+       (let ((dups (find-repeats a*)))
+         (unless (null? dups)
+           (err decl (string-append
+                      "These identifiers are repeated in the arguments list: "
+                      (join ", " (map symbol->string dups))
+                      ".\nTry renaming the duplicates."))))
+       (check-stmt stmt env))
+      ;; TODO: We want some general logging facility to let us know
+      ;; which cases we aren't handling.
+      (,else #f)))
   
   (define (make-check-call name num-args)
     (lambda (expr env context)
