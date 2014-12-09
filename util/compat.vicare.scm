@@ -5,7 +5,7 @@
           make-parameter parameterize get-os)
   (import
    (rnrs)
-   (only (vicare) printf time pretty-print with-output-to-string
+   (only (vicare) format printf time pretty-print with-output-to-string
          make-parameter parameterize)
    (only (vicare posix) system unlink opendir readdir/string))
 
