@@ -86,10 +86,12 @@
   (define initial-env
     (list (cons 'if check-if)))
 
+  ;; TODO: find a way to check if we have multiple top-level definitions
+  
   ;; This takes a top-level decl and returns an entry for the environment 
   (define (extract-module-definition decl)
     (match decl
-      ((define (,x ,a* ...) ,e)
+      ((define (,x ,a* ...) ,e ...)
        (list (cons x (make-check-call x (length a*)))))
       ((define-datatype . ,_)
        ;; TODO: add each of the constructors. We also should add a way
