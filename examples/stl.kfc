@@ -1,0 +1,49 @@
+(module
+  (import io)
+  (import graphics)
+
+  (define-datatype face-t
+    ;; (face normal v1 v2 v3)
+    (face point3f-t point3f-t point3f-t point3f-t))
+
+  (define (read-point3f f)
+    (let* ((a (read-binary-float f))
+           (b (read-binary-float f))
+           (c (read-binary-float f)))
+      (point3f a b c)))
+
+  (define (read-face f)
+    (let* ((normal (read-point3f f))
+           (v1 (read-point3f f))
+           (v2 (read-point3f f))
+           (v3 (read-point3f f)))
+      ;; skip the two bytes of extra attributes
+      (read-binary-u16 f)
+      (face normal v1 v2 v3)))
+  
+  (define (load-stl name)
+    (let ((f (file-open name)))
+      ;; Skip the first 80 bytes in the header
+      (for (i 0 80) (read-binary-char f))
+      ;; Read the face count
+      (let ((count (read-binary-u32 f)))
+        (println* "Reading " count " faces.")
+        (let ((first-face (read-face f)))
+          (println* "First face: " first-face)
+          (let ((faces (make-vector count first-face)))
+            (for (i 1 count)
+              ;; this is horrible.
+              (set! (vector-ref faces i) (read-face f)))
+            (file-close f)
+            faces)))))
+  
+  (define (main)
+    (let ((args (command-line)))
+      (if (< (length args) 2)
+          (begin
+            (println "Filename required as command line argument")
+            0)
+          (begin
+            (println* "Loading " (vector-ref args 1))
+            (load-stl (vector-ref args 1))
+            0)))))

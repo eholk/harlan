@@ -102,8 +102,7 @@
        '())
       ((extern ,x (,a* ...) -> ,t)
        (list (cons x (make-check-call x (length a*)))))
-      (,else (error 'extract-module-definition
-                    "form not supported" else))))
+      (,else (warn else "unrecognized top-level definition") '())))
   
   (define (lint m)
     (match m
