@@ -16,39 +16,6 @@
   (define (maximum a b)
     (if (> a b) a b))
   
-  (define (dot-prod a b)
-    (match a
-      ((point3f ax ay az)
-       (match b
-         ((point3f bx by bz)
-          (+ (* ax bx) (+ (* ay by) (* az bz))))))))
- 
-  (define (point-diff x y)
-    (match x
-      ((point3f a b c)
-       (match y
-         ((point3f d e f)
-          (point3f (- a d) (- b e) (- c f)))))))
-
-  (define (point-add x y)
-    (match x
-      ((point3f a b c)
-       (match y
-         ((point3f x y z)
-          (point3f (+ a x) (+ b y) (+ c z)))))))
-
-  (define (point-div (point3f a b c) y)
-    (point3f (/ a y) (/ b y) (/ c y)))
-
-  (define (point-scale (point3f a b c) y)
-    (point3f (* a y) (* b y) (* c y)))
-
-  (define (point-mag p)
-    (sqrt (dot-prod p p)))
-
-  (define (unit-length p)
-    (point-div p (point-mag p)))
-
   (define (make-diffuse-sphere center radius color)
     ;; x and y are switched for some reason from how I think light
     ;; should work.

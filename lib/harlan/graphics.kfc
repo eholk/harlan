@@ -80,4 +80,37 @@
                      (else p))
                    stream)
             (print " " stream))))
-      (close_outfile stream))))
+      (close_outfile stream)))
+
+  (define (point-diff x y)
+    (match x
+      ((point3f a b c)
+       (match y
+         ((point3f d e f)
+          (point3f (- a d) (- b e) (- c f)))))))
+
+  (define (point-add x y)
+    (match x
+      ((point3f a b c)
+       (match y
+         ((point3f x y z)
+          (point3f (+ a x) (+ b y) (+ c z)))))))
+
+  (define (point-div (point3f a b c) y)
+    (point3f (/ a y) (/ b y) (/ c y)))
+
+  (define (point-scale (point3f a b c) y)
+    (point3f (* a y) (* b y) (* c y)))
+
+  (define (dot-prod a b)
+    (match a
+      ((point3f ax ay az)
+       (match b
+         ((point3f bx by bz)
+          (+ (* ax bx) (+ (* ay by) (* az bz))))))))
+     
+  (define (point-mag p)
+    (sqrt (dot-prod p p)))
+  
+  (define (unit-length p)
+    (point-div p (point-mag p))))

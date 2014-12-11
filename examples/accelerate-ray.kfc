@@ -1,0 +1,94 @@
+;; This is a translation of the ray tracer example in Accelerate.
+;;
+;; Being able to compare the same scene let's us compare ease of
+;; coding, performance, and results.
+(module
+  (import graphics)
+  
+  (define-datatype Object
+    ;; (Sphere position radius color shine)
+    (Sphere point3f-t float point3f-t float)
+    ;; (Plane position normal color shine)
+    (Plane point3f-t point3f-t point3f-t float))
+
+  (define-datatype Light
+    ;; (PointLight location color)
+    (PointLight point3f-t point3f-t))
+
+  (define (cast-view-rays width height fov eye)
+    (let* ((aspect (/ (int->float width) (int->float height)))
+          (fovX (* (int->float fov) aspect))
+          (fovY (int->float fov)))
+      (kernel* ((x (iota width))
+                (y (iota height)))
+        (unit-length (point-diff (point3f (* (int->float x) fovX)
+                                          (* (- 0 (int->float y)) fovY)
+                                          0)
+                                 eye)))))
+
+  (define-datatype MatchResult
+    (MatchHit float Object)
+    (MatchMiss))
+  
+  (define (trace-ray bounces objects light ambiend eye eye-dir)
+    (if (= 0 bounces)
+        (point3f 0 0 0)
+        (match (cast-ray objects eye eye-dir)
+          ((MatchHit dist object)
+           (point3f 0 0 0)) ;; TODO: lighting and reflection calculations
+          ((MatchMiss) (point3f 0 0 0)))))
+
+  (define (cast-ray objects eye eye-dir)
+    ;; inner-reduce is like sfold
+    (inner-reduce (lambda (a b)
+                    (match a
+                      ((MatchMiss) b)
+                      ((MatchHit dista _)
+                       (match b
+                         ((MatchMiss) a)
+                         ((MatchHit distb _)
+                          (if (< dista distb) a b))))))
+                  (kernel ((o objects))
+                    (match o
+                      ((Sphere pos rad _1 _2)
+                       (MatchMiss)) ;; TODO: sphere intersection
+                      ((Plane pos normal _3 _4)
+                       (MatchMiss)))))) ;; TODO: plane intersection
+  
+  (define (main)
+    (let ((width     800)
+          (height    600)
+          (fov       100)
+          (zoom      1)
+          (bounces   4)
+          (framerate 30)
+
+          (light   (PointLight (point3f 300 -300 -100)
+                               (point3f 150000 150000 150000)))
+          (ambient (point3f 0.3 0.3 0.3))
+          
+          (objects (vector
+                    (Sphere (point3f 0 80 0)
+                            20
+                            (point3f 1 0.3 1)
+                            0.5)
+                    (Sphere (point3f 0 -40 200)
+                            100
+                            (point3f 0.4 0.4 1.0)
+                            0.8)
+                    (Sphere (point3f 0 -150 -100)
+                            50
+                            (point3f 1 1 1)
+                            0.8)
+                    (Plane (point3f 0 100 0)
+                           (point3f 0 -0.9805807 -0.19611613)
+                           (point3f 1 1 1)
+                           0.2)))
+          (eye (point3f -50 -100 -700)))
+      (let* ((eye-dir (cast-view-rays width height fov eye))
+             (image (kernel* ((tmp eye-dir)
+                              (eye-dir tmp))
+                      (trace-ray bounces objects light ambient eye eye-dir))))
+        ;; Save the image to a file...
+        0)
+      0)))
