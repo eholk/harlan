@@ -8,8 +8,6 @@
 
 using namespace std;
 
-#define ALLOC_MAGIC 0xa110ca7e
-
 #define CHECK_MAGIC(hdr) assert((hdr)->magic == ALLOC_MAGIC)
 
 extern cl::program g_prog;

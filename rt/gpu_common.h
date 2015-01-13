@@ -6,6 +6,8 @@
 #ifndef GPU_COMMON_H
 #define GPU_COMMON_H
 
+#define ALLOC_MAGIC 0xa110ca7e
+
 typedef unsigned int region_ptr;
 
 // We use our own bool type because OpenCL doesn't let you pass bools

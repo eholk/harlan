@@ -35,7 +35,7 @@
         (point3f 0 0 0)
         (match (cast-ray objects eye eye-dir)
           ((MatchHit dist object)
-           (point3f 0 0 0)) ;; TODO: lighting and reflection calculations
+           (point3f 1 1 1)) ;; TODO: lighting and reflection calculations
           ((MatchMiss) (point3f 0 0 0)))))
 
   (define (cast-ray objects eye eye-dir)
@@ -49,11 +49,18 @@
                          ((MatchHit distb _)
                           (if (< dista distb) a b))))))
                   (kernel ((o objects))
-                    (match o
-                      ((Sphere pos rad _1 _2)
-                       (MatchMiss)) ;; TODO: sphere intersection
-                      ((Plane pos normal _3 _4)
-                       (MatchMiss)))))) ;; TODO: plane intersection
+                    (distance-to o eye eye-dir))))
+
+  (define (distance-to object origin direction)
+    (match object
+      ((Sphere pos rad _1 _2)
+       (MatchMiss)) ;; TODO: sphere intersection
+      ((Plane pos normal _3 _4)
+       (let ((theta (dot-prod direction normal)))
+         (if (>= theta 0)
+             (MatchHit (/ (dot-prod (point-diff pos origin) normal) theta)
+                       object)
+             (MatchMiss))))))
   
   (define (main)
     (let ((width     800)

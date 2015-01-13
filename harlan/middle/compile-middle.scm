@@ -26,6 +26,7 @@
     (harlan middle remove-let-regions)
     (harlan middle flatten-lets)
     (harlan middle hoist-kernels)
+    (harlan middle fix-kernel-local-regions)
     (harlan middle generate-kernel-calls)
     (harlan middle compile-module)
     (harlan middle convert-types))
@@ -78,6 +79,7 @@
    (hoist-kernels
     verify-hoist-kernels)
    (nanopasses
+    (fix-kernel-local-regions : M8 -> M8)
     (generate-kernel-calls : M8 -> M9)
     (remove-recursion : M9 -> M9.3))
    (compile-module

@@ -56,3 +56,54 @@ __kernel void harlan_rt_alloc_vector(void __global *r,
     *result = alloc_vector((region __global *)r, item_size, num_items);
 }
 
+
+/*
+  FIXME: The next next bit is an awful hack for when kernel-local
+  regions leak into the compiled program. This tends to happen when
+  making lots of function calls from the kernel. Here we just use a
+  NULL pointer as the region, which works as long as we never touch
+  the region (for example, lambdas always have a region but it's often
+  not used).
+
+  Commented out below is an attempt I had to declare a tiny region on
+  the stack. Unfortunately, OpenCL makes a distinction between local
+  and global pointers, so we'd need versions of the function that work
+  on different pointer types. This will take some pretty invasive
+  changes to the type inferencer and the rest of the compiler, since
+  we'll have a notion of local and global regions.
+
+  Another option is to early on identify which functions are called by
+  kernels and generate two versions. The kernel version would not
+  allocate any regions, and instead rely on the callers to supply
+  them. This again complicates the type system and will require help
+  from the type inferencer.
+
+  Finally, we could modify the compiler (such as in
+  fix-kernel-local-regions) to just find a nearby region and use that
+  instead. It's a hack, but it is a fairly local change and I don't
+  think it introduces any unsoundness, unlike the way things are
+  currently.
+
+  I'll open an issue to keep track of this.
+
+*/
+
+#define KERNEL_LOCAL_REGION_SIZE 128
+
+// Free region is a no-op on the GPU
+#define free_region(r)
+//#define declare_region(r) __global unsigned char r##_buf[KERNEL_LOCAL_REGION_SIZE]
+#define declare_region(r) __global region *r = (__global region *)0
+//#define init_region(r) init_region_real(r##_buf)
+//#define init_region(r) (__global region *)0
+
+//__global region *init_region_real(__global unsigned char *buf) {
+//    __global region *r = (__global region *)buf;
+//
+//    r->magic = ALLOC_MAGIC;
+//    r->size = KERNEL_LOCAL_REGION_SIZE;
+//    r->alloc_ptr = sizeof(region);
+//    r->cl_buffer = 0;
+//
+//    return r;
+//}
