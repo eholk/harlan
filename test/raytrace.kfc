@@ -54,19 +54,6 @@
                             (int->float j)))))
          body))))
 
-  (define-macro map2d ()
-    ((_ f data)
-     (kernel ((row data))
-       (kernel ((x row))
-         (f x)))))
-
-  (define (rgbf->rgbi x)
-    (match x
-      ((point3f r g b)
-       (point3i (float->int (* r 256))
-                (float->int (* g 256))
-                (float->int (* b 256))))))
-
   (define (translate object amount)
     (lambda (start dir)
       (object (point-diff start amount) dir)))

@@ -202,4 +202,9 @@
 
   (define (elapsed-sec start end)
     (/ (u64->float (- end start)) 1e9))
-  )
+
+  (define-macro map2d ()
+    ((_ f data)
+     (kernel ((row data))
+       (kernel ((x row))
+         (f x))))))

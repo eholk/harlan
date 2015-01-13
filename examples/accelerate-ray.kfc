@@ -15,16 +15,24 @@
     ;; (PointLight location color)
     (PointLight point3f-t point3f-t))
 
+  (define (point-of-index sizeX x)
+    (let ((fsizeX (int->float sizeX))
+          (midX (/ sizeX 2)))
+      (let ((fsizeX2 (/ fsizeX 2)))
+        (/ (int->float (- x midX)) fsizeX2))))
+  
   (define (cast-view-rays width height fov eye)
     (let* ((aspect (/ (int->float width) (int->float height)))
           (fovX (* (int->float fov) aspect))
           (fovY (int->float fov)))
       (kernel* ((x (iota width))
                 (y (iota height)))
-        (unit-length (point-diff (point3f (* (int->float x) fovX)
-                                          (* (- 0 (int->float y)) fovY)
-                                          0)
-                                 eye)))))
+        (let ((x (point-of-index width x))
+              (y (point-of-index height y)))
+          (unit-length (point-diff (point3f (* x fovX)
+                                            (* (- 0 y) fovY)
+                                            0)
+                                   eye))))))
 
   (define-datatype MatchResult
     (MatchHit float Object)
@@ -35,7 +43,9 @@
         (point3f 0 0 0)
         (match (cast-ray objects eye eye-dir)
           ((MatchHit dist object)
-           (point3f 1 1 1)) ;; TODO: lighting and reflection calculations
+           (point3f 1.0
+                    (/ dist 5)
+                    (/ dist 5))) ;; TODO: lighting and reflection calculations
           ((MatchMiss) (point3f 0 0 0)))))
 
   (define (cast-ray objects eye eye-dir)
@@ -63,8 +73,8 @@
              (MatchMiss))))))
   
   (define (main)
-    (let ((width     800)
-          (height    600)
+    (let ((width     16) ;; I want this to eventually be 800
+          (height    12) ;; I want this to eventually be 600
           (fov       100)
           (zoom      1)
           (bounces   4)
@@ -91,11 +101,14 @@
                            (point3f 0 -0.9805807 -0.19611613)
                            (point3f 1 1 1)
                            0.2)))
-          (eye (point3f -50 -100 -700)))
+          (eye (point3f 50 -100 -700)))
       (let* ((eye-dir (cast-view-rays width height fov eye))
              (image (kernel* ((tmp eye-dir)
                               (eye-dir tmp))
                       (trace-ray bounces objects light ambient eye eye-dir))))
+        (println eye-dir)
         ;; Save the image to a file...
+        (write-ppm "scene.ppm"
+                   (map2d (lambda (x) (rgbf->rgbi x)) image))
         0)
       0)))

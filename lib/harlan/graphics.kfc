@@ -113,4 +113,11 @@
     (sqrt (dot-prod p p)))
   
   (define (unit-length p)
-    (point-div p (point-mag p))))
+    (point-div p (point-mag p)))
+
+  (define (rgbf->rgbi x)
+    (match x
+      ((point3f r g b)
+       (point3i (float->int (* r 256))
+                (float->int (* g 256))
+                (float->int (* b 256)))))))
