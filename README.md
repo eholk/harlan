@@ -28,7 +28,7 @@ Scheme. Below are several OpenCL implementations that should work.
 * [AMD Accelerated Parallel Processing (APP) SDK](http://developer.amd.com/tools-and-sdks/opencl-zone/opencl-tools-sdks/amd-accelerated-parallel-processing-app-sdk/)
 
 Harlan is known to work with (Petite) Chez Scheme and [Vicare]. Petite
-Cheze Scheme can be downloaded from http://www.scheme.com/download.
+Chez Scheme can be downloaded from http://www.scheme.com/download.
 
 [Vicare]: https://github.com/marcomaggi/vicare
 
