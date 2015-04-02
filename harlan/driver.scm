@@ -78,6 +78,9 @@
       ((compile-fail) `(compile-fail))
       ((compile-fail ,s) (guard (string? s))
        `(compile-fail . ,s))
+      ((run-fail) `(run-fail))
+      ((run-fail ,s) (guard (string? s))
+       `(run-fail . ,s))
       (,else (error 'parse-testspec "Invalid test specification" else))))
 
   ;;end library

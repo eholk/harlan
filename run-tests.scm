@@ -96,16 +96,24 @@
                            (printf "Compiling...")
                            (g++-compile-stdin c++ bin-path)
                            (printf "OK\n")
-                           (printf "Running test...")
+                           (printf "Running test")
+                           (if (assq 'run-fail spec)
+                               (printf " [failure expected]"))
+                           (printf "...")
+                           (flush-output-port (current-output-port))
                            (if (zero? (system (string-append bin-path
                                                              " >> " out-path
                                                              " 2>&1")))
-                               (succeed)
-                               (begin
-                                 (if (print-failed-logs)
-                                     (system (string-append "cat " out-path)))
-                                 (error 'do-test
-                                        "Test execution failed."))))))))))
+                               (if (assq 'run-fail spec)
+                                   (fail "programm ran successfully but shouldn't have")
+                                   (succeed))
+                               (if (assq 'run-fail spec)
+                                   (succeed)
+                                   (begin
+                                     (if (print-failed-logs)
+                                         (system (string-append "cat " out-path)))
+                                     (error 'do-test
+                                            "Test execution failed.")))))))))))
             (tags (assq 'tags spec)))
         (let ((tags (if tags (cdr tags) '())))
           (if (and (subset? (include-tags) tags)

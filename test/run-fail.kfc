@@ -1,0 +1,7 @@
+(%testspec
+ (%tags failure)
+ (run-fail))
+
+(module
+  (define (main)
+    (vector-ref (vector 0) 1)))
