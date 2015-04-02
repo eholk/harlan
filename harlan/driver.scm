@@ -75,6 +75,9 @@
       ((iterate ,iterspec* ...)
        (error 'parse-testspec "iteration is no longer supported"))
       ((%tags ,tags ...) `(tags ,tags ...))
+      ((compile-fail) `(compile-fail))
+      ((compile-fail ,s) (guard (string? s))
+       `(compile-fail . ,s))
       (,else (error 'parse-testspec "Invalid test specification" else))))
 
   ;;end library

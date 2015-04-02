@@ -1,0 +1,7 @@
+(%testspec
+ (%tags failure)
+ (compile-fail))
+
+(module
+  (define (main)
+    (+ 5 "5")))

@@ -84,7 +84,7 @@
                                name num-args (length a*))))))))
   
   (define initial-env
-    (list (cons 'if check-if)))
+    `((if . ,check-if)))
 
   ;; TODO: find a way to check if we have multiple top-level definitions
   
