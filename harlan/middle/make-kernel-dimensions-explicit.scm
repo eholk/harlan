@@ -4,7 +4,8 @@
   (import
    (rnrs)
    (harlan helpers)
-   (harlan middle languages)
+   (harlan middle languages M5)
+   (harlan middle languages M6)
    (nanopass)
    (except (elegant-weapons helpers) ident?))
 
