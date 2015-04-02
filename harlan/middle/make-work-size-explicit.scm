@@ -5,7 +5,8 @@
    (rnrs)
    (harlan helpers)
    (nanopass)
-   (harlan middle languages)
+   (harlan middle languages M6)
+   (harlan middle languages M7)
    (except (elegant-weapons helpers) ident?))
 
   (define-pass make-work-size-explicit

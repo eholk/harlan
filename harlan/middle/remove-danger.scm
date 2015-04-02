@@ -4,7 +4,7 @@
   (import
    (rnrs)
    (nanopass)
-   (harlan middle languages)
+   (harlan middle languages M7)
    (only (elegant-weapons helpers) gensym)
    (harlan compile-opts))
 
