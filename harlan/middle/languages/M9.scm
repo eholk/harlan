@@ -11,8 +11,7 @@
      (rnrs)
      (nanopass)
      (only (elegant-weapons helpers) binop? scalar-type? relop?)
-     (harlan middle languages1)
-     (harlan middle languages2))
+     (harlan middle languages M8))
 
     (define-language M9
     (extends M8)

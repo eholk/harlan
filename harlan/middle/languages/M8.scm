@@ -1,13 +1,9 @@
 (library
-    (harlan middle languages2)
-  (export M7.0.0 unparse-M7.0.0
-          M7.0 unparse-M7.0 parse-M7.0
-          M7.1 unparse-M7.1
-          M8 unparse-M8 parse-M8)
+    (harlan middle languages M8)
+  (export M8 unparse-M8 parse-M8)
   (import (nanopass)
-          (only (rnrs) ...)
+          (rnrs)
           (harlan middle languages M7))
-
 
   ;; after uglify-vectors
   ;;(define-language M7.2

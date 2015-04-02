@@ -7,7 +7,8 @@
    (except (elegant-weapons helpers) ident?)
    (elegant-weapons print-c)
    (harlan compile-opts)
-   (harlan middle languages)
+   (harlan middle languages M8)
+   (harlan middle languages M9)
    (harlan helpers))
 
 (define-pass generate-kernel-calls

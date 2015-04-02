@@ -4,7 +4,7 @@
   (import
    (rnrs)
    (rnrs mutable-pairs)
-   (harlan middle languages)
+   (harlan middle languages M9)
    (harlan helpers)
    (only (elegant-weapons helpers) gensym)
    (util compat)

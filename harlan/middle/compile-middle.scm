@@ -5,7 +5,6 @@
     (rnrs)
     (harlan compile-opts)
     (harlan verification-passes)
-    (harlan middle languages)
     (harlan middle lifting)
     (harlan middle remove-complex-kernel-args)
     (harlan middle remove-lambdas)
@@ -29,7 +28,18 @@
     (harlan middle fix-kernel-local-regions)
     (harlan middle generate-kernel-calls)
     (harlan middle compile-module)
-    (harlan middle convert-types))
+    (harlan middle convert-types)
+    (only (harlan middle languages M0-3)
+          parse-M0
+          unparse-M3)
+    (only (harlan middle languages M5) parse-M5)
+    (only (harlan middle languages M7)
+          parse-M7 unparse-M7
+          parse-M7.0 unparse-M7.0
+          unparse-M7.0.0)
+    (only (harlan middle languages M8) parse-M8)
+    (only (harlan middle languages M9) unparse-M9.3))
+    
 
 ;; The "middle end" of a compiler. No one ever knows what's supposed
 ;; to go here.

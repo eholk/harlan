@@ -6,7 +6,7 @@
    (nanopass)
    (only (elegant-weapons helpers) gensym)
    (only (elegant-weapons lists) fold-right-values)
-   (harlan middle languages))
+   (harlan middle languages M7))
 
   (define-pass remove-complex-kernel-args : M7.0 (m) -> M7.0 ()
     (definitions

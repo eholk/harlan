@@ -9,7 +9,6 @@
     (elegant-weapons compat)
     (only (harlan front typecheck) free-regions-type)
     (nanopass)
-    (harlan middle languages)
     (elegant-weapons helpers)
     (elegant-weapons sets))
 
