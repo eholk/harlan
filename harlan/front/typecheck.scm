@@ -139,9 +139,19 @@
                        (walk-type b s)))))
       s))
 
+  ;; Remove extra tags and things so that the expression looks more like
+  ;; what the programmer typed.
+  (define (unparse e)
+    (match e
+      ((num ,n) n)
+      ((str ,s) s)
+      ((,op ,[e1] ,[e2]) (guard (binop? op))
+       `(,op ,e1 ,e2))
+      (,else else)))
+  
   (define (type-error e expected found)
     (display "In expression...\n")
-    (pretty-print e)
+    (pretty-print (unparse e))
     (display "Expected type...\n")
     (pretty-print expected)
     (display "But found...\n")
