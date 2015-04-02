@@ -7,7 +7,7 @@
    (except (elegant-weapons match) ->)
    (harlan compile-opts)
    (harlan helpers)
-   (harlan middle languages)
+   (harlan middle languages M0-3)
    (elegant-weapons sets)
    (util compat)
    (only (elegant-weapons helpers) gensym andmap map-values))
