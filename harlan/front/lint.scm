@@ -47,10 +47,17 @@
              dups)))))
   
   (define (check-if expr env context)
-    (if (eq? context 'expr)
-        (match expr
-          ((if ,t ,c)
-           (err expr "One-armed if found in expression context. Try adding a case for if the test is false.")))))
+    (match expr
+      ((if ,t ,c)
+       (if (eq? context 'expr)
+           (err expr "One-armed if found in expression context. Try adding a case for if the test is false.")
+           (begin (check-expr t env)
+                  (check-expr c env))))
+      ((if ,t ,c ,a)
+       (check-expr t env)
+       (check-expr c env)
+       (check-expr a env))
+      (,else (err expr "Incorrect number of arguments for if. If should consist of a test, a then expression/statement and also an else expression/statement."))))
 
   (define (check-error expr env context)
     (match expr
