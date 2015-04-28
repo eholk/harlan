@@ -144,13 +144,13 @@ int hscanfu64(FILE *f, uint64_t *i) {
 // This will leak memory (#149)
 char* hgets(FILE *f) {
 	char buffer[1024];
-	// this is totally insecure!
-	fscanf(f, "%s", buffer);
+	fscanf(f, "%1024s", buffer);
 
 	int len = strnlen(buffer, sizeof(buffer));
 
 	char *new_str = (char *)malloc(len + 1);
-	strncpy(new_str, buffer, sizeof(buffer));
+	memset(new_str, 0, len + 1);
+	strncpy(new_str, buffer, len);
 
 	return new_str;
 }

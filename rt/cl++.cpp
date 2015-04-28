@@ -94,7 +94,7 @@ device_list::device_list(cl_device_type type)
     // Allocate memory, gather information about all the devices.
     devices = new cl_device_id[num_ids];
   
-    status = clGetDeviceIDs(platforms[platform], type, n_dev,
+    status = clGetDeviceIDs(platforms[platform], type, min(num_ids, n_dev),
                             devices, &n_dev);
     //cerr << status << ", " << n_dev << endl;
     CL_CHECK_MSG(status, "clGetDeviceIDs");
@@ -134,7 +134,9 @@ context::context(device_list &devices)
 
 context::~context()
 {
+	//cerr << "Destroying context" << endl;
 	clReleaseContext(ctx);
+	//cerr << "Context destroyed" << endl;
 }
 
 void context::sLogError(const char *errinfo,
@@ -159,7 +161,9 @@ kernel::kernel(cl_kernel k)
 
 kernel::~kernel()
 {
+	//cerr << "Destroying kernel" << endl;
 	clReleaseKernel(k);
+	//cerr << "Kernel destroyed" << endl;
 }
 
 size_t kernel::maxWorkGroupSize(cl_device_id device)
@@ -184,7 +188,9 @@ program::program(cl_program prog)
 
 program::~program()
 {
+	//cerr << "Destroying program" << endl;
 	clReleaseProgram(prog);
+	//cerr << "Program destroyed" << endl;
 }
 
 string escape_path(const char *s) {
@@ -229,6 +235,7 @@ void program::build()
 
 kernel program::createKernel(string name)
 {
+	//cerr << "Creating kernel" << endl;
 	return kernel(clCreateKernel(prog, name.c_str(), NULL));
 }
 
