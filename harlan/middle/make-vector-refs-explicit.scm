@@ -146,7 +146,7 @@
   ((addressof ,[e]) `(addressof ,e))
   ((str ,s) `(str ,s))
   ((var ,t ,x)
-   (if (memq x x*) `(deref (var ,t ,x)) `(var ,t ,x)))
+   (if (memq x x*) `(deref (var (ptr ,t) ,x)) `(var ,t ,x)))
   ((let ((,x ,t ,[(replace-vec-refs-expr x*) -> e]) ...)
      ,[expr])
    `(let ((,x ,t ,e) ...) ,expr))

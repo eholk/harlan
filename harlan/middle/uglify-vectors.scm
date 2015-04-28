@@ -286,6 +286,7 @@
     (values e r*
             (match e^
               ((var (vec ,r ,t) ,x) r)
+              ((var (ptr (vec ,r ,t)) ,x) r)
               ((vector-ref (vec ,r ,t) ,v ,i) r)
               ((deref ,[r]) r)
               (,else (error 'uglify-expr/r

@@ -21,6 +21,7 @@
     (harlan middle annotate-free-vars)
     (harlan middle lower-vectors)
     (harlan middle insert-let-regions)
+    (harlan middle specialize-string-equality)
     (harlan middle uglify-vectors)
     (harlan middle remove-let-regions)
     (harlan middle flatten-lets)
@@ -91,7 +92,8 @@
    (nanopasses
     (fix-kernel-local-regions : M8 -> M8)
     (generate-kernel-calls : M8 -> M9)
-    (remove-recursion : M9 -> M9.3))
+    (remove-recursion : M9 -> M9.3)
+    (specialize-string-equality : M9.3 -> M9.3))
    (compile-module
     verify-compile-module)
    (convert-types

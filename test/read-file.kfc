@@ -1,14 +1,25 @@
 (module
   (import io)
 
+    (define (h-abs f)
+      (if (< 0.0 f)
+          (- 0.0 f)
+          f))
+    
   (define (main)
     (let* ((f (file-open "test/read-file.txt"))
            (i (file-read-int f))
-	   (u (file-read-u64 f)))
+           (u (file-read-u64 f))
+           (flt (file-read-float f))
+           (s (file-read-string f)))
       (fclose f)
       (println i)
       (assert (= i 42))
       (println u)
       (assert (= u 44))
+      (println flt)
+      (assert (< (h-abs (- flt 3.141592654)) 0.000000001))
+      (println* "'" s "'")
+      (assert (= s "hello"))
       0)))
       

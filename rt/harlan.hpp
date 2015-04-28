@@ -54,6 +54,7 @@ region_ptr alloc_in_region(region **r, unsigned int size);
 region_ptr alloc_vector(region **r, int item_size, int num_items);
 cl_mem get_cl_buffer(region *r);
 void harlan_error(const char *msg);
+bool hstrcmp(const char *lhs, const char *rhs);
 
 #define __global
 

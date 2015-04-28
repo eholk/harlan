@@ -79,6 +79,10 @@
 
 (define-match expr-fv
   ((,t ,n) (guard (scalar-type? t)) `())
+  ;; FIXME: This is sort of a cheat...  It is a hack to deal with the
+  ;; fact that kernel arguments have been converted to pointers, but
+  ;; they aren't actually pointers.
+  ((var (ptr ,t) ,x) `((var ,t ,x)))
   ((var ,t ,x) `((var ,t ,x)))
   ((cast ,t ,[e]) e)
   ((length ,[fv*]) fv*)

@@ -133,8 +133,26 @@ int hscanf(FILE *f, const char *s, int *i) {
     return fscanf(f, s, i);
 }
 
+int hscanf$dfloat(FILE *f, const char *s, float *n) {
+    return fscanf(f, s, n);
+}
+
 int hscanfu64(FILE *f, uint64_t *i) {
   return fscanf(f, "%" SCNu64, i);
+}
+
+// This will leak memory (#149)
+char* hgets(FILE *f) {
+	char buffer[1024];
+	// this is totally insecure!
+	fscanf(f, "%s", buffer);
+
+	int len = strnlen(buffer, sizeof(buffer));
+
+	char *new_str = (char *)malloc(len + 1);
+	strncpy(new_str, buffer, sizeof(buffer));
+
+	return new_str;
 }
 
 void flush$dstdout() {

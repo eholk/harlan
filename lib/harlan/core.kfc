@@ -140,6 +140,14 @@
     ((_ e e* ...)
      (if e #t (or e* ...))))
 
+  ;; TODO: this should really just be made into a proper operator.
+  (define-macro not ()
+    ((_ e)
+     (let ((b e))
+       (if b
+           #f
+           #t))))
+  
   (define-macro print* ()
     ((_ e e* ...)
      (begin (print e) (print e*) ... )))

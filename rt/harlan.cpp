@@ -27,6 +27,10 @@ void print(bool b, std::ostream *f) {
         print("#f", f);
 }
 
+bool hstrcmp(const char *lhs, const char *rhs) {
+	return string(lhs) == rhs;
+}
+
 void harlan_error(const char *msg) {
     std::cerr << "Harlan Runtime Error: " << msg << std::endl;
     abort();

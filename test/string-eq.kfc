@@ -1,0 +1,8 @@
+(module
+  (define (main)
+    (let ((a "a")
+          (b "b")
+          (c "a"))
+      (assert (not (= a b)))
+      (assert (= a c))
+      0)))
