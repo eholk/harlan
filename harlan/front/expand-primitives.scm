@@ -169,6 +169,8 @@
      (expand-vec-comparison t r lhs rhs))
     ((match ,t ,[e] (,p ,[e*]) ...)
      `(match ,t ,e (,p ,e*) ...))
+    ((error! ,s)
+     `(call (var (fn () -> void) harlan_error) (str ,s)))
     ((,op ,t ,[lhs] ,[rhs])
      (guard (or (relop? op) (binop? op)))
      `(,op ,lhs ,rhs)))

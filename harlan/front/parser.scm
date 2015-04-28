@@ -166,6 +166,7 @@
                          x* x*^ s* e*)))))
      `(match ,e
         ((,tag ,x* ...) ,e*) ...)))
+  ((error! ,s) `(error! ,s))
   ((,op ,[lhs] ,[rhs])
    (guard (or (binop? op) (relop? op)))
    `(,op ,lhs ,rhs))

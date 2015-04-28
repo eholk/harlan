@@ -30,6 +30,7 @@
   ((while ,e ,[returnify-stmt -> s]) `(while ,e ,s))
   ((return) `(return))
   ((return ,expr) `(return ,expr))
+  ((do (error! ,s)) `(do (error! ,s)))
   ((do ,expr) `(return ,expr))
   ((begin ,stmt* ... ,[returnify-stmt -> stmt])
    (make-begin `(,@stmt* ,stmt)))

@@ -1,0 +1,7 @@
+(%testspec
+ (%tags failure)
+ (run-fail))
+
+(module
+    (define (main)
+      (error! "this is to make sure Harlan's abort function works")))

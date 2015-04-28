@@ -527,6 +527,8 @@
                                  (return (cons e^ e**^) t))))))
                       ((() () ()) (return '() (make-tvar (gensym 'tmatch))))))))
                 (return `(match ,t ,e ((,tag ,x* ...) ,e*) ...) t)))))
+       ((error! ,s) (guard (string? s))
+        (return `(error! ,s) (gen-tvar 'error!)))
         )))
   
   (define infer-body infer-expr)
@@ -818,8 +820,8 @@
         ((match ,[ground-type -> t] ,[e]
                 ((,tag . ,x) ,[e*]) ...)
          `(match ,t ,e ((,tag . ,x) ,e*) ...))
-        (,else (error 'ground-expr "Unrecognized expression" else))
-        )))
+        ((error! ,s) `(error! ,s))
+        (,else (error 'ground-expr "Unrecognized expression" else)))))
 
   (define-match free-regions-expr
     ((var ,[free-regions-type -> t] ,x) t)
@@ -880,7 +882,8 @@
             (,p ,[e*]) ...)
      (apply union `(,t ,e . ,e*)))
     ((return) '())
-    ((return ,[e]) e))
+    ((return ,[e]) e)
+    ((error! ,s) '()))
 
   (define-match free-regions-type
     ;; This isn't fantastic... what if this later unifies to a type

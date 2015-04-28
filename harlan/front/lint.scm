@@ -50,12 +50,29 @@
     (if (eq? context 'expr)
         (match expr
           ((if ,t ,c)
-           (err expr "Two-armed if found in expression context. Try adding a case for if the test is false.")))))
+           (err expr "One-armed if found in expression context. Try adding a case for if the test is false.")))))
 
+  (define (check-error expr env context)
+    (match expr
+      ((error! ,s)
+       (unless (string? s)
+         (err expr "Error forms must take a string argument.")))
+      ((error! . ,_)
+       (err expr "Error must take one string argument."))))
+  
   (define (check-expr expr env)
-    #f)
+    (match expr
+      ((,rator ,rand* ...)
+       (guard (assq rator env))
+       ((cdr (assq rator env)) expr env 'expr))
+      (,else #f)))
 
-  (define (check-stmt stmt env) #f)
+  (define (check-stmt stmt env)
+    (match stmt
+      ((,rator ,rand* ...)
+       (guard (assq rator env))
+       ((cdr (assq rator env)) stmt env 'stmt))
+      (,expr (check-expr expr env))))
   
   (define (check-decl decl env context)
     (match decl
@@ -84,7 +101,8 @@
                                name num-args (length a*))))))))
   
   (define initial-env
-    `((if . ,check-if)))
+    `((if . ,check-if)
+      (error! . ,check-error)))
 
   ;; TODO: find a way to check if we have multiple top-level definitions
   
