@@ -155,6 +155,16 @@ char* hgets(FILE *f) {
 	return new_str;
 }
 
+// This will leake memory (#149)
+char *file$dread$dline(FILE *f) {
+	char *buf = NULL;
+	size_t size = 0;
+	
+	getline(&buf, &size, f);
+
+	return buf;
+}
+
 void flush$dstdout() {
 	cout.flush();
 }

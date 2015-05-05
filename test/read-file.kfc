@@ -11,7 +11,10 @@
            (i (file-read-int f))
            (u (file-read-u64 f))
            (flt (file-read-float f))
-           (s (file-read-string f)))
+           (s (file-read-string f))
+           (line (file-read-line f)) ;; We have to read to the end of
+                                     ;; the previous line.
+           (line (file-read-line f)))
       (fclose f)
       (println i)
       (assert (= i 42))
@@ -21,5 +24,6 @@
       (assert (< (h-abs (- flt 3.141592654)) 0.000000001))
       (println* "'" s "'")
       (assert (= s "hello"))
+      (println* "'" line "'")
+      (assert (= line "this is a line\n"))
       0)))
-      

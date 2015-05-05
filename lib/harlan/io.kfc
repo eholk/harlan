@@ -9,6 +9,7 @@
   (extern hscanf-float ((ptr FILE) str (ptr float)) -> int)
   (extern hscanfu64 ((ptr FILE) (ptr u64)) -> int)
   (extern hgets ((ptr FILE)) -> str)
+  (extern file-read-line ((ptr FILE)) -> str)
   
   (define (file-open name)
     (fopen name "r"))
