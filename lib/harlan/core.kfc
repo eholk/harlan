@@ -28,12 +28,12 @@
      (define-binders name (binder ...) () (e ...))))
   
   (define-macro cond (else)
-    ((_ (else body))
-     body)
-    ((_ (test body))
-     (if test body))
-    ((_ (test body) rest ...)
-     (if test body (cond rest ...))))
+    ((_ (else body ...))
+     (begin body ...))
+    ((_ (test body ...))
+     (if test (begin body ...)))
+    ((_ (test body ...) rest ...)
+     (if test (begin body ...) (cond rest ...))))
 
   (define-macro let* ()
     ((_ () b ...) (begin b ...))
