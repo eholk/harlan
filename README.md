@@ -20,7 +20,7 @@ Others will probably work as well. The OpenCL included with Mac OS X
 has several bugs that lead to failures in some of the Harlan test
 cases. For the most part, these failures can be ignored.
 
-Harlan requires an OpenCL implementation as well as a compatable
+Harlan requires an OpenCL implementation as well as a compatible
 Scheme. Below are several OpenCL implementations that should work.
 
 * [Intel OpenCL SDK](http://software.intel.com/en-us/vcsource/tools/opencl-sdk)
