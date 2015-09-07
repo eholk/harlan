@@ -1,0 +1,6 @@
+(module
+  (define (main)
+    (let ((xs (map (lambda (x) (+ 2 x)) (vector 1 2 3 4))))
+      (println xs)
+      (assert (= xs (vector 3 4 5 6))))
+    0))
