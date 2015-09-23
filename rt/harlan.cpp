@@ -265,5 +265,19 @@ cl_mem get_cl_buffer(region *r)
     return (cl_mem)r->cl_buffer;
 }
 
+const char *DANGER_TABLE[] = {
+	"bounds check failure",
+	"allocation failure"
+};
+
+const char *danger_name(int danger_type) {
+	if(danger_type < sizeof(DANGER_TABLE) / sizeof(DANGER_TABLE[0])) {
+		return DANGER_TABLE[danger_type];
+	}
+	else {
+		return "Unknown danger";
+	}		
+}
+
 int ARGC = 0;
 char **ARGV = NULL;

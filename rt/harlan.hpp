@@ -66,7 +66,7 @@ inline void *get_region_ptr(region *r, region_ptr i) {
     return (((char __global *)r) + i);
 }
 
-
+const char *danger_name(int danger_type);
 
 // FFI-related functions. These are pretty low level and could
 // probably be open-coded by the compiler.

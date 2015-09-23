@@ -147,8 +147,10 @@
                (begin
                  (do (call (c-expr (fn (void str int) -> void) fprintf)
                            (c-expr void stderr)
-                           (str "Kernel encounter danger type %d!\n")
-                           (var int ,i)))
+                           (str "Kernel encounter danger type %d (%s)!\n")
+                           (var int ,i)
+                           (call (c-expr (fn (int) -> str) danger_name)
+                                 (var int ,i))))
                  (set! (var bool ,found-danger) (bool #f)))))
          (assert (var bool ,found-danger))))))
 
