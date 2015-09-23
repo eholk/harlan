@@ -35,14 +35,15 @@
      : Stmt (e) -> Stmt ()
      
      ((kernel (vec ,r ,[t]) (,[e*] ...)
+              ,danger
               ,[SplitFreeVars : fv x^ t^ x* t*]
               ,[stmt])
       (let ((x*^ (map gensym x*))
             (r* (map (lambda (_) r) x*)))
         (if (null? x*^)
-            `(kernel (vec ,r ,t) (,e* ...) ,fv ,stmt)
+            `(kernel (vec ,r ,t) (,e* ...) ,danger ,fv ,stmt)
             `(let ((,x*^ (box ,r* ,t*) (box ,r* ,t* (var ,t* ,x*))) ...)
-               (kernel (vec ,r ,t) (,e* ...)
+               (kernel (vec ,r ,t) (,e* ...) ,danger
                        (free-vars (,x^ ,t^) ...
                                   (,x*^ ,(map (lambda (t)
                                                 `(box ,r ,t))
@@ -51,5 +52,5 @@
                              ...)
                          ,stmt))))))
      
-     ((kernel ,t (,e* ...) ,fv ,stmt)
+     ((kernel ,t (,e* ...) ,danger ,fv ,stmt)
       (error 'Kernel "Unmatched kernel" (unparse-M7.0 e))))))

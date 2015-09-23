@@ -1,12 +1,18 @@
 (library
   (harlan middle returnify-kernels)
-  (export returnify-kernels)
+  (export returnify-kernels
+          danger-type
+          bounds-check
+          allocation-failure
+          num-danger)
   (import
    (rnrs)
    (except (elegant-weapons helpers) ident?)
    (harlan helpers))
 
   ;; Variables related to danger
+  ;;
+  ;; Be sure to update DANGER_TABLE in harlan.cpp
   (define danger-type 'bool)
   (define bounds-check '(int 0))
   (define allocation-failure '(int 1))
@@ -121,6 +127,7 @@
           (kernel
            (vec ,r ,t)
            ,dims
+           (danger: ,danger-vector ,danger-vec-t)
            ,(insert-retvars r retvars (cons id retvars) 0 t
                             `(((,x* ,tx*) (,xe* ,xet*) ,dim) ...))
            ,((set-retval (shave-type (length dims) `(vec ,r ,t))
@@ -227,7 +234,9 @@
   ((if ,[(rewrite-errors-expr danger) -> t] ,[c] ,[a])
    `(if ,t ,c ,a))
   ((if ,[(rewrite-errors-expr danger) -> t] ,[c])
-   `(if ,t ,c)))
+   `(if ,t ,c))
+  ((do ,[(rewrite-errors-expr danger) -> e])
+   `(do , e)))
 
 (define-match (rewrite-errors-expr^ danger)
   ((int ,i) `(int ,i))
@@ -235,6 +244,7 @@
   ((bool ,b) `(bool ,b))
   ((var ,t ,x) `(var ,t ,x))
   ((char ,c) `(char ,c))
+  ((str ,s) `(str ,s))
   ((cast ,t ,[e]) `(cast ,t ,e))
   ((vector-ref ,t ,[v] ,[i])
    `(vector-ref ,t ,v ,i))

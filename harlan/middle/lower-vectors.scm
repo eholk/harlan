@@ -42,8 +42,8 @@
    `(assert ,e))
   ((print ,e* ...)
    `(print . ,e*))
-  ((kernel ,t (,dims ...) ,fv* ,[stmt])
-   `(kernel ,t ,dims ,fv* ,stmt))
+  ((kernel ,t (,dims ...) (danger: . ,dng) ,fv* ,[stmt])
+   `(kernel ,t ,dims (danger: . ,dng) ,fv* ,stmt))
   ((do ,e) `(do ,e)))
 
 (define (lower-lifted-expr b s)

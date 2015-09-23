@@ -20,14 +20,16 @@
   ((let-region (,r ...) ,[stmt]) `(let-region (,r ...) ,stmt))
   ((begin ,[stmt*] ...)
    (make-begin stmt*))
-  ((kernel ,t ,dims (((,x* ,t*)
-                      (,[explicify-expr -> xs*] ,ts*)
-                      , d*) ...)
+  ((kernel ,t ,dims
+           (danger: . ,dng)
+           (((,x* ,t*)
+             (,[explicify-expr -> xs*] ,ts*)
+             , d*) ...)
      ,[stmt])
    ;; This map is important because kernel arguments can depend on
    ;; each other; don't take it out as appealing as that may be!
    (let ((xs* (map (replace-vec-refs-expr x*) xs*)))
-     `(kernel ,t ,dims
+     `(kernel ,t ,dims (danger: . ,dng)
               ,(generate-kernel x* t* xs* d* stmt))))
   ((error ,x) `(error ,x))
   ((print ,[explicify-expr -> expr] ...)

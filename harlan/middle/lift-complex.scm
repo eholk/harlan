@@ -111,14 +111,14 @@
        (lambda (e^) (loop (cdr e*) (cons e^ e^*))))))))
 
 (define-match lift-stmt
-  ((kernel ,t ,dims (((,x* ,t*) (,e* ,ts*) ,dim*) ...) ,[body])
+  ((kernel ,t ,dims (danger: . ,dng) (((,x* ,t*) (,e* ,ts*) ,dim*) ...) ,[body])
    (lift-expr*
     dims
     (lambda (dims)
       (lift-expr*
        e*
        (lambda (e*^)
-         `(kernel ,t ,dims
+         `(kernel ,t ,dims (danger: . ,dng)
                   (((,x* ,t*) (,e*^ ,ts*) ,dim*) ...)
                   ,body))))))
   ((begin ,[lift-stmt -> stmt*] ...)

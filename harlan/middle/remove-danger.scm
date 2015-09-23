@@ -3,6 +3,7 @@
   (export remove-danger)
   (import
    (rnrs)
+   (only (chezscheme) format)
    (nanopass)
    (harlan middle languages M7)
    (only (elegant-weapons helpers) gensym)
@@ -76,11 +77,13 @@
           ((vector ,t ,r ,e) t)
           ((if ,e1 ,[e2] ,e3) e2)
           ((if ,e1 ,[e2]) e2)
-	  ((call ,[e] ,e* ...)
-	   (nanopass-case (M7.0.0 Rho-Type) e
-			  ((fn (,t* ...) ,-> ,t) t)
-			  (else (error 'remove-danger::type-of "illegal call target"
-				       (unparse-M7.0.0 e)))))
+          ((c-expr ,t ,x) t)
+          ((do ,[e]) e)
+          ((call ,[e] ,e* ...)
+           (nanopass-case (M7.0.0 Rho-Type) e
+                          ((fn (,t* ...) ,-> ,t) t)
+                          (else (error 'remove-danger::type-of "illegal call target"
+                                       (unparse-M7.0.0 e)))))
           ((error ,x) 'void)
           (else (error 'remove-danger::type-of "unrecognized expr"
                        (unparse-M7.0.0 e)))))))
@@ -97,8 +100,19 @@
             `(let ((,v-var ,vt ,e0)
                    (,i-var int ,e1))
                (begin
-                 (if (>= (var int ,i-var) (length (var ,vt ,v-var)))
-                     (error ,(gensym 'vector-length-error)))
+                 (if (or (>= (var int ,i-var) (length (var ,vt ,v-var)))
+                         (< (var int ,i-var) (int 0)))
+                     ;; If we're in debug mode, print out more
+                     ;; information about what went wrong.
+                     ,(if (generate-debug)
+                          `(begin
+                             (do (call (c-expr (fn (str int str int) -> void) printf)
+                                       (str "attempted to access index %d on %s, which is only %d long")
+                                       (var int ,i-var)
+                                       (str ,(format "~a" (unparse-M7.0.0 e0)))
+                                       (length (var ,vt ,v-var))))
+                             (error ,(gensym 'vector-length-error)))
+                          `(error ,(gensym 'vector-length-error))))
                  (vector-ref ,t (var ,vt ,v-var) (var int ,i-var)))))))
      ((unsafe-vector-ref ,[t] ,[e0] ,[e1])
       `(vector-ref ,t ,e0 ,e1))))

@@ -39,7 +39,11 @@
     (LetBinding
      (lbind)
      (+ (x t)))
-    
+
+    (Danger
+     (danger)
+     (+ (danger: x t)))
+     
     (Stmt
      (stmt)
      (+ (for (x e1 e2 e3) stmt)
@@ -53,7 +57,7 @@
         (if e stmt)
         (while e stmt)
         (do e)
-        (kernel t (e* ...) fv stmt)
+        (kernel t (e* ...) danger fv stmt)
         (let (lbind* ...) stmt)
         (return e)
         (return)))
