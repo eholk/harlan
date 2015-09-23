@@ -1,0 +1,13 @@
+(module
+
+  (extern rt-mem-copy-time () -> float)
+  (extern rt-is-cpu () -> bool)
+  
+  (define-datatype DeviceType
+    (CPU)
+    (GPU))
+
+  (define (rt-device-type)
+    (if (rt-is-cpu)
+        (CPU)
+        (GPU))))

@@ -1,8 +1,9 @@
 
-OBJS = \
-	cl++.o \
-	builtin.o \
-	harlan.o \
+OBJS = 				\
+	cl++.o 			\
+	builtin.o 		\
+	builtin-rt.o 	\
+	harlan.o 		\
 
 SRC = \
 	harlan.hpp \

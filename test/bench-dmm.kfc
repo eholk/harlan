@@ -4,6 +4,7 @@
 
 (module
   (import random)
+  (import rt)
 
   (define (generate-matrix N rng)
     (kernel* ((i (iota N))
@@ -23,8 +24,22 @@
                              (j (iota N)))
                      (vector-ref (vector-ref B j) i))))
         (reduce + (kernel ((a a) (b b)) (* a b))))))
-  
+
+  (define (run-benchmark A B)
+    (let* ((N (length A))
+           (start (nanotime))
+           (result (mat-mul A B))
+           (stop (nanotime))
+           (elapsed (elapsed-sec start stop))
+           (gflops (/ (int->float (* (* N N) (+ N (- N 1))))
+                      (* elapsed 1e9))))
+
+      (println* "  - total_time:       " elapsed)
+      (println* "    effective_gflops: " gflops)))
+
   (define (main)
+    (println* "---")
+    (println* "name: harlan-dmm")
     (let* ((args (command-line))
            (N (if (> (length args) 1)
                   ;; 850 is chosen as the default because it should
@@ -32,23 +47,25 @@
                   (parse-str->int (vector-ref args 1) 850)
                   850))
            (rng (init-rand)))
-      (print* "Generating " N "x" N " matrices...")
+      (println* "results:")
+      (print* "# Generating " N "x" N " matrices...")
       (let* ((start (nanotime))
              (A (generate-matrix N rng))
              (B (match (random rng)
                   ((RandomResult _ rng)
                    (generate-matrix N rng))))
              (stop (nanotime)))
-        (println* "done (time: " (elapsed-sec start stop) " seconds)");
-        (print "Multiplying matrices...")
-        (let* ((start (nanotime))
-               (result (mat-mul A B))
-               (stop (nanotime))
-               (elapsed (elapsed-sec start stop)))
-          (println* "done (time: " elapsed " seconds, "
-                    (/ (int->float (* (* N N) (+ N (- N 1))))
-                       (* elapsed 1e9))
-                    " effective GFLOPS"))))
+        (println* "done (time: " (elapsed-sec start stop) " seconds)")
+        (println* "- matrix_size: " N)
+        (println* "  raw_data:")
+        (for (_ 0 10)
+          (run-benchmark A B))))
+    
+    ;; Display some extra metadata
+    (println* "device_type: " (match (rt-device-type)
+                                ((CPU) "cpu")
+                                ((GPU) "gpu")))
+    
     ;; end of main
     0))
         

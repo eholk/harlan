@@ -19,7 +19,5 @@ int main(int argc, char **argv) {
 
     int result = harlan_main();
 
-    cout << "JITTIME: " << double(g_memtime) / 1e9 << endl;
-
     return result;
 }
