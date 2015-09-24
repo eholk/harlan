@@ -50,6 +50,8 @@
    (union t s))
   ((return) '())
   ((error ,x) '())
+  ((label ,lbl) '())
+  ((goto ,lbl) '())
   ((return ,[expr-symbols -> e]) e)
   ((print ,[expr-symbols -> e]) e)
   ((do ,[expr-symbols -> e]) e)

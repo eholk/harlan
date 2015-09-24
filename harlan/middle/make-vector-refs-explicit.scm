@@ -18,6 +18,8 @@
   ((let ((,x ,t) ...) ,[stmt])
    `(let ((,x ,t) ...) ,stmt))
   ((let-region (,r ...) ,[stmt]) `(let-region (,r ...) ,stmt))
+  ((label ,lbl) `(label ,lbl))
+  ((goto ,lbl)  `(goto ,lbl))
   ((begin ,[stmt*] ...)
    (make-begin stmt*))
   ((kernel ,t ,dims
@@ -65,6 +67,7 @@
    `(if ,t ,c ,a))
   ((box ,r ,t ,[e]) `(box ,r ,t ,e))
   ((unbox ,t ,r ,[e]) `(unbox ,t ,r ,e))
+  ((addressof ,[e]) `(addressof ,e))
   ((vector-ref ,t ,[v] ,[i])
    `(vector-ref ,t ,v ,i))
   ((unsafe-vec-ptr ,t ,[v])

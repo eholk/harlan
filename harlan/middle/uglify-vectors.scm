@@ -214,6 +214,8 @@
   ((set! ,[uglify-expr -> lhs lr*]
          ,[uglify-expr -> rhs rr*])
    (values `(set! ,lhs ,rhs) (append lr* rr*)))
+  ((label ,lbl) (values `(label ,lbl) '()))
+  ((goto ,lbl) (values `(goto ,lbl) '()))
   ((return)
    (values `(return) `()))
   ((return ,[uglify-expr -> e r*])

@@ -57,6 +57,8 @@
   ((let ((,x ,t ,[returnify-kernel-expr -> e]) ...) ,[stmt])
    `(let ((,x ,t ,e) ...) ,stmt))
   ((let-region (,r ...) ,[body]) `(let-region (,r ...) ,body))
+  ((transaction (,r* ...) ,[body])
+   `(transaction (,r* ...) ,body))
   ((do ,[returnify-kernel-expr -> expr]) `(do ,expr)))
 
 (define-match returnify-kernel-expr
@@ -147,6 +149,11 @@
         (di (gensym 'di)))
     `(let ((,found-danger bool (bool #t)))
        (begin
+         ;; First check for allocation failures and handle those directly
+         (if (vector-ref ,danger-type
+                         (var ,danger-vec-t ,danger-vector)
+                         ,allocation-failure)
+             (retry-transaction))
          (for (,i (int 0) ,len (int 1))
            (if (vector-ref ,danger-type
                            (var ,danger-vec-t ,danger-vector)

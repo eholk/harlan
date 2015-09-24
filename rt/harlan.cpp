@@ -217,10 +217,16 @@ region_ptr alloc_in_region(region **r, unsigned int size)
     // printf("allocating %d bytes from region %p\n", size, *r);
     region_ptr p = (*r)->alloc_ptr;
     (*r)->alloc_ptr += size;
- 
+
+    reserve_at_least(r, (*r)->alloc_ptr);
+    
+    return p;
+}
+
+void reserve_at_least(region **r, int size) {
     // If this fails, we allocated too much memory and need to resize
     // the region.
-    while((*r)->alloc_ptr > (*r)->size) {
+    while(size > (*r)->size) {
         unsigned int new_size = (*r)->size * 2;
 		// As long as we stick with power of two region sizes, this
 		// will let us get up to 4GB regions. It's a big of a hacky
@@ -238,8 +244,6 @@ region_ptr alloc_in_region(region **r, unsigned int size)
 
         (*r)->size = new_size;
     }
-
-    return p;
 }
 
 region_ptr alloc_vector(region **r, int item_size, int num_items)

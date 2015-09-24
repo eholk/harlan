@@ -14,6 +14,8 @@
     (harlan middle make-work-size-explicit)
     (harlan middle optimize-fuse-kernels)
     (harlan middle remove-danger)
+    (harlan middle insert-transactions)
+    (harlan middle remove-transactions)
     (harlan middle remove-nested-kernels)
     (harlan middle returnify-kernels)
     (harlan middle make-vector-refs-explicit)
@@ -36,8 +38,8 @@
     (only (harlan middle languages M5) parse-M5)
     (only (harlan middle languages M7)
           parse-M7 unparse-M7
-          parse-M7.0 unparse-M7.0
-          unparse-M7.0.0)
+          parse-M7.0 unparse-M7.0 parse-M7.0.0 parse-M7.0.2
+          unparse-M7.0.0 unparse-M7.0.1 unparse-M7.0.3)
     (only (harlan middle languages M8) parse-M8)
     (only (harlan middle languages M9) unparse-M9.3))
     
@@ -63,6 +65,8 @@
     (remove-danger : M7 -> M7.0.0))
    (remove-nested-kernels
     verify-remove-nested-kernels)
+   (nanopasses
+    (insert-transactions : M7.0.0 -> M7.0.1))
    (returnify-kernels
     verify-returnify-kernels)
    (lift-complex
@@ -70,6 +74,13 @@
    (optimize-lift-allocation
     verify-optimize-lift-allocation
     1)
+   ;; This seems like a good place to remove the transactions
+   ;;
+   ;; - originally I wanted to put it right after returnify-kernels,
+   ;; but we need to be sure we don't lift any allocations outside of
+   ;; a transaction.
+   (nanopasses
+    (remove-transactions : M7.0.2 -> M7.0.3))
    (make-vector-refs-explicit
     verify-make-vector-refs-explicit)
    (annotate-free-vars
@@ -85,6 +96,7 @@
     verify-uglify-vectors)
    (remove-let-regions
     verify-remove-let-regions)
+   ;; remove-unused-bindings should go here.
    (flatten-lets
     verify-flatten-lets)
    (hoist-kernels

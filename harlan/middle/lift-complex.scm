@@ -140,6 +140,9 @@
     (lambda (x)
        (lift-expr e (lambda (e^) `(set! ,x ,e^))))))
   ((let-region (,r ...) ,[body]) `(let-region (,r ...) ,body))
+  ((transaction (,r ...) ,[e])
+   `(transaction (,r ...) ,e))
+  ((retry-transaction) `(retry-transaction))
   ((let () ,[stmt]) stmt)
   ((let ((,x ,t ,e) . ,rest) ,stmt)
    (Expr e
