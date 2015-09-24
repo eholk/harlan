@@ -1,5 +1,4 @@
 (%testspec
- (%tags xfail)
  ;; run-fail means correct behavior for this program is to compile and
  ;; then fail at runtime.
  run-fail)
