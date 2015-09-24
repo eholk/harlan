@@ -104,8 +104,8 @@ region *create_region(int size)
 
 void free_region(region *r)
 {
-    //fprintf(stderr, "freeing region %p. %d bytes allocated\n",
-    //        r, r->alloc_ptr);
+	fprintf(stderr, "freeing region %p. %d bytes of %d allocated\n",
+	        r, r->alloc_ptr, r->size);
     if(r->cl_buffer) {
         clReleaseMemObject((cl_mem)r->cl_buffer);
     }
@@ -135,13 +135,24 @@ void map_region(region *header)
                                  NULL);
     CL_CHECK(status);
 
+    if(header->alloc_ptr > header->size) {
+	    fprintf(stderr,
+	            "WARNING: reading over-allocated region %p"
+	            " (%d out of %d bytes)\n",
+	            header,
+	            header->alloc_ptr,
+	            header->size);
+    }
+    
     //printf("map_region: new alloc_ptr = %d\n", header->alloc_ptr);
 
     //printf("map_region: read %lu bytes, reading %lu more.\n",
     //       sizeof(region), header->alloc_ptr - sizeof(region));
 
-    // Now read the contents
-	int remaining = header->alloc_ptr - sizeof(region);
+    // Now read the contents, being careful not to read too much if
+    // the kernel over-allocated.
+    int remaining
+	    = min((unsigned int)header->alloc_ptr, header->size) - sizeof(region);
 	if(remaining > 0) {
 		status = clEnqueueReadBuffer(g_queue,
 									 buffer,

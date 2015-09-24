@@ -1,0 +1,61 @@
+(%testspec
+ (%tags xfail)
+ ;; run-fail means correct behavior for this program is to compile and
+ ;; then fail at runtime.
+ run-fail)
+
+;; This program makes sure we safely handle running a kernel that
+;; allocates a lot in the form of ADTs.
+
+(module
+    (define-datatype Tree
+      (Leaf int)
+      (BigLeaf int int int int int int int int int int int int int int int int)
+      (Inner Tree Tree))
+    
+    (define (main)
+      (kernel ((_ (iota 1000000)))
+        (Inner (Inner (Inner
+                       (Inner (Inner (Inner (Leaf 0)
+                                            (Leaf 1))
+                                     (Inner (Leaf 2)
+                                            (Leaf 3)))
+                              (Inner
+                               (Inner (Inner (Inner (Leaf 0)
+                                                    (Leaf 1))
+                                             (Inner (Leaf 2)
+                                                    (Leaf 3)))
+                                      (Inner (Leaf 4)
+                                             (Inner (Inner (Inner (Leaf 5)
+                                                                  (Leaf 6))
+                                                           (Inner (Leaf 7)
+                                                                  (Leaf 8)))
+                                                    (Inner (Leaf 9)
+                                                           (Leaf 10)))))
+                               (Inner (Inner (Inner (Leaf 5)
+                                                    (Leaf 6))
+                                             (Inner (Leaf 7)
+                                                    (Leaf 8)))
+                                      (Inner (Leaf 9)
+                                             (Leaf 10)))))
+                       (Leaf 1))
+                      (Inner (Leaf 2)
+                             (Leaf 3)))
+               (Inner (Inner (Inner (Inner (Leaf 0)
+                                           (Leaf 1))
+                                    (Inner (Leaf 2)
+                                           (Leaf 3)))
+                             (Inner (Leaf 4)
+                                    (Inner (Inner (Inner (Leaf 5)
+                                                         (Leaf 6))
+                                                  (Inner (Leaf 7)
+                                                         (Leaf 8)))
+                                           (Inner (Leaf 9)
+                                                  (Leaf 10)))))
+                      (Inner (Inner (Inner (Leaf 5)
+                                           (Leaf 6))
+                                    (Inner (Leaf 7)
+                                           (Leaf 8)))
+                             (Inner (Leaf 9)
+                                    (Leaf 10))))))
+      0))

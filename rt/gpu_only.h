@@ -30,7 +30,6 @@ region_ptr alloc_vector(region __global *r, int item_size, int num_items)
     region_ptr old_alloc = r->alloc_ptr;
     region_ptr p = alloc_in_region(r, 8 + item_size * num_items);
     if(!p) {
-        r->alloc_ptr = old_alloc;
         return 0;
     }
 
