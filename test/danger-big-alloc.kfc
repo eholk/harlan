@@ -1,0 +1,15 @@
+(%testspec
+ (%tags xfail)
+ ;; run-fail means correct behavior for this program is to compile and
+ ;; then fail at runtime.
+ run-fail)
+
+;; This program makes sure we safely handle running a kernel that
+;; allocates a lot.
+
+(module
+  (define (main)
+    (kernel ((_ (iota 1)))
+      (kernel ((i (iota 100000000)))
+        i))
+    0))
