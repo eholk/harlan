@@ -33,8 +33,11 @@
      (apply union/var fv**)))
   ((kernel ,type ,dims (danger: ,dv ,dt) ,[stmt fv*])
    (let* ((fv-expr (fold-right remove/var fv* globals))
+          (fv-expr (if (member `(var ,dt ,dv) fv-expr)
+                       fv-expr
+                       `((var ,dt ,dv) . ,fv-expr)))
           (fv-expr (map (lambda (p) `(,(caddr p) ,(cadr p))) fv-expr)))
-     (values `(kernel ,type ,dims (danger: ,dv ,dt) (free-vars (,dv ,dt) . ,fv-expr) ,stmt)
+     (values `(kernel ,type ,dims (danger: ,dv ,dt) (free-vars . ,fv-expr) ,stmt)
              (apply union/var fv* (map expr-fv dims)))))
   ((error ,x) (values `(error ,x) `()))
   ((return) (values `(return) `()))
