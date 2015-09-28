@@ -1,0 +1,57 @@
+(module
+    (import vectors)
+
+    (define-datatype Shape
+      ;; (Sphere center-x center-y center-z radius)
+      (Sphere float float float float))
+    
+    (define-datatype Axis
+      (XAxis)
+      (YAxis)
+      (ZAxis))
+
+  (define-datatype KdTree
+    (Leaf (vec Shape))
+    (Split Axis float KdTree KdTree))
+
+  (define-datatype Range-t
+    ;; (Range low high)
+    (Range float float))
+
+  ;; (Shape Axis) -> Range
+  (define (bounding-box shape axis)
+    (match shape
+      ((Sphere cx cy cz r)
+       (match axis
+         ((XAxis) (Range (- cx r) (+ cx r)))
+         ((YAxis) (Range (- cy r) (+ cy r)))
+         ((ZAxis) (Range (- cz r) (+ cz r)))))))
+
+  (define (empty-tree)
+    (Leaf (vector)))
+
+  (define (left-of? axis plane shape)
+    (match (bounding-box shape axis)
+      ((Range low high)
+       (<= high plane))))
+
+  (define (right-of? axis plane shape)
+    (match (bounding-box shape axis)
+      ((Range low high)
+       (>= low plane))))
+
+  (define (insert-tree tree shape)
+    (match tree
+      ((Leaf shapes)
+       (Leaf (vector-append shapes (vector shape))))
+      ((Split axis plane left right)
+       (let ((left (if (left-of? axis plane shape)
+                       (insert-tree left shape)
+                       left))
+             (right (if (right-of? axis plane shape)
+                        (insert-tree right shape)
+                        right)))
+         (Split axis plane left right)))))
+  
+  (define (main)
+    0))
