@@ -220,4 +220,16 @@
     ((_ f data)
      (kernel ((row data))
        (kernel ((x row))
-         (f x))))))
+         (f x)))))
+
+  (define-macro max ()
+    ((_ a b)
+     (let ((ta a)
+           (tb b))
+       (if (> a b) a b))))
+
+  (define-macro min ()
+    ((_ a b)
+     (let ((ta a)
+           (tb b))
+       (if (< a b) a b)))))

@@ -27,13 +27,18 @@
          ((YAxis) (Range (- cy r) (+ cy r)))
          ((ZAxis) (Range (- cz r) (+ cz r)))))))
 
+  (define (full-bounding-box shape)
+    (BoxDims (bounding-box shape (XAxis))
+             (bounding-box shape (YAxis))
+             (bounding-box shape (ZAxis))))
+  
   (define (empty-tree)
     (Leaf (vector)))
 
   (define (left-of? axis plane shape)
     (match (bounding-box shape axis)
       ((Range low high)
-       (<= high plane))))
+       (< high plane))))
 
   (define (right-of? axis plane shape)
     (match (bounding-box shape axis)
@@ -52,6 +57,46 @@
                         (insert-tree right shape)
                         right)))
          (Split axis plane left right)))))
+
+  ;; Returns the "ideal" leaf size.
+  (define (leaf-size) 3)
+
+  (define-datatype BoxDims-t
+    ;; (BoxDims x y z)
+    (BoxDims Range-t Range-t Range-t))
+
+  (define (union-range (Range low-a high-a) b)
+    (match b
+      ((Range low-b high-b)
+       (Range (min low-a low-b) (max high-a high-b)))))
+
+  (define (union-box (BoxDims ax ay az) b)
+    (match b
+      ((BoxDims bx by bz)
+       (BoxDims (union-range ax bx) (union-range ay by) (union-range az bz)))))
+  
+  ;; Bottom up approach to tree building.
+  ;;
+  ;; This is based on some pseudo code from
+  ;; http://www.flipcode.com/archives/Raytracing_Topics_Techniques-Part_7_Kd-Trees_and_More_Speed.shtml
+  (define (build-tree shapes dims)
+    (if (< (length shapes) (leaf-size))
+        ;; TODO: Maybe deep copy shapes here break region dependencies.
+        (Leaf shapes)
+        (begin
+          ;; Find a split point, do the split, recursively build the tree.
+          (empty-tree))))
   
   (define (main)
+    (let* ((shapes (vector (Sphere -10 -10  10 3)
+                           (Sphere -10  10 -10 3)
+                           (Sphere -10  10  10 3)
+                           (Sphere  10 -10 -10 3)
+                           (Sphere  10 -10  10 3)
+                           (Sphere  10  10 -10 3)
+                           (Sphere  10  10  10 3)
+                           (Sphere -10 -10 -10 3)))
+           (dims (reduce union-box
+                   (kernel ((shape shapes)) (full-bounding-box shape)))))
+      (println dims))      
     0))
