@@ -1,0 +1,10 @@
+(module
+
+    (define-macro vector-append ()
+      ((_ a b)
+       (let ((x a)
+             (y b))
+         (kernel ((i (iota (+ (length x) (length y)))))
+           (if (< i (length x))
+               (vector-ref x i)
+               (vector-ref y (- i (length x)))))))))
