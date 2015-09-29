@@ -38,7 +38,7 @@
   (define (left-of? axis plane shape)
     (match (bounding-box shape axis)
       ((Range low high)
-       (< high plane))))
+       (<= high plane))))
 
   (define (right-of? axis plane shape)
     (match (bounding-box shape axis)
@@ -174,27 +174,25 @@
       (kernel ((shape shapes))
         (match (bounding-box shape axis)
           ((Range left right)
-           (let ((left (- left 0.0001))
-                 (right (+ right 0.0001)))
-             (best-split (SplitCost axis
-                                    left
-                                    (eval-split axis
-                                                left
-                                                (match (split-box dims axis left)
-                                                  ((BoxPair left right)
-                                                   (FloatPair (box-surface-area left)
-                                                              (box-surface-area right))))
-                                                shapes))
-                         (SplitCost axis
-                                    right
-                                    (eval-split axis
-                                                right
-                                                (match (split-box dims axis right)
-                                                  ((BoxPair left right)
-                                                   (FloatPair (box-surface-area left)
-                                                              (box-surface-area
-                                                               right))))
-                                                shapes)))))))))
+           (best-split (SplitCost axis
+                                  left
+                                  (eval-split axis
+                                              left
+                                              (match (split-box dims axis left)
+                                                ((BoxPair left right)
+                                                 (FloatPair (box-surface-area left)
+                                                            (box-surface-area right))))
+                                              shapes))
+                       (SplitCost axis
+                                  right
+                                  (eval-split axis
+                                              right
+                                              (match (split-box dims axis right)
+                                                ((BoxPair left right)
+                                                 (FloatPair (box-surface-area left)
+                                                            (box-surface-area
+                                                             right))))
+                                              shapes))))))))
 
   ;; Bottom up approach to tree building.
   ;;
@@ -202,28 +200,34 @@
   ;; http://www.flipcode.com/archives/Raytracing_Topics_Techniques-Part_7_Kd-Trees_and_More_Speed.shtml
   (define (build-tree shapes dims)
     (println shapes)
-    (if (< (length shapes) (leaf-size))
-        ;; TODO: Maybe deep copy shapes here break region dependencies.
-        (Leaf shapes)
-        (let ((best-x (find-split dims shapes (XAxis)))
+    (if (> (length shapes) 0)
+        (let ((nosplit-cost (* (box-surface-area dims)
+                               (* (int->float (length shapes))
+                                  (intersection-cost))))
+              (best-x (find-split dims shapes (XAxis)))
               (best-y (find-split dims shapes (YAxis)))
               (best-z (find-split dims shapes (ZAxis))))
-          (println* "Best X split: " best-x)
-          (println* "Best Y split: " best-y)
-          (println* "Best Z split: " best-z)
+          (println* "Best X split:  " best-x)
+          (println* "Best Y split:  " best-y)
+          (println* "Best Z split:  " best-z)
+          (println* "No-split cost: " nosplit-cost)
           (match (best-split best-x (best-split best-y best-z))
-            ((SplitCost axis plane _)
-             (let ((lefts (filter (lambda (shape)
-                                    (left-of? axis plane shape))
-                                  shapes))
-                   (rights (filter (lambda (shape)
-                                     (right-of? axis plane shape))
-                                  shapes)))
-               (match (split-box dims axis plane)
-                 ((BoxPair left-box right-box)
-                  (Split axis plane
-                         (build-tree lefts left-box)
-                         (build-tree rights right-box))))))))))
+            ((SplitCost axis plane cost)
+             (println* "Splitting along " axis)
+             (if (< cost nosplit-cost)
+                 (let ((lefts (filter (lambda (shape)
+                                        (left-of? axis plane shape))
+                                      shapes))
+                       (rights (filter (lambda (shape)
+                                         (right-of? axis plane shape))
+                                       shapes)))
+                   (match (split-box dims axis plane)
+                     ((BoxPair left-box right-box)
+                      (Split axis plane
+                             (build-tree lefts left-box)
+                             (build-tree rights right-box)))))
+                 (Leaf shapes)))))
+        (Leaf (vector))))
 
   (define (print-tree tree)
     (match tree

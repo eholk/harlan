@@ -2,6 +2,7 @@
   (harlan compile-opts)
   (export
     allow-complex-kernel-args
+    allow-kernel-printf
     benchmark
     danger-zone
     generate-debug
@@ -32,6 +33,7 @@
     (util compat))
 
 (define allow-complex-kernel-args (make-parameter #f))
+(define allow-kernel-printf (make-parameter #f))
 (define danger-zone        (make-parameter #f))
 (define verbosity          (make-parameter 0))
 (define verify             (make-parameter #f))
@@ -183,7 +185,10 @@
      (dump-call-graph #t))
     ((("--Zallow-complex-kernel-args"))
      "Allow unboxed complex kernel parameters"
-     (allow-complex-kernel-args #t))))
+     (allow-complex-kernel-args #t))
+    ((("--Zallow-kernel-printf"))
+     "Allow Harlan to call printf from within kernels (doesn't work on NVIDIA GPUs"
+     (allow-kernel-printf #t))))
 
 (define (string-search needle haystack)
   (let loop ((i 0))

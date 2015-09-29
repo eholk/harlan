@@ -104,7 +104,7 @@
                          (< (var int ,i-var) (int 0)))
                      ;; If we're in debug mode, print out more
                      ;; information about what went wrong.
-                     ,(if (generate-debug)
+                     ,(if (and (allow-kernel-printf) (generate-debug))
                           `(begin
                              (do (call (c-expr (fn (str int str int) -> void) printf)
                                        (str "attempted to access index %d on %s, which is only %d long")

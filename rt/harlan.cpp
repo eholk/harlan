@@ -107,7 +107,18 @@ void free_region(region *r)
 	fprintf(stderr, "freeing region %p. %d bytes of %d allocated\n",
 	        r, r->alloc_ptr, r->size);
     if(r->cl_buffer) {
-        clReleaseMemObject((cl_mem)r->cl_buffer);
+	    cl_mem buffer = (cl_mem)r->cl_buffer;
+
+	    // Get the reference count. It should just be one.
+	    cl_uint count = 0;
+	    cl_int status = clGetMemObjectInfo(buffer,
+	                                       CL_MEM_REFERENCE_COUNT,
+	                                       sizeof(count),
+	                                       &count,
+	                                       NULL);
+	    fprintf(stderr, "releasing cl_mem associated with %p. rc=%d\n",
+	            r, count);
+        clReleaseMemObject(buffer);
     }
     free(r);
 }
@@ -237,7 +248,7 @@ void reserve_at_least(region **r, int size) {
 		assert(new_size > (*r)->size);
         region *old = *r;
         unsigned int old_size = (*r)->size;
-		//printf("realloc(%p, %d)\n", *r, new_size);
+        fprintf(stderr, "realloc(%p, %d)\n", *r, new_size);
         (*r) = (region *)realloc(*r, new_size);
 
 		assert(*r != NULL);
