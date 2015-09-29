@@ -168,6 +168,31 @@
          ((Range low high)
           (BoxPair (BoxDims x y (Range low plane))
                    (BoxDims x y (Range plane high))))))))
+
+  (define (find-split dims shapes axis)
+    (reduce best-split
+      (kernel ((shape shapes))
+        (match (bounding-box shape axis)
+          ((Range left right)
+           (best-split (SplitCost axis
+                                  left
+                                  (eval-split axis
+                                              left
+                                              (match (split-box dims axis left)
+                                                ((BoxPair left right)
+                                                 (FloatPair (box-surface-area left)
+                                                            (box-surface-area right))))
+                                              shapes))
+                       (SplitCost axis
+                                  right
+                                  (eval-split axis
+                                              right
+                                              (match (split-box dims axis right)
+                                                ((BoxPair left right)
+                                                 (FloatPair (box-surface-area left)
+                                                            (box-surface-area
+                                                             right))))
+                                              shapes))))))))
   
   ;; Bottom up approach to tree building.
   ;;
@@ -177,34 +202,15 @@
     (if (< (length shapes) (leaf-size))
         ;; TODO: Maybe deep copy shapes here break region dependencies.
         (Leaf shapes)
-        (let ((best-x (reduce best-split
-                        (kernel ((shape shapes))
-                          (match (bounding-box shape (XAxis))
-                            ((Range left right)
-                             (best-split (SplitCost (XAxis)
-                                                    left
-                                                    (eval-split (XAxis)
-                                                                left
-                                                                (match (split-box dims (XAxis) left)
-                                                                  ((BoxPair left right)
-                                                                   (FloatPair (box-surface-area left)
-                                                                              (box-surface-area right))))
-                                                                shapes))
-                                         (SplitCost (XAxis)
-                                                    right
-                                                    (eval-split (XAxis)
-                                                                right
-                                                                (match (split-box dims (XAxis) right)
-                                                                  ((BoxPair left right)
-                                                                   (FloatPair (box-surface-area left)
-                                                                              (box-surface-area
-                                                                               right))))
-                                                                shapes))))))))
-              (best-y 5)
-              (best-z 5))
+        (let ((best-x (find-split dims shapes (XAxis)))
+              (best-y (find-split dims shapes (YAxis)))
+              (best-z (find-split dims shapes (ZAxis))))
           (println* "Best X split: " best-x)
-          ;; Pick the best one and do it.
-          (empty-tree))))
+          (println* "Best Y split: " best-y)
+          (println* "Best Z split: " best-z)
+          (let ((best (best-split best-x (best-split best-y best-z))))
+            (println* "Best split: " best)
+            (empty-tree)))))
   
   (define (main)
     (let* ((shapes (vector (Sphere -10 -10  10 3)
