@@ -134,6 +134,20 @@
            (set! (unsafe-vector-ref result i) acc)
            (set! acc (op acc (unsafe-vector-ref vec i))))
          result))))
+
+  ;; TODO: This is also pretty sequential, but we can parallelize it later.
+  (define-macro filter ()
+    ((_ p? _xs)
+     (let* ((xs _xs)
+            (len (reduce + (kernel ((x xs)) (if (p? x) 1 0))))
+            (result (make-vector len (vector-ref xs 0)))
+            (j 0))
+       (for (i 0 (length xs))
+         (if (p? (unsafe-vector-ref xs i))
+             (begin (set! (unsafe-vector-ref result j) (unsafe-vector-ref xs i))
+                    (set! j (+ 1 j)))))
+       result)))
+       
   
   (define-macro sqrt ()
     ((_ x) (harlan_sqrt x)))

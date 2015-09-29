@@ -1,0 +1,12 @@
+(module
+
+  (define (even? n)
+    (= n (* 2 (/ n 2))))
+
+  (define (main)
+    (let* ((xs (vector 1 2 3 4 5))
+           (ys (filter even? xs)))
+      (println ys)
+      (assert (= ys (vector 2 4))))
+    0))
+      
