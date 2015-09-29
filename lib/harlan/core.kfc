@@ -121,6 +121,20 @@
                            tmp))))
              (inner-reduce op t))))))
 
+  ;; TODO: This is totally sequential, but the goal is to get enough
+  ;; to write other programs that use scan.
+  (define-macro scan ()
+    ((_ op _init _vec)
+     (let ((init _init)
+           (vec _vec))
+       (let ((result (make-vector (length vec) init))
+             (acc init))
+         (for (i 0 (length vec))
+           ;; TODO: this isn't actually legal Harlan...
+           (set! (unsafe-vector-ref result i) acc)
+           (set! acc (op acc (unsafe-vector-ref vec i))))
+         result))))
+  
   (define-macro sqrt ()
     ((_ x) (harlan_sqrt x)))
 
