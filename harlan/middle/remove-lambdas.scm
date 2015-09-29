@@ -375,7 +375,7 @@
               (var (fn (,(cons t t*) ...) -> ,t^)
                    ,dispatch)
               ,(cons e e*) ...))))
-       ((make-closure (closure ,r (,t* ...) ,-> ,t^) ,x ,[e**] ...)
+       ((make-closure (closure ,r (,t* ...) ,-> ,t^) ,x ,e** ...)
         (let ((e (Expr e env))
               (t (with-output-language
                   (M2 Rho-Type)
