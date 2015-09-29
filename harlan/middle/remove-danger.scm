@@ -42,7 +42,7 @@
   ;; failure to allocate. This generates new error forms, which won't
   ;; get erased from kernels in returnify-kernels like the ones from
   ;; remove-danger because returnify-kernels has already
-  ;; won. Furthermore, by the time we get to uglify-vectors, it's hard
+  ;; run. Furthermore, by the time we get to uglify-vectors, it's hard
   ;; to figure out where the danger vector is. Instead we just punt
   ;; and let the error forms go to the end. Sadly, the expand into a
   ;; call to harlan_error, which OpenCL has no idea what to do with.
