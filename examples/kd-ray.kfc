@@ -74,6 +74,100 @@
     (match b
       ((BoxDims bx by bz)
        (BoxDims (union-range ax bx) (union-range ay by) (union-range az bz)))))
+
+  (define (box-surface-area (BoxDims x y z))
+    (let ((x (match x
+               ((Range low high) (- high low))))
+          (y (match y
+               ((Range low high) (- high low))))
+          (z (match z
+               ((Range low high) (- high low)))))
+      (* 2 (+ (* x y)
+              (+ (* y z)
+                 (* x z))))))
+
+  (define-datatype SplitCost-t
+    ;; (SplitScore axis plane cost)
+    (SplitCost Axis float float))
+
+  (define-datatype IntPair-t
+    (IntPair int int))
+
+  (define (IntPair+ (IntPair a1 a2) b)
+    (match b
+      ((IntPair b1 b2)
+       (IntPair (+ a1 b1) (+ a2 b2)))))
+
+  (define-datatype FloatPair-t
+    (FloatPair float float))
+  
+  (define (traversal-cost)
+    1.0)
+  (define (intersection-cost)
+    1.0)
+  
+  (define (eval-split axis plane (FloatPair left-area right-area) shapes)
+    ;; I would love to use regularreduce here, but otherwise we end up
+    ;; with kernels calling functions that have kernels.
+    (let ((counts (inner-reduce IntPair+
+                    (kernel ((shape shapes))
+                      (IntPair (if (left-of?  axis plane shape) 1 0)
+                               (if (right-of? axis plane shape) 1 0))))))
+      (match counts
+        ((IntPair left right)
+         (+ (+ (traversal-cost)
+               (* (* left-area (int->float left))
+                  (intersection-cost)))
+            (+ (traversal-cost)
+               (* (* right-area (int->float right))
+                  (intersection-cost))))))))
+
+  ;; We have to make this a macro to keep kernels out of kernels.
+  #;(define-macro eval-split ()
+    ((_ axis plane areas shapes)
+     (match areas
+       ((FloatPair left-area right-area)
+        (let ((counts (reduce IntPair+
+                        (kernel ((shape shapes))
+                          (IntPair (if (left-of?  axis plane shape) 1 0)
+                                   (if (right-of? axis plane shape) 1 0))))))
+          (match counts
+            ((IntPair left right)
+             (+ (+ (traversal-cost)
+                   (* (* left-area (int->float left))
+                      (intersection-cost)))
+                (+ (traversal-cost)
+                   (* (* right-area (int->float right))
+                      (intersection-cost)))))))))))
+  
+  (define (best-split a b)
+    (match a
+      ((SplitCost _ _1 a-cost)
+       (match b
+         ((SplitCost _ _1 b-cost)
+          (if (< a-cost b-cost) a b))))))
+
+  (define-datatype BoxPair-t
+    (BoxPair BoxDims-t BoxDims-t))
+
+  ;; Assumes plane is in the appropriate range
+  (define (split-box (BoxDims x y z) axis plane)
+    (match axis
+      ((XAxis)
+       (match x
+         ((Range low high)
+          (BoxPair (BoxDims (Range low plane)  y z)
+                   (BoxDims (Range plane high) y z)))))
+      ((YAxis)
+       (match y
+         ((Range low high)
+          (BoxPair (BoxDims x (Range low plane)  z)
+                   (BoxDims x (Range plane high) z)))))
+      ((ZAxis)
+       (match z
+         ((Range low high)
+          (BoxPair (BoxDims x y (Range low plane))
+                   (BoxDims x y (Range plane high))))))))
   
   ;; Bottom up approach to tree building.
   ;;
@@ -83,8 +177,33 @@
     (if (< (length shapes) (leaf-size))
         ;; TODO: Maybe deep copy shapes here break region dependencies.
         (Leaf shapes)
-        (begin
-          ;; Find a split point, do the split, recursively build the tree.
+        (let ((best-x (reduce best-split
+                        (kernel ((shape shapes))
+                          (match (bounding-box shape (XAxis))
+                            ((Range left right)
+                             (best-split (SplitCost (XAxis)
+                                                    left
+                                                    (eval-split (XAxis)
+                                                                left
+                                                                (match (split-box dims (XAxis) left)
+                                                                  ((BoxPair left right)
+                                                                   (FloatPair (box-surface-area left)
+                                                                              (box-surface-area right))))
+                                                                shapes))
+                                         (SplitCost (XAxis)
+                                                    right
+                                                    (eval-split (XAxis)
+                                                                right
+                                                                (match (split-box dims (XAxis) right)
+                                                                  ((BoxPair left right)
+                                                                   (FloatPair (box-surface-area left)
+                                                                              (box-surface-area
+                                                                               right))))
+                                                                shapes))))))))
+              (best-y 5)
+              (best-z 5))
+          (println* "Best X split: " best-x)
+          ;; Pick the best one and do it.
           (empty-tree))))
   
   (define (main)
@@ -98,5 +217,6 @@
                            (Sphere -10 -10 -10 3)))
            (dims (reduce union-box
                    (kernel ((shape shapes)) (full-bounding-box shape)))))
-      (println dims))      
+      (println dims)
+      (build-tree shapes dims))
     0))
