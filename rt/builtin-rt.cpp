@@ -6,6 +6,7 @@
 #include "harlan.hpp"
 
 extern uint64_t g_memtime;
+extern cl::device_list g_devices;
 
 // () -> float
 //
@@ -18,7 +19,7 @@ float rt$dmem$dcopy$dtime() {
 //
 // Returns whether the current device is a CPU device
 bool_t rt$dis$dcpu() {
-    if(CL_DEVICE_TYPE_CPU & get_device_type()) {
+	if(CL_DEVICE_TYPE_CPU & g_devices[0].type()) {
         return true;
     }
     else {
