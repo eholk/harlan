@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
 #include <cmath>
 
 #ifdef __APPLE__
@@ -58,7 +59,22 @@ bool hstrcmp(const char *lhs, const char *rhs);
 
 #define __global
 
+#define validate_region(r) { \
+		if(DEAD_REGION == (r)->magic) { \
+			std::cerr << "Attempting to access freed region " \
+			          << r << " in " << __FUNCTION__ << std::endl; \
+			abort(); \
+		} \
+		if(ALLOC_MAGIC != (r)->magic) { \
+			std::cerr << "Invalid magic on region " \
+			          << r << " in " << __FUNCTION__ << std::endl; \
+			abort(); \
+		} \
+	}
+
 inline void *get_region_ptr(region *r, region_ptr i) {
+	validate_region(r);
+	
     if(r->cl_buffer) {
         map_region(r);
     }
@@ -67,6 +83,8 @@ inline void *get_region_ptr(region *r, region_ptr i) {
 }
 
 inline region_ptr get_alloc_ptr(region *r) {
+	validate_region(r);
+	
     if(r->cl_buffer) {
         map_region(r);
     }
@@ -75,6 +93,8 @@ inline region_ptr get_alloc_ptr(region *r) {
 }
 
 inline void set_alloc_ptr(region *r, region_ptr p) {
+	validate_region(r);
+	
     if(r->cl_buffer) {
         map_region(r);
     }

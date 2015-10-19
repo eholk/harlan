@@ -7,6 +7,7 @@
 #define GPU_COMMON_H
 
 #define ALLOC_MAGIC 0xa110ca7e
+#define DEAD_REGION 0xdeadbeef
 
 typedef unsigned int region_ptr;
 

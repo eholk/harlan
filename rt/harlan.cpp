@@ -1,7 +1,6 @@
 #define NO_GLOBALS
 #include "harlan.hpp"
 
-#include <stdlib.h>
 #include <limits.h>
 #include <string>
 #include <algorithm>
@@ -16,6 +15,7 @@ extern uint64_t nanotime();
 uint64_t g_memtime = 0;
 
 void check_region(region *r) {
+	validate_region(r);
     CHECK_MAGIC(r);
     //assert(r->cl_buffer);
 }
@@ -106,6 +106,7 @@ void free_region(region *r)
 {
 	fprintf(stderr, "freeing region %p. %d bytes of %d allocated\n",
 	        r, r->alloc_ptr, r->size);
+	validate_region(r);
     if(r->cl_buffer) {
 	    cl_mem buffer = (cl_mem)r->cl_buffer;
 
@@ -120,6 +121,7 @@ void free_region(region *r)
 	            r, count);
         clReleaseMemObject(buffer);
     }
+    r->magic = DEAD_REGION;
     free(r);
 }
 
