@@ -49,6 +49,8 @@
   ((for (,i ,start ,end ,step) ,[stmt])
    `(for (,i ,start ,end ,step) ,stmt))
   ((set! ,lhs ,rhs) `(set! ,lhs ,rhs))
+  ((label ,lbl) `(label ,lbl))
+  ((goto ,lbl) `(goto ,lbl))
   ((return)
    `(return))
   ((return ,e)

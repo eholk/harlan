@@ -16,4 +16,4 @@ script:
 
 env:
   - SCHEME=petite
-  - SCHEME=vicare
+#  - SCHEME=vicare

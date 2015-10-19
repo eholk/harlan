@@ -28,12 +28,12 @@
      (define-binders name (binder ...) () (e ...))))
   
   (define-macro cond (else)
-    ((_ (else body))
-     body)
-    ((_ (test body))
-     (if test body))
-    ((_ (test body) rest ...)
-     (if test body (cond rest ...))))
+    ((_ (else body ...))
+     (begin body ...))
+    ((_ (test body ...))
+     (if test (begin body ...)))
+    ((_ (test body ...) rest ...)
+     (if test (begin body ...) (cond rest ...))))
 
   (define-macro let* ()
     ((_ () b ...) (begin b ...))
@@ -121,6 +121,34 @@
                            tmp))))
              (inner-reduce op t))))))
 
+  ;; TODO: This is totally sequential, but the goal is to get enough
+  ;; to write other programs that use scan.
+  (define-macro scan ()
+    ((_ op _init _vec)
+     (let ((init _init)
+           (vec _vec))
+       (let ((result (make-vector (length vec) init))
+             (acc init))
+         (for (i 0 (length vec))
+           ;; TODO: this isn't actually legal Harlan...
+           (set! (unsafe-vector-ref result i) acc)
+           (set! acc (op acc (unsafe-vector-ref vec i))))
+         result))))
+
+  ;; TODO: This is also pretty sequential, but we can parallelize it later.
+  (define-macro filter ()
+    ((_ p? _xs)
+     (let* ((xs _xs)
+            (len (reduce + (kernel ((x xs)) (if (p? x) 1 0))))
+            (result (make-vector len (vector-ref xs 0)))
+            (j 0))
+       (for (i 0 (length xs))
+         (if (p? (unsafe-vector-ref xs i))
+             (begin (set! (unsafe-vector-ref result j) (unsafe-vector-ref xs i))
+                    (set! j (+ 1 j)))))
+       result)))
+       
+  
   (define-macro sqrt ()
     ((_ x) (harlan_sqrt x)))
 
@@ -220,4 +248,16 @@
     ((_ f data)
      (kernel ((row data))
        (kernel ((x row))
-         (f x))))))
+         (f x)))))
+
+  (define-macro max ()
+    ((_ a b)
+     (let ((ta a)
+           (tb b))
+       (if (> a b) a b))))
+
+  (define-macro min ()
+    ((_ a b)
+     (let ((ta a)
+           (tb b))
+       (if (< a b) a b)))))

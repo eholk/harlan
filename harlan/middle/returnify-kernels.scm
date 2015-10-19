@@ -1,12 +1,18 @@
 (library
   (harlan middle returnify-kernels)
-  (export returnify-kernels)
+  (export returnify-kernels
+          danger-type
+          bounds-check
+          allocation-failure
+          num-danger)
   (import
    (rnrs)
    (except (elegant-weapons helpers) ident?)
    (harlan helpers))
 
   ;; Variables related to danger
+  ;;
+  ;; Be sure to update DANGER_TABLE in harlan.cpp
   (define danger-type 'bool)
   (define bounds-check '(int 0))
   (define allocation-failure '(int 1))
@@ -51,6 +57,8 @@
   ((let ((,x ,t ,[returnify-kernel-expr -> e]) ...) ,[stmt])
    `(let ((,x ,t ,e) ...) ,stmt))
   ((let-region (,r ...) ,[body]) `(let-region (,r ...) ,body))
+  ((transaction (,r* ...) ,[body])
+   `(transaction (,r* ...) ,body))
   ((do ,[returnify-kernel-expr -> expr]) `(do ,expr)))
 
 (define-match returnify-kernel-expr
@@ -121,6 +129,7 @@
           (kernel
            (vec ,r ,t)
            ,dims
+           (danger: ,danger-vector ,danger-vec-t)
            ,(insert-retvars r retvars (cons id retvars) 0 t
                             `(((,x* ,tx*) (,xe* ,xet*) ,dim) ...))
            ,((set-retval (shave-type (length dims) `(vec ,r ,t))
@@ -140,6 +149,11 @@
         (di (gensym 'di)))
     `(let ((,found-danger bool (bool #t)))
        (begin
+         ;; First check for allocation failures and handle those directly
+         (if (vector-ref ,danger-type
+                         (var ,danger-vec-t ,danger-vector)
+                         ,allocation-failure)
+             (retry-transaction))
          (for (,i (int 0) ,len (int 1))
            (if (vector-ref ,danger-type
                            (var ,danger-vec-t ,danger-vector)
@@ -147,8 +161,10 @@
                (begin
                  (do (call (c-expr (fn (void str int) -> void) fprintf)
                            (c-expr void stderr)
-                           (str "Kernel encounter danger type %d!\n")
-                           (var int ,i)))
+                           (str "Kernel encounter danger type %d (%s)!\n")
+                           (var int ,i)
+                           (call (c-expr (fn (int) -> str) danger_name)
+                                 (var int ,i))))
                  (set! (var bool ,found-danger) (bool #f)))))
          (assert (var bool ,found-danger))))))
 
@@ -225,7 +241,9 @@
   ((if ,[(rewrite-errors-expr danger) -> t] ,[c] ,[a])
    `(if ,t ,c ,a))
   ((if ,[(rewrite-errors-expr danger) -> t] ,[c])
-   `(if ,t ,c)))
+   `(if ,t ,c))
+  ((do ,[(rewrite-errors-expr danger) -> e])
+   `(do , e)))
 
 (define-match (rewrite-errors-expr^ danger)
   ((int ,i) `(int ,i))
@@ -233,6 +251,7 @@
   ((bool ,b) `(bool ,b))
   ((var ,t ,x) `(var ,t ,x))
   ((char ,c) `(char ,c))
+  ((str ,s) `(str ,s))
   ((cast ,t ,[e]) `(cast ,t ,e))
   ((vector-ref ,t ,[v] ,[i])
    `(vector-ref ,t ,v ,i))

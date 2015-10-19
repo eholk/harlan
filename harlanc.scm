@@ -34,6 +34,6 @@
       (let ((filename (car args)))
         (print-compile-harlan filename)))))
 
-;;(trace-pass 'hoist-kernels)
+;;(trace-pass 'lift-complex 'returnify-kernels)
 
 (harlanc (command-line))

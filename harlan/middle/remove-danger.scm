@@ -3,6 +3,7 @@
   (export remove-danger)
   (import
    (rnrs)
+   (only (chezscheme) format)
    (nanopass)
    (harlan middle languages M7)
    (only (elegant-weapons helpers) gensym)
@@ -41,7 +42,7 @@
   ;; failure to allocate. This generates new error forms, which won't
   ;; get erased from kernels in returnify-kernels like the ones from
   ;; remove-danger because returnify-kernels has already
-  ;; won. Furthermore, by the time we get to uglify-vectors, it's hard
+  ;; run. Furthermore, by the time we get to uglify-vectors, it's hard
   ;; to figure out where the danger vector is. Instead we just punt
   ;; and let the error forms go to the end. Sadly, the expand into a
   ;; call to harlan_error, which OpenCL has no idea what to do with.
@@ -76,11 +77,13 @@
           ((vector ,t ,r ,e) t)
           ((if ,e1 ,[e2] ,e3) e2)
           ((if ,e1 ,[e2]) e2)
-	  ((call ,[e] ,e* ...)
-	   (nanopass-case (M7.0.0 Rho-Type) e
-			  ((fn (,t* ...) ,-> ,t) t)
-			  (else (error 'remove-danger::type-of "illegal call target"
-				       (unparse-M7.0.0 e)))))
+          ((c-expr ,t ,x) t)
+          ((do ,[e]) e)
+          ((call ,[e] ,e* ...)
+           (nanopass-case (M7.0.0 Rho-Type) e
+                          ((fn (,t* ...) ,-> ,t) t)
+                          (else (error 'remove-danger::type-of "illegal call target"
+                                       (unparse-M7.0.0 e)))))
           ((error ,x) 'void)
           (else (error 'remove-danger::type-of "unrecognized expr"
                        (unparse-M7.0.0 e)))))))
@@ -97,8 +100,19 @@
             `(let ((,v-var ,vt ,e0)
                    (,i-var int ,e1))
                (begin
-                 (if (>= (var int ,i-var) (length (var ,vt ,v-var)))
-                     (error ,(gensym 'vector-length-error)))
+                 (if (or (>= (var int ,i-var) (length (var ,vt ,v-var)))
+                         (< (var int ,i-var) (int 0)))
+                     ;; If we're in debug mode, print out more
+                     ;; information about what went wrong.
+                     ,(if (and (allow-kernel-printf) (generate-debug))
+                          `(begin
+                             (do (call (c-expr (fn (str int str int) -> void) printf)
+                                       (str "attempted to access index %d on %s, which is only %d long")
+                                       (var int ,i-var)
+                                       (str ,(format "~a" (unparse-M7.0.0 e0)))
+                                       (length (var ,vt ,v-var))))
+                             (error ,(gensym 'vector-length-error)))
+                          `(error ,(gensym 'vector-length-error))))
                  (vector-ref ,t (var ,vt ,v-var) (var int ,i-var)))))))
      ((unsafe-vector-ref ,[t] ,[e0] ,[e1])
       `(vector-ref ,t ,e0 ,e1))))

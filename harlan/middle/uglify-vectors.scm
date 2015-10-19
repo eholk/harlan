@@ -9,6 +9,8 @@
     (elegant-weapons compat)
     (only (harlan front typecheck) free-regions-type)
     (nanopass)
+    (only (harlan middle returnify-kernels)
+          danger-type allocation-failure)
     (elegant-weapons helpers)
     (elegant-weapons sets))
 
@@ -19,6 +21,8 @@
 ;;  )
 
 (define in-kernel? (make-parameter #f))
+(define danger-var (make-parameter #f))
+(define danger-vec-type (make-parameter #f))
   
 (define (remove-dups ls)
   (cond
@@ -147,12 +151,28 @@
      (values
       `(let ((,x ,xt (call (c-expr (fn ((ptr region) int int) -> region_ptr)
                                    alloc_vector)
+                           ;; OpenCL doesn't always cope well with
+                           ;; pointers to pointers. We can't realloc
+                           ;; in a kernel anyway, so we have this bit
+                           ;; to adjust for the difference in calling
+                           ;; conventions.
                            ,(if (in-kernel?)
                                 `(var region ,r)
                                 `(addressof (var region ,r)))
                            (sizeof ,(remove-regions t))
                            ,n)))
-         ,rest)
+         ,(if (in-kernel?)
+              `(begin (if (= (int 0) (var ,xt ,x))
+                          (begin
+                            (set! ,(uglify-vector-ref danger-type
+                                                      `(var ,(remove-regions (danger-vec-type)) ,(danger-var))
+                                                      allocation-failure
+                                                      (match (danger-vec-type)
+                                                        ((vec ,r ,t) r)))
+                                  (bool #t))
+                            (return))
+                          ,rest))
+              rest))
       (append r* rr*))))
   (((,x ,t ,[uglify-expr -> e er*])
     . ,[(uglify-let finish) -> rest rr*])
@@ -194,6 +214,8 @@
   ((set! ,[uglify-expr -> lhs lr*]
          ,[uglify-expr -> rhs rr*])
    (values `(set! ,lhs ,rhs) (append lr* rr*)))
+  ((label ,lbl) (values `(label ,lbl) '()))
+  ((goto ,lbl) (values `(goto ,lbl) '()))
   ((return)
    (values `(return) `()))
   ((return ,[uglify-expr -> e r*])
@@ -206,9 +228,12 @@
   ((kernel
      ,t
      (,[uglify-expr -> dims dr**] ...)
+     (danger: ,dv ,dt)
      (free-vars . ,fv*)
      ,stmt)
-   (let-values (((stmt sr*) (parameterize ((in-kernel? #t))
+   (let-values (((stmt sr*) (parameterize ((in-kernel?  #t)
+                                           (danger-var  dv)
+                                           (danger-vec-type dt))
                               (uglify-stmt stmt))))
      (let ((regions (remove-dups
                      (apply append sr*

@@ -1,0 +1,11 @@
+;; This should work too, but we seem to have bugs in the macro expander.
+(%testspec
+ (%tags xfail))
+(module
+  (define (main)
+    (let* ((max (lambda (a b) (if (> a b) a b)))
+           (x (reduce max
+                (vector 1 2 5 4 3))))
+      (println x)
+      (assert (= x 5)))
+    0))

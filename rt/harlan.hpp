@@ -66,7 +66,25 @@ inline void *get_region_ptr(region *r, region_ptr i) {
     return (((char __global *)r) + i);
 }
 
+inline region_ptr get_alloc_ptr(region *r) {
+    if(r->cl_buffer) {
+        map_region(r);
+    }
 
+    return r->alloc_ptr;
+}
+
+inline void set_alloc_ptr(region *r, region_ptr p) {
+    if(r->cl_buffer) {
+        map_region(r);
+    }
+
+    r->alloc_ptr = p;
+}
+
+void reserve_at_least(region **r, int size);
+
+const char *danger_name(int danger_type);
 
 // FFI-related functions. These are pretty low level and could
 // probably be open-coded by the compiler.

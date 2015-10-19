@@ -43,6 +43,8 @@
    `(kernel ,dims (free-vars . ,fv*) ,stmt))
   ((do ,[flatten-expr -> expr]) `(do ,expr))
   ((error ,x) `(error ,x))
+  ((goto ,lbl) `(goto ,lbl))
+  ((label ,lbl) `(label ,lbl))
   ((set! ,[flatten-expr -> e1] ,[flatten-expr -> e2]) `(set! ,e1 ,e2)))
 
 (define-match flatten-expr

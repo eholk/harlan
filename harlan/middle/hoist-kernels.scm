@@ -34,6 +34,8 @@
   (,x (guard (symbol? x)) (list x)))
 
 (define-match stmt-symbols
+  ((apply-kernel ,x (,[expr-symbols -> dim*] ...) ,[expr-symbols -> e*] ...)
+   (union (apply union dim*) (apply union e*)))
   ((let ,x ,[type-symbols -> t] ,[expr-symbols -> e])
    (union t e))
   ((let ,x ,[type-symbols -> t]) t)
@@ -50,6 +52,8 @@
    (union t s))
   ((return) '())
   ((error ,x) '())
+  ((label ,lbl) '())
+  ((goto ,lbl) '())
   ((return ,[expr-symbols -> e]) e)
   ((print ,[expr-symbols -> e]) e)
   ((do ,[expr-symbols -> e]) e)

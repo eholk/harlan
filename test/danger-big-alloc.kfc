@@ -1,0 +1,11 @@
+;; This program makes sure we safely handle running a kernel that
+;; allocates a lot.
+
+;; This test in particular should stress the transactional kernels stuff.
+
+(module
+    (define (main)
+      (kernel ((_ (iota 1)))
+        (kernel ((i (iota 100000000)))
+          i))
+      0))

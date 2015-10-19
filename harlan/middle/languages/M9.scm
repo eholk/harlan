@@ -93,9 +93,7 @@
     (Stmt
      (stmt)
      (+ (push! e0 e1 t e2) ;; push e2 with type t onto e0 + e1
-        (pop! e0 e1 t e2)
-        (goto name)
-        (label name)))
+        (pop! e0 e1 t e2)))
 
     (Body
      (body)

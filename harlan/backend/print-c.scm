@@ -27,10 +27,9 @@
        ,[format-ident -> name]
        (,[format-arg -> arg*] ...)
        ,[format-stmt -> stmt])
-     (run-format
-      (format-append
-       "__kernel void " name "(" (format-join ", " arg*) ") " stmt)))
-    (,else (run-format (harlan-format-decl else))))
+     (format-append
+      "__kernel void " name "(" (format-join ", " arg*) ") " stmt))
+    (,else (harlan-format-decl else)))
 
   (define (read-rt-include name)
     (let* ((port (open-file-input-port (string-append (harlan-runtime-path)
@@ -48,10 +47,11 @@
        (call
          (field (var g_ctx) createAndBuildProgramFromSource)
          (str
-           ,(string-append
-             (read-rt-include "gpu_common.h")
-             (read-rt-include "gpu_only.h")
-             (join "\n" (map compile-kernel (insert-prototypes kernel*))))))))
+           ,(run-format
+             (format-append
+              (read-rt-include "gpu_common.h")
+              (read-rt-include "gpu_only.h")
+              (format-join "\n" (map compile-kernel (insert-prototypes kernel*)))))))))
   
   (define (harlan-decl decl ft)
     (match decl

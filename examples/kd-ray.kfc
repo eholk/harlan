@@ -1,0 +1,257 @@
+(module
+    (import vectors)
+
+    (define-datatype Shape
+      ;; (Sphere center-x center-y center-z radius)
+      (Sphere float float float float))
+    
+    (define-datatype Axis
+      (XAxis)
+      (YAxis)
+      (ZAxis))
+
+  (define-datatype KdTree
+    (Leaf (vec Shape))
+    (Split Axis float KdTree KdTree))
+
+  (define-datatype Range-t
+    ;; (Range low high)
+    (Range float float))
+
+  ;; (Shape Axis) -> Range
+  (define (bounding-box shape axis)
+    (match shape
+      ((Sphere cx cy cz r)
+       (match axis
+         ((XAxis) (Range (- cx r) (+ cx r)))
+         ((YAxis) (Range (- cy r) (+ cy r)))
+         ((ZAxis) (Range (- cz r) (+ cz r)))))))
+
+  (define (full-bounding-box shape)
+    (BoxDims (bounding-box shape (XAxis))
+             (bounding-box shape (YAxis))
+             (bounding-box shape (ZAxis))))
+  
+  (define (empty-tree)
+    (Leaf (vector)))
+
+  (define (left-of? axis plane shape)
+    (match (bounding-box shape axis)
+      ((Range low high)
+       (<= high plane))))
+
+  (define (right-of? axis plane shape)
+    (match (bounding-box shape axis)
+      ((Range low high)
+       (>= low plane))))
+
+  (define (insert-tree tree shape)
+    (match tree
+      ((Leaf shapes)
+       (Leaf (vector-append shapes (vector shape))))
+      ((Split axis plane left right)
+       (let ((left (if (left-of? axis plane shape)
+                       (insert-tree left shape)
+                       left))
+             (right (if (right-of? axis plane shape)
+                        (insert-tree right shape)
+                        right)))
+         (Split axis plane left right)))))
+
+  ;; Returns the "ideal" leaf size.
+  (define (leaf-size) 3)
+
+  (define-datatype BoxDims-t
+    ;; (BoxDims x y z)
+    (BoxDims Range-t Range-t Range-t))
+
+  (define (union-range (Range low-a high-a) b)
+    (match b
+      ((Range low-b high-b)
+       (Range (min low-a low-b) (max high-a high-b)))))
+
+  (define (union-box (BoxDims ax ay az) b)
+    (match b
+      ((BoxDims bx by bz)
+       (BoxDims (union-range ax bx) (union-range ay by) (union-range az bz)))))
+
+  (define (box-surface-area (BoxDims x y z))
+    (let ((x (match x
+               ((Range low high) (- high low))))
+          (y (match y
+               ((Range low high) (- high low))))
+          (z (match z
+               ((Range low high) (- high low)))))
+      (* 2 (+ (* x y)
+              (+ (* y z)
+                 (* x z))))))
+
+  (define-datatype SplitCost-t
+    ;; (SplitScore axis plane cost)
+    (SplitCost Axis float float))
+
+  (define-datatype IntPair-t
+    (IntPair int int))
+
+  (define (IntPair+ (IntPair a1 a2) b)
+    (match b
+      ((IntPair b1 b2)
+       (IntPair (+ a1 b1) (+ a2 b2)))))
+
+  (define-datatype FloatPair-t
+    (FloatPair float float))
+  
+  (define (traversal-cost)
+    1.0)
+  (define (intersection-cost)
+    1.0)
+  
+  (define (eval-split axis plane (FloatPair left-area right-area) shapes)
+    ;; I would love to use regular reduce here, but otherwise we end up
+    ;; with kernels calling functions that have kernels.
+    (let ((counts (inner-reduce IntPair+
+                    (kernel ((shape shapes))
+                      (IntPair (if (left-of?  axis plane shape) 1 0)
+                               (if (right-of? axis plane shape) 1 0))))))
+      (match counts
+        ((IntPair left right)
+         (+ (+ (traversal-cost)
+               (* (* left-area (int->float left))
+                  (intersection-cost)))
+            (+ (traversal-cost)
+               (* (* right-area (int->float right))
+                  (intersection-cost))))))))
+
+  ;; We have to make this a macro to keep kernels out of kernels.
+  #;(define-macro eval-split ()
+    ((_ axis plane areas shapes)
+     (match areas
+       ((FloatPair left-area right-area)
+        (let ((counts (reduce IntPair+
+                        (kernel ((shape shapes))
+                          (IntPair (if (left-of?  axis plane shape) 1 0)
+                                   (if (right-of? axis plane shape) 1 0))))))
+          (match counts
+            ((IntPair left right)
+             (+ (+ (traversal-cost)
+                   (* (* left-area (int->float left))
+                      (intersection-cost)))
+                (+ (traversal-cost)
+                   (* (* right-area (int->float right))
+                      (intersection-cost)))))))))))
+  
+  (define (best-split a b)
+    (match a
+      ((SplitCost _ _1 a-cost)
+       (match b
+         ((SplitCost _ _1 b-cost)
+          (if (< a-cost b-cost) a b))))))
+
+  (define-datatype BoxPair-t
+    (BoxPair BoxDims-t BoxDims-t))
+
+  ;; Assumes plane is in the appropriate range
+  (define (split-box (BoxDims x y z) axis plane)
+    (match axis
+      ((XAxis)
+       (match x
+         ((Range low high)
+          (BoxPair (BoxDims (Range low plane)  y z)
+                   (BoxDims (Range plane high) y z)))))
+      ((YAxis)
+       (match y
+         ((Range low high)
+          (BoxPair (BoxDims x (Range low plane)  z)
+                   (BoxDims x (Range plane high) z)))))
+      ((ZAxis)
+       (match z
+         ((Range low high)
+          (BoxPair (BoxDims x y (Range low plane))
+                   (BoxDims x y (Range plane high))))))))
+
+  (define (find-split dims shapes axis)
+    (reduce best-split
+      (kernel ((shape shapes))
+        (match (bounding-box shape axis)
+          ((Range left right)
+           (best-split (SplitCost axis
+                                  left
+                                  (eval-split axis
+                                              left
+                                              (match (split-box dims axis left)
+                                                ((BoxPair left right)
+                                                 (FloatPair (box-surface-area left)
+                                                            (box-surface-area right))))
+                                              shapes))
+                       (SplitCost axis
+                                  right
+                                  (eval-split axis
+                                              right
+                                              (match (split-box dims axis right)
+                                                ((BoxPair left right)
+                                                 (FloatPair (box-surface-area left)
+                                                            (box-surface-area
+                                                             right))))
+                                              shapes))))))))
+
+  ;; Bottom up approach to tree building.
+  ;;
+  ;; This is based on some pseudo code from
+  ;; http://www.flipcode.com/archives/Raytracing_Topics_Techniques-Part_7_Kd-Trees_and_More_Speed.shtml
+  (define (build-tree shapes dims)
+    (println shapes)
+    (if (> (length shapes) 0)
+        (let ((nosplit-cost (* (box-surface-area dims)
+                               (* (int->float (length shapes))
+                                  (intersection-cost))))
+              (best-x (find-split dims shapes (XAxis)))
+              (best-y (find-split dims shapes (YAxis)))
+              (best-z (find-split dims shapes (ZAxis))))
+          (println* "Best X split:  " best-x)
+          (println* "Best Y split:  " best-y)
+          (println* "Best Z split:  " best-z)
+          (println* "No-split cost: " nosplit-cost)
+          (match (best-split best-x (best-split best-y best-z))
+            ((SplitCost axis plane cost)
+             (println* "Splitting along " axis)
+             (if (< cost nosplit-cost)
+                 (let ((lefts (filter (lambda (shape)
+                                        (left-of? axis plane shape))
+                                      shapes))
+                       (rights (filter (lambda (shape)
+                                         (right-of? axis plane shape))
+                                       shapes)))
+                   (match (split-box dims axis plane)
+                     ((BoxPair left-box right-box)
+                      (Split axis plane
+                             (build-tree lefts left-box)
+                             (build-tree rights right-box)))))
+                 (Leaf shapes)))))
+        (Leaf (vector))))
+
+  (define (print-tree tree)
+    (match tree
+      ((Leaf shapes)
+       (print* "(Leaf " shapes ")") 0)
+      ((Split axis plane left right)
+       (print* "(Split " axis " " plane " ")
+       (print-tree left)
+       (print " ")
+       (print-tree right)
+       (print ")") 0)))
+  
+  (define (main)
+    (let* ((shapes (vector (Sphere -10 -10  10 3)
+                           (Sphere -10  10 -10 3)
+                           (Sphere -10  10  10 3)
+                           (Sphere  10 -10 -10 3)
+                           (Sphere  10 -10  10 3)
+                           (Sphere  10  10 -10 3)
+                           (Sphere  10  10  10 3)
+                           (Sphere -10 -10 -10 3)))
+           (dims (reduce union-box
+                   (kernel ((shape shapes)) (full-bounding-box shape)))))
+      (println dims)
+      (let ((tree (build-tree shapes dims)))
+        (print-tree tree) (println "")))
+    0))
