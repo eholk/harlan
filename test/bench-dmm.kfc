@@ -53,7 +53,6 @@
         (run-benchmark A B))))
   
   (define (main)
-    (println* "---")
     (println* "name: harlan-dmm")
     (let* ((args (command-line))
            (N (if (> (length args) 1)
@@ -62,7 +61,7 @@
                   (parse-str->int (vector-ref args 1) 850)
                   850))
            (M (if (> (length args) 2)
-                  (parse-str->int (vector-ref args 2) (+ N 1))
+                  (+ (parse-str->int (vector-ref args 2) N) 1)
                   (+ N 1)))
            (step (if (> (length args) 3)
                      (parse-str->int (vector-ref args 3) 1)
