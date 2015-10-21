@@ -10,7 +10,8 @@
   (extern open_outfile (str) -> (ptr ofstream))
   (extern str->vec (str) -> (vec char))
   (extern time-s () -> float)
-
+  (extern sleep (int) -> void)
+  
   (define-macro define-binders ()
     ((_ name ((tag x ...) binder ...) (arg ...) (e ...))
      (define-binders name (binder ...)

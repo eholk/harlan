@@ -6,7 +6,7 @@
   (import random)
   (import rt)
 
-  (define (generate-matrix N rng)
+  #;(define (generate-matrix N rng)
     (kernel* ((i (iota N))
               (j (iota N)))
       (let ((rng (reseed rng (+ (* i N) j))))
@@ -16,6 +16,13 @@
              ((RandomResult m _)
               (/ (int->float n) (int->float m)))))))))
 
+  (define (generate-matrix N rng)
+    (kernel* ((i (iota N))
+              (j (iota N)))
+      ;; apparently the Cublas version generates a "random" vector
+      ;; where all the elements are 1.
+      1.0))
+  
   ;; TODO: New optimization - vector-refs into kernels.
   (define (mat-mul A B)
     (let ((N (length A)))
@@ -37,7 +44,7 @@
       (println* "  - total_time:       " elapsed)
       (println* "    effective_gflops: " gflops)))
 
-  (define (run-benchmark-size N num-trials)
+  (define (run-benchmark-size N num-trials sleep?)
     (print* "# Generating " N "x" N " matrices...")
     (let* ((start (nanotime))
            (rng (init-rand))
@@ -50,7 +57,9 @@
       (println* "- matrix_size: " N)
       (println* "  raw_data:")
       (for (_ 0 num-trials)
-        (run-benchmark A B))))
+        (run-benchmark A B)
+        ;; Possibly sleep for four seconds to let the GPU cool down.
+        (if sleep? (sleep 4)))))
   
   (define (main)
     (println* "name: harlan-dmm")
@@ -68,10 +77,11 @@
                      1))
            (num-trials (if (> (length args) 4)
                            (parse-str->int (vector-ref args 4) 10)
-                           10)))
+                           10))
+           (sleep? (> (length args) 5)))
       (println* "results:")
       (for (N N M step)
-        (run-benchmark-size N num-trials)))
+        (run-benchmark-size N num-trials sleep?)))
     
     ;; Display some extra metadata
     (println* "device_type: " (match (rt-device-type)

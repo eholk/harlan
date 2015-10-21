@@ -14,6 +14,8 @@
 #include <iostream>
 #include <fstream>
 
+#include <unistd.h>
+
 using namespace std;
 
 #define NO_GLOBALS
@@ -167,4 +169,8 @@ char *file$dread$dline(FILE *f) {
 
 void flush$dstdout() {
 	cout.flush();
+}
+
+void sleep(int seconds) {
+	int _ = ::sleep((unsigned int)seconds);
 }
