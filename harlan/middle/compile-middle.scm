@@ -26,6 +26,7 @@
     (harlan middle specialize-string-equality)
     (harlan middle uglify-vectors)
     (harlan middle remove-let-regions)
+    (harlan middle optimize-remove-unused-bindings)
     (harlan middle flatten-lets)
     (harlan middle hoist-kernels)
     (harlan middle fix-kernel-local-regions)
@@ -39,7 +40,8 @@
     (only (harlan middle languages M7)
           parse-M7 unparse-M7
           parse-M7.0 unparse-M7.0 parse-M7.0.0 parse-M7.0.2
-          unparse-M7.0.0 unparse-M7.0.1 unparse-M7.0.3)
+          unparse-M7.0.0 unparse-M7.0.1 unparse-M7.0.3
+          unparse-M7.1 parse-M7.1)
     (only (harlan middle languages M8) parse-M8)
     (only (harlan middle languages M9) unparse-M9.3))
     
@@ -90,13 +92,12 @@
       (remove-complex-kernel-args : M7.0 -> M7.0)))
    (lower-vectors
     verify-lower-vectors)
-   ;;(nanopasses
-   ;; (uglify-vectors-new : M7.1 -> M7.2))
    (uglify-vectors
     verify-uglify-vectors)
    (remove-let-regions
     verify-remove-let-regions)
-   ;; remove-unused-bindings should go here.
+   (nanopasses
+    (optimize-remove-unused-bindings : M7.1 -> M7.1))
    (flatten-lets
     verify-flatten-lets)
    (hoist-kernels

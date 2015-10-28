@@ -5,12 +5,6 @@
           (rnrs)
           (harlan middle languages M7))
 
-  ;; after uglify-vectors
-  ;;(define-language M7.2
-  ;;  (extends M7.1)
-  ;;
-  ;;  )
-  
   ;; after hoist-kernels
   (define-language M8
     (extends M7.1)
@@ -44,14 +38,10 @@
     (Expr
      (e)
      (+ (sizeof t)
-        (alloc e1 e2)
-        (region-ref t e1 e2))
+        (alloc e1 e2))
      (- (box r t)
         (unbox t r e)
-        (vector t r e* ...)
-        (do e)
-        (print e)
-        (print e1 e2)))
+        (vector t r e* ...)))
 
     (Body
      (body)
@@ -59,9 +49,7 @@
     
     (Rho-Type
      (t)
-     (+ (vec t))
-     (- (vec r t)
-        (box r t)
+     (- (box r t)
         (adt x r))))
 
   (define-parser parse-M8 M8))

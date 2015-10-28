@@ -34,6 +34,6 @@
       (let ((filename (car args)))
         (print-compile-harlan filename)))))
 
-;;(trace-pass 'lift-complex 'returnify-kernels)
+;;(trace-pass 'remove-let-regions)
 
 (harlanc (command-line))

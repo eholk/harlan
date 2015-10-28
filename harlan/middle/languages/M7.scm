@@ -6,7 +6,7 @@
           M7.0.1 unparse-M7.0.1
           M7.0.2 unparse-M7.0.2 parse-M7.0.2
           M7.0.3 unparse-M7.0.3
-          M7.1 unparse-M7.1)
+          M7.1 unparse-M7.1 parse-M7.1)
   (import (rnrs)
           (nanopass)
           (harlan middle languages M6))
@@ -120,22 +120,31 @@
      (e)
      (+ (deref e))))
   
-  ;; before uglify-vectors
+  ;; after remove-let-regions
   (define-language M7.1
     (extends M7.0)
 
+    (Rho-Type
+     (t)
+     (- (vec r t))
+     (+ (vec t)))
+    
     (Expr
      (e)
-     (- (box r t e))
-     (+ (box r t))))
-
-  ;; after uglify-vectors
-  ;;(define-language M7.2
-  ;;  (extends M7.1)
-  ;;
-  ;;  )
+     (- (box r t e)
+        (set! e1 e2)
+        (while e1 e2)
+        (if e0 e1)
+        (for (x e0 e1 e2) e)
+        (let-region (r ...) e)
+        (do e)
+        (print e1 e2)
+        (print e))
+     (+ (box r t)
+        (region-ref t e1 e2))))
 
   (define-parser parse-M7 M7)
   (define-parser parse-M7.0 M7.0)
   (define-parser parse-M7.0.0 M7.0.0)
-  (define-parser parse-M7.0.2 M7.0.2))
+  (define-parser parse-M7.0.2 M7.0.2)
+  (define-parser parse-M7.1 M7.1))
