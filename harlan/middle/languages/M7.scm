@@ -65,7 +65,7 @@
              (set! e1 e2)
              (print e)
              (print e1 e2)
-             (while e1 e2)
+             (while e1 body)
              (let (lbind* ...) body)
              (transaction (r ...) body)
              (retry-transaction)))

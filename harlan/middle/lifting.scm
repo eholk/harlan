@@ -61,6 +61,9 @@
          (values liftable (cons `(,x ,t ,e) pinned)))))
       
   (define-match Stmt
+    ((transaction (,r ...) ,[stmt bindings])
+     (values `(transaction (,r ...) ,stmt)
+             bindings))
     ((let ((,x* ,t* ,[Expr -> e* binding*]) ...)
        ,[body bindings])
      (let-values (((liftable pinned) ((split-bindings x*) bindings)))

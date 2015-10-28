@@ -9,7 +9,7 @@
 
   ;; This is actually just a remove-unused-bindings pass, but here it
   ;; happens early enough that we can cut out whole kernels.
-  (trace-define-pass optimize-remove-unused-kernels
+  (define-pass optimize-remove-unused-kernels
     : M7 (m) -> M7 ()
     (definitions
       (define x* (set 'bogus))
@@ -55,6 +55,19 @@
                     `(let (,lbind ...) ,e))
                 (apply union (difference x (bound-variables lbind)) x*))))
 
+     ((length ,[e x])
+      (values `(length ,e) x))
+     ((vector ,t ,r ,[e* x*] ...)
+      (values `(vector ,t ,r ,e* ...) (apply union x*)))
+     ((assert ,[e x])
+      (values `(assert ,e) x))
+     ((set! ,[e1 x1] ,[e2 x2])
+      (values `(set! ,e1 ,e2) (union x1 x2)))
+     ;; one-armed if expressions are an abomination
+     ((if ,[e1 x1] ,[e2 x2])
+      (values `(if ,e1 ,e2) (union x1 x2)))
+     ((if ,[e1 x1] ,[e2 x2] ,[e3 x3])
+      (values `(if ,e1 ,e2 ,e3) (union x1 x2 x3)))
      ((kernel ,t ,r (,[e* x*] ...) (((,x0 ,t0) (,[e1* x1*] ,t1) ,i) ...)
               ,[e2 x2])
       (values `(kernel ,t ,r (,e* ...) (((,x0 ,t0) (,e1* ,t1) ,i) ...) ,e2)
@@ -66,6 +79,11 @@
               (union x1 x2 x3 (difference x4 (set x)))))
      ((vector-ref ,t ,[e1 x1] ,[e2 x2])
       (values `(vector-ref ,t ,e1 ,e2) (union x1 x2)))
+     ((unsafe-vector-ref ,t ,[e0 x0] ,[e1 x1])
+      (values `(unsafe-vector-ref ,t ,e0 ,e1)
+              (union x0 x1)))
+     ((unsafe-vec-ptr ,t ,[e x])
+      (values `(unsafe-vec-ptr ,t ,e) x))
      ((field ,[e x*] ,x) (values `(field ,e ,x) x*))
      ((call ,[e x] ,[e* x*] ...)
       (values `(call ,e ,e* ...) (apply union x x*)))
@@ -86,8 +104,18 @@
                     `(let (,lbind ...) ,body))
                 (apply union (difference x (bound-variables lbind)) x*))))
 
-     ((while ,[e x1] ,[e2 x2])
-      (values `(while ,e ,e2) (union x1 x2)))
+     ((if ,[e x] ,[body1 x1] ,[body2 x2])
+      (values `(if ,e ,body1 ,body2)
+              (union x x1 x2)))
+     ((if ,[e x] ,[body1 x1])
+      (values `(if ,e ,body1)
+              (union x x1)))
+     ((assert ,[e x])
+      (values `(assert ,e) x))
+     ((set! ,[e1 x1] ,[e2 x2])
+      (values `(set! ,e1 ,e2) (union x1 x2)))
+     ((while ,[e x1] ,[body x2])
+      (values `(while ,e ,body) (union x1 x2)))
      ((print ,[e x]) (values `(print ,e) x))
      ((print ,[e1 x1] ,[e2 x2]) (values `(print ,e1 ,e2) (union x1 x2)))
      ((return ,[e x])
