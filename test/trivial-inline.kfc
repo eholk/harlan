@@ -3,4 +3,5 @@
 (module
   (define (main)
     (let ((x (kernel ((i (iota 10000))) (+ 1 i))))
+      (println (vector-ref x 0))
       0)))

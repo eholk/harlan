@@ -108,7 +108,8 @@
                     e
                     `(let (,lbind ...) ,e))
                 (apply union (difference x (bound-variables lbind)) x*))))
-     
+
+     ((field ,[e x*] ,x) (values `(field ,e ,x) x*))
      ((box ,r ,t) (values `(box ,r ,t) (set)))
      ((empty-struct) (values `(empty-struct) (set)))
      ((c-expr ,t ,x) (values `(c-expr ,t ,x) (set)))

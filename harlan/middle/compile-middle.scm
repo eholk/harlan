@@ -13,6 +13,7 @@
     (harlan middle make-kernel-dimensions-explicit)
     (harlan middle make-work-size-explicit)
     (harlan middle optimize-fuse-kernels)
+    (harlan middle optimize-remove-unused-kernels)
     (harlan middle remove-danger)
     (harlan middle insert-transactions)
     (harlan middle remove-transactions)
@@ -64,6 +65,7 @@
     verify-optimize-fuse-kernels
     1)
    (nanopasses
+    (optimize-remove-unused-kernels : M7 -> M7)
     (remove-danger : M7 -> M7.0.0))
    (remove-nested-kernels
     verify-remove-nested-kernels)
