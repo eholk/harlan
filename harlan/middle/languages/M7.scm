@@ -147,6 +147,7 @@
         (print e))
      (+ (box r t)
         (sizeof t)
+        (alloc e1 e2)
         (region-ref t e1 e2))))
 
   (define-parser parse-M7 M7)

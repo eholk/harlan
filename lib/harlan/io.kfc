@@ -22,12 +22,14 @@
     ((_ name type init size)
      (define (name f)
        (let ((tmp (vector init)))
-         (fread (unsafe-explicit-cast ((ptr type) -> (ptr void))
-                                      (unsafe-vec-ptr tmp))
-                (unsafe-explicit-cast (int -> size_t) size)
-                (unsafe-explicit-cast (int -> size_t) 1) ;; 1 item
-                f)
-         (vector-ref tmp 0)))))
+         (if (= (fread (unsafe-explicit-cast ((ptr type) -> (ptr void))
+                                             (unsafe-vec-ptr tmp))
+                       (unsafe-explicit-cast (int -> size_t) size)
+                       (unsafe-explicit-cast (int -> size_t) 1) ;; 1 item
+                       f)
+                1)
+             (vector-ref tmp 0)
+             (error! "failure to read file"))))))
 
   (define-read-binary read-binary-float float 0.0 4)
   (define-read-binary read-binary-u32 int 0 4)

@@ -186,6 +186,7 @@
     ((error ,x) `())
     ((print ,[free-vars-Expr -> fv*]) fv*)
     ((assert ,[free-vars-Expr -> fv*]) fv*)
+    ((do ,[free-vars-Expr -> fv*]) fv*)
     ((return) `())
     ((return ,[free-vars-Expr -> fv*]) fv*)
     ((for (,x ,[free-vars-Expr -> sfv*] ,[free-vars-Expr -> efv*]

@@ -12,9 +12,9 @@
            (u (file-read-u64 f))
            (flt (file-read-float f))
            (s (file-read-string f))
-           (line (file-read-line f)) ;; We have to read to the end of
-                                     ;; the previous line.
-           (line (file-read-line f)))
+           (line (begin (file-read-line f) ;; We have to read to the end of
+                                           ;; the previous line.
+                        (file-read-line f))))
       (fclose f)
       (println i)
       (assert (= i 42))

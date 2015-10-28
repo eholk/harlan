@@ -8,7 +8,7 @@
    (elegant-weapons sets)
    (nanopass))
 
-  (trace-define-pass optimize-remove-unused-bindings : M7.1 (m) -> M7.1 ()
+  (define-pass optimize-remove-unused-bindings : M7.1 (m) -> M7.1 ()
     (definitions
       (define x* (set 'bogus))
 
@@ -34,14 +34,13 @@
               (if (member x ref-x)
                   (cons `(,x ,t) ret-bind)
                   (begin
-                    (display (list "removing binding" x))
-                    (newline)
+                    ;;(display (list "removing binding" x)) (newline)
                     ret-bind)))
              ((,x ,t ,e)
               (if (member x ref-x)
                   (cons `(,x ,t ,e) ret-bind)
                   (begin
-                    (display (list "removing binding" x))
+                    ;;(display (list "removing binding" x))
                     ret-bind))))))
          '()
          lbind*)))
@@ -59,7 +58,7 @@
      : Stmt (stmt) -> Stmt (x*)
      
      ((let (,[lbind x*] ...) ,[stmt x])
-      (display x)
+      ;;(display x)
       (let ((lbind (filter-bindings lbind x)))
         (values (if (null? lbind)
                     stmt
@@ -103,7 +102,7 @@
      ((var ,t ,x)
       (values `(var ,t ,x) (set x)))
      ((let (,[lbind x*] ...) ,[e x])
-      (display x)
+      ;;(display x)
       (let ((lbind (filter-bindings lbind x)))
         (values (if (null? lbind)
                     e
@@ -121,6 +120,8 @@
      ((str ,str-t) (values `(str ,str-t) (set)))
      ((vector ,t ,r ,[e* x*] ...)
       (values `(vector ,t ,r ,e* ...) (apply union x*)))
+     ((cast ,t ,[e x])
+      (values `(cast ,t ,e) x))
      ((begin ,[e x] ,[e* x*] ...)
       (values `(begin ,e ,e* ...) (apply union x x*)))
      ((call ,[e x] ,[e* x*] ...)
@@ -135,6 +136,8 @@
               (union x0 x1)))
      ((unsafe-vec-ptr ,t ,[e x])
       (values `(unsafe-vec-ptr ,t ,e) x))
+     ((alloc ,[e1 x1] ,[e2 x2])
+      (values `(alloc ,e1 ,e2) (union x1 x2)))
      ((if ,[e0 x0] ,[e1 x1] ,[e2 x2])
       (values `(if ,e0 ,e1 ,e2) (union x0 x1 x2)))
      ((region-ref ,t ,[e1 x1] ,[e2 x2])
