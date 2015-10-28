@@ -55,6 +55,15 @@
                     `(let (,lbind ...) ,e))
                 (apply union (difference x (bound-variables lbind)) x*))))
 
+     ((kernel ,t ,r (,[e* x*] ...) (((,x0 ,t0) (,[e1* x1*] ,t1) ,i) ...)
+              ,[e2 x2])
+      (values `(kernel ,t ,r (,e* ...) (((,x0 ,t0) (,e1* ,t1) ,i) ...) ,e2)
+              (apply union (difference x2 x0) (append x* x1*))))
+     ((while ,[e x1] ,[e2 x2])
+      (values `(while ,e ,e2) (union x1 x2)))
+     ((for (,x ,[e1 x1] ,[e2 x2] ,[e3 x3]) ,[e x4])
+      (values `(for (,x ,e1 ,e2 ,e3) ,e)
+              (union x1 x2 x3 (difference x4 (set x)))))
      ((vector-ref ,t ,[e1 x1] ,[e2 x2])
       (values `(vector-ref ,t ,e1 ,e2) (union x1 x2)))
      ((field ,[e x*] ,x) (values `(field ,e ,x) x*))
@@ -62,6 +71,8 @@
       (values `(call ,e ,e* ...) (apply union x x*)))
      ((print ,[e x]) (values `(print ,e) x))
      ((print ,[e1 x1] ,[e2 x2]) (values `(print ,e1 ,e2) (union x1 x2)))
+     ((,op ,[e1 x1] ,[e2 x2])
+      (values `(,op ,e1 ,e2) (union x1 x2)))
      ((begin ,[e x] ,[e* x*] ...)
       (values `(begin ,e ,e* ...) (apply union x x*))))
     
@@ -75,6 +86,8 @@
                     `(let (,lbind ...) ,body))
                 (apply union (difference x (bound-variables lbind)) x*))))
 
+     ((while ,[e x1] ,[e2 x2])
+      (values `(while ,e ,e2) (union x1 x2)))
      ((print ,[e x]) (values `(print ,e) x))
      ((print ,[e1 x1] ,[e2 x2]) (values `(print ,e1 ,e2) (union x1 x2)))
      ((return ,[e x])
