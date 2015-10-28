@@ -30,7 +30,7 @@
                 (b (kernel* ((i (iota N))
                              (j (iota N)))
                      (vector-ref (vector-ref B j) i))))
-        (reduce + (kernel ((a a) (b b)) (* a b))))))
+        (inner-reduce + (kernel ((a a) (b b)) (* a b))))))
 
   (define (run-benchmark A B)
     (let* ((N (length A))
