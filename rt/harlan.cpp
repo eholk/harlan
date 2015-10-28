@@ -104,8 +104,8 @@ region *create_region(int size)
 
 void free_region(region *r)
 {
-	fprintf(stderr, "#freeing region %p. %d bytes of %d allocated\n",
-	        r, r->alloc_ptr, r->size);
+	//fprintf(stderr, "#freeing region %p. %d bytes of %d allocated\n",
+	//        r, r->alloc_ptr, r->size);
 	validate_region(r);
     if(r->cl_buffer) {
 	    cl_mem buffer = (cl_mem)r->cl_buffer;
@@ -117,8 +117,8 @@ void free_region(region *r)
 	                                       sizeof(count),
 	                                       &count,
 	                                       NULL);
-	    fprintf(stderr, "#releasing cl_mem associated with %p. rc=%d\n",
-	            r, count);
+	    //fprintf(stderr, "#releasing cl_mem associated with %p. rc=%d\n",
+	    //        r, count);
         clReleaseMemObject(buffer);
     }
     r->magic = DEAD_REGION;
@@ -250,7 +250,7 @@ void reserve_at_least(region **r, int size) {
 		assert(new_size > (*r)->size);
         region *old = *r;
         unsigned int old_size = (*r)->size;
-        fprintf(stderr, "#realloc(%p, %d)\n", *r, new_size);
+        //fprintf(stderr, "#realloc(%p, %d)\n", *r, new_size);
         (*r) = (region *)realloc(*r, new_size);
 
 		assert(*r != NULL);
