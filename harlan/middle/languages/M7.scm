@@ -128,6 +128,11 @@
      (t)
      (- (vec r t))
      (+ (vec t)))
+
+    (Stmt
+     (stmt)
+     (- (kernel t (e* ...) danger fv stmt))
+     (+ (kernel (e* ...) fv stmt)))
     
     (Expr
      (e)
@@ -141,6 +146,7 @@
         (print e1 e2)
         (print e))
      (+ (box r t)
+        (sizeof t)
         (region-ref t e1 e2))))
 
   (define-parser parse-M7 M7)

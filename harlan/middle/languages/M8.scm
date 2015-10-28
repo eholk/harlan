@@ -37,8 +37,7 @@
     
     (Expr
      (e)
-     (+ (sizeof t)
-        (alloc e1 e2))
+     (+ (alloc e1 e2))
      (- (box r t)
         (unbox t r e)
         (vector t r e* ...)))

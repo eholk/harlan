@@ -40,7 +40,9 @@
            (elapsed (elapsed-sec start stop))
            (gflops (/ (int->float (* (* N N) (+ N (- N 1))))
                       (* elapsed 1e9))))
-
+      ;; this next line ensures the optimizer doesn't optimize away
+      ;; the matrix multiply.
+      (println* "# result[0][0]: " (vector-ref (vector-ref result 0) 0))
       (println* "  - total_time:       " elapsed)
       (println* "    effective_gflops: " gflops)))
 
