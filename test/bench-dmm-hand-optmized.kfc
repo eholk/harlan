@@ -1,0 +1,106 @@
+;; Dense matrix-matrix product
+(%testspec
+ (%tags bench))
+
+(module
+  (import random)
+  (import rt)
+
+  #;(define (generate-matrix N rng)
+    (kernel* ((i (iota N))
+              (j (iota N)))
+      (let ((rng (reseed rng (+ (* i N) j))))
+        (match (random rng)
+          ((RandomResult n rng)
+           (match (random rng)
+             ((RandomResult m _)
+              (/ (int->float n) (int->float m)))))))))
+
+  (define (generate-matrix N rng)
+    (kernel* ((i (iota N))
+              (j (iota N)))
+      ;; apparently the Cublas version generates a "random" vector
+      ;; where all the elements are 1.
+      1.0))
+  
+  ;; TODO: New optimization - vector-refs into kernels.
+  (define (mat-mul A B)
+    (let* ((N (length A))
+           (Bt (kernel* ((i (iota N))
+                             (j (iota N)))
+                 (vector-ref (vector-ref B j) i))))
+      (kernel* ((a A)
+                (b Bt))
+        (inner-reduce + (kernel ((a a) (b b)) (* a b))))))
+
+  (define (run-benchmark A B)
+    (let* ((N (length A))
+           (start (nanotime))
+           (result (mat-mul A B))
+           (stop (nanotime))
+           (elapsed (elapsed-sec start stop))
+           (gflops (/ (int->float (* (* N N) (+ N (- N 1))))
+                      (* elapsed 1e9))))
+      ;; this next line ensures the optimizer doesn't optimize away
+      ;; the matrix multiply.
+      (println* "# result[0][0]: " (vector-ref (vector-ref result 0) 0))
+      (println* "  - total_time:       " elapsed)
+      (println* "    effective_gflops: " gflops)))
+
+  (define (run-benchmark-size N num-trials sleep?)
+    (print* "# Generating " N "x" N " matrices...")
+    (let* ((start (nanotime))
+           (rng (init-rand))
+           (A (generate-matrix N rng))
+           (B (match (random rng)
+                ((RandomResult _ rng)
+                 (generate-matrix N rng))))
+           (stop (nanotime)))
+      (println* "done (time: " (elapsed-sec start stop) " seconds)")
+      (println* "- matrix_size: " N)
+      (println* "  raw_data:")
+      (for (_ 0 num-trials)
+        (run-benchmark A B)
+        ;; Possibly sleep for four seconds to let the GPU cool down.
+        (if sleep? (sleep 4)))))
+  
+  (define (main)
+    (println* "name: harlan-dmm")
+    (let* ((args (command-line))
+           (N (if (> (length args) 1)
+                  ;; 850 is chosen as the default because it should
+                  ;; work well with the default region size.
+                  (parse-str->int (vector-ref args 1) 850)
+                  850))
+           (M (if (> (length args) 2)
+                  (+ (parse-str->int (vector-ref args 2) N) 1)
+                  (+ N 1)))
+           (step (if (> (length args) 3)
+                     (parse-str->int (vector-ref args 3) 1)
+                     1))
+           (num-trials (if (> (length args) 4)
+                           (parse-str->int (vector-ref args 4) 10)
+                           10))
+           (sleep? (> (length args) 5)))
+      (println* "results:")
+      (for (N N M step)
+        (run-benchmark-size N num-trials sleep?)))
+    
+    ;; Display some extra metadata
+    (println* "device_type: " (match (rt-device-type)
+                                ((CPU) "cpu")
+                                ((GPU) "gpu")))
+    
+    ;; end of main
+    0))
+        
+;;      (let ((Bt (kernel ((j (iota 4)))
+;;                  (kernel ((i (iota 4)))
+;;                    (vector-ref (vector-ref B j) i)))))
+;;        (let ((C (kernel ((row A))
+;;                   (kernel ((col Bt))
+;;                     (reduce +
+;;                       (kernel ((x row) (y col))
+;;                         (* x y)))))))
+;;          (assert (= C A))
+;;          0)))))
