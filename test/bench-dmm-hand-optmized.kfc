@@ -24,7 +24,7 @@
       1.0))
   
   ;; TODO: New optimization - vector-refs into kernels.
-  (define (mat-mul A B)
+  #;(define (mat-mul A B)
     (let* ((N (length A))
            (Bt (kernel* ((i (iota N))
                              (j (iota N)))
@@ -32,6 +32,14 @@
       (kernel* ((a A)
                 (b Bt))
         (inner-reduce + (kernel ((a a) (b b)) (* a b))))))
+
+  (define (mat-mul A B)
+    (let* ((N (length A)))
+      (kernel* ((i (iota N))
+                (j (iota N)))
+        (inner-reduce + (kernel ((k (iota N)))
+                          (* (vector-ref (vector-ref A i) k)
+                             (vector-ref (vector-ref B k) j)))))))
 
   (define (run-benchmark A B)
     (let* ((N (length A))
