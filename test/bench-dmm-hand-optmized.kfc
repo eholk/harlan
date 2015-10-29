@@ -35,11 +35,11 @@
 
   (define (mat-mul A B)
     (let* ((N (length A)))
-      (kernel* ((i (iota N))
+      (kernel* ((A A)
                 (j (iota N)))
         (inner-reduce + (kernel ((k (iota N)))
-                          (* (vector-ref (vector-ref A i) k)
-                             (vector-ref (vector-ref B k) j)))))))
+                          (* (unsafe-vector-ref A k)
+                             (unsafe-vector-ref (unsafe-vector-ref B k) j)))))))
 
   (define (run-benchmark A B)
     (let* ((N (length A))
