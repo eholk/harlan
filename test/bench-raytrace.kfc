@@ -3,6 +3,7 @@
 (module
   (import random)
   (import graphics)
+  (import rt)
 
   (define-datatype ray-result
     (miss)
@@ -13,46 +14,10 @@
     ;; multiple rays hit.
     (hit float point3f-t))
 
-  (define (elapsed-sec start end)
-    (/ (u64->float (- end start)) 1e9))
-  
   (define (minimum a b)
     (if (< a b) a b))
   (define (maximum a b)
     (if (> a b) a b))
-  
-  (define (dot-prod a b)
-    (match a
-      ((point3f ax ay az)
-       (match b
-         ((point3f bx by bz)
-          (+ (* ax bx) (+ (* ay by) (* az bz))))))))
- 
-  (define (point-diff x y)
-    (match x
-      ((point3f a b c)
-       (match y
-         ((point3f d e f)
-          (point3f (- a d) (- b e) (- c f)))))))
-
-  (define (point-add x y)
-    (match x
-      ((point3f a b c)
-       (match y
-         ((point3f x y z)
-          (point3f (+ a x) (+ b y) (+ c z)))))))
-
-  (define (point-div (point3f a b c) y)
-    (point3f (/ a y) (/ b y) (/ c y)))
-
-  (define (point-scale (point3f a b c) y)
-    (point3f (* a y) (* b y) (* c y)))
-
-  (define (point-mag p)
-    (sqrt (dot-prod p p)))
-
-  (define (unit-length p)
-    (point-div p (point-mag p)))
 
   (define (make-diffuse-sphere center radius color)
     ;; x and y are switched for some reason from how I think light
@@ -91,19 +56,6 @@
        (let ((i (+ start (* (/ (- end start) (int->float steps))
                             (int->float j)))))
          body))))
-
-  (define-macro map2d ()
-    ((_ f data)
-     (kernel ((row data))
-       (kernel ((x row))
-         (f x)))))
-
-  (define (rgbf->rgbi x)
-    (match x
-      ((point3f r g b)
-       (point3i (float->int (* r 256))
-                (float->int (* g 256))
-                (float->int (* b 256))))))
 
   (define (translate object amount)
     (lambda (start dir)
@@ -186,8 +138,20 @@
                    (object origin dir)))
           ((miss) (point3f 0 0 0))
           ((hit dist color) color))))))
+
+  (define (do-iteration scene origin width height)
+    (let* ((start (nanotime))
+           (img (render-image scene origin width height))
+           (stop (nanotime)))
+      (write-ppm "test.bin/raytrace-converged.ppm"
+                 (map2d (lambda (x) (rgbf->rgbi x)) img))
+      (println* "    - " (elapsed-sec start stop))))
   
   (define (main)
+    (println "name: raytrace")
+    (println* "device_type: " (match (rt-device-type)
+                                ((CPU) "cpu")
+                                ((GPU) "gpu")))
     (let ((args (command-line)))
       (let ((convergent (if (>= (length args) 2)
                             (parse-str->int (vector-ref args 1) 0)
@@ -195,6 +159,9 @@
             (num-bodies (if (>= (length args) 3)
                             (parse-str->int (vector-ref args 2) 10)
                             10))
+            (num-trials (if (>= (length args) 4)
+                            (parse-str->int (vector-ref args 3) 4)
+                            4))
             (rng (init-rand)))
       (let ((lefts  (make-scale-translate num-bodies rng))
             (rights (make-translate-scale num-bodies rng))
@@ -202,20 +169,20 @@
             (height 512)
             (origin (point3f 0 0 -5)))
         (if (= convergent 1)
-            (let* ((start (nanotime))
-                   (img (render-image (append lefts rights)
-                                      origin width height))
-                   (stop (nanotime)))
-              (println "convergent")
-              (println* "SELFTIMED: " (elapsed-sec start stop))
-              (write-ppm "test.bin/raytrace-converged.ppm"
-                         (map2d (lambda (x) (rgbf->rgbi x)) img)))
-            (let* ((start (nanotime))
-                   (img (render-image (mix-scene (length lefts) lefts rights)
-                                      origin width height))
-                   (stop (nanotime)))
-              (println "divergent")
-              (println* "SELFTIMED:  " (elapsed-sec start stop))
-              (write-ppm "test.bin/raytrace-diverged.ppm"
-                         (map2d (lambda (x) (rgbf->rgbi x)) img)))))))
+            (let ((scene (append lefts rights)))
+              (println "variant: convergent")
+              (println "results:")
+              (println* "- num_bodies: " num-bodies)
+              (println* "  raw_data:")
+              (println* "    total_time:")
+              (for (i 0 num-trials)
+                (do-iteration scene origin width height)))
+            (let ((scene (mix-scene (length lefts) lefts rights)))
+              (println "variant: divergent")
+              (println "results:")
+              (println* "- num_bodies: " num-bodies)
+              (println* "  raw_data:")
+              (println* "    total_time:")
+              (for (i 0 num-trials)
+                (do-iteration scene origin width height)))))))
     0))

@@ -69,7 +69,7 @@ int get_default_region_size()
     if(cfg) {
         int sz = atoi(cfg);
         if(first_time) {
-            cerr << "Setting region size from HARLAN_MIN_REGION_SIZE to "
+	        cerr << "# Setting region size from HARLAN_MIN_REGION_SIZE to "
                  << sz << " bytes." << endl;
             first_time = false;
         }

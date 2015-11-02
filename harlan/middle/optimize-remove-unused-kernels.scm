@@ -55,6 +55,7 @@
                     `(let (,lbind ...) ,e))
                 (apply union (difference x (bound-variables lbind)) x*))))
 
+     ((do ,[e x]) (values `(do ,e) x))
      ((length ,[e x])
       (values `(length ,e) x))
      ((vector ,t ,r ,[e* x*] ...)

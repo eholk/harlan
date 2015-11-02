@@ -66,25 +66,15 @@ device_list::device_list(cl_device_type type)
         CL_CHECK_MSG(status, "clGetDeviceIDs (count)");
         num_ids += n_dev;
 
-        char n[256] = {0};
-        clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, sizeof(n), n, NULL);
-        
-        cerr << "OpenCL Platform Name:    " << n << endl;
-        
-        clGetPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, sizeof(n), n, NULL);
-        
-        cerr << "OpenCL Platform Vendor:  " << n << endl;
-
-        clGetPlatformInfo(platforms[i], CL_PLATFORM_VERSION, sizeof(n), n, NULL);
-        
-        cerr << "OpenCL Platform Version: " << n << endl;
-
         platform = i;
 
         break;
     }
 
-    cerr << "found " << num_ids << " devices" << endl;
+    if(0 == num_ids) {
+	    cerr << "found no devices!" << endl;
+	    abort();
+    }
 
     // We seem to get errors by assigning a program to too many
     // devices, so to prevent these, we arbitrarily restrict ourself
@@ -338,8 +328,6 @@ program context::createAndBuildProgramFromSource(string src)
 command_queue context::createCommandQueue(cl_device_id dev)
 {
 	cl_int status;
-
-	cerr << "Creating queue for " << device(dev).name() << endl;
 
 	cl_command_queue q = clCreateCommandQueue(ctx,
 						  dev,
