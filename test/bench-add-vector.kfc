@@ -4,6 +4,8 @@
  (%tags bench))
 
 (module
+    (import rt)
+    
   (extern time-s () -> float)
 
   (define (add-vectors xs ys)
@@ -12,18 +14,23 @@
   (define (bench_length len)
     (let ((xs (make-vector len 1.0))
           (ys (make-vector len 1.0)))
-      ; (println* "Created vectors: lengths " (length xs) " " (length ys))
-      (let* ((start (nanotime))
-             (sum (add-vectors xs ys))
-             ;;(sum (kernel ((x xs) (y ys)) (+ x y)))
-             (stop (nanotime)))
-		(- stop start))))
+      (println* "- vector_size: " len)
+      (println* "  raw_data:")
+      (println* "    total_time:")
+      (for (_ 0 10)
+        (let ((start (nanotime)))
+          (add-vectors xs ys)
+          (let ((stop (nanotime)))
+            (println* "    - " (elapsed-sec start stop)))))))
     
   (define (main)
-;;    (for (i 30 31)
-    
+    (println* "name: harlan-dmm")
+    (println* "device_type: " (match (rt-device-type)
+                                ((CPU) "cpu")
+                                ((GPU) "gpu")))
+    (println "results:")
     ;; From 1M to 90M elements:
-;    (for (i 1 90 2)
+    (for (i 1 90 2)
 ;;    (for (i 1 17)
 	  ; (let ((time 0)
           ;       (globalstart (nanotime)))
@@ -35,14 +42,5 @@
           ; )
 ;    ))
 
-    ;; Command line arg is size in millions of elements
-    (let* ((args (command-line))
-           (size (if (> (length args) 1)
-                     (parse-str->int (vector-ref args 1) -99) 10))
-           (time 0))
-      (println* "Running benchmark for size " size ", command line args were: " args)
-      (set! time (bench_length (* size 1000000)))
-      (println* "\nSELFTIMED: " (/ (u64->float (/ time 1000)) 1e7))
-      )
-
+      (bench_length (* i 1000000)))
     0))
