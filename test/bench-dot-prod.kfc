@@ -4,8 +4,10 @@
  (%tags bench))
 
 (module
+    (import rt)
+    
   (extern nanotime () -> u64)
-
+    
   ;;(define (dot X Y)
   ;;  (vector-ref
   ;;   (kernel ((_ (iota 1)))
@@ -17,25 +19,26 @@
     (reduce + (kernel ((x X) (y Y))
                 (* x y))))
   
-  (define (do-dot len)
-    (let ((X (make-vector len 1.0))
-          (Y (make-vector len 1.0)))
+  (define (do-dot X Y)
+    (for (i 0 10)
       (let ((start (nanotime)))
-        (for (i 0 10)
-          (dot X Y))
+        (dot X Y)
         (let ((stop (nanotime)))
-          ;;(assert (= d (int->float len)))
-          (- stop start)))))
+          (println* "    - " (elapsed-sec start stop))))))
   
   (define (bench_length len)
-    (let ((time (do-dot len)))
-      (print "ARG_AND_TIME: ")
-      (print len)
-      (print "\t")
-      (print (/ time 10000))
-      (print "\n")))
+    (let ((X (make-vector len 1.0))
+          (Y (make-vector len 1.0)))
+      (println* "  - vector_size: " len)
+      (println* "    total_time:")
+      (do-dot X Y)
+      0))
   
   (define (main)
+    (println* "name: harlan-dmm")
+    (println* "device_type: " (match (rt-device-type)
+                                ((CPU) "cpu")
+                                ((GPU) "gpu")))
     (for (i 1 135 2)
     ;;(for (i 1 21)
       (bench_length (* i 1000000)))
