@@ -1,5 +1,3 @@
-(%testspec
- (%tags xfail))
 (module
   (define-datatype K
     (Cont (closure () -> K))
