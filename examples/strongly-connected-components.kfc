@@ -91,18 +91,68 @@
           (println "Called-by graph")
           (println reverse-graph)
           (println "")
-          (let ((sccs (scc-loop reverse-graph (iota (length graph)))))
-            (println "Components:")
+          (let ((sccs (sccs graph reverse-graph)))
+            (println "Strongly Connected Component IDs:")
             (println sccs)))))
 
-  (define (scc-loop reverse-graph components)
-    (let ((next-components
-           (kernel ((comp components) (edges reverse-graph))
+  ;; Use a coloring-based approach.
+  ;;
+  ;; See
+  ;; http://www.cse.psu.edu/~kxm85/papers/Multistep_IPDPS14_slides.pdf
+  ;; for details.
+
+  (define (color-vertices reverse-graph colors)
+    (let ((next-colors
+           (kernel ((color colors) (edges reverse-graph))
              (if (> (length edges) 0)
-                 (min comp (inner-reduce min (kernel ((e edges))
-                                               (vector-ref components e))))
-                 comp))))
-      (println components)
-      (if (= components next-components)
+                 (max color (inner-reduce max (kernel ((e edges))
+                                               (vector-ref colors e))))
+                 color))))
+      (println colors)
+      (if (= colors next-colors)
+          colors
+          (color-vertices reverse-graph next-colors))))
+
+  (define (components-eq a b)
+    (reduce and (kernel ((a a) (b b))
+                  (match a
+                    ((None)
+                     (match b
+                       ((None) #t)
+                       ((Color _) #f)))
+                    ((Color i)
+                     (match b
+                       ((None) #f)
+                       ((Color j) (= i j))))))))
+  
+  (define-datatype Component
+    (None)
+    (Color int))
+  
+  (define (assign-components graph colors components)
+    (let ((next-components
+           (kernel ((id (iota (length graph)))
+                    (comp components)
+                    (edges graph))
+             (match comp
+               ((Color _) comp)
+               ((None)
+                (if (= id (vector-ref colors id))
+                    (Color id)
+                    (if (> (length edges) 0)
+                        (inner-reduce (lambda (a b)
+                                        (match a
+                                          ((None) b)
+                                          ((Color _) a)))
+                                      (kernel ((e edges))
+                                        (vector-ref components e)))
+                        (None))))))))
+      (if (components-eq components next-components)
           components
-          (scc-loop reverse-graph next-components)))))
+          (assign-components graph colors next-components))))
+
+  (define (sccs graph reverse-graph)
+    (let ((colors
+           (color-vertices reverse-graph (iota (length reverse-graph)))))
+      (assign-components graph colors
+                         (make-vector (length graph) (None))))))
