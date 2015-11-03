@@ -133,17 +133,20 @@
   ;; http://www.cse.psu.edu/~kxm85/papers/Multistep_IPDPS14_slides.pdf
   ;; for details.
 
-  (define (color-vertices reverse-graph colors)
+  (define (color-vertices reverse-graph colors components)
     (let ((next-colors
-           (kernel ((color colors) (edges reverse-graph))
-             (if (> (length edges) 0)
-                 (max color (inner-reduce max (kernel ((e edges))
-                                               (vector-ref colors e))))
-                 color))))
+           (kernel ((color colors) (edges reverse-graph) (comp components))
+             (match comp
+               ((None)
+                (if (> (length edges) 0)
+                    (max color (inner-reduce max (kernel ((e edges))
+                                                   (vector-ref colors e))))
+                    color))
+               ((Color _) -1)))))
       (println colors)
       (if (= colors next-colors)
           colors
-          (color-vertices reverse-graph next-colors))))
+          (color-vertices reverse-graph next-colors components))))
 
   (define (components-eq a b)
     (reduce and (kernel ((a a) (b b))
@@ -199,9 +202,16 @@
           components
           (assign-components graph colors next-components))))
 
-  (define (sccs graph reverse-graph)
+  (define (update-components graph reverse-graph components)
     (let ((colors
-           (color-vertices reverse-graph (iota (length reverse-graph)))))
+           (color-vertices reverse-graph (iota (length reverse-graph))
+                           components)))
       (println* "Colors: " colors)
-      (assign-components graph colors
-                         (make-vector (length graph) (None))))))
+      (let ((new-components (assign-components graph colors components)))
+        (if (components-eq components new-components)
+            components
+            (update-components graph reverse-graph new-components)))))
+  
+  (define (sccs graph reverse-graph)
+    (update-components graph reverse-graph
+                       (make-vector (length graph) (None)))))
