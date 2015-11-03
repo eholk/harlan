@@ -19,7 +19,23 @@
             (error        11)
             (extended-env 12)
             (closure      13)
-            (lambda_123   14))
+            (lambda_123   14)
+
+            (names (vector "_kernel"
+                           "main"
+                           "lookup"
+                           "app"
+                           "Lambda"
+                           "variable"
+                           "empty-env"
+                           "lambda_122"
+                           "dispatch_126"
+                           "lambda_124"
+                           "eval"
+                           "error"
+                           "extended-env"
+                           "closure"
+                           "lambda_123")))
         (let ((graph (vector
                       ;; _kernel
                       (vector lookup closure lambda_123 lambda_124
@@ -86,15 +102,31 @@
                 ;; lambda_123
                 (vector _kernel eval))))
           (println "Calls graph")
-          (println graph)
+          (print-graph names graph)
           (println "")
           (println "Called-by graph")
-          (println reverse-graph)
+          (print-graph names reverse-graph)
           (println "")
           (let ((sccs (sccs graph reverse-graph)))
             (println "Strongly Connected Component IDs:")
-            (println sccs)))))
+            (print-components names sccs)
+            0))))
 
+    (define (print-graph names graph)
+      (for (i 0 (length graph))
+        (print* (vector-ref names i) ": [")
+        (let ((edges (vector-ref graph i)))
+          (for (i 0 (length edges))
+            (print* " " (vector-ref names (vector-ref edges i)))))
+        (println " ]")))
+      
+  (define (print-components names sccs)
+    (for (i 0 (length sccs))
+      (println* (vector-ref names i) " ∈ " (match (vector-ref sccs i)
+                                             ((None) "<none>")
+                                             ((Color i)
+                                              (vector-ref names i))))))
+  
   ;; Use a coloring-based approach.
   ;;
   ;; See
@@ -132,6 +164,7 @@
   (define (assign-components graph colors components)
     (let ((next-components
            (kernel ((id (iota (length graph)))
+                    (color colors)
                     (comp components)
                     (edges graph))
              (match comp
@@ -142,11 +175,26 @@
                     (if (> (length edges) 0)
                         (inner-reduce (lambda (a b)
                                         (match a
-                                          ((None) b)
-                                          ((Color _) a)))
+                                          ((None)
+                                           (match b
+                                             ((None) (None))
+                                             ((Color i)
+                                              (if (= i color)
+                                                  (Color i)
+                                                  (None)))))
+                                          ((Color i)
+                                           (if (= i color)
+                                               (Color i)
+                                               (match b
+                                                 ((None) (None))
+                                                 ((Color i)
+                                                  (if (= i color)
+                                                      (Color i)
+                                                      (None))))))))
                                       (kernel ((e edges))
                                         (vector-ref components e)))
                         (None))))))))
+      (println next-components)
       (if (components-eq components next-components)
           components
           (assign-components graph colors next-components))))
@@ -154,5 +202,6 @@
   (define (sccs graph reverse-graph)
     (let ((colors
            (color-vertices reverse-graph (iota (length reverse-graph)))))
+      (println* "Colors: " colors)
       (assign-components graph colors
                          (make-vector (length graph) (None))))))
