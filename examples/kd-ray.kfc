@@ -1,14 +1,31 @@
 (module
     (import vectors)
-
+    (import graphics)
+    
+    (define-macro interpolate-range ()
+      ((_ (i start end steps) body)
+       (kernel ((j (iota steps)))
+         (let ((i (+ start (* (/ (- end start) (int->float steps))
+                              (int->float j)))))
+           body))))
+    
     (define-datatype Shape
-      ;; (Sphere center-x center-y center-z radius)
-      (Sphere float float float float))
+      ;; (Sphere center-x center-y center-z radius color)
+      (Sphere float float float float point3f-t))
     
     (define-datatype Axis
       (XAxis)
       (YAxis)
       (ZAxis))
+
+    (define-datatype ray-result
+      (miss)
+      ;; The ray hits the surface and is completely absorbed, so it
+      ;; should be rendered with the returned color.
+      ;;
+      ;; the float tells the distance so we can do occlusion when
+      ;; multiple rays hit.
+      (hit float point3f-t))
 
   (define-datatype KdTree
     (Leaf (vec Shape))
@@ -18,10 +35,16 @@
     ;; (Range low high)
     (Range float float))
 
+  (define (minimum a b)
+    (if (< a b) a b))
+  (define (maximum a b)
+    (if (> a b) a b))
+
+
   ;; (Shape Axis) -> Range
   (define (bounding-box shape axis)
     (match shape
-      ((Sphere cx cy cz r)
+      ((Sphere cx cy cz r color)
        (match axis
          ((XAxis) (Range (- cx r) (+ cx r)))
          ((YAxis) (Range (- cy r) (+ cy r)))
@@ -241,17 +264,80 @@
        (print ")") 0)))
   
   (define (main)
-    (let* ((shapes (vector (Sphere -10 -10  10 3)
-                           (Sphere -10  10 -10 3)
-                           (Sphere -10  10  10 3)
-                           (Sphere  10 -10 -10 3)
-                           (Sphere  10 -10  10 3)
-                           (Sphere  10  10 -10 3)
-                           (Sphere  10  10  10 3)
-                           (Sphere -10 -10 -10 3)))
+    (let* ((shapes (vector (Sphere -10 -10  10 3 (point3f 1 1 1))
+                           (Sphere -10  10 -10 3 (point3f 1 1 0))
+                           (Sphere -10  10  10 3 (point3f 1 0 1))
+                           (Sphere  10 -10 -10 3 (point3f 1 0 0))
+                           (Sphere  10 -10  10 3 (point3f 0 1 1))
+                           (Sphere  10  10 -10 3 (point3f 0 1 0))
+                           (Sphere  10  10  10 3 (point3f 0 0 1))
+                           (Sphere -10 -10 -10 3 (point3f 0.5 0.5 0.5))))
+           (origin (point3f 3 3 -25))
+           (width  256)
+           (height 256)
            (dims (reduce union-box
                    (kernel ((shape shapes)) (full-bounding-box shape)))))
       (println dims)
       (let ((tree (build-tree shapes dims)))
-        (print-tree tree) (println "")))
-    0))
+        (print-tree tree) (println ""))
+      (let ((image (render-direct shapes origin width height)))
+        (write-ppm "test.bin/kd-ray-direct.ppm"
+                   (map2d (lambda (x) (rgbf->rgbi x)) image))))
+    0)
+
+  (define (select-closest a b)
+    (match a
+      ((miss) b)
+      ((hit da _)
+       (match b
+         ((miss) a)
+         ((hit db _)
+          (if (< da db) a b))))))
+
+  (define (intersect-shape shape origin direction light-dir)
+    (match shape
+      ;; This is updated from
+      ;; http://www.ccs.neu.edu/home/fell/CSU540/programs/RayTracingFormulas.htm
+      ((Sphere cx cy cz radius color)
+       (let ((center (point3f cx cy cz)))
+         (let ((a (dot-prod direction direction))
+               (b (* 2 (dot-prod direction (point-diff origin center))))
+               (c (- (- (+ (dot-prod origin origin)
+                           (dot-prod center center))
+                        (* 2 (dot-prod center origin)))
+                     (* radius radius))))
+           (let ((disc (- (* b b) (* 4 (* a c)))))
+             (if (< disc 0)
+                 (miss)
+                 (let* ((disc-sqrt (sqrt disc))
+                        #;(q (if (< b 0)
+                               (* -0.5 (+ b dist-sqrt))
+                               (* 0.5 (- dist-sqrt b))))
+                        #;(t0 (/ q a))
+                        #;(t1 (/ c q)))
+                   (let (#;(t (maximum t0 t1))
+                         (t (/ (- (- 0 b) disc-sqrt)
+                               (* 2 a))))
+                     (if (< t 0)
+                         (miss)
+                         (let* ((pos (point-add (point-scale direction t)
+                                                origin))
+                                (norm (unit-length (point-diff pos center)))
+                                (color (point-scale
+                                        color
+                                        (dot-prod light-dir norm))))
+                           (hit t color))))))))))))
+  
+  ;; render a bunch of shapes without using the kd-tree
+  (define (render-direct scene origin width height)
+    (interpolate-range
+     (y 1.0 -1.0 height) ;; y coordinate is upside down.
+     (interpolate-range
+      (x -1.0 1.0 width)
+      (let ((dir (unit-length (point3f x y 1))))
+        (match (reduce select-closest
+                 (kernel ((shape scene))
+                   (intersect-shape shape origin dir (unit-length
+                                                      (point3f 1 1 -2)))))
+          ((miss) (point3f 0 0 0))
+          ((hit dist color) color)))))))
