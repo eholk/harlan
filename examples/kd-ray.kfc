@@ -332,10 +332,13 @@
                            (hit t color))))))))))))
 
   (define (select-point scene origin dir)
-    (inner-reduce select-closest
-      (kernel ((shape scene))
-        (intersect-shape shape origin dir (unit-length
-                                           (point3f 1 1 -2))))))
+    (if (= 0 (length scene))
+        (miss)
+        (inner-reduce select-closest
+                      (kernel ((shape scene))
+                        (intersect-shape shape origin dir
+                                         (unit-length
+                                          (point3f 1 1 -2)))))))
 
   (define (color-point point)
     (match point
@@ -357,20 +360,21 @@
     (match tree
       ((Leaf shapes) (select-point shapes origin dir))
       ((Split axis plane left right)
-       ;; Find where the ray intersects this plane
-       (let ((t (plane-intersection axis plane origin dir)))
-         (match ray-bounds
-           ((FloatPair t0 t1)
-            (if (>= t t0)
-                (if (<= t t1)
-                    (select-closest (traverse-kd-tree left origin dir
-                                                      (FloatPair t0 t))
-                                    (traverse-kd-tree right origin dir
-                                                      (FloatPair t t1)))
-                    (traverse-kd-tree left origin dir ray-bounds))
-                (if (<= t t1)
+       (let ((reverse (< (select-coord axis dir) 0)))
+         (let ((left  (if reverse right left))
+               (right (if reverse left right)))
+           ;; Find where the ray intersects this plane
+           (let ((t (plane-intersection axis plane origin dir)))
+             (match ray-bounds
+               ((FloatPair t0 t1)
+                (if (< t t0)
                     (traverse-kd-tree right origin dir ray-bounds)
-                    (miss)))))))))
+                    (if (<= t t1)
+                        (select-closest (traverse-kd-tree left origin dir
+                                                          (FloatPair t0 t))
+                                        (traverse-kd-tree right origin dir
+                                                          (FloatPair t t1)))
+                        (traverse-kd-tree right origin dir ray-bounds)))))))))))
 
   (define (render-tree tree origin width height)
     (interpolate-range
