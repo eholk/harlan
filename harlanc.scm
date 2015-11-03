@@ -34,6 +34,6 @@
       (let ((filename (car args)))
         (print-compile-harlan filename)))))
 
-;;(trace-pass 'optimize-lift-lets 'optimize-fuse-kernels)
+;;(trace-pass 'compile-module)
 
 (harlanc (command-line))

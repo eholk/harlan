@@ -82,7 +82,7 @@
          (Split axis plane left right)))))
 
   ;; Returns the "ideal" leaf size.
-  (define (leaf-size) 3)
+  (define (leaf-size) 10)
 
   (define-datatype BoxDims-t
     ;; (BoxDims x y z)
@@ -279,7 +279,10 @@
                    (kernel ((shape shapes)) (full-bounding-box shape)))))
       (println dims)
       (let ((tree (build-tree shapes dims)))
-        (print-tree tree) (println ""))
+        (print-tree tree) (println "")
+        (let ((image (render-tree tree origin width height)))
+          (write-ppm "test.bin/kd-ray-traverse.ppm"
+                     (map2d (lambda (x) (rgbf->rgbi x)) image))))
       (let ((image (render-direct shapes origin width height)))
         (write-ppm "test.bin/kd-ray-direct.ppm"
                    (map2d (lambda (x) (rgbf->rgbi x)) image))))
@@ -327,6 +330,57 @@
                                         color
                                         (dot-prod light-dir norm))))
                            (hit t color))))))))))))
+
+  (define (select-point scene origin dir)
+    (inner-reduce select-closest
+      (kernel ((shape scene))
+        (intersect-shape shape origin dir (unit-length
+                                           (point3f 1 1 -2))))))
+
+  (define (color-point point)
+    (match point
+      ((miss) (point3f 1 1 1))
+      ((hit dist color) color)))
+  
+  (define (select-coord axis point)
+    (match point
+      ((point3f x y z)
+       (match axis
+         ((XAxis) x)
+         ((YAxis) y)
+         ((ZAxis) z)))))
+  
+  (define (plane-intersection axis plane origin dir)
+    (/ (- plane (select-coord axis origin)) (select-coord axis dir)))
+  
+  (define (traverse-kd-tree tree origin dir ray-bounds)
+    (match tree
+      ((Leaf shapes) (select-point shapes origin dir))
+      ((Split axis plane left right)
+       ;; Find where the ray intersects this plane
+       (let ((t (plane-intersection axis plane origin dir)))
+         (match ray-bounds
+           ((FloatPair t0 t1)
+            (if (>= t t0)
+                (if (<= t t1)
+                    (select-closest (traverse-kd-tree left origin dir
+                                                      (FloatPair t0 t))
+                                    (traverse-kd-tree right origin dir
+                                                      (FloatPair t t1)))
+                    (traverse-kd-tree left origin dir ray-bounds))
+                (if (<= t t1)
+                    (traverse-kd-tree right origin dir ray-bounds)
+                    (miss)))))))))
+
+  (define (render-tree tree origin width height)
+    (interpolate-range
+     (y 1.0 -1.0 height) ;; y coordinate is upside down.
+     (interpolate-range
+      (x -1.0 1.0 width)
+      (let ((dir (unit-length (point3f x y 1))))
+        (color-point (traverse-kd-tree tree origin dir
+                                       ;; Arbitrarily set the vision distance
+                                       (FloatPair 0 1000)))))))
   
   ;; render a bunch of shapes without using the kd-tree
   (define (render-direct scene origin width height)
@@ -335,9 +389,4 @@
      (interpolate-range
       (x -1.0 1.0 width)
       (let ((dir (unit-length (point3f x y 1))))
-        (match (reduce select-closest
-                 (kernel ((shape scene))
-                   (intersect-shape shape origin dir (unit-length
-                                                      (point3f 1 1 -2)))))
-          ((miss) (point3f 0 0 0))
-          ((hit dist color) color)))))))
+        (color-point (select-point scene origin dir)))))))

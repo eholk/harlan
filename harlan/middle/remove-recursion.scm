@@ -280,14 +280,13 @@
       (union-live/e `(vector-ref ,t ,e1 ,e2)
                     x1 t1
                     x2 t2))
+     ;; TODO: this ignores the live variables in the callee, since
+     ;; they are usually top-level variables that we don't want to
+     ;; save. This should be updated to handle this properly.
      ((call ,[e x t] ,[e* x* t*] ...)
       (let-values (((x* t*) (union-live* x* t*)))
-        (union-live/e `(call ,e ,e* ...)
-                      x  t
-                      x* t*)))
-     ((call ,[e x t] ,[e* x* t*] ...)
-      (let-values (((x* t*) (union-live* x* t*)))
-        (union-live/e `(call ,e ,e* ...) x t x* t*)))
+        (values `(call ,e ,e* ...) x* t*)
+        #;(union-live/e `(call ,e ,e* ...) x t x* t*)))
      ((call-label ,name ,[t] ,[e live-x^ live-t^] ...)
       (let-values (((live-x^ live-t^) (union-live* live-x^ live-t^)))
         (values `(call-label ,name ,t ((,live-x ,live-t) ...) ,e ...)
@@ -508,7 +507,7 @@
      ((with-labels ((,name ((,x* ,[t*]) ...) ,stmt*) ...) ,stmt)
       (let ((stack (gensym 'stack))
             (sp (gensym 'sp))
-            (stack-size 512))
+            (stack-size 1024))
         (parameterize ((new-labels '())
                        (dispatch-name (gensym 'dispatch))
                        (stack-base (with-output-language
