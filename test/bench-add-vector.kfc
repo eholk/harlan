@@ -31,16 +31,5 @@
     (println "results:")
     ;; From 1M to 90M elements:
     (for (i 1 90 2)
-;;    (for (i 1 17)
-	  ; (let ((time 0)
-          ;       (globalstart (nanotime)))
-          ;       ;; Add each vector 10 times:
-	  ;       (for (j 0 10)
-	  ;         (set! time (+ time (bench_length (* i 1000000)))))
-          ;       (println* "ARG_AND_SELFTIMED: " i "\t" (/ (u64->float (/ time 1000)) 1e7))
-          ;       (println* "  total test time, ten rounds, with transfers: " (/ (u64->float (/ (- (nanotime) globalstart) 1000)) 1e6))
-          ; )
-;    ))
-
       (bench_length (* i 1000000)))
     0))

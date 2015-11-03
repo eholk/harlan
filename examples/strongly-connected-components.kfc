@@ -1,0 +1,108 @@
+(module
+    (import rt)
+
+    ;; Strongly connected components, using the graph from the lambda
+    ;; calculus interpreter in Figure 5.2 (currently) of my
+    ;; dissertation.
+    (define (main)
+      (let ((_kernel       0)
+            (main          1)
+            (lookup        2)
+            (app           3)
+            (Lambda        4)
+            (variable      5)
+            (empty-env     6)
+            (lambda_122    7)
+            (dispatch_126  8)
+            (lambda_124    9)
+            (eval         10)
+            (error        11)
+            (extended-env 12)
+            (closure      13)
+            (lambda_123   14))
+        (let ((graph (vector
+                      ;; _kernel
+                      (vector lookup closure lambda_123 lambda_124
+                              dispatch_126 error eval extended-env app Lambda
+                              variable eval empty-env lambda_122)
+                      ;; main
+                      (vector)
+                      ;; lookup
+                      (vector error dispatch_126 lookup)
+                      ;; app
+                      (vector)
+                      ;; Lambda
+                      (vector)
+                      ;; variable
+                      (vector)
+                      ;; empty-env
+                      (vector)
+                      ;; lambda_122
+                      (vector)
+                      ;; dispatch_126
+                      (vector lambda_124 dispatch_126 error eval extended-env)
+                      ;; lambda_124
+                      (vector)
+                      ;; eval
+                      (vector lookup dispatch_126 closure eval lambda_123)
+                      ;; error
+                      (vector)
+                      ;; extended-env
+                      (vector)
+                      ;; closure
+                      (vector)
+                      ;; lambda_123
+                      (vector)))
+              (reverse-graph
+               (vector
+                ;; _kernel
+                (vector)
+                ;; main
+                (vector)
+                ;; lookup
+                (vector _kernel lookup eval)
+                ;; app
+                (vector _kernel)
+                ;; Lambda
+                (vector _kernel)
+                ;; variable
+                (vector _kernel)
+                ;; empty-env
+                (vector _kernel)
+                ;; lambda_122
+                (vector _kernel)
+                ;; dispatch_126
+                (vector _kernel lookup eval)
+                ;; lambda_124
+                (vector _kernel dispatch_126)
+                ;; eval
+                (vector _kernel dispatch_126 eval)
+                ;; error
+                (vector _kernel lookup dispatch_126)
+                ;; extended-env
+                (vector _kernel dispatch_126)
+                ;; closure
+                (vector _kernel eval)
+                ;; lambda_123
+                (vector _kernel eval))))
+          (println "Calls graph")
+          (println graph)
+          (println "")
+          (println "Called-by graph")
+          (println reverse-graph)
+          (println "")
+          (let ((sccs (scc-loop reverse-graph (iota (length graph)))))
+            (println "Components:")
+            (println sccs)))))
+
+  (define (scc-loop reverse-graph components)
+    (let ((next-components
+           (kernel ((comp components) (edges reverse-graph))
+             (if (> (length edges) 0)
+                 (min comp (inner-reduce min (kernel ((e edges))
+                                               (vector-ref components e))))
+                 comp))))
+      (println components)
+      (if (= components next-components)
+          components
+          (scc-loop reverse-graph next-components)))))
